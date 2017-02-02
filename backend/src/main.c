@@ -3,30 +3,14 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <event2/event.h>
+#include <evhtp.h>
 #include <jansson.h>
 
 #include "ami_handler.h"
-
-struct event_base*  g_base = NULL;
+#include "slog.h"
 
 struct json_t* g_app;
-
-/*
-static void cb_sample(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg)
-{
-  int ret;
-  struct event* ev;
-  
-  ev = event_new(g_base, ami_sock, EV_READ | EV_PERSIST, cb_ami_handler, NULL);
-  event_add(ev, NULL);
-
-  tmp_const = "Action: Login\r\nUsername: admin\r\nSecret:admin\r\n";
-  ret = send_ami_cmd(tmp_const);
-  
-  
-  return;
-}
-*/
+struct event_base*  g_base = NULL;
 
 void set_config(void)
 {
@@ -34,8 +18,9 @@ void set_config(void)
   
   json_object_set(g_app, "username", json_string("admin"));
   json_object_set(g_app, "password", json_string("admin"));
-  json_object_set(g_app, "serv_addr", json_string("192.168.200.10"));
+  json_object_set(g_app, "serv_addr", json_string("10.12.118.11"));
   json_object_set(g_app, "serv_port", json_string("5038"));
+  json_object_set(g_app, "loglevel", json_string("7"));
   
   return;
 }
@@ -45,6 +30,12 @@ bool init(void)
 {
   int ret;
   
+  ret = init_log();
+  if(ret == false) {
+    printf("Failed initiate log.\n");
+    return false;
+  }
+
   if(g_base == NULL) {
 		printf("New event base.\n");
 		g_base = event_base_new();
@@ -62,7 +53,6 @@ bool init(void)
 int main(int argc, char** argv) 
 {
   int ret;
-//  const char* tmp_const;
   
   printf("Hello world.\n");
   set_config();
@@ -72,6 +62,7 @@ int main(int argc, char** argv)
     printf("Could not initiate.\n");
     return 1;
   }
+  slog(LOG_INFO, "Started backend service.");
     
   event_base_loop(g_base, 0);
     

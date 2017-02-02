@@ -21,6 +21,7 @@
 #include <event2/event.h>
 #include <jansson.h>
 
+#include "slog.h"
 #include "ami_handler.h"
 
 #define DLE     0x0f  // Data link escape
@@ -40,8 +41,6 @@ extern struct json_t* g_app;
 
 static struct termios tin;
 static int ami_sock = 0;
-
-static int flg_login = false;
 
 //static void negotiate(int sock, unsigned char *buf, int len);
 static void terminal_reset(void);
@@ -64,19 +63,19 @@ void FREE(char* tmp)
  
 static void terminal_set(void) 
 {
-    // save terminal configuration
-    tcgetattr(STDIN_FILENO, &tin);
-     
-    static struct termios tlocal;
-    memcpy(&tlocal, &tin, sizeof(tin));
-    cfmakeraw(&tlocal);
-    tcsetattr(STDIN_FILENO,TCSANOW,&tlocal);
+  // save terminal configuration
+  tcgetattr(STDIN_FILENO, &tin);
+
+  static struct termios tlocal;
+  memcpy(&tlocal, &tin, sizeof(tin));
+  cfmakeraw(&tlocal);
+  tcsetattr(STDIN_FILENO,TCSANOW,&tlocal);
 }
  
 static void terminal_reset(void) 
 {
-    // restore terminal upon exit
-    tcsetattr(STDIN_FILENO,TCSANOW,&tin);
+  // restore terminal upon exit
+  tcsetattr(STDIN_FILENO,TCSANOW,&tin);
 }
 
 static void cb_ami_handler(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg)
@@ -112,6 +111,7 @@ bool init_ami_handler(void)
   if(g_app == NULL) {
     return false;
   }
+  slog(LOG_DEBUG, "init_ami_handler");
   
   serv_addr = json_string_value(json_object_get(g_app, "serv_addr"));
   serv_port = json_string_value(json_object_get(g_app, "serv_port"));
@@ -140,7 +140,7 @@ bool init_ami_handler(void)
       perror("connect failed. Error");
       return 1;
   }
-  printf("Connected.\n");
+  slog(LOG_DEBUG, "Connected to Asterisk.");
 
   // set terminal
   terminal_set();
@@ -183,6 +183,7 @@ static bool ami_login(void)
   if(g_app == NULL) {
     return false;
   }
+  slog(LOG_DEBUG, "ami_login");
   
   username = json_string_value(json_object_get(g_app, "username"));
   password = json_string_value(json_object_get(g_app, "password"));
