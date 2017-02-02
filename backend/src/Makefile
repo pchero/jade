@@ -1,5 +1,5 @@
 TARGET = main
-LIBS = -ljansson -levent
+LIBS = -ljansson -levhtp -levent -levent_openssl -lssl -lcrypto -lpthread 
 CC = gcc
 CFLAGS = -g -Wall
 

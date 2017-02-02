@@ -10,7 +10,12 @@
 #include "slog.h"
 
 struct json_t* g_app;
+
 struct event_base*  g_base = NULL;
+evhtp_t* g_htp;
+
+void cb_htp_ping(evhtp_request_t *req, void *a);
+
 
 void set_config(void)
 {
@@ -25,6 +30,19 @@ void set_config(void)
   return;
 }
 
+static bool init_event(void)
+{
+  if(g_base == NULL) {
+    printf("New event base.\n");
+    g_base = event_base_new();
+  }
+  g_htp = evhtp_new(g_base, NULL);
+  evhtp_bind_socket(g_htp, "0.0.0.0", 8081, 1024);
+
+  evhtp_set_cb(g_htp, "/ping", cb_htp_ping, NULL);
+
+  return true;
+}
 
 bool init(void)
 {
@@ -36,10 +54,11 @@ bool init(void)
     return false;
   }
 
-  if(g_base == NULL) {
-		printf("New event base.\n");
-		g_base = event_base_new();
-	}
+  ret = init_event();
+  if(ret == false) {
+    slog(LOG_DEBUG, "Could not initiate event.");
+    return false;
+  }
   
   ret = init_ami_handler();
   if(ret == false) {
@@ -49,6 +68,15 @@ bool init(void)
   
   return true;
 }
+
+void cb_htp_ping(evhtp_request_t *req, void *a)
+{
+  slog(LOG_DEBUG, "cb_htp_ping");
+
+  evbuffer_add_printf(req->buffer_out, "%s", "pong");
+  evhtp_send_reply(req, EVHTP_RES_OK);
+}
+
 
 int main(int argc, char** argv) 
 {
@@ -65,6 +93,11 @@ int main(int argc, char** argv)
   slog(LOG_INFO, "Started backend service.");
     
   event_base_loop(g_base, 0);
-    
+
+  evhtp_unbind_socket(g_htp);
+  evhtp_free(g_htp);
+  event_base_free(g_base);
+
+
   return 0;
 }
