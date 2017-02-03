@@ -53,6 +53,9 @@ static void terminal_set(void);
 static bool ami_login(void);
 static void ami_message_handler(const char* msg);
 
+static json_t* parse_ami_msg(const char* msg);
+
+
 static void cb_ami_handler(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg);
  
 
@@ -120,7 +123,21 @@ static void cb_ami_handler(__attribute__((unused)) int fd, __attribute__((unused
 
 static void ami_message_handler(const char* msg)
 {
+	json_t* j_msg;
+	char* tmp;
+
+	if(msg == NULL) {
+		slog(LOG_WARNING, "Wrong input parameter.");
+		return;
+	}
+
   slog(LOG_DEBUG, "Fired ami_message_handler. msg[%s]", msg);
+
+  j_msg = parse_ami_msg(msg);
+
+  tmp = json_dumps(j_msg, JSON_ENCODE_ANY);
+  slog(LOG_DEBUG, "parsed message. msg[%s]", tmp);
+  sfree(tmp);
   return;
 }
 
@@ -233,7 +250,6 @@ static bool ami_login(void)
   return true;
 }
 
-
 /**
  *
  * @param msg
@@ -241,62 +257,65 @@ static bool ami_login(void)
  */
 static json_t* parse_ami_msg(const char* msg)
 {
-  struct ast_json* j_out;
-  struct ast_json* j_tmp;
-  int i, j;
-  int ret;
-  char  tmp[2048];
+	json_t* j_tmp;
+	char tmp[4096];
+	int ret;
+	int i;
+	int j;
   char* key;
   char* value;
   char* dump;
 
-  if(msg == NULL) {
-    return NULL;
-  }
+	if(msg == NULL) {
+		slog(LOG_WARNING, "Wrong input parameter.");
+		return NULL;
+	}
 
-  memset(tmp, 0x00, sizeof(tmp));
-  j_out = ast_json_array_create();
-  j_tmp = ast_json_object_create();
+  j_tmp = json_object();
+  bzero(tmp, sizeof(tmp));
   for(i = 0, j = 0; i < strlen(msg); i++) {
-    if((msg[i] == '\r') && (msg[i + 1] == '\n')) {
-      // Check /r/n/r/n
-      ret = strlen(tmp);
-      if(ret == 0) {
-        ret = ast_json_array_append(j_out, ast_json_deep_copy(j_tmp));
-        AST_JSON_UNREF(j_tmp);
-        j_tmp = NULL;
-
-        j_tmp = ast_json_object_create();
-        j = 0;
-        i++;
-        continue;
-      }
-
-      value = ast_strdup(tmp);
-      dump = value;
-      key = strsep(&value, ":");
-      if(key == NULL) {
-        ast_free(dump);
-        continue;
-      }
-
-      trim(key);
-      trim(value);
-      ast_json_object_set(j_tmp, key, ast_json_string_create(value));
-
-      ast_free(dump);
-      memset(tmp, 0x00, sizeof(tmp));
-      j = 0;
-      i++;
-      continue;
-    }
     tmp[j] = msg[i];
     j++;
-  }
 
-  if(j_tmp != NULL) {
-    AST_JSON_UNREF(j_tmp);
-  }
-  return j_out;
+    if((msg[i] != '\r') || (msg[i+1] != '\n')) {
+    	continue;
+    }
+
+		// check /r/n/r/n
+		ret = strlen(tmp);
+		if(ret == 0) {
+			break;
+		}
+
+		// get key/value
+		value = strdup(tmp);
+		dump = value;
+		key = strsep(&value, ":");
+		if(key == NULL) {
+			sfree(dump);
+			continue;
+		}
+		trim(key);
+		trim(value);
+
+		ret = strcmp(key, "Variable");
+		if(ret == 0) {
+			if(json_object_get(j_tmp, "Variable") == NULL) {
+				json_object_set_new(j_tmp, "Variable", json_array());
+			}
+			json_array_append_new(json_object_get(j_tmp, "Variable"), json_string(value));
+		}
+		else {
+			json_object_set_new(j_tmp, key, json_string(value));
+		}
+
+		sfree(dump);
+		memset(tmp, 0x00, sizeof(tmp));
+		j = 0;
+		i++;
+		continue;
+	}
+
+  return j_tmp;
 }
 

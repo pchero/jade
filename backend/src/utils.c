@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <uuid/uuid.h>
+#include <ctype.h>
 
 #include "utils.h"
 
@@ -26,6 +27,28 @@ void sfree(char* tmp)
   free(tmp);
 
   return;
+}
+
+/**
+ *
+ * @param s
+ */
+void trim(char* s)
+{
+	char* p;
+	int l;
+
+	if(s == NULL) {
+		return;
+	}
+
+	p = s;
+	l = strlen(p);
+
+	while(isspace(p[l - 1])) p[--l] = 0;
+	while(* p && isspace(* p)) ++p, --l;
+
+	memmove(s, p, l + 1);
 }
 
 /**

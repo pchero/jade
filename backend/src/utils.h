@@ -10,6 +10,7 @@
 
 
 void sfree(char* tmp);
+void trim(char * s);
 
 char* gen_uuid(void);
 char* get_utc_timestamp(void);
