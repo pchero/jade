@@ -57,9 +57,9 @@ static void ami_message_handler(const char* msg);
 
 static json_t* parse_ami_msg(const char* msg);
 
-
 static void cb_ami_handler(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg);
- 
+
+static void ami_event_peerentry(json_t* j_msg);
 
 static void terminal_set(void) 
 {
@@ -127,19 +127,41 @@ static void ami_message_handler(const char* msg)
 {
 	json_t* j_msg;
 	char* tmp;
+	const char* event;
 
 	if(msg == NULL) {
 		slog(LOG_WARNING, "Wrong input parameter.");
 		return;
 	}
+  slog(LOG_DEBUG, "Fired ami_message_handler.");
 
-  slog(LOG_DEBUG, "Fired ami_message_handler. msg[%s]", msg);
-
+  // message parse
   j_msg = parse_ami_msg(msg);
+  if(j_msg == NULL) {
+    slog(LOG_NOTICE, "Could not parse message. msg[%s]", msg);
+    return;
+  }
 
-  tmp = json_dumps(j_msg, JSON_ENCODE_ANY);
-  slog(LOG_DEBUG, "parsed message. msg[%s]", tmp);
-  sfree(tmp);
+  // get event
+  event = json_string_value(json_object_get(j_msg, "Event"));
+  if(event == NULL) {
+    slog(LOG_NOTICE, "Could not get message event. msg[%s]", msg);
+    json_decref(j_msg);
+    return;
+  }
+  slog(LOG_DEBUG, "Get event info. event[%s]", event);
+
+  if(strcmp(event, "PeerEntry") == 0) {
+    ami_event_peerentry(j_msg);
+  }
+  else {
+    tmp = json_dumps(j_msg, JSON_ENCODE_ANY);
+    slog(LOG_DEBUG, "Could not find correct message parser. msg[%s]", tmp);
+    sfree(tmp);
+  }
+
+  json_decref(j_msg);
+
   return;
 }
 
@@ -282,6 +304,11 @@ static bool ami_get_init_info(void)
   send_ami_cmd(cmd);
   sfree(cmd);
 
+  // sip peers
+  asprintf(&cmd, "Action: SipPeers\r\n\r\n");
+  send_ami_cmd(cmd);
+  sfree(cmd);
+
   return true;
 }
 
@@ -352,5 +379,11 @@ static json_t* parse_ami_msg(const char* msg)
 	}
 
   return j_tmp;
+}
+
+static void ami_event_peerentry(json_t* j_msg)
+{
+  slog(LOG_DEBUG, "Fired ami_event_peerentry.");
+  return;
 }
 
