@@ -8,11 +8,12 @@
 #include <stdbool.h>
 #include <jansson.h>
 
+#include "common.h"
 #include "slog.h"
 
 #define DEF_CONF_FILENAME "./jade.conf"
 
-extern struct json_t* g_app;
+extern app* g_app;
 
 static bool load_config(void);
 
@@ -38,11 +39,11 @@ static bool load_config(void)
 
   j_conf = json_load_file(DEF_CONF_FILENAME, JSON_DECODE_ANY, &j_err);
 
-  if(g_app != NULL) {
-    json_decref(g_app);
+  if(g_app->j_conf != NULL) {
+    json_decref(g_app->j_conf);
   }
 
-  g_app = j_conf;
+  g_app->j_conf = j_conf;
 
   return true;
 }

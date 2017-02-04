@@ -10,12 +10,14 @@
 #include <event2/event.h>
 #include <evhtp.h>
 
+#include "common.h"
 #include "slog.h"
 #include "utils.h"
 #include "http_handler.h"
 
 #define API_VER "0.1"
 
+extern app* g_app;
 extern struct event_base* g_base;
 evhtp_t* g_htp = NULL;
 

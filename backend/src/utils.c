@@ -18,7 +18,7 @@
 
 #define DEF_UUID_STR_LEN 37
 
-void sfree(char* tmp)
+void sfree(void* tmp)
 {
   if(tmp == NULL) {
     return;

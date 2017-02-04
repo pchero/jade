@@ -22,6 +22,7 @@
 #include <jansson.h>
 #include <errno.h>
 
+#include "common.h"
 #include "slog.h"
 #include "utils.h"
 #include "ami_handler.h"
@@ -40,7 +41,7 @@
 #define MAX_AMI_RECV_BUF_LEN  4096
 
 extern struct event_base* g_base;
-extern struct json_t* g_app;
+extern app* g_app;
 
 static struct termios tin;
 static int ami_sock = 0;
@@ -51,6 +52,7 @@ static char g_ami_buffer[MAX_AMI_RECV_BUF_LEN];
 static void terminal_reset(void);
 static void terminal_set(void);
 static bool ami_login(void);
+static bool ami_get_init_info(void);
 static void ami_message_handler(const char* msg);
 
 static json_t* parse_ami_msg(const char* msg);
@@ -156,8 +158,8 @@ bool init_ami_handler(void)
   }
   slog(LOG_DEBUG, "init_ami_handler");
   
-  serv_addr = json_string_value(json_object_get(g_app, "serv_addr"));
-  serv_port = json_string_value(json_object_get(g_app, "serv_port"));
+  serv_addr = json_string_value(json_object_get(g_app->j_conf, "serv_addr"));
+  serv_port = json_string_value(json_object_get(g_app->j_conf, "serv_port"));
   if((serv_addr == NULL) || (serv_port == NULL)) {
     return false;
   }
@@ -203,10 +205,16 @@ bool init_ami_handler(void)
   // login
   ret = ami_login();
   if(ret == false) {
-    printf("Could not login.\n");
+    slog(LOG_ERR, "Could not login.");
     return false;
   }
   
+  ret = ami_get_init_info();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not send init.");
+    return false;
+  }
+
   // add event
   ev = event_new(g_base, ami_sock, EV_READ | EV_PERSIST, cb_ami_handler, NULL);
   event_add(ev, NULL);
@@ -239,14 +247,41 @@ static bool ami_login(void)
   }
   slog(LOG_DEBUG, "ami_login");
   
-  username = json_string_value(json_object_get(g_app, "username"));
-  password = json_string_value(json_object_get(g_app, "password"));
+  username = json_string_value(json_object_get(g_app->j_conf, "username"));
+  password = json_string_value(json_object_get(g_app->j_conf, "password"));
   
   asprintf(&cmd, "Action: Login\r\nUsername: %s\r\nSecret: %s\r\n\r\n", username, password);
     
   send_ami_cmd(cmd);
   sfree(cmd);
   
+  return true;
+}
+
+static bool ami_get_init_info(void)
+{
+  char* cmd;
+
+  // campaign
+  asprintf(&cmd, "Action: OutCampaignShow\r\n\r\n");
+  send_ami_cmd(cmd);
+  sfree(cmd);
+
+  // plan
+  asprintf(&cmd, "Action: OutPlanShow\r\n\r\n");
+  send_ami_cmd(cmd);
+  sfree(cmd);
+
+  // dlma
+  asprintf(&cmd, "Action: OutDlmaShow\r\n\r\n");
+  send_ami_cmd(cmd);
+  sfree(cmd);
+
+  // destination
+  asprintf(&cmd, "Action: OutDestinationShow\r\n\r\n");
+  send_ami_cmd(cmd);
+  sfree(cmd);
+
   return true;
 }
 

@@ -9,7 +9,7 @@
 #define BACKEND_SRC_UTILS_H_
 
 
-void sfree(char* tmp);
+void sfree(void* tmp);
 void trim(char * s);
 
 char* gen_uuid(void);

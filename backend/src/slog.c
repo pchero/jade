@@ -9,7 +9,9 @@
 #include <stdbool.h>
 #include <jansson.h>
 
-extern struct json_t* g_app;
+#include "common.h"
+
+extern app* g_app;
 
 #define PROGNAME "jade"
 
@@ -18,7 +20,7 @@ bool init_log(void)
   const char* tmp_const;
   int level;
 
-  tmp_const = json_string_value(json_object_get(g_app, "loglevel"));
+  tmp_const = json_string_value(json_object_get(g_app->j_conf, "loglevel"));
   if(tmp_const == NULL) {
     return false;
   }
