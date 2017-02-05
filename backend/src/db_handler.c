@@ -131,6 +131,12 @@ bool db_init(void)
 		return false;
 	}
 
+	ret = db_exec(g_sql_peer);
+	if(ret == false) {
+    slog(LOG_ERR, "Could not create table. table[%s]", "peer");
+    return false;
+  }
+
 	return true;
 }
 

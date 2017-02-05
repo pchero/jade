@@ -298,5 +298,34 @@ static const char* g_sql_dl_result =
 
 ");";
 
+// dl_result
+// campaign dial result table."
+static const char* g_sql_peer =
+"create table peer("
+
+"    channel_type varchar(255)    not null,"   // channel type(SIP, ...)
+"    object_name  varchar(255)    not null,"   // name(test-1, test-2, ...)
+
+"    chan_object_type varchar(255),"   // (peer, ...)
+"    ip_address       varchar(255),"   // address
+"    ip_port          varchar(255),"   // port
+
+"    dynamic          varchar(255),"   // dynamic(yes, ...)
+"    auto_force_port  varchar(255),"   //
+"    force_port       varchar(255),"   //
+"    auto_comedia     varchar(255),"   //
+"    comedia          varchar(255),"   //
+"    video_support    varchar(255),"   //
+"    text_support     varchar(255),"   //
+
+"    acl              varchar(255),"   //
+"    status           varchar(255),"   //
+"    realtime_device  varchar(255),"   //
+"    description      varchar(255),"   //
+
+"    primary key(channel_type, object_name)"
+
+");";
+
 
 #endif /* SRC_DB_SQL_CREATE_H_ */

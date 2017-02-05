@@ -63,6 +63,8 @@ static void cb_ami_handler(__attribute__((unused)) int fd, __attribute__((unused
 static void ami_event_peerentry(json_t* j_msg);
 static void ami_event_outdestinationentry(json_t* j_msg);
 static void ami_event_outplanentry(json_t* j_msg);
+static void ami_event_outcampaignentry(json_t* j_msg);
+static void ami_event_outdlmaentry(json_t* j_msg);
 
 static void terminal_set(void) 
 {
@@ -162,6 +164,12 @@ static void ami_message_handler(const char* msg)
   }
   else if(strcmp(event, "OutPlanEntry") == 0) {
     ami_event_outplanentry(j_msg);
+  }
+  else if(strcmp(event, "OutCampaignEntry") == 0) {
+    ami_event_outcampaignentry(j_msg);
+  }
+  else if(strcmp(event, "OutDlmaEntry") == 0) {
+    ami_event_outdlmaentry(j_msg);
   }
   else {
     tmp = json_dumps(j_msg, JSON_ENCODE_ANY);
@@ -397,7 +405,54 @@ static json_t* parse_ami_msg(const char* msg)
  */
 static void ami_event_peerentry(json_t* j_msg)
 {
+  json_t* j_tmp;
+  int ret;
+
+  if(j_msg == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
   slog(LOG_DEBUG, "Fired ami_event_peerentry.");
+
+  j_tmp = json_pack("{"
+    "s:s, s:s, "
+    "s:s, s:s, s:s, "
+    "s:s, s:s, s:s, s:s, s:s, s:s, s:s, "
+    "s:s, s:s, s:s, s:s"
+    "}",
+
+    "channel_type", json_string_value(json_object_get(j_msg, "Channeltype"))? : "",
+    "object_name",  json_string_value(json_object_get(j_msg, "ObjectName"))? : "",
+
+    "chan_object_type", json_string_value(json_object_get(j_msg, "ChanObjectType"))? : "",
+    "ip_address",       json_string_value(json_object_get(j_msg, "IPaddress"))? : "",
+    "ip_port",          json_string_value(json_object_get(j_msg, "IPport"))? : "",
+
+    "dynamic",          json_string_value(json_object_get(j_msg, "Dynamic"))? : "",
+    "auto_force_port",  json_string_value(json_object_get(j_msg, "AutoForcerport"))? : "",
+    "force_port",       json_string_value(json_object_get(j_msg, "Forcerport"))? : "",
+    "auto_comedia",     json_string_value(json_object_get(j_msg, "AutoComedia"))? : "",
+    "comedia",          json_string_value(json_object_get(j_msg, "Comedia"))? : "",
+    "video_support",    json_string_value(json_object_get(j_msg, "VideoSupport"))? : "",
+    "text_support",     json_string_value(json_object_get(j_msg, "TextSupport"))? : "",
+
+    "acl",              json_string_value(json_object_get(j_msg, "ACL"))? : "",
+    "status",           json_string_value(json_object_get(j_msg, "Status"))? : "",
+    "realtime_device",  json_string_value(json_object_get(j_msg, "RealtimeDevice"))? : "",
+    "description",      json_string_value(json_object_get(j_msg, "Description"))? : ""
+  );
+  if(j_tmp == NULL) {
+    slog(LOG_DEBUG, "Could not create message.");
+    return;
+  }
+
+  ret = db_insert("peer", j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert destination.");
+    return;
+  }
+
   return;
 }
 
@@ -518,13 +573,121 @@ static void ami_event_outplanentry(json_t* j_msg)
   ret = db_insert("plan", j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
-    slog(LOG_ERR, "Could not insert destination.");
+    slog(LOG_ERR, "Could not insert plan.");
     return;
   }
 
   return;
 }
 
+/**
+ * AMI event handler.
+ * Event: OutCampaignEntry
+ * @param j_msg
+ */
+static void ami_event_outcampaignentry(json_t* j_msg)
+{
+  json_t* j_tmp;
+  int ret;
 
+  if(j_msg == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired ami_event_outcampaignentry.");
 
+  // need to do something to deal with variables
+  j_tmp = json_pack("{"
+      "s:s, s:s, s:s, s:i, s:s, "
+      "s:s, s:s, s:s, "
+      "s:i, s:s, s:s, s:s, s:s, "
+      "s:s, s:s, s:s, "
+      "s:s, s:s, s:s"
+      "}",
 
+      "uuid",           json_string_value(json_object_get(j_msg, "Uuid"))? : "",
+      "name",           json_string_value(json_object_get(j_msg, "Name"))? : "",
+      "detail",         json_string_value(json_object_get(j_msg, "Detail"))? : "",
+      "status",         json_string_value(json_object_get(j_msg, "Status"))? atoi(json_string_value(json_object_get(j_msg, "Status"))): 0,
+      "next_campaign",  json_string_value(json_object_get(j_msg, "NextCampaign"))? : "",
+
+      "Dlma", json_string_value(json_object_get(j_msg, "Dlma"))? : "",
+      "Dest", json_string_value(json_object_get(j_msg, "Dest"))? : "",
+      "Plan", json_string_value(json_object_get(j_msg, "Plan"))? : "",
+
+      "sc_mode",        json_string_value(json_object_get(j_msg, "ScMode"))? atoi(json_string_value(json_object_get(j_msg, "ScMode"))): 0,
+      "sc_date_start",  json_string_value(json_object_get(j_msg, "ScDateStart"))? : "",
+      "sc_date_end",    json_string_value(json_object_get(j_msg, "ScDateEnd"))? : "",
+      "sc_date_list",   json_string_value(json_object_get(j_msg, "ScDateList"))? : "",
+      "sc_date_list_except",  json_string_value(json_object_get(j_msg, "ScDateListExcept"))? : "",
+
+      "sc_time_start",  json_string_value(json_object_get(j_msg, "ScTimeStart"))? : "",
+      "sc_time_end",  json_string_value(json_object_get(j_msg, "ScTimeEnd"))? : "",
+      "sc_day_list",  json_string_value(json_object_get(j_msg, "ScDayList"))? : "",
+
+      "tm_create",  json_string_value(json_object_get(j_msg, "TmCreate"))? : "",
+      "tm_update",  json_string_value(json_object_get(j_msg, "TmUpdate"))? : "",
+      "tm_delete",  json_string_value(json_object_get(j_msg, "TmDelete"))? : ""
+      );
+  if(j_tmp == NULL) {
+    slog(LOG_DEBUG, "Could not create message.");
+    return;
+  }
+
+  ret = db_insert("campaign", j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert campaign.");
+    return;
+  }
+
+  return;
+}
+
+/**
+ * AMI event handler.
+ * Event: OutDlmaEntry
+ * @param j_msg
+ */
+static void ami_event_outdlmaentry(json_t* j_msg)
+{
+  json_t* j_tmp;
+  int ret;
+
+  if(j_msg == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired ami_event_outdlmaentry.");
+
+  // need to do something to deal with variables
+  j_tmp = json_pack("{"
+      "s:s, s:s, s:s, "
+      "s:s, "
+      "s:s, s:s, s:s"
+      "}",
+
+      "uuid",           json_string_value(json_object_get(j_msg, "Uuid"))? : "",
+      "name",           json_string_value(json_object_get(j_msg, "Name"))? : "",
+      "detail",         json_string_value(json_object_get(j_msg, "Detail"))? : "",
+
+      "dl_table",  json_string_value(json_object_get(j_msg, "DlTable"))? : "",
+
+      "tm_create",  json_string_value(json_object_get(j_msg, "TmCreate"))? : "",
+      "tm_update",  json_string_value(json_object_get(j_msg, "TmUpdate"))? : "",
+      "tm_delete",  json_string_value(json_object_get(j_msg, "TmDelete"))? : ""
+      );
+  if(j_tmp == NULL) {
+    slog(LOG_DEBUG, "Could not create message.");
+    return;
+  }
+
+  ret = db_insert("dl_list_ma", j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert campaign.");
+    return;
+  }
+
+  return;
+}
