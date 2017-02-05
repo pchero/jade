@@ -26,6 +26,7 @@
 #include "slog.h"
 #include "utils.h"
 #include "ami_handler.h"
+#include "db_handler.h"
 
 #define DLE     0x0f  // Data link escape
 #define DO      0xfd
@@ -60,6 +61,8 @@ static json_t* parse_ami_msg(const char* msg);
 static void cb_ami_handler(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg);
 
 static void ami_event_peerentry(json_t* j_msg);
+static void ami_event_outdestinationentry(json_t* j_msg);
+static void ami_event_outplanentry(json_t* j_msg);
 
 static void terminal_set(void) 
 {
@@ -153,6 +156,12 @@ static void ami_message_handler(const char* msg)
 
   if(strcmp(event, "PeerEntry") == 0) {
     ami_event_peerentry(j_msg);
+  }
+  else if(strcmp(event, "OutDestinationEntry") == 0) {
+    ami_event_outdestinationentry(j_msg);
+  }
+  else if(strcmp(event, "OutPlanEntry") == 0) {
+    ami_event_outplanentry(j_msg);
   }
   else {
     tmp = json_dumps(j_msg, JSON_ENCODE_ANY);
@@ -381,9 +390,141 @@ static json_t* parse_ami_msg(const char* msg)
   return j_tmp;
 }
 
+/**
+ * AMI event handler.
+ * Event: PeerEntry
+ * @param j_msg
+ */
 static void ami_event_peerentry(json_t* j_msg)
 {
   slog(LOG_DEBUG, "Fired ami_event_peerentry.");
   return;
 }
+
+/**
+ * AMI event handler.
+ * Event: OutDestinationEntry
+ * @param j_msg
+ */
+static void ami_event_outdestinationentry(json_t* j_msg)
+{
+  json_t* j_tmp;
+  int ret;
+
+  if(j_msg == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired ami_event_outdestinationentry.");
+
+  // need to do something to deal with variables
+
+  j_tmp = json_pack("{"
+    "s:s, s:s, s:s, s:i, s:s, "
+    "s:s, s:s, s:s, s:s, "
+    "s:s, s:s, s:s"
+    "}",
+
+    "uuid",         json_string_value(json_object_get(j_msg, "Uuid"))? : "",
+    "name",         json_string_value(json_object_get(j_msg, "Name"))? : "",
+    "detail",       json_string_value(json_object_get(j_msg, "Detail"))? : "",
+    "type",         json_string_value(json_object_get(j_msg, "Type"))? atoi(json_string_value(json_object_get(j_msg, "Type"))) : 0,
+    "exten",        json_string_value(json_object_get(j_msg, "Exten"))? : "",
+
+    "context",      json_string_value(json_object_get(j_msg, "Context"))? : "",
+    "priority",     json_string_value(json_object_get(j_msg, "Priority"))? : "",
+    //	    "variables",    json_string_value(json_object_get(j_msg, "Uuid"))? : "",
+    "application",  json_string_value(json_object_get(j_msg, "Application"))? : "",
+    "data",         json_string_value(json_object_get(j_msg, "Data"))? : "",
+
+    "tm_create",    json_string_value(json_object_get(j_msg, "TmCreate"))? : "",
+    "tm_update",    json_string_value(json_object_get(j_msg, "TmUpdate"))? : "",
+    "tm_delete",    json_string_value(json_object_get(j_msg, "TmpDelete"))? : ""
+  );
+  if(j_tmp == NULL) {
+    slog(LOG_DEBUG, "Could not create message.");
+    return;
+  }
+
+  ret = db_insert("destination", j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert destination.");
+    return;
+  }
+
+  return;
+}
+
+/**
+ * AMI event handler.
+ * Event: OutPlanEntry
+ * @param j_msg
+ */
+static void ami_event_outplanentry(json_t* j_msg)
+{
+  json_t* j_tmp;
+  int ret;
+
+  if(j_msg == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired ami_event_outplanentry.");
+
+  // need to do something to deal with variables
+  j_tmp = json_pack("{"
+      "s:s, s:s, s:s, "
+      "s:i, s:i, s:s, s:i, s:i, "
+      "s:s, s:s, s:i, s:s, s:s, "
+      "s:i, s:i, s:i, s:i, s:i, s:i, s:i, s:i, "
+      "s:s, s:s, s:s"
+      "}",
+
+      "uuid",             json_string_value(json_object_get(j_msg, "Uuid"))? : "",
+      "name",             json_string_value(json_object_get(j_msg, "Name"))? : "",
+      "detail",           json_string_value(json_object_get(j_msg, "Detail"))? : "",
+
+      "dial_mode",      json_string_value(json_object_get(j_msg, "DialMode"))? atoi(json_string_value(json_object_get(j_msg, "DialMode"))): 0,
+      "dial_timeout",   json_string_value(json_object_get(j_msg, "DialTimeout"))? atoi(json_string_value(json_object_get(j_msg, "DialTimeout"))): 0,
+      "caller_id",      json_string_value(json_object_get(j_msg, "CallerId"))? : "",
+      "dl_end_handle",  json_string_value(json_object_get(j_msg, "DlEndHandle"))? atoi(json_string_value(json_object_get(j_msg, "DlEndHandle"))): 0,
+      "retry_delay",    json_string_value(json_object_get(j_msg, "RetryDelay"))? atoi(json_string_value(json_object_get(j_msg, "RetryDelay"))): 0,
+
+      "trunk_name",     json_string_value(json_object_get(j_msg, "TrunkName"))? : "",
+      "tech_name",      json_string_value(json_object_get(j_msg, "TechName"))? : "",
+      "service_level",  json_string_value(json_object_get(j_msg, "ServiceLevel"))? atoi(json_string_value(json_object_get(j_msg, "ServiceLevel"))): 0,
+      "early_media",    json_string_value(json_object_get(j_msg, "EarlyMedia"))? : "",
+      "codecs",         json_string_value(json_object_get(j_msg, "Codecs"))? : "",
+
+      "max_retry_cnt_1",  json_string_value(json_object_get(j_msg, "MaxRetryCnt1"))? atoi(json_string_value(json_object_get(j_msg, "MaxRetryCnt1"))): 0,
+      "max_retry_cnt_2",  json_string_value(json_object_get(j_msg, "MaxRetryCnt2"))? atoi(json_string_value(json_object_get(j_msg, "MaxRetryCnt2"))): 0,
+      "max_retry_cnt_3",  json_string_value(json_object_get(j_msg, "MaxRetryCnt3"))? atoi(json_string_value(json_object_get(j_msg, "MaxRetryCnt3"))): 0,
+      "max_retry_cnt_4",  json_string_value(json_object_get(j_msg, "MaxRetryCnt4"))? atoi(json_string_value(json_object_get(j_msg, "MaxRetryCnt4"))): 0,
+      "max_retry_cnt_5",  json_string_value(json_object_get(j_msg, "MaxRetryCnt5"))? atoi(json_string_value(json_object_get(j_msg, "MaxRetryCnt5"))): 0,
+      "max_retry_cnt_6",  json_string_value(json_object_get(j_msg, "MaxRetryCnt6"))? atoi(json_string_value(json_object_get(j_msg, "MaxRetryCnt6"))): 0,
+      "max_retry_cnt_7",  json_string_value(json_object_get(j_msg, "MaxRetryCnt7"))? atoi(json_string_value(json_object_get(j_msg, "MaxRetryCnt7"))): 0,
+      "max_retry_cnt_8",  json_string_value(json_object_get(j_msg, "MaxRetryCnt8"))? atoi(json_string_value(json_object_get(j_msg, "MaxRetryCnt8"))): 0,
+
+      "tm_create",  json_string_value(json_object_get(j_msg, "TmCreate"))? : "",
+      "tm_update",  json_string_value(json_object_get(j_msg, "TmUpdate"))? : "",
+      "tm_delete",  json_string_value(json_object_get(j_msg, "TmDelete"))? : ""
+      );
+  if(j_tmp == NULL) {
+    slog(LOG_DEBUG, "Could not create message.");
+    return;
+  }
+
+  ret = db_insert("plan", j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert destination.");
+    return;
+  }
+
+  return;
+}
+
+
+
 

@@ -18,16 +18,15 @@
 
 #define DEF_UUID_STR_LEN 37
 
-void sfree(void* tmp)
-{
-  if(tmp == NULL) {
-    return;
-  }
-
-  free(tmp);
-
-  return;
-}
+//void _free(void* tmp)
+//{
+//  if(tmp == NULL) {
+//    return;
+//  }
+//  free(tmp);
+//
+//  return;
+//}
 
 /**
  *

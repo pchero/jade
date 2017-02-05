@@ -342,7 +342,6 @@ bool db_insert(const char* table, const json_t* j_data)
   char*       tmp;
   const char* key;
   json_t*     j_val;
-  bool        is_first;
   int         ret;
   json_type   type;
   char*       sql_keys;
@@ -358,16 +357,15 @@ bool db_insert(const char* table, const json_t* j_data)
   // copy original.
   j_data_cp = json_deep_copy(j_data);
 
-  is_first = true;
   tmp = NULL;
   sql_keys  = NULL;
-  sql_values  = NULL;
+  sql_values = NULL;
+  tmp_sub = NULL;
   json_object_foreach(j_data_cp, key, j_val) {
 
     // key
     sfree(tmp);
-    if(is_first == true) {
-      is_first = false;
+    if(sql_keys == NULL) {
       asprintf(&tmp, "%s", key);
     }
     else {
@@ -429,19 +427,7 @@ bool db_insert(const char* table, const json_t* j_data)
     }
 
     sfree(tmp);
-    if(is_first == true) {
-      is_first = false;
-      asprintf(&tmp, "%s", tmp_sub);
-    }
-    else {
-      asprintf(&tmp, "%s, %s", sql_values, key);
-    }
-    sfree(sql_values);
-    asprintf(&sql_values, "%s", tmp);
-
-    sfree(tmp);
-    if(is_first == true) {
-      is_first = false;
+    if(sql_values == NULL) {
       asprintf(&tmp, "%s", tmp_sub);
     }
     else {

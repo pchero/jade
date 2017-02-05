@@ -12,6 +12,7 @@
 #include "ami_handler.h"
 #include "db_handler.h"
 #include "http_handler.h"
+#include "event_handler.h"
 
 
 app* g_app;
@@ -71,6 +72,12 @@ bool init(void)
     return false;
   }
   
+  ret = init_event_handler();
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not initiate event_handler.");
+    return false;
+  }
+
   return true;
 }
 

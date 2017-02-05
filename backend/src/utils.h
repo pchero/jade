@@ -8,8 +8,8 @@
 #ifndef BACKEND_SRC_UTILS_H_
 #define BACKEND_SRC_UTILS_H_
 
+#define sfree(p) { if(p != NULL) free(p); p=NULL; }
 
-void sfree(void* tmp);
 void trim(char * s);
 
 char* gen_uuid(void);
