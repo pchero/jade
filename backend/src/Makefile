@@ -1,5 +1,5 @@
-TARGET = main
-LIBS = -ljansson -levhtp -levent -levent_openssl -lssl -lcrypto -lpthread -luuid -lsqlite3
+TARGET = jade_backend
+LIBS = -ljansson -levhtp -levent -levent_openssl -lssl -lcrypto -lpthread -luuid -lsqlite3 -lbsd
 CC = gcc
 CFLAGS = -g -Wall
 

@@ -28,27 +28,51 @@
 //  return;
 //}
 
-/**
- *
- * @param s
- */
-void trim(char* s)
+///**
+// *
+// * @param s
+// */
+//void trim(char* s)
+//{
+//	char* p;
+//	int l;
+//
+//	if(s == NULL) {
+//		return;
+//	}
+//
+//	p = s;
+//	l = strlen(p);
+//
+//	while(isspace(p[l - 1])) p[--l] = 0;
+//	while(* p && isspace(* p)) ++p, --l;
+//
+//	memmove(s, p, l + 1);
+//}
+void trim(char *text)
 {
-	char* p;
-	int l;
+  int i;
+  int len;
+  int retval = 0;
 
-	if(s == NULL) {
-		return;
-	}
+  if(text == NULL) {
+    return;
+  }
 
-	p = s;
-	l = strlen(p);
-
-	while(isspace(p[l - 1])) p[--l] = 0;
-	while(* p && isspace(* p)) ++p, --l;
-
-	memmove(s, p, l + 1);
+  len = strlen(text);
+  for
+  (
+    i = len - 1;
+    i >= 0 && ((text[i]==' ') || (text[i]=='\t') );
+    i--
+  )
+  {
+    text[i] = (char)0;
+    retval++;
+  }
+  return;
 }
+
 
 /**
  * Generate uuid.

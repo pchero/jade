@@ -86,6 +86,7 @@ bool terminate(void)
   slog(LOG_INFO, "Terimnating..");
 
   term_http_handler();
+  db_term();
 
   event_base_free(g_base);
 
