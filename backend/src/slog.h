@@ -19,7 +19,7 @@
 #define LOG_NOTICE  5 /* normal but significant condition */
 #define LOG_INFO  6   /* informational */
 #define LOG_DEBUG 7   /* debug-level messages */
-
+#define LOG_VERBOSE 8
 
 bool init_log(void);
 

@@ -41,7 +41,7 @@ static json_t* get_peers_all(void);
 static json_t* get_destinations_all(void);
 static json_t* get_plans_all(void);
 
-static bool del_campaign(const char* uuid);
+//static bool del_campaign(const char* uuid);
 static json_t* get_campaign(const char* uuid);
 static json_t* get_campaigns_all(void);
 static json_t* get_dlmas_all(void);
@@ -56,7 +56,7 @@ bool init_http_handler(void)
   evhtp_set_cb(g_htp, "/destinations", cb_htp_destinations, NULL);
   evhtp_set_cb(g_htp, "/plans", cb_htp_plans, NULL);
   evhtp_set_cb(g_htp, "/campaigns", cb_htp_campaigns, NULL);
-  evhtp_set_regex_cb(g_htp, "/campaigns/"DEF_REG_UUID, cb_htp_campaigns_uuid, NULL);
+  evhtp_set_regex_cb(g_htp, "/campaigns/("DEF_REG_UUID")", cb_htp_campaigns_uuid, NULL);
 
   evhtp_set_cb(g_htp, "/dlmas", cb_htp_dlmas, NULL);
   evhtp_set_cb(g_htp, "/peers", cb_htp_peers, NULL);
@@ -544,7 +544,6 @@ static json_t* get_campaigns_all(void)
 static json_t* get_campaign(const char* uuid)
 {
   char* sql;
-  const char* tmp_const;
   db_res_t* db_res;
   json_t* j_res;
 
@@ -567,29 +566,26 @@ static json_t* get_campaign(const char* uuid)
   return j_res;
 }
 
-static bool del_campaign(const char* uuid)
-{
-  char* sql;
-  const char* tmp_const;
-  db_res_t* db_res;
-  json_t* j_res;
-  int ret;
-
-  if(uuid == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return NULL;
-  }
-
-  asprintf(&sql, "delete from campaign where uuid=\"%s\";", uuid);
-  ret = db_exec(sql);
-  sfree(sql);
-  if(ret == false) {
-    slog(LOG_WARNING, "Could not get delete campaign.");
-    return false;
-  }
-
-  return true;
-}
+//static bool del_campaign(const char* uuid)
+//{
+//  char* sql;
+//  int ret;
+//
+//  if(uuid == NULL) {
+//    slog(LOG_WARNING, "Wrong input parameter.");
+//    return NULL;
+//  }
+//
+//  asprintf(&sql, "delete from campaign where uuid=\"%s\";", uuid);
+//  ret = db_exec(sql);
+//  sfree(sql);
+//  if(ret == false) {
+//    slog(LOG_WARNING, "Could not get delete campaign.");
+//    return false;
+//  }
+//
+//  return true;
+//}
 
 static json_t* get_dlmas_all(void)
 {
