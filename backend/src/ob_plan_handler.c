@@ -6,18 +6,24 @@
  */
 
 
+#define _GNU_SOURCE
+
+#include <stdio.h>
+#include <string.h>
 #include <stdbool.h>
 #include <jansson.h>
 
-#include "ob_plan_handler.h"
+#include "utils.h"
+#include "ami_handler.h"
 #include "event_handler.h"
+#include "slog.h"
+
+#include "ob_plan_handler.h"
 #include "db_handler.h"
 #include "ob_campaign_handler.h"
-#include "ami_handler.h"
 #include "ob_dl_handler.h"
-#include "utils.h"
 
-static struct ast_json* get_plan_deleted(const char* uuid);
+//static json_t* get_plan_deleted(const char* uuid);
 
 /**
  *
@@ -33,11 +39,11 @@ bool init_plan(void)
  * @param j_plan
  * @return
  */
-bool create_plan(const struct ast_json* j_plan)
+bool create_plan(const json_t* j_plan)
 {
   int ret;
   char* uuid;
-  struct ast_json* j_tmp;
+  json_t* j_tmp;
   char* tmp;
 
   if(j_plan == NULL) {
@@ -71,7 +77,7 @@ bool create_plan(const struct ast_json* j_plan)
 //      );
 //  sfree(uuid);
 //  if(j_tmp == NULL) {
-//    slog(LOG_ERROR, "Could not get created plan info.");
+//    slog(LOG_ERR, "Could not get created plan info.");
 //    return false;
 //  }
 //  send_manager_evt_out_plan_create(j_tmp);
@@ -87,7 +93,7 @@ bool create_plan(const struct ast_json* j_plan)
  */
 bool delete_plan(const char* uuid)
 {
-  struct ast_json* j_tmp;
+  json_t* j_tmp;
   char* tmp;
   char* sql;
   int ret;
@@ -129,10 +135,10 @@ bool delete_plan(const char* uuid)
  * @param uuid
  * @return
  */
-struct ast_json* get_plan(const char* uuid)
+json_t* get_plan(const char* uuid)
 {
   char* sql;
-  struct ast_json* j_res;
+  json_t* j_res;
   db_res_t* db_res;
 
   if(uuid == NULL) {
@@ -144,7 +150,7 @@ struct ast_json* get_plan(const char* uuid)
   db_res = db_query(sql);
   sfree(sql);
   if(db_res == NULL) {
-    slog(LOG_ERROR, "Could not get plan info. uuid[%s]\n", uuid);
+    slog(LOG_ERR, "Could not get plan info. uuid[%s]\n", uuid);
     return NULL;
   }
 
@@ -154,45 +160,45 @@ struct ast_json* get_plan(const char* uuid)
   return j_res;
 }
 
-/**
- * Get deleted plan info.
- * @param uuid
- * @return
- */
-static struct ast_json* get_plan_deleted(const char* uuid)
-{
-  char* sql;
-  struct ast_json* j_res;
-  db_res_t* db_res;
-
-  if(uuid == NULL) {
-    slog(LOG_WARNING, "Invalid input parameters.\n");
-    return NULL;
-  }
-  asprintf(&sql, "select * from plan where in_use=%d and uuid=\"%s\";", E_DL_USE_NO, uuid);
-
-  db_res = db_query(sql);
-  sfree(sql);
-  if(db_res == NULL) {
-    slog(LOG_ERROR, "Could not get plan info. uuid[%s]\n", uuid);
-    return NULL;
-  }
-
-  j_res = db_get_record(db_res);
-  db_free(db_res);
-
-  return j_res;
-}
+///**
+// * Get deleted plan info.
+// * @param uuid
+// * @return
+// */
+//static json_t* get_plan_deleted(const char* uuid)
+//{
+//  char* sql;
+//  json_t* j_res;
+//  db_res_t* db_res;
+//
+//  if(uuid == NULL) {
+//    slog(LOG_WARNING, "Invalid input parameters.\n");
+//    return NULL;
+//  }
+//  asprintf(&sql, "select * from plan where in_use=%d and uuid=\"%s\";", E_DL_USE_NO, uuid);
+//
+//  db_res = db_query(sql);
+//  sfree(sql);
+//  if(db_res == NULL) {
+//    slog(LOG_ERR, "Could not get plan info. uuid[%s]\n", uuid);
+//    return NULL;
+//  }
+//
+//  j_res = db_get_record(db_res);
+//  db_free(db_res);
+//
+//  return j_res;
+//}
 
 /**
  * Get all plan info.
  * @return
  */
-struct ast_json* get_plans_all(void)
+json_t* get_plans_all(void)
 {
   char* sql;
-  struct ast_json* j_res;
-  struct ast_json* j_tmp;
+  json_t* j_res;
+  json_t* j_tmp;
   db_res_t* db_res;
 
   asprintf(&sql, "select * from plan where in_use=%d;", E_DL_USE_OK);
@@ -200,7 +206,7 @@ struct ast_json* get_plans_all(void)
   db_res = db_query(sql);
   sfree(sql);
   if(db_res == NULL) {
-    slog(LOG_ERROR, "Could not get plan all info.\n");
+    slog(LOG_ERR, "Could not get plan all info.\n");
     return NULL;
   }
 
@@ -222,12 +228,12 @@ struct ast_json* get_plans_all(void)
  * @param j_plan
  * @return
  */
-bool update_plan(const struct ast_json* j_plan)
+bool update_plan(const json_t* j_plan)
 {
   char* tmp;
   const char* tmp_const;
   char* sql;
-  struct ast_json* j_tmp;
+  json_t* j_tmp;
   int ret;
   char* uuid;
 
@@ -284,9 +290,9 @@ bool update_plan(const struct ast_json* j_plan)
   return true;
 }
 
-struct ast_json* create_dial_plan_info(struct ast_json* j_plan)
+json_t* create_dial_plan_info(json_t* j_plan)
 {
-  struct ast_json* j_res;
+  json_t* j_res;
 
   if(j_plan == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.\n");
@@ -311,7 +317,7 @@ struct ast_json* create_dial_plan_info(struct ast_json* j_plan)
  * \param j_plan
  * \return
  */
-bool is_nonstop_dl_handle(struct ast_json* j_plan)
+bool is_nonstop_dl_handle(json_t* j_plan)
 {
   int ret;
 
@@ -332,7 +338,7 @@ bool is_nonstop_dl_handle(struct ast_json* j_plan)
  * \param j_plan
  * \return
  */
-bool is_endable_plan(struct ast_json* j_plan)
+bool is_endable_plan(json_t* j_plan)
 {
   int ret;
 

@@ -11,6 +11,7 @@
 #include "config.h"
 #include "ami_handler.h"
 #include "db_handler.h"
+#include "db_sql_create.h"
 #include "http_handler.h"
 #include "event_handler.h"
 
@@ -18,12 +19,49 @@
 app* g_app;
 struct event_base*  g_base = NULL;
 
+static bool init_event(void);
+static bool init_db(void);
 
 static bool init_event(void)
 {
   if(g_base == NULL) {
     printf("New event base.\n");
     g_base = event_base_new();
+  }
+
+  return true;
+}
+
+static bool init_db(void)
+{
+  int ret;
+
+  // peer
+  ret = db_exec(g_sql_peer);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create table. table[%s]", "peer");
+    return false;
+  }
+
+  // queue_param
+  ret = db_exec(g_sql_queue_param);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create table. table[%s]", "queue_param");
+    return false;
+  }
+
+  // queue_member
+  ret = db_exec(g_sql_queue_member);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create table. table[%s]", "queue_member");
+    return false;
+  }
+
+  // queue_member
+  ret = db_exec(g_sql_queue_entry);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create table. table[%s]", "queue_entry");
+    return false;
   }
 
   return true;
@@ -55,6 +93,12 @@ bool init(void)
   }
   
   ret = db_init();
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not initiate db.");
+    return false;
+  }
+
+  ret = init_db();
   if(ret == false) {
     slog(LOG_WARNING, "Could not initiate database.");
     return false;

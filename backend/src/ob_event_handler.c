@@ -199,6 +199,7 @@ static bool init_outbound_db(void)
     return false;
   }
 
+  return true;
 }
 
 static int init_outbound(void)
@@ -1004,7 +1005,9 @@ static void dial_predictive(json_t* j_camp, json_t* j_plan, json_t* j_dlma, json
   json_decref(j_res);
 
   // update dialing status
-  rb_dialing_update_status(j_dialing, E_DIALING_ORIGINATE_REQUEST);
+  // todo:
+  slog(LOG_ERR, "Need to fix.");
+//  rb_dialing_update_status(j_dialing, E_DIALING_ORIGINATE_REQUEST);
 
   return;
 }

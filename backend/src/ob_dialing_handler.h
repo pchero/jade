@@ -55,7 +55,7 @@ rb_dialing* rb_dialing_iter_next(struct ao2_iterator *iter);
 json_t* rb_dialing_get_info_for_cli(const char* uuid);
 
 bool rb_dialing_update_name(rb_dialing* dialing, const char* name);
-bool rb_dialing_update_status(rb_dialing* dialing, E_DIALING_STATUS_T status);
+//bool rb_dialing_update_status(rb_dialing* dialing, E_DIALING_STATUS_T status);
 bool rb_dialing_update_events_append(rb_dialing* dialing, json_t* j_evt);
 bool rb_dialing_update_dialing_update(rb_dialing* dialing, json_t* j_dialing);
 bool rb_dialing_update_current_update(rb_dialing* dialing, json_t* j_evt);

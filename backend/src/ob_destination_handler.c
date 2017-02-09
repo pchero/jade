@@ -5,13 +5,21 @@
  *      Author: pchero
  */
 
+
+#define _GNU_SOURCE
+
+#include <stdio.h>
+#include <string.h>
 #include <jansson.h>
+
+#include "common.h"
+#include "slog.h"
+#include "utils.h"
+#include "event_handler.h"
+#include "ami_handler.h"
 
 #include "ob_destination_handler.h"
 #include "db_handler.h"
-#include "event_handler.h"
-#include "utils.h"
-#include "ami_handler.h"
 #include "ob_dl_handler.h"
 
 static json_t* get_destination_deleted(const char* uuid);
@@ -38,7 +46,7 @@ bool create_destination(const json_t* j_dest)
   json_t* j_tmp;
 
   if(j_dest == NULL) {
-    slog(LOG_ERROR, "Wrong input parameter.\n");
+    slog(LOG_ERR, "Wrong input parameter.\n");
     return false;
   }
   j_tmp = json_deep_copy(j_dest);
@@ -85,7 +93,7 @@ bool delete_destination(const char* uuid)
 
   if(uuid == NULL) {
     // invalid parameter.
-    slog(LOG_ERROR, "Wrong input parameter.\n");
+    slog(LOG_ERR, "Wrong input parameter.\n");
     return false;
   }
 
@@ -126,7 +134,7 @@ json_t* get_destination(const char* uuid)
   char* sql;
 
   if(uuid == NULL) {
-    slog(LOG_ERROR, "Wrong input parameter.\n");
+    slog(LOG_ERR, "Wrong input parameter.\n");
     return NULL;
   }
   slog(LOG_VERBOSE, "Get destination info. uuid[%s]\n", uuid);
@@ -158,7 +166,7 @@ static json_t* get_destination_deleted(const char* uuid)
   char* sql;
 
   if(uuid == NULL) {
-    slog(LOG_ERROR, "Wrong input parameter.\n");
+    slog(LOG_ERR, "Wrong input parameter.\n");
     return NULL;
   }
   slog(LOG_VERBOSE, "Get destination info. uuid[%s]\n", uuid);
@@ -230,7 +238,7 @@ bool update_destination(const json_t* j_dest)
   char* uuid;
 
   if(j_dest == NULL) {
-    slog(LOG_ERROR, "Wrong input parameter.\n");
+    slog(LOG_ERR, "Wrong input parameter.\n");
     return false;
   }
 
@@ -304,7 +312,7 @@ int get_destination_available_count(json_t* j_dest)
 
     default:
     {
-      slog(LOG_ERROR, "No support destination type. type[%d]\n", type);
+      slog(LOG_ERR, "No support destination type. type[%d]\n", type);
       ret = 0;
     }
     break;
@@ -377,7 +385,7 @@ static int get_avail_cnt_app_queue_service_perf(const char* name)
   // get queue param
   j_tmp = get_app_queue_param(name);
   if(j_tmp == NULL) {
-    slog(LOG_ERROR, "Could not get queue_param info. queue_name[%s]\n", name);
+    slog(LOG_ERR, "Could not get queue_param info. queue_name[%s]\n", name);
     return 0;
   }
 
@@ -407,7 +415,7 @@ static int get_avail_cnt_app_queue(const char* name)
   // get queue summary info.
   j_tmp = get_app_queue_summary(name);
   if(j_tmp == NULL) {
-    slog(LOG_ERROR, "Could not get queue_summary info. queue_name[%s]\n", name);
+    slog(LOG_ERR, "Could not get queue_summary info. queue_name[%s]\n", name);
     return 0;
   }
 
@@ -461,11 +469,14 @@ static json_t* get_app_queue_param(const char* name)
   }
   slog(LOG_DEBUG, "Getting queue param info. queue_name[%s]\n", name);
 
-  j_ami_res = ami_cmd_queue_status(name);
-  if(j_ami_res == NULL) {
-    slog(LOG_NOTICE, "Could not get queue status. name[%s]\n", name);
-    return NULL;
-  }
+//  todo:
+  slog(LOG_ERR, "Need to fix. Need to get queue status.");
+
+//  j_ami_res = ami_cmd_queue_status(name);
+//  if(j_ami_res == NULL) {
+//    slog(LOG_NOTICE, "Could not get queue status. name[%s]\n", name);
+//    return NULL;
+//  }
 
   // get result.
   i = 0;
@@ -515,11 +526,14 @@ json_t* get_app_queue_summary(const char* name)
     return NULL;
   }
 
-  j_ami_res = ami_cmd_queue_summary(name);
-  if(j_ami_res == NULL) {
-    slog(LOG_NOTICE, "Could not get queue summary. name[%s]\n", name);
-    return NULL;
-  }
+  //todo:
+  slog(LOG_ERR, "Need to fix. Need to get queue status.");
+
+//  j_ami_res = ami_cmd_queue_summary(name);
+//  if(j_ami_res == NULL) {
+//    slog(LOG_NOTICE, "Could not get queue summary. name[%s]\n", name);
+//    return NULL;
+//  }
 
   // get result.
   i = 0;
@@ -608,14 +622,14 @@ json_t* create_dial_destination_info(json_t* j_dest)
 
     default:
     {
-      slog(LOG_ERROR, "No support destination type. type[%d]\n", type);
+      slog(LOG_ERR, "No support destination type. type[%d]\n", type);
       j_res = NULL;
     }
     break;
   }
 
   if(j_res == NULL) {
-    slog(LOG_ERROR, "Could not get correct dial destination info.\n");
+    slog(LOG_ERR, "Could not get correct dial destination info.\n");
     return NULL;
   }
 

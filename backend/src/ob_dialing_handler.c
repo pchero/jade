@@ -22,10 +22,10 @@
 
 //AST_MUTEX_DEFINE_STATIC(g_rb_dialing_mutex);
 
-static int rb_dialing_cmp_cb(void* obj, void* arg, int flags);
-static int rb_dialing_sort_cb(const void* o_left, const void* o_right, int flags);
-static void rb_dialing_destructor(void* obj);
-static bool rb_dialing_update(rb_dialing* dialing);
+//static int rb_dialing_cmp_cb(void* obj, void* arg, int flags);
+//static int rb_dialing_sort_cb(const void* o_left, const void* o_right, int flags);
+//static void rb_dialing_destructor(void* obj);
+//static bool rb_dialing_update(rb_dialing* dialing);
 
 //static struct ao2_container* g_rb_dialings = NULL;  ///< dialing container
 
@@ -81,59 +81,59 @@ int init_rb_dialing(void)
 //  }
 //}
 
-/**
- *
- * @param obj
- * @param arg
- * @param flags
- * @return
- */
-static int rb_dialing_cmp_cb(void* obj, void* arg, int flags)
-{
-  slog(LOG_ERR, "Need to fix.");
-  return false;
-
-//  rb_dialing* dialing;
-//  const char *key;
+///**
+// *
+// * @param obj
+// * @param arg
+// * @param flags
+// * @return
+// */
+//static int rb_dialing_cmp_cb(void* obj, void* arg, int flags)
+//{
+//  slog(LOG_ERR, "Need to fix.");
+//  return false;
 //
-//  dialing = (rb_dialing*)obj;
-//
-//  if(flags & OBJ_SEARCH_KEY) {
-//    key = (const char*)arg;
-//
-//    // channel unique id
-//    if(dialing->uuid == NULL) {
-//      return 0;
-//    }
-//    if(strcmp(dialing->uuid, key) == 0) {
-//      return CMP_MATCH;
-//    }
-//    return 0;
-//  }
-//  else if(flags & OBJ_SEARCH_PARTIAL_KEY) {
-//    key = (const char*)arg;
-//
-//    // channel name
-//    if((dialing->name == NULL) || (key == NULL)) {
-//      return 0;
-//    }
-//
-//    if(strcmp(dialing->name, key) == 0) {
-//      return CMP_MATCH;
-//    }
-//    return 0;
-//  }
-//  else {
-//    // channel id
-//    rb_dialing* dialing_right;
-//
-//    dialing_right = (rb_dialing*)arg;
-//    if(strcmp(dialing->uuid, dialing_right->uuid) == 0) {
-//      return CMP_MATCH;
-//    }
-//    return 0;
-//  }
-}
+////  rb_dialing* dialing;
+////  const char *key;
+////
+////  dialing = (rb_dialing*)obj;
+////
+////  if(flags & OBJ_SEARCH_KEY) {
+////    key = (const char*)arg;
+////
+////    // channel unique id
+////    if(dialing->uuid == NULL) {
+////      return 0;
+////    }
+////    if(strcmp(dialing->uuid, key) == 0) {
+////      return CMP_MATCH;
+////    }
+////    return 0;
+////  }
+////  else if(flags & OBJ_SEARCH_PARTIAL_KEY) {
+////    key = (const char*)arg;
+////
+////    // channel name
+////    if((dialing->name == NULL) || (key == NULL)) {
+////      return 0;
+////    }
+////
+////    if(strcmp(dialing->name, key) == 0) {
+////      return CMP_MATCH;
+////    }
+////    return 0;
+////  }
+////  else {
+////    // channel id
+////    rb_dialing* dialing_right;
+////
+////    dialing_right = (rb_dialing*)arg;
+////    if(strcmp(dialing->uuid, dialing_right->uuid) == 0) {
+////      return CMP_MATCH;
+////    }
+////    return 0;
+////  }
+//}
 
 /**
  * Create dialing obj.
@@ -301,50 +301,50 @@ void rb_dialing_destory(rb_dialing* dialing)
   return;
 }
 
-static void rb_dialing_destructor(void* obj)
-{
-  rb_dialing* dialing;
-
-  dialing = (rb_dialing*)obj;
-
-//  // send destroy
-//  send_manager_evt_out_dialing_delete(dialing);
-
-  if(dialing->uuid != NULL)       sfree(dialing->uuid);
-  if(dialing->name != NULL)       sfree(dialing->name);
-  if(dialing->j_dialing != NULL)    json_decref(dialing->j_dialing);
-  if(dialing->j_event != NULL)    json_decref(dialing->j_event);
-  if(dialing->j_events != NULL)    json_decref(dialing->j_events);
-  if(dialing->tm_create != NULL)  sfree(dialing->tm_create);
-  if(dialing->tm_update != NULL)  sfree(dialing->tm_update);
-  if(dialing->tm_delete != NULL)  sfree(dialing->tm_delete);
-
-  slog(LOG_DEBUG, "Called destroyer.\n");
-}
-
-/**
- * There's no mutex lock here.
- * locking is caller's responsibility.
- * @param dialing
- * @return
- */
-static bool rb_dialing_update(rb_dialing* dialing)
-{
-  if(dialing == NULL) {
-    return false;
-  }
-
-  if(dialing->tm_update != NULL) {
-    sfree(dialing->tm_update);
-  }
-  dialing->tm_update = get_utc_timestamp();
-
-//  clock_gettime(CLOCK_REALTIME, &dialing->timeptr_update);
+//static void rb_dialing_destructor(void* obj)
+//{
+//  rb_dialing* dialing;
 //
-//  send_manager_evt_out_dialing_update(dialing);
+//  dialing = (rb_dialing*)obj;
+//
+////  // send destroy
+////  send_manager_evt_out_dialing_delete(dialing);
+//
+//  if(dialing->uuid != NULL)       sfree(dialing->uuid);
+//  if(dialing->name != NULL)       sfree(dialing->name);
+//  if(dialing->j_dialing != NULL)    json_decref(dialing->j_dialing);
+//  if(dialing->j_event != NULL)    json_decref(dialing->j_event);
+//  if(dialing->j_events != NULL)    json_decref(dialing->j_events);
+//  if(dialing->tm_create != NULL)  sfree(dialing->tm_create);
+//  if(dialing->tm_update != NULL)  sfree(dialing->tm_update);
+//  if(dialing->tm_delete != NULL)  sfree(dialing->tm_delete);
+//
+//  slog(LOG_DEBUG, "Called destroyer.\n");
+//}
 
-  return true;
-}
+///**
+// * There's no mutex lock here.
+// * locking is caller's responsibility.
+// * @param dialing
+// * @return
+// */
+//static bool rb_dialing_update(rb_dialing* dialing)
+//{
+//  if(dialing == NULL) {
+//    return false;
+//  }
+//
+//  if(dialing->tm_update != NULL) {
+//    sfree(dialing->tm_update);
+//  }
+//  dialing->tm_update = get_utc_timestamp();
+//
+////  clock_gettime(CLOCK_REALTIME, &dialing->timeptr_update);
+////
+////  send_manager_evt_out_dialing_update(dialing);
+//
+//  return true;
+//}
 
 bool rb_dialing_update_name(rb_dialing* dialing, const char* name)
 {
@@ -479,23 +479,23 @@ bool rb_dialing_update_event_substitute(rb_dialing* dialing, json_t* j_evt)
 //  return true;
 }
 
-bool rb_dialing_update_status(rb_dialing* dialing, E_DIALING_STATUS_T status)
-{
-  slog(LOG_ERR, "Need to fix.");
-  return false;
-
-//  if(dialing == NULL) {
-//    return false;
-//  }
+//bool rb_dialing_update_status(rb_dialing* dialing, E_DIALING_STATUS_T status)
+//{
+//  slog(LOG_ERR, "Need to fix.");
+//  return false;
 //
-//  ast_mutex_lock(&g_rb_dialing_mutex);
-//
-//  dialing->status = status;
-//
-//  ast_mutex_unlock(&g_rb_dialing_mutex);
-//
-//  return true;
-}
+////  if(dialing == NULL) {
+////    return false;
+////  }
+////
+////  ast_mutex_lock(&g_rb_dialing_mutex);
+////
+////  dialing->status = status;
+////
+////  ast_mutex_unlock(&g_rb_dialing_mutex);
+////
+////  return true;
+//}
 
 rb_dialing* rb_dialing_find_chan_name(const char* name)
 {
