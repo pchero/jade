@@ -28,50 +28,50 @@
 //  return;
 //}
 
-///**
-// *
-// * @param s
-// */
-//void trim(char* s)
-//{
-//	char* p;
-//	int l;
-//
-//	if(s == NULL) {
-//		return;
-//	}
-//
-//	p = s;
-//	l = strlen(p);
-//
-//	while(isspace(p[l - 1])) p[--l] = 0;
-//	while(* p && isspace(* p)) ++p, --l;
-//
-//	memmove(s, p, l + 1);
-//}
-void trim(char *text)
+/**
+ *
+ * @param s
+ */
+void trim(char* s)
 {
-  int i;
-  int len;
-  int retval = 0;
+	char* p;
+	int l;
 
-  if(text == NULL) {
-    return;
-  }
+	if(s == NULL) {
+		return;
+	}
 
-  len = strlen(text);
-  for
-  (
-    i = len - 1;
-    i >= 0 && ((text[i]==' ') || (text[i]=='\t') );
-    i--
-  )
-  {
-    text[i] = (char)0;
-    retval++;
-  }
-  return;
+	p = s;
+	l = strlen(p);
+
+	while(isspace(p[l - 1])) p[--l] = 0;
+	while(* p && isspace(* p)) ++p, --l;
+
+	memmove(s, p, l + 1);
 }
+//void trim(char *text)
+//{
+//  int i;
+//  int len;
+//  int retval = 0;
+//
+//  if(text == NULL) {
+//    return;
+//  }
+//
+//  len = strlen(text);
+//  for
+//  (
+//    i = len - 1;
+//    i >= 0 && ((text[i]==' ') || (text[i]=='\t') );
+//    i--
+//  )
+//  {
+//    text[i] = (char)0;
+//    retval++;
+//  }
+//  return;
+//}
 
 
 /**

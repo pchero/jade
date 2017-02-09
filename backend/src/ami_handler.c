@@ -61,6 +61,11 @@ static json_t* parse_ami_msg(const char* msg);
 static void cb_ami_handler(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg);
 
 static void ami_event_peerentry(json_t* j_msg);
+static void ami_event_queueparams(json_t* j_msg);
+static void ami_event_queuemember(json_t* j_msg);
+static void ami_event_queueentry(json_t* j_msg);
+
+
 static void ami_event_outdestinationentry(json_t* j_msg);
 static void ami_event_outdestinationcreate(json_t* j_msg);
 static void ami_event_outdestinationupdate(json_t* j_msg);
@@ -236,6 +241,15 @@ static void ami_message_handler(const char* msg)
   else if(strcmp(event, "PeerEntry") == 0) {
     ami_event_peerentry(j_msg);
   }
+  else if(strcmp(event, "QueueParams") == 0) {
+    ami_event_queueparams(j_msg);
+  }
+  else if(strcmp(event, "QueueMember") == 0) {
+    ami_event_queuemember(j_msg);
+  }
+  else if(strcmp(event, "QueueEntry") == 0) {
+    ami_event_queueentry(j_msg);
+  }
   else {
     tmp = json_dumps(j_msg, JSON_ENCODE_ANY);
     slog(LOG_DEBUG, "Could not find correct message parser. msg[%s]", tmp);
@@ -391,9 +405,13 @@ static bool ami_get_init_info(void)
   send_ami_cmd(cmd);
   sfree(cmd);
 
-
   // sip peers
   asprintf(&cmd, "Action: SipPeers\r\n\r\n");
+  send_ami_cmd(cmd);
+  sfree(cmd);
+
+  // queue status
+  asprintf(&cmd, "Action: QueueStatus\r\n\r\n");
   send_ami_cmd(cmd);
   sfree(cmd);
 
@@ -424,11 +442,11 @@ static json_t* parse_ami_msg(const char* msg)
   j_tmp = json_object();
   bzero(tmp, sizeof(tmp));
   for(i = 0, j = 0; i < strlen(msg); i++) {
-    tmp[j] = msg[i];
-    j++;
 
     if((msg[i] != '\r') || (msg[i+1] != '\n')) {
-    	continue;
+      tmp[j] = msg[i];
+      j++;
+      continue;
     }
 
 		// check /r/n/r/n
@@ -1619,3 +1637,177 @@ static void ami_event_outdllistdelete(json_t* j_msg)
 
   return;
 }
+
+/**
+ * AMI event handler.
+ * Event: QueueParams
+ * @param j_msg
+ */
+static void ami_event_queueparams(json_t* j_msg)
+{
+  json_t* j_tmp;
+  int ret;
+  char* timestamp;
+
+  if(j_msg == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired ami_event_queueparams.");
+
+  timestamp = get_utc_timestamp();
+  j_tmp = json_pack("{"
+      "s:s, "
+      "s:i, s:s, s:i, s:i, s:i, s:i, s:i, "
+      "s:i, s:f, s:i, "
+      "s:s"
+      "}",
+
+      "name",       json_string_value(json_object_get(j_msg, "Queue"))? : "",
+
+      "max",        json_string_value(json_object_get(j_msg, "Max"))? atoi(json_string_value(json_object_get(j_msg, "Max"))) : 0,
+      "strategy",   json_string_value(json_object_get(j_msg, "Strategy"))? : "",
+      "calls",      json_string_value(json_object_get(j_msg, "Calls"))? atoi(json_string_value(json_object_get(j_msg, "Calls"))) : 0,
+      "hold_time",  json_string_value(json_object_get(j_msg, "Holdtime"))? atoi(json_string_value(json_object_get(j_msg, "Holdtime"))) : 0,
+      "talk_time",  json_string_value(json_object_get(j_msg, "TalkTime"))? atoi(json_string_value(json_object_get(j_msg, "TalkTime"))) : 0,
+      "completed",  json_string_value(json_object_get(j_msg, "Completed"))? atoi(json_string_value(json_object_get(j_msg, "Completed"))) : 0,
+      "abandoned",  json_string_value(json_object_get(j_msg, "Abandoned"))? atoi(json_string_value(json_object_get(j_msg, "Abandoned"))) : 0,
+
+      "service_level",      json_string_value(json_object_get(j_msg, "ServiceLevel"))? atoi(json_string_value(json_object_get(j_msg, "ServiceLevel"))) : 0,
+      "service_level_perf", json_string_value(json_object_get(j_msg, "ServicelevelPerf"))? atof(json_string_value(json_object_get(j_msg, "ServicelevelPerf"))) : 0.0,
+      "weight",             json_string_value(json_object_get(j_msg, "Weight"))? atoi(json_string_value(json_object_get(j_msg, "Weight"))) : 0,
+
+      "tm_update",  timestamp
+      );
+  sfree(timestamp);
+  if(j_tmp == NULL) {
+    slog(LOG_DEBUG, "Could not create message.");
+    return;
+  }
+
+  ret = db_insert("queue_param", j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert queue_param.");
+    return;
+  }
+
+  return;
+}
+
+/**
+ * AMI event handler.
+ * Event: QueueMember
+ * @param j_msg
+ */
+static void ami_event_queuemember(json_t* j_msg)
+{
+  json_t* j_tmp;
+  int ret;
+  char* timestamp;
+
+  if(j_msg == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired ami_event_queuemember.");
+
+  timestamp = get_utc_timestamp();
+  j_tmp = json_pack("{"
+      "s:s, s:s, "
+      "s:s, s:s, s:s, s:i, s:i, "
+      "s:i, s:i, s:i, s:i, s:i, "
+      "s:s, "
+      "s:s"
+      "}",
+
+      "name",         json_string_value(json_object_get(j_msg, "Name"))? : "",
+      "queue_name",   json_string_value(json_object_get(j_msg, "Queue"))? : "",
+
+      "location",         json_string_value(json_object_get(j_msg, "Location"))? : "",
+      "state_interface",  json_string_value(json_object_get(j_msg, "StateInterface"))? : "",
+      "membership",       json_string_value(json_object_get(j_msg, "Membership"))? : "",
+      "penalty",          json_string_value(json_object_get(j_msg, "Penalty"))? atoi(json_string_value(json_object_get(j_msg, "Penalty"))) : 0,
+      "calls_taken",      json_string_value(json_object_get(j_msg, "CallsTaken"))? atoi(json_string_value(json_object_get(j_msg, "CallsTaken"))) : 0,
+
+      "last_call",  json_string_value(json_object_get(j_msg, "LastCall"))? atoi(json_string_value(json_object_get(j_msg, "LastCall"))) : 0,
+      "last_pause", json_string_value(json_object_get(j_msg, "LastPause"))? atoi(json_string_value(json_object_get(j_msg, "LastPause"))) : 0,
+      "in_call",    json_string_value(json_object_get(j_msg, "InCall"))? atoi(json_string_value(json_object_get(j_msg, "InCall"))) : 0,
+      "status",     json_string_value(json_object_get(j_msg, "Status"))? atoi(json_string_value(json_object_get(j_msg, "Status"))) : 0,
+      "paused",     json_string_value(json_object_get(j_msg, "Paused"))? atoi(json_string_value(json_object_get(j_msg, "Paused"))) : 0,
+
+      "paused_reason",  json_string_value(json_object_get(j_msg, "PausedReason"))? : "",
+
+      "tm_update",  timestamp
+      );
+  sfree(timestamp);
+  if(j_tmp == NULL) {
+    slog(LOG_DEBUG, "Could not create message.");
+    return;
+  }
+
+  ret = db_insert("queue_member", j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert queue_member.");
+    return;
+  }
+
+  return;
+}
+
+/**
+ * AMI event handler.
+ * Event: QueueEntry
+ * @param j_msg
+ */
+static void ami_event_queueentry(json_t* j_msg)
+{
+  json_t* j_tmp;
+  int ret;
+  char* timestamp;
+
+  if(j_msg == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired ami_event_queueentry.");
+
+  timestamp = get_utc_timestamp();
+  j_tmp = json_pack("{"
+      "s:s, s:i, "
+      "s:s, s:s, s:s, s:s, s:s, s:s, "
+      "s:i, "
+      "s:s"
+      "}",
+
+      "queue_name", json_string_value(json_object_get(j_msg, "Queue"))? : "",
+      "position",   json_string_value(json_object_get(j_msg, "Position"))? atoi(json_string_value(json_object_get(j_msg, "Position"))) : 0,
+
+      "channel",              json_string_value(json_object_get(j_msg, "Channel"))? : "",
+      "unique_id",            json_string_value(json_object_get(j_msg, "Uniqueid"))? : "",
+      "caller_id_num",        json_string_value(json_object_get(j_msg, "CallerIDNum"))? : "",
+      "caller_id_name",       json_string_value(json_object_get(j_msg, "CallerIDName"))? : "",
+      "connected_line_num",   json_string_value(json_object_get(j_msg, "ConnectedLineNum"))? : "",
+      "connected_line_name",  json_string_value(json_object_get(j_msg, "ConnectedLineName"))? : "",
+
+      "wait",   json_string_value(json_object_get(j_msg, "Wait"))? atoi(json_string_value(json_object_get(j_msg, "Wait"))) : 0,
+
+      "tm_update",  timestamp
+      );
+  sfree(timestamp);
+  if(j_tmp == NULL) {
+    slog(LOG_DEBUG, "Could not create message.");
+    return;
+  }
+
+  ret = db_insert("queue_entry", j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert queue_member.");
+    return;
+  }
+
+  return;
+}
+

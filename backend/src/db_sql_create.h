@@ -8,24 +8,11 @@
 #ifndef SRC_DB_SQL_CREATE_H_
 #define SRC_DB_SQL_CREATE_H_
 
-// queue
-//static const char* g_sql_queue =
-//"create table queue("
-//
-//// identity"
-//"  uuid      varchar(255)    unique,"         // queue uuid"
-//"  name      varchar(255)    not null,"       // queue name"
-//"  detail    text            default null,"
-//"  in_use    int             default 1,"      // 0:not in use, 1:in use"
-//
-//"  tm_create           datetime(6),"    // create time."
-//"  tm_delete           datetime(6)"     // delete time."
-//
-//");";
-
-
 // peer
-static const char* g_sql_peer =
+static const char* g_sql_drop_peer =
+"drop table if exists peer;";
+
+static const char* g_sql_create_peer =
 "create table peer("
 
 "   channel_type varchar(255)    not null,"   // channel type(SIP, ...)
@@ -48,13 +35,19 @@ static const char* g_sql_peer =
 "   realtime_device  varchar(255),"   //
 "   description      varchar(255),"   //
 
+// timestamp. UTC."
+"   tm_update        datetime(6),"   // update time."
+
+
 "   primary key(channel_type, object_name)"
 
 ");";
 
 
 // queue param
-static const char* g_sql_queue_param =
+static const char* g_sql_drop_queue_param =
+"drop table if exists queue_param;";
+static const char* g_sql_create_queue_param =
 "create table queue_param("
 
 // identity
@@ -76,13 +69,17 @@ static const char* g_sql_queue_param =
 // etc
 "   weight          int,"    // queue priority.
 
+// timestamp. UTC."
+"   tm_update       datetime(6),"   // update time."
+
 "   primary key(name)"
 
 ");";
 
 
 // queue member
-static const char* g_sql_queue_member =
+static const char* g_sql_drop_queue_member = "drop table if exists queue_member;";
+static const char* g_sql_create_queue_member =
 "create table queue_member("
 
 // identity
@@ -101,12 +98,17 @@ static const char* g_sql_queue_member =
 "   paused            int,"
 "   paused_reason     text,"
 
+// timestamp. UTC."
+"   tm_update         datetime(6),"   // update time."
+
 "   primary key(queue_name, name)"
 
 ");";
 
+
 // queue entry
-static const char* g_sql_queue_entry =
+static const char* g_sql_drop_queue_entry = "drop table if exists queue_entry;";
+static const char* g_sql_create_queue_entry =
 "create table queue_entry("
 
 // identity
@@ -121,6 +123,9 @@ static const char* g_sql_queue_entry =
 "   connected_line_num  varchar(255),"
 "   connected_line_name varchar(255),"
 "   wait    int,"
+
+// timestamp. UTC."
+"   tm_update         datetime(6),"   // update time."
 
 "   primary key(queue_name, position)"
 

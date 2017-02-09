@@ -37,28 +37,32 @@ static bool init_db(void)
   int ret;
 
   // peer
-  ret = db_exec(g_sql_peer);
+  db_exec(g_sql_drop_peer);
+  ret = db_exec(g_sql_create_peer);
   if(ret == false) {
     slog(LOG_ERR, "Could not create table. table[%s]", "peer");
     return false;
   }
 
   // queue_param
-  ret = db_exec(g_sql_queue_param);
+  db_exec(g_sql_drop_queue_param);
+  ret = db_exec(g_sql_create_queue_param);
   if(ret == false) {
     slog(LOG_ERR, "Could not create table. table[%s]", "queue_param");
     return false;
   }
 
   // queue_member
-  ret = db_exec(g_sql_queue_member);
+  db_exec(g_sql_drop_queue_member);
+  ret = db_exec(g_sql_create_queue_member);
   if(ret == false) {
     slog(LOG_ERR, "Could not create table. table[%s]", "queue_member");
     return false;
   }
 
   // queue_member
-  ret = db_exec(g_sql_queue_entry);
+  db_exec(g_sql_drop_queue_entry);
+  ret = db_exec(g_sql_create_queue_entry);
   if(ret == false) {
     slog(LOG_ERR, "Could not create table. table[%s]", "queue_entry");
     return false;
