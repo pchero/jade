@@ -202,9 +202,9 @@ void clear_dl_list_dialing(const char* uuid)
   }
 
   j_tmp = json_pack("{s:i, s:s, s:O, s:O, s:O}",
-      "status",         E_DL_IDLE,
-      "uuid",         uuid,
-      "dialing_uuid",     json_null(),
+      "status",             E_DL_IDLE,
+      "uuid",               uuid,
+      "dialing_uuid",       json_null(),
       "dialing_camp_uuid",  json_null(),
       "dialing_plan_uuid",  json_null()
       );
@@ -1507,7 +1507,66 @@ static json_t* get_dl_available(json_t* j_dlma, json_t* j_plan)
   return j_res;
 }
 
-bool update_dl_list_after_create_dialing_info(rb_dialing* dialing)
+bool update_dl_list_after_create_dialing_info(json_t* j_dialing)
+{
+  int ret;
+  char* tmp;
+  const char* tmp_const;
+  char* try_count_field;
+  json_t* j_dl_update;
+  json_t* j_dial;
+
+  if(j_dialing == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  // get info_dial
+  tmp_const = json_string_value(json_object_get(j_dialing, "info_dial"));
+  if(tmp_const == NULL) {
+    slog(LOG_ERR, "Could not get info_dial.");
+    return false;
+  }
+
+  // get dial
+  j_dial = json_loads(tmp_const, JSON_DECODE_ANY, NULL);
+  if(j_dial == NULL) {
+    slog(LOG_ERR, "Could not get dial.");
+    return false;
+  }
+
+  // get timestamp
+  tmp = get_utc_timestamp();
+
+  // get
+  asprintf(&try_count_field, "trycnt_%lld", json_integer_value(json_object_get(j_dialing, "dial_index")));
+
+  // create update dl_list
+  j_dl_update = json_pack("{s:s, s:i, s:i, s:s, s:s, s:s, s:s}",
+      "uuid",               json_string_value(json_object_get(j_dialing, "uid_dl_list")),
+      try_count_field,      json_integer_value(json_object_get(j_dialing, "dial_trycnt")),
+      "status",             E_DL_DIALING,
+      "dialing_uuid",       json_string_value(json_object_get(j_dialing, "uuid")),
+      "dialing_camp_uuid",  json_string_value(json_object_get(j_dialing, "uuid_camp")),
+      "dialing_plan_uuid",  json_string_value(json_object_get(j_dialing, "uuid_plan")),
+      "tm_last_dial",       tmp
+      );
+  sfree(tmp);
+  sfree(try_count_field);
+
+  // dl update
+  ret = update_dl_list(j_dl_update);
+  json_decref(j_dl_update);
+  if(ret == false) {
+    clear_dl_list_dialing(json_string_value(json_object_get(j_dialing, "uuid_dl_list")));
+    slog(LOG_ERR, "Could not update dial list info.\n");
+    return false;
+  }
+
+  return true;
+}
+
+bool update_dl_list_after_create_dialing_info_(rb_dialing* dialing)
 {
   int ret;
   char* tmp;

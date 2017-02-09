@@ -61,6 +61,6 @@ void clear_dl_list_dialing(const char* uuid);
 json_t* create_dial_info(json_t* j_plan, json_t* j_dl_list, json_t* j_dest);
 json_t* create_json_for_dl_result(rb_dialing* dialing);
 
-bool update_dl_list_after_create_dialing_info(rb_dialing* dialing);
+bool update_dl_list_after_create_dialing_info(json_t* dialing);
 
 #endif /* SRC_DL_HANDLER_H_ */

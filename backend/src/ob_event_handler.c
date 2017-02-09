@@ -19,6 +19,7 @@
 #include "db_handler.h"
 #include "ami_handler.h"
 #include "ast_causes.h"
+#include "ob_db_sql_create.h"
 #include "ob_event_handler.h"
 #include "ob_dialing_handler.h"
 #include "ob_campaign_handler.h"
@@ -36,6 +37,7 @@ extern struct event_base*  g_base;
 extern app* g_app;
 
 static int init_outbound(void);
+static bool init_outbound_db(void);
 
 static void cb_campaign_start(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg);
 static void cb_campaign_starting(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg);
@@ -151,42 +153,66 @@ int run_outbound(void)
   return true;
 }
 
+static bool init_outbound_db(void)
+{
+  int ret;
+
+  ret = db_exec(g_sql_ob_destination);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate outbound database. table[destination]");
+    return false;
+  }
+
+  ret = db_exec(g_sql_ob_dial_list);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate outbound database. table[dial_list]");
+    return false;
+  }
+
+  ret = db_exec(g_sql_ob_dl_list_ma);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate outbound database. table[dl_list_ma]");
+    return false;
+  }
+
+  ret = db_exec(g_sql_ob_plan);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate outbound database. table[plan]");
+    return false;
+  }
+
+  ret = db_exec(g_sql_ob_dialing);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate outbound database. table[dialing]");
+    return false;
+  }
+
+  ret = db_exec(g_sql_ob_dl_result);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate outbound database. table[dl_result]");
+    return false;
+  }
+
+  ret = db_exec(g_sql_ob_campaign);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate outbound database. table[campaign]");
+    return false;
+  }
+
+}
+
 static int init_outbound(void)
 {
   int ret;
-  json_t* j_res;
-  db_res_t* db_res;
-
-  ret = evthread_use_pthreads();
-  if(ret == -1){
-    slog(LOG_ERR, "Could not initiated event thread.");
-  }
-
-//  // init libevent
-//  if(g_base == NULL) {
-//    ast_log(LOG_DEBUG, "event_base_new\n");
-//    g_base = event_base_new();
-//  }
 
   if(g_base == NULL) {
     slog(LOG_ERR, "Could not initiate libevent. err[%d:%s]\n", errno, strerror(errno));
     return false;
   }
 
-  // check database tables.
-  db_res = db_query("select 1 from campaign limit 1;");
-  if(db_res == NULL) {
-    slog(LOG_ERR, "Could not initiate libevent. Table is not ready.\n");
-    return false;
-  }
-
-  j_res = db_get_record(db_res);
-  db_free(db_res);
-  json_decref(j_res);
-
-  ret = init_plan();
+  ret = init_outbound_db();
   if(ret == false) {
-    slog(LOG_ERR, "Could not initiate plan.\n");
+    slog(LOG_ERR, "Could not initiate outbound.");
     return false;
   }
 
@@ -866,7 +892,7 @@ static void dial_predictive(json_t* j_camp, json_t* j_plan, json_t* j_dlma, json
   json_t* j_dl_list;
   json_t* j_dial;
   json_t* j_res;
-  rb_dialing* dialing;
+  json_t* j_dialing;
   char* tmp;
   E_DESTINATION_TYPE dial_type;
 
@@ -912,7 +938,7 @@ static void dial_predictive(json_t* j_camp, json_t* j_plan, json_t* j_dlma, json
       );
 
   // create rbtree
-  dialing = rb_dialing_create(
+  j_dialing = rb_dialing_create(
       json_string_value(json_object_get(j_dial, "channelid")),
       j_camp,
       j_plan,
@@ -922,18 +948,18 @@ static void dial_predictive(json_t* j_camp, json_t* j_plan, json_t* j_dlma, json
       j_dial
       );
   json_decref(j_dl_list);
-  if(dialing == NULL) {
-    slog(LOG_WARNING, "Could not create rbtree object.\n");
+  if(j_dialing == NULL) {
+    slog(LOG_WARNING, "Could not create dialing info.");
     json_decref(j_dial);
     return;
   }
 
   // update dl list using dialing info
-  ret = update_dl_list_after_create_dialing_info(dialing);
+  ret = update_dl_list_after_create_dialing_info(j_dialing);
   if(ret == false) {
-    rb_dialing_destory(dialing);
-    clear_dl_list_dialing(json_string_value(json_object_get(dialing->j_dialing, "dl_list_uuid")));
-    slog(LOG_ERR, "Could not update dial list info.\n");
+    json_decref(j_dialing);
+    clear_dl_list_dialing(json_string_value(json_object_get(j_dialing, "uuid_dl_list")));
+    slog(LOG_ERR, "Could not update dial list info.");
     return;
   }
 
@@ -958,8 +984,8 @@ static void dial_predictive(json_t* j_camp, json_t* j_plan, json_t* j_dlma, json
     default: {
       json_decref(j_dial);
       slog(LOG_ERR, "Unsupported dialing type.");
-      clear_dl_list_dialing(json_string_value(json_object_get(dialing->j_dialing, "dl_list_uuid")));
-      rb_dialing_destory(dialing);
+      clear_dl_list_dialing(json_string_value(json_object_get(j_dialing, "uuid_dl_list")));
+      json_decref(j_dialing);
       return;
     }
     break;
@@ -967,8 +993,8 @@ static void dial_predictive(json_t* j_camp, json_t* j_plan, json_t* j_dlma, json
 
   if(j_res == NULL) {
     slog(LOG_WARNING, "Originating has been failed.\n");
-    clear_dl_list_dialing(json_string_value(json_object_get(dialing->j_dialing, "dl_list_uuid")));
-    rb_dialing_destory(dialing);
+    clear_dl_list_dialing(json_string_value(json_object_get(j_dialing, "uuid_dl_list")));
+    json_decref(j_dialing);
     return;
   }
 
@@ -978,7 +1004,7 @@ static void dial_predictive(json_t* j_camp, json_t* j_plan, json_t* j_dlma, json
   json_decref(j_res);
 
   // update dialing status
-  rb_dialing_update_status(dialing, E_DIALING_ORIGINATE_REQUEST);
+  rb_dialing_update_status(j_dialing, E_DIALING_ORIGINATE_REQUEST);
 
   return;
 }

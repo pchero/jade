@@ -43,9 +43,9 @@ bool db_init(void)
 {
 	int ret;
 	json_t* j_db;
-	json_t* j_res;
-	char* sql;
-	db_res_t* db_res;
+//	json_t* j_res;
+//	char* sql;
+//	db_res_t* db_res;
 	const char* name;
 
 	// get [database]
@@ -68,69 +68,70 @@ bool db_init(void)
 		return false;
 	}
 
-	// check table exist(campaign)
-	asprintf(&sql, "SELECT name FROM sqlite_master WHERE type='table' AND name='%s';", "campaign");
-	db_res = db_query(sql);
-	sfree(sql);
-	j_res = db_get_record(db_res);
-	db_free(db_res);
-	if(j_res != NULL) {
-		json_decref(j_res);
-		return true;
-	}
-
-	// create new
-	slog(LOG_NOTICE, "Could not find correct table info. Create tables.");
-
-	// plan
-	ret = db_exec(g_db_sql_plan);
-	if(ret == false) {
-		slog(LOG_ERR, "Could not create table. table[%s]", "plan");
-		return false;
-	}
+//	// check table exist(campaign)
+//	asprintf(&sql, "SELECT name FROM sqlite_master WHERE type='table' AND name='%s';", "campaign");
+//	db_res = db_query(sql);
+//	sfree(sql);
+//	j_res = db_get_record(db_res);
+//	db_free(db_res);
+//	if(j_res != NULL) {
+//		json_decref(j_res);
+//		return true;
+//	}
+//
+//	// create new
+//	slog(LOG_NOTICE, "Could not find correct table info. Create tables.");
+//
+//	// plan
+//	ret = db_exec(g_sql_ob_plan);
+//	if(ret == false) {
+//		slog(LOG_ERR, "Could not create table. table[%s]", "plan");
+//		return false;
+//	}
 
 	// queue
-	ret = db_exec(g_db_sql_queue);
+	ret = db_exec(g_sql_queue);
 	if(ret == false) {
 		slog(LOG_ERR, "Could not create table. table[%s]", "queue");
 		return false;
 	}
 
-	// dial_list
-	ret = db_exec(g_db_sql_dial_list);
-	if(ret == false) {
-		slog(LOG_ERR, "Could not create table. table[%s]", "dial_list");
-		return false;
-	}
+//	// dial_list
+//	ret = db_exec(g_sql_ob_dial_list);
+//	if(ret == false) {
+//		slog(LOG_ERR, "Could not create table. table[%s]", "dial_list");
+//		return false;
+//	}
+//
+//	// dial_list_ma
+//	ret = db_exec(g_sql_ob_dl_list_ma);
+//	if(ret == false) {
+//		slog(LOG_ERR, "Could not create table. table[%s]", "dl_list_ma");
+//		return false;
+//	}
+//
+//	// campaign
+//	ret = db_exec(g_sql_ob_campaign);
+//	if(ret == false) {
+//		slog(LOG_ERR, "Could not create table. table[%s]", "campaign");
+//		return false;
+//	}
+//
+//	// dl_result
+//	ret = db_exec(g_sql_ob_dl_result);
+//	if(ret == false) {
+//		slog(LOG_ERR, "Could not create table. table[%s]", "dl_result");
+//		return false;
+//	}
+//
+//	// destination
+//	ret = db_exec(g_sql_ob_destination);
+//	if(ret == false) {
+//		slog(LOG_ERR, "Could not create table. table[%s]", "destination");
+//		return false;
+//	}
 
-	// dial_list_ma
-	ret = db_exec(g_db_sql_dl_list_ma);
-	if(ret == false) {
-		slog(LOG_ERR, "Could not create table. table[%s]", "dl_list_ma");
-		return false;
-	}
-
-	// campaign
-	ret = db_exec(g_db_sql_campaign);
-	if(ret == false) {
-		slog(LOG_ERR, "Could not create table. table[%s]", "campaign");
-		return false;
-	}
-
-	// dl_result
-	ret = db_exec(g_sql_dl_result);
-	if(ret == false) {
-		slog(LOG_ERR, "Could not create table. table[%s]", "dl_result");
-		return false;
-	}
-
-	// destination
-	ret = db_exec(g_db_sql_destination);
-	if(ret == false) {
-		slog(LOG_ERR, "Could not create table. table[%s]", "destination");
-		return false;
-	}
-
+	// peer
 	ret = db_exec(g_sql_peer);
 	if(ret == false) {
     slog(LOG_ERR, "Could not create table. table[%s]", "peer");

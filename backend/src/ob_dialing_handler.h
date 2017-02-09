@@ -40,7 +40,7 @@ typedef struct _rb_dialing{
 } rb_dialing;
 
 int init_rb_dialing(void);
-rb_dialing* rb_dialing_create(const char* dialing_uuid, json_t* j_camp, json_t* j_plan, json_t* j_dlma, json_t* j_dest, json_t* j_dl_list, json_t* j_dial);
+json_t* rb_dialing_create(const char* dialing_uuid, json_t* j_camp, json_t* j_plan, json_t* j_dlma, json_t* j_dest, json_t* j_dl_list, json_t* j_dial);
 void rb_dialing_destory(rb_dialing* dialing);
 
 rb_dialing* rb_dialing_find_chan_name(const char* chan);
@@ -51,7 +51,7 @@ struct ao2_iterator rb_dialing_iter_init(void);
 void rb_dialing_iter_destroy(struct ao2_iterator* iter);
 rb_dialing* rb_dialing_iter_next(struct ao2_iterator *iter);
 
-json_t* rb_dialing_get_all_for_cli(void);
+//json_t* rb_dialing_get_all_for_cli(void);
 json_t* rb_dialing_get_info_for_cli(const char* uuid);
 
 bool rb_dialing_update_name(rb_dialing* dialing, const char* name);
