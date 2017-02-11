@@ -31,11 +31,11 @@ static bool is_stoppable_campaign_schedule_check(json_t* j_camp, const char* cur
 
 
 /**
- * Create outbound campaign.
+ * Create ob campaign.
  * @param j_camp
  * @return
  */
-bool create_ob_campaign(const json_t* j_camp)
+json_t* create_ob_campaign(const json_t* j_camp)
 {
   int ret;
   char* uuid;
@@ -43,7 +43,7 @@ bool create_ob_campaign(const json_t* j_camp)
   json_t* j_tmp;
 
   if(j_camp == NULL) {
-    return false;
+    return NULL;
   }
   j_tmp = json_deep_copy(j_camp);
 
@@ -62,16 +62,18 @@ bool create_ob_campaign(const json_t* j_camp)
   json_decref(j_tmp);
   if(ret == false) {
     sfree(uuid);
-    return false;
+    return NULL;
   }
 
-//  // send ami event
-//  j_tmp = get_campaign(uuid);
-//  sfree(uuid);
-//  send_manager_evt_out_campaign_create(j_tmp);
-//  json_decref(j_tmp);
+  j_tmp = get_ob_campaign(uuid);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not create campaign info correctly. uuid[%s]", uuid);
+    sfree(uuid);
+    return NULL;
+  }
+  sfree(uuid);
 
-  return true;
+  return j_tmp;
 }
 
 /**
@@ -79,7 +81,7 @@ bool create_ob_campaign(const json_t* j_camp)
  * @param uuid
  * @return
  */
-bool delete_campaign(const char* uuid)
+bool delete_ob_campaign(const char* uuid)
 {
   json_t* j_tmp;
   char* tmp;
@@ -215,7 +217,12 @@ json_t* get_ob_campaigns_all(void)
   return j_res;
 }
 
-json_t* get_campaigns_all_uuid(void)
+
+/**
+ * Return the json array of all campaign uuid.
+ * @return
+ */
+json_t* get_ob_campaigns_all_uuid(void)
 {
   char* sql;
   const char* tmp_const;
@@ -224,11 +231,11 @@ json_t* get_campaigns_all_uuid(void)
   json_t* j_res_tmp;
   json_t* j_tmp;
 
-  asprintf(&sql, "select * from campaign;");
+  asprintf(&sql, "select * from ob_campaign;");
   db_res = db_query(sql);
   sfree(sql);
   if(db_res == NULL) {
-    slog(LOG_WARNING, "Could not get correct campaign.");
+    slog(LOG_WARNING, "Could not get correct ob_campaign.");
     return NULL;
   }
 
@@ -345,11 +352,11 @@ json_t* get_campaigns_schedule_end(void)
 
 
 /**
- * Update campaign
+ * Update ob_campaign
  * @param j_camp
  * @return
  */
-bool update_campaign(const json_t* j_camp)
+json_t* update_ob_campaign(const json_t* j_camp)
 {
   char* tmp;
   const char* tmp_const;
@@ -358,19 +365,19 @@ bool update_campaign(const json_t* j_camp)
   char* uuid;
 
   if(j_camp == NULL) {
-    return false;
+    return NULL;
   }
 
   j_tmp = json_deep_copy(j_camp);
   if(j_tmp == NULL) {
-    return false;
+    return NULL;
   }
 
   tmp_const = json_string_value(json_object_get(j_tmp, "uuid"));
   if(tmp_const == NULL) {
     slog(LOG_WARNING, "Could not get uuid info.");
     json_decref(j_tmp);
-    return false;
+    return NULL;
   }
   uuid = strdup(tmp_const);
 
@@ -383,7 +390,7 @@ bool update_campaign(const json_t* j_camp)
     slog(LOG_WARNING, "Could not get update str.");
     json_decref(j_tmp);
     sfree(uuid);
-    return false;
+    return NULL;
   }
   json_decref(j_tmp);
 
@@ -394,16 +401,15 @@ bool update_campaign(const json_t* j_camp)
   db_exec(sql);
   sfree(sql);
 
-//  j_tmp = get_campaign(uuid);
-//  sfree(uuid);
-//  if(j_tmp == NULL) {
-//    slog(LOG_WARNING, "Could not get updated campaign info.");
-//    return false;
-//  }
-//  send_manager_evt_out_campaign_update(j_tmp);
-//  json_decref(j_tmp);
+  slog(LOG_DEBUG, "Getting updated campaign info. uuid[%s]", uuid);
+  j_tmp = get_ob_campaign(uuid);
+  sfree(uuid);
+  if(j_tmp == NULL) {
+    slog(LOG_WARNING, "Could not get updated campaign info.");
+    return NULL;
+  }
 
-  return true;
+  return j_tmp;
 }
 
 /**
@@ -412,10 +418,10 @@ bool update_campaign(const json_t* j_camp)
  * @param status
  * @return
  */
-bool update_campaign_status(const char* uuid, E_CAMP_STATUS_T status)
+bool update_ob_campaign_status(const char* uuid, E_CAMP_STATUS_T status)
 {
-  int ret;
   char* tmp_status;
+  json_t* j_camp;
   json_t* j_tmp;
 
   if(uuid == NULL) {
@@ -438,22 +444,23 @@ bool update_campaign_status(const char* uuid, E_CAMP_STATUS_T status)
   slog(LOG_NOTICE, "update ob_campaign status. uuid[%s], status[%d], status_string[%s]", uuid, status, tmp_status);
 
   // get campaign
-  j_tmp = get_ob_campaign(uuid);
-  if(j_tmp == NULL) {
+  j_camp = get_ob_campaign(uuid);
+  if(j_camp == NULL) {
     slog(LOG_WARNING, "Could not find campaign. camp_uuid[%s]", uuid);
     return false;
   }
 
   // set status
-  json_object_set_new(j_tmp, "status", json_integer(status));
+  json_object_set_new(j_camp, "status", json_integer(status));
 
   // update
-  ret = update_campaign(j_tmp);
-  json_decref(j_tmp);
-  if(ret == false) {
+  j_tmp = update_ob_campaign(j_camp);
+  json_decref(j_camp);
+  if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not update campaign status. camp_uuid[%s], status[%d]", uuid, status);
     return false;
   }
+  json_decref(j_tmp);
 
   return true;
 }
@@ -852,6 +859,57 @@ static bool is_stoppable_campaign_schedule_check(json_t* j_camp, const char* cur
 
   ret = is_startable_campaign_schedule_check(j_camp, cur_date, cur_time, cur_day);
   if(ret == true) {
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Return existence of given ob_campaign uuid.
+ * @param uuid
+ * @return
+ */
+bool is_exist_ob_campaign(const char* uuid)
+{
+  char* sql;
+  db_res_t* db_res;
+  json_t* j_tmp;
+  int ret;
+  const char* tmp_const;
+
+  if(uuid == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  asprintf(&sql, "select count(*) from ob_campaign where uuid=\"%s\";", uuid);
+
+  db_res = db_query(sql);
+  sfree(sql);
+  if(db_res == NULL) {
+    slog(LOG_ERR, "Could not get ob_campaign info. uuid[%s]", uuid);
+    return false;
+  }
+
+  j_tmp = db_get_record(db_res);
+  db_free(db_res);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get correct ob_campaign info. uuid[%s]", uuid);
+    return false;
+  }
+
+  tmp_const = json_string_value(json_object_get(j_tmp, "count(*)"));
+  if(tmp_const == NULL) {
+    json_decref(j_tmp);
+    slog(LOG_ERR, "Could not get correct ob_campaign info. uuid[%s]", uuid);
+    return false;
+  }
+
+  ret = atoi(tmp_const);
+  json_decref(j_tmp);
+
+  if(ret <= 0) {
     return false;
   }
 

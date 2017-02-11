@@ -39,7 +39,7 @@ bool init_plan(void)
  * @param j_plan
  * @return
  */
-bool create_ob_plan(const json_t* j_plan)
+json_t* create_ob_plan(const json_t* j_plan)
 {
   int ret;
   char* uuid;
@@ -47,7 +47,7 @@ bool create_ob_plan(const json_t* j_plan)
   char* tmp;
 
   if(j_plan == NULL) {
-    return false;
+    return NULL;
   }
 
   j_tmp = json_deep_copy(j_plan);
@@ -66,24 +66,19 @@ bool create_ob_plan(const json_t* j_plan)
   json_decref(j_tmp);
   if(ret == false) {
     sfree(uuid);
-    return false;
+    return NULL;
   }
-  slog(LOG_VERBOSE, "Finished insert.\n");
+  slog(LOG_DEBUG, "Finished insert.\n");
 
-//  // send ami event
-//  j_tmp = get_plan(uuid);
-//  slog(LOG_VERBOSE, "Check plan info. uuid[%s]\n",
-//      json_string_value(json_object_get(j_tmp, "uuid"))
-//      );
-//  sfree(uuid);
-//  if(j_tmp == NULL) {
-//    slog(LOG_ERR, "Could not get created plan info.");
-//    return false;
-//  }
-//  send_manager_evt_out_plan_create(j_tmp);
-  json_decref(j_tmp);
+  j_tmp = get_ob_plan(uuid);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get created plan info. uuid[%s]", uuid);
+    sfree(uuid);
+    return NULL;
+  }
+  sfree(uuid);
 
-  return true;
+  return j_tmp;
 }
 
 /**
@@ -268,13 +263,12 @@ json_t* get_ob_plans_all_uuid(void)
   return j_res;
 }
 
-
 /**
  * Update plan
  * @param j_plan
  * @return
  */
-bool update_ob_plan(const json_t* j_plan)
+json_t* update_ob_plan(const json_t* j_plan)
 {
   char* tmp;
   const char* tmp_const;
@@ -284,19 +278,19 @@ bool update_ob_plan(const json_t* j_plan)
   char* uuid;
 
   if(j_plan == NULL) {
-    return false;
+    return NULL;
   }
 
   j_tmp = json_deep_copy(j_plan);
   if(j_tmp == NULL) {
-    return false;
+    return NULL;
   }
 
   tmp_const = json_string_value(json_object_get(j_tmp, "uuid"));
   if(tmp_const == NULL) {
-    slog(LOG_WARNING, "Could not get uuid.\n");
+    slog(LOG_WARNING, "Could not get uuid.");
     json_decref(j_tmp);
-    return false;
+    return NULL;
   }
   uuid = strdup(tmp_const);
 
@@ -306,10 +300,10 @@ bool update_ob_plan(const json_t* j_plan)
 
   tmp = db_get_update_str(j_tmp);
   if(tmp == NULL) {
-    slog(LOG_WARNING, "Could not get update str.\n");
+    slog(LOG_WARNING, "Could not get update str.");
     json_decref(j_tmp);
     sfree(uuid);
-    return false;
+    return NULL;
   }
   json_decref(j_tmp);
 
@@ -319,21 +313,20 @@ bool update_ob_plan(const json_t* j_plan)
   ret = db_exec(sql);
   sfree(sql);
   if(ret == false) {
-    slog(LOG_WARNING, "Could not update ob_plan info. uuid[%s]\n", uuid);
+    slog(LOG_WARNING, "Could not update ob_plan info. uuid[%s]", uuid);
     sfree(uuid);
-    return false;
+    return NULL;
   }
 
-//  j_tmp = get_plan(uuid);
-//  sfree(uuid);
-//  if(j_tmp == NULL) {
-//    slog(LOG_WARNING, "Could not get updated plan info.\n");
-//    return false;
-//  }
-//  send_manager_evt_out_plan_update(j_tmp);
-//  json_decref(j_tmp);
+  j_tmp = get_ob_plan(uuid);
+  if(j_tmp == NULL) {
+    slog(LOG_WARNING, "Could not get updated plan info. uuid[%s]", uuid);
+    sfree(uuid);
+    return NULL;
+  }
+  sfree(uuid);
 
-  return true;
+  return j_tmp;
 }
 
 json_t* create_ob_dial_plan_info(json_t* j_plan)
@@ -405,3 +398,53 @@ bool is_endable_ob_plan(json_t* j_plan)
   return true;
 }
 
+/**
+ * Return existence of given plan uuid.
+ * @param uuid
+ * @return
+ */
+bool is_exist_ob_plan(const char* uuid)
+{
+  char* sql;
+  db_res_t* db_res;
+  json_t* j_tmp;
+  int ret;
+  const char* tmp_const;
+
+  if(uuid == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  asprintf(&sql, "select count(*) from ob_plan where uuid=\"%s\";", uuid);
+
+  db_res = db_query(sql);
+  sfree(sql);
+  if(db_res == NULL) {
+    slog(LOG_ERR, "Could not get ob_plan info. uuid[%s]", uuid);
+    return false;
+  }
+
+  j_tmp = db_get_record(db_res);
+  db_free(db_res);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get correct ob_plan info. uuid[%s]", uuid);
+    return false;
+  }
+
+  tmp_const = json_string_value(json_object_get(j_tmp, "count(*)"));
+  if(tmp_const == NULL) {
+    json_decref(j_tmp);
+    slog(LOG_ERR, "Could not get correct ob_plan info. uuid[%s]", uuid);
+    return false;
+  }
+
+  ret = atoi(tmp_const);
+  json_decref(j_tmp);
+
+  if(ret <= 0) {
+    return false;
+  }
+
+  return true;
+}

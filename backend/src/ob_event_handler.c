@@ -262,7 +262,7 @@ static void cb_campaign_start(__attribute__((unused)) int fd, __attribute__((unu
         json_string_value(json_object_get(j_camp, "uuid")),
         json_string_value(json_object_get(j_camp, "plan"))
         );
-    update_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STOPPING);
+    update_ob_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STOPPING);
     json_decref(j_camp);
     return;
   }
@@ -274,7 +274,7 @@ static void cb_campaign_start(__attribute__((unused)) int fd, __attribute__((unu
             json_string_value(json_object_get(j_camp, "uuid"))? : "",
             json_string_value(json_object_get(j_camp, "dest"))? : ""
             );
-    update_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STOPPING);
+    update_ob_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STOPPING);
     json_decref(j_camp);
     json_decref(j_plan);
     return;
@@ -288,7 +288,7 @@ static void cb_campaign_start(__attribute__((unused)) int fd, __attribute__((unu
         json_string_value(json_object_get(j_camp, "uuid")),
         json_string_value(json_object_get(j_camp, "dlma"))
         );
-    update_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STOPPING);
+    update_ob_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STOPPING);
     json_decref(j_camp);
     json_decref(j_plan);
     json_decref(j_dest);
@@ -307,7 +307,7 @@ static void cb_campaign_start(__attribute__((unused)) int fd, __attribute__((unu
         json_string_value(json_object_get(j_camp, "plan"))
         );
 
-    update_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STOPPING);
+    update_ob_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STOPPING);
     json_decref(j_camp);
     json_decref(j_plan);
     json_decref(j_dlma);
@@ -388,7 +388,7 @@ static void cb_campaign_starting(__attribute__((unused)) int fd, __attribute__((
         json_string_value(json_object_get(j_camp, "uuid")),
         json_string_value(json_object_get(j_camp, "name"))
         );
-    ret = update_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_START);
+    ret = update_ob_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_START);
     if(ret == false) {
       slog(LOG_ERR, "Could not update ob_campaign status to start. camp_uuid[%s], camp_name[%s]\n",
           json_string_value(json_object_get(j_camp, "uuid")),
@@ -435,7 +435,7 @@ static void cb_campaign_stopping(__attribute__((unused)) int fd, __attribute__((
         json_string_value(json_object_get(j_camp, "uuid")),
         json_string_value(json_object_get(j_camp, "name"))
         );
-    ret = update_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STOP);
+    ret = update_ob_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STOP);
     if(ret == false) {
       slog(LOG_ERR, "Could not update ob_campaign status to stop. camp_uuid[%s], camp_name[%s]\n",
         json_string_value(json_object_get(j_camp, "uuid")),
@@ -506,7 +506,7 @@ static void cb_campaign_stopping_force(__attribute__((unused)) int fd, __attribu
 //    rb_dialing_iter_destroy(&iter);
 //
 //    // update status to stop
-//    update_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STOP);
+//    update_ob_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STOP);
 //  }
 //  json_decref(j_camps);
 }
@@ -547,7 +547,7 @@ static void cb_campaign_stopping_force(__attribute__((unused)) int fd, __attribu
 //        ast_json_string_get(ast_json_object_get(j_camp, "uuid")),
 //        ast_json_string_get(ast_json_object_get(j_camp, "name"))
 //        );
-//    ret = update_campaign_status(ast_json_string_get(ast_json_object_get(j_camp, "uuid")), E_CAMP_SCHEDULE_STOP);
+//    ret = update_ob_campaign_status(ast_json_string_get(ast_json_object_get(j_camp, "uuid")), E_CAMP_SCHEDULE_STOP);
 //    if(ret == false) {
 //      ast_log(LOG_ERR, "Could not update campaign status to schedule_stop. camp_uuid[%s], camp_name[%s]\n",
 //        ast_json_string_get(ast_json_object_get(j_camp, "uuid")),
@@ -754,13 +754,13 @@ static void cb_check_campaign_end(__attribute__((unused)) int fd, __attribute__(
 
     j_plan = get_ob_plan(json_string_value(json_object_get(j_camp, "plan")));
     if(j_plan == NULL) {
-      update_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STOPPING);
+      update_ob_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STOPPING);
       continue;
     }
 
     j_dlma = get_dlma(json_string_value(json_object_get(j_camp, "dlma")));
     if(j_dlma == NULL) {
-      update_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STOPPING);
+      update_ob_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STOPPING);
       json_decref(j_plan);
       continue;
     }
@@ -773,7 +773,7 @@ static void cb_check_campaign_end(__attribute__((unused)) int fd, __attribute__(
           json_string_value(json_object_get(j_camp, "uuid")),
           json_string_value(json_object_get(j_camp, "name"))
           );
-      update_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STOPPING);
+      update_ob_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STOPPING);
     }
     json_decref(j_plan);
     json_decref(j_dlma);
@@ -808,7 +808,7 @@ static void cb_check_campaign_schedule_start(__attribute__((unused)) int fd, __a
         json_string_value(json_object_get(j_camp, "uuid"))? : "",
         json_string_value(json_object_get(j_camp, "name"))? : ""
         );
-    ret = update_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STARTING);
+    ret = update_ob_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STARTING);
     if(ret == false) {
       slog(LOG_ERR, "Could not update ob_campaign status to starting. camp_uuid[%s], camp_name[%s]\n",
           json_string_value(json_object_get(j_camp, "uuid"))? : "",
@@ -846,7 +846,7 @@ static void cb_check_campaign_schedule_end(__attribute__((unused)) int fd, __att
         json_string_value(json_object_get(j_camp, "uuid")),
         json_string_value(json_object_get(j_camp, "name"))
         );
-    ret = update_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STOPPING);
+    ret = update_ob_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STOPPING);
     if(ret == false) {
       slog(LOG_ERR, "Could not update ob_campaign status to schedule_stopping. camp_uuid[%s], camp_name[%s]\n",
           json_string_value(json_object_get(j_camp, "uuid")),
@@ -910,7 +910,7 @@ static void dial_predictive(json_t* j_camp, json_t* j_plan, json_t* j_dlma, json
   ret = check_dial_avaiable_predictive(j_camp, j_plan, j_dlma, j_dest);
   if(ret == -1) {
     // something was wrong. stop the campaign.
-    update_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STOPPING);
+    update_ob_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STOPPING);
     json_decref(j_dl_list);
     return;
   }

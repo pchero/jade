@@ -263,17 +263,18 @@ json_t* get_ob_destinations_all(void)
 }
 
 /**
- * Update destination
+ * Update ob_destination
  * @param j_dest
- * @return
+ * @return updated ob_destination info
  */
-bool update_ob_destination(const json_t* j_dest)
+json_t* update_ob_destination(const json_t* j_dest)
 {
   char* tmp;
   const char* tmp_const;
   char* sql;
   json_t* j_tmp;
   char* uuid;
+  int ret;
 
   if(j_dest == NULL) {
     slog(LOG_ERR, "Wrong input parameter.\n");
@@ -302,26 +303,31 @@ bool update_ob_destination(const json_t* j_dest)
     slog(LOG_WARNING, "Could not get update str.");
     json_decref(j_tmp);
     sfree(uuid);
-    return false;
+    return NULL;
   }
   json_decref(j_tmp);
 
   asprintf(&sql, "update ob_destination set %s where in_use=%d and uuid=\"%s\";", tmp, E_DL_USE_OK, uuid);
   sfree(tmp);
 
-  db_exec(sql);
+  // update
+  ret = db_exec(sql);
   sfree(sql);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update ob_destination info. uuid[%s]", uuid);
+    sfree(uuid);
+    return NULL;
+  }
 
-//  j_tmp = get_destination(uuid);
-//  sfree(uuid);
-//  if(j_tmp == NULL) {
-//    slog(LOG_WARNING, "Could not get updated destination info.\n");
-//    return false;
-//  }
-//  send_manager_evt_out_destination_update(j_tmp);
-//  json_decref(j_tmp);
+  // get updated ob_destination info
+  j_tmp = get_ob_destination(uuid);
+  sfree(uuid);
+  if(j_tmp == NULL) {
+    slog(LOG_WARNING, "Could not get updated ob_destination info.");
+    return NULL;
+  }
 
-  return true;
+  return j_tmp;
 }
 
 /**
@@ -724,4 +730,56 @@ json_t* create_ob_dial_destination_info(json_t* j_dest)
 
   return j_res;
 }
+
+/**
+ * Return existence of given destination uuid.
+ * @param uuid
+ * @return
+ */
+bool is_exist_ob_destination(const char* uuid)
+{
+  char* sql;
+  db_res_t* db_res;
+  json_t* j_tmp;
+  int ret;
+  const char* tmp_const;
+
+  if(uuid == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  asprintf(&sql, "select count(*) from ob_destination where uuid=\"%s\";", uuid);
+
+  db_res = db_query(sql);
+  sfree(sql);
+  if(db_res == NULL) {
+    slog(LOG_ERR, "Could not get ob_destination info. uuid[%s]", uuid);
+    return false;
+  }
+
+  j_tmp = db_get_record(db_res);
+  db_free(db_res);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get correct ob_destination info. uuid[%s]", uuid);
+    return false;
+  }
+
+  tmp_const = json_string_value(json_object_get(j_tmp, "count(*)"));
+  if(tmp_const == NULL) {
+    json_decref(j_tmp);
+    slog(LOG_ERR, "Could not get correct ob_destination info. uuid[%s]", uuid);
+    return false;
+  }
+
+  ret = atoi(tmp_const);
+  json_decref(j_tmp);
+
+  if(ret <= 0) {
+    return false;
+  }
+
+  return true;
+}
+
 
