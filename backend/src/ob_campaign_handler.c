@@ -31,11 +31,11 @@ static bool is_stoppable_campaign_schedule_check(json_t* j_camp, const char* cur
 
 
 /**
- * Create campaign.
+ * Create outbound campaign.
  * @param j_camp
  * @return
  */
-bool create_campaign(const json_t* j_camp)
+bool create_ob_campaign(const json_t* j_camp)
 {
   int ret;
   char* uuid;
@@ -54,11 +54,11 @@ bool create_campaign(const json_t* j_camp)
   json_object_set_new(j_tmp, "tm_create", json_string(tmp));
   sfree(tmp);
 
-  slog(LOG_NOTICE, "Create campaign. uuid[%s], name[%s]",
+  slog(LOG_NOTICE, "Create ob_campaign. uuid[%s], name[%s]",
       json_string_value(json_object_get(j_tmp, "uuid")),
       json_string_value(json_object_get(j_tmp, "name"))
       );
-  ret = db_insert("campaign", j_tmp);
+  ret = db_insert("ob_campaign", j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     sfree(uuid);
@@ -75,7 +75,7 @@ bool create_campaign(const json_t* j_camp)
 }
 
 /**
- * Delete campaign.
+ * Delete outbound campaign.
  * @param uuid
  * @return
  */
@@ -100,7 +100,7 @@ bool delete_campaign(const char* uuid)
 
   tmp = db_get_update_str(j_tmp);
   json_decref(j_tmp);
-  asprintf(&sql, "update campaign set %s where uuid=\"%s\";", tmp, uuid);
+  asprintf(&sql, "update ob_campaign set %s where uuid=\"%s\";", tmp, uuid);
   sfree(tmp);
 
   ret = db_exec(sql);
@@ -122,7 +122,7 @@ bool delete_campaign(const char* uuid)
  * Get specified campaign
  * @return
  */
-json_t* get_campaign(const char* uuid)
+json_t* get_ob_campaign(const char* uuid)
 {
   json_t* j_res;
   db_res_t* db_res;
@@ -131,15 +131,15 @@ json_t* get_campaign(const char* uuid)
   if(uuid == NULL) {
     return NULL;
   }
-  slog(LOG_DEBUG, "Get campaign info. uuid[%s]", uuid);
+  slog(LOG_DEBUG, "Get ob_campaign info. uuid[%s]", uuid);
 
   // get specified campaign
-  asprintf(&sql, "select * from campaign where uuid=\"%s\" and in_use=%d;", uuid, E_DL_USE_OK);
+  asprintf(&sql, "select * from ob_campaign where uuid=\"%s\" and in_use=%d;", uuid, E_DL_USE_OK);
 
   db_res = db_query(sql);
   sfree(sql);
   if(db_res == NULL) {
-    slog(LOG_WARNING, "Could not get campaign info.");
+    slog(LOG_WARNING, "Could not get ob_campaign info.");
     return NULL;
   }
 
@@ -184,7 +184,7 @@ json_t* get_campaign(const char* uuid)
  * Get all campaigns
  * @return
  */
-json_t* get_campaigns_all(void)
+json_t* get_ob_campaigns_all(void)
 {
   json_t* j_res;
   json_t* j_tmp;
@@ -192,12 +192,12 @@ json_t* get_campaigns_all(void)
   char* sql;
 
   // get all campaigns
-  asprintf(&sql, "select * from campaign where in_use=%d", E_DL_USE_OK);
+  asprintf(&sql, "select * from ob_campaign where in_use=%d", E_DL_USE_OK);
 
   db_res = db_query(sql);
   sfree(sql);
   if(db_res == NULL) {
-    slog(LOG_WARNING, "Could not get campaign info.");
+    slog(LOG_WARNING, "Could not get ob_campaign info.");
     return NULL;
   }
 
@@ -211,6 +211,47 @@ json_t* get_campaigns_all(void)
     json_array_append_new(j_res, j_tmp);
   }
   db_free(db_res);
+
+  return j_res;
+}
+
+json_t* get_campaigns_all_uuid(void)
+{
+  char* sql;
+  const char* tmp_const;
+  db_res_t* db_res;
+  json_t* j_res;
+  json_t* j_res_tmp;
+  json_t* j_tmp;
+
+  asprintf(&sql, "select * from campaign;");
+  db_res = db_query(sql);
+  sfree(sql);
+  if(db_res == NULL) {
+    slog(LOG_WARNING, "Could not get correct campaign.");
+    return NULL;
+  }
+
+  j_res_tmp = json_array();
+  while(1) {
+    j_tmp = db_get_record(db_res);
+    if(j_tmp == NULL) {
+      break;
+    }
+
+    tmp_const = json_string_value(json_object_get(j_tmp, "uuid"));
+    if(tmp_const == NULL) {
+      json_decref(j_tmp);
+      continue;
+    }
+
+    json_array_append_new(j_res_tmp, json_string(tmp_const));
+    json_decref(j_tmp);
+  }
+  db_free(db_res);
+
+  j_res = json_object();
+  json_object_set_new(j_res, "list", j_res_tmp);
 
   return j_res;
 }
@@ -346,7 +387,7 @@ bool update_campaign(const json_t* j_camp)
   }
   json_decref(j_tmp);
 
-  asprintf(&sql, "update campaign set %s where uuid=\"%s\" and in_use=%d;", tmp, uuid, E_DL_USE_OK);
+  asprintf(&sql, "update ob_campaign set %s where uuid=\"%s\" and in_use=%d;", tmp, uuid, E_DL_USE_OK);
   sfree(tmp);
   sfree(uuid);
 
@@ -394,10 +435,10 @@ bool update_campaign_status(const char* uuid, E_CAMP_STATUS_T status)
     slog(LOG_WARNING, "Invalid input parameters.");
     return false;
   }
-  slog(LOG_NOTICE, "Update campaign status. uuid[%s], status[%d], status_string[%s]", uuid, status, tmp_status);
+  slog(LOG_NOTICE, "update ob_campaign status. uuid[%s], status[%d], status_string[%s]", uuid, status, tmp_status);
 
   // get campaign
-  j_tmp = get_campaign(uuid);
+  j_tmp = get_ob_campaign(uuid);
   if(j_tmp == NULL) {
     slog(LOG_WARNING, "Could not find campaign. camp_uuid[%s]", uuid);
     return false;
@@ -421,7 +462,7 @@ bool update_campaign_status(const char* uuid, E_CAMP_STATUS_T status)
  * Get campaign for dialing.
  * @return
  */
-json_t* get_campaigns_by_status(E_CAMP_STATUS_T status)
+json_t* get_ob_campaigns_by_status(E_CAMP_STATUS_T status)
 {
   json_t* j_res;
   json_t* j_tmp;
@@ -429,14 +470,14 @@ json_t* get_campaigns_by_status(E_CAMP_STATUS_T status)
   char* sql;
 
   // get "start" status campaign only.
-  asprintf(&sql, "select * from campaign where status = %d and in_use=%d;",
+  asprintf(&sql, "select * from ob_campaign where status = %d and in_use=%d;",
       status, E_DL_USE_OK
       );
 
   db_res = db_query(sql);
   sfree(sql);
   if(db_res == NULL) {
-    slog(LOG_WARNING, "Could not get campaign info.");
+    slog(LOG_WARNING, "Could not get ob_campaign info.");
     return NULL;
   }
 
@@ -457,14 +498,14 @@ json_t* get_campaigns_by_status(E_CAMP_STATUS_T status)
  * Get campaign for dialing.
  * @return
  */
-json_t* get_campaign_for_dialing(void)
+json_t* get_ob_campaign_for_dialing(void)
 {
   json_t* j_res;
   db_res_t* db_res;
   char* sql;
 
   // get "start" status campaign only.
-  asprintf(&sql, "select * from campaign where status = %d and in_use = %d order by %s limit 1;",
+  asprintf(&sql, "select * from ob_campaign where status = %d and in_use = %d order by %s limit 1;",
       E_CAMP_START,
       E_DL_USE_OK,
       "random()"
@@ -473,7 +514,7 @@ json_t* get_campaign_for_dialing(void)
   db_res = db_query(sql);
   sfree(sql);
   if(db_res == NULL) {
-    slog(LOG_WARNING, "Could not get campaign info.");
+    slog(LOG_WARNING, "Could not get ob_campaign info.");
     return NULL;
   }
 
@@ -488,7 +529,7 @@ json_t* get_campaign_for_dialing(void)
  * \param uuid
  * \return
  */
-json_t* get_campaign_stat(const char* uuid)
+json_t* get_ob_campaign_stat(const char* uuid)
 {
   json_t* j_camp;
   json_t* j_plan;
@@ -501,14 +542,14 @@ json_t* get_campaign_stat(const char* uuid)
   }
 
   // get campaign
-  j_camp = get_campaign(uuid);
+  j_camp = get_ob_campaign(uuid);
   if(j_camp == NULL) {
-    slog(LOG_DEBUG, "Could not get campaign info. camp_uuid[%s]", uuid);
+    slog(LOG_DEBUG, "Could not get ob_campaign info. camp_uuid[%s]", uuid);
     return NULL;
   }
 
   // get plan
-  j_plan = get_plan(json_string_value(json_object_get(j_camp, "plan")));
+  j_plan = get_ob_plan(json_string_value(json_object_get(j_camp, "plan")));
   j_dlma = get_dlma(json_string_value(json_object_get(j_camp, "dlma")));
   if((j_plan == NULL) || (j_dlma == NULL)) {
     slog(LOG_DEBUG, "Could not basic info. camp_uuid[%s], plan_uuid[%s], dlma_uuid[%s]",
@@ -551,7 +592,7 @@ json_t* get_campaigns_stat_all(void)
   int i;
   int size;
 
-  j_camps = get_campaigns_all();
+  j_camps = get_ob_campaigns_all();
   size = json_array_size(j_camps);
   j_stats = json_array();
   for(i = 0; i < size; i++) {
@@ -560,7 +601,7 @@ json_t* get_campaigns_stat_all(void)
       continue;
     }
 
-    j_stat = get_campaign_stat(json_string_value(json_object_get(j_camp, "uuid")));
+    j_stat = get_ob_campaign_stat(json_string_value(json_object_get(j_camp, "uuid")));
     if(j_stat == NULL) {
       continue;
     }
@@ -592,57 +633,52 @@ bool is_startable_campgain(json_t* j_camp)
  */
 bool is_stoppable_campgain(json_t* j_camp)
 {
+  char* sql;
+  db_res_t* db_res;
+  json_t* j_tmp;
+  const char* tmp_const;
+  int ret;
+
   if(j_camp == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
-  slog(LOG_DEBUG, "Fired is_stoppable_campgain.");
+  slog(LOG_DEBUG, "Fired is_stoppable_campgain. uuid[%s], name[%s]",
+      json_string_value(json_object_get(j_camp, "uuid"))? : "",
+      json_string_value(json_object_get(j_camp, "name"))? : ""
+      );
 
-  // todo: need to fix.
-  slog(LOG_ERR, "TODO: Need to fix.");
+  asprintf(&sql, "select count(*) from ob_dialing where uuid_camp=\"%s\";",
+      json_string_value(json_object_get(j_camp, "uuid"))? : ""
+      );
 
-  return true;
+  db_res = db_query(sql);
+  sfree(sql);
+  if(db_res == NULL) {
+    slog(LOG_INFO, "Could not get correct stoppable campaign info.");
+    return false;
+  }
 
+  j_tmp = db_get_record(db_res);
+  db_free(db_res);
+  if(j_tmp == NULL) {
+    slog(LOG_INFO, "Could not get correct stoppable campaign info.");
+    return false;
+  }
 
-//  struct ao2_iterator iter;
-//  rb_dialing* dialing;
-//  const char* tmp_const;
-//  bool flg_dialing;
-//  int ret;
-//
-//  if(j_camp == NULL) {
-//    slog(LOG_WARNING, "Wrong input parameter.");
-//    return false;
-//  }
-//  slog(LOG_DEBUG, "is_stoppable_campgain.");
-//
-//  flg_dialing = false;
-//  iter = rb_dialing_iter_init();
-//  while(1) {
-//    dialing = rb_dialing_iter_next(&iter);
-//    if(dialing == NULL) {
-//      break;
-//    }
-//
-//    tmp_const = json_string_value(json_object_get(dialing->j_dialing, "camp_uuid"));
-//    if(tmp_const == NULL) {
-//      continue;
-//    }
-//
-//    ret = strcmp(tmp_const, json_string_value(json_object_get(j_camp, "uuid")));
-//    if(ret == 0) {
-//      slog(LOG_NOTICE, "Found active call. dialing-uuid[%s], dialing-name[%s]",
-//          dialing->uuid, dialing->name
-//          );
-//      flg_dialing = true;
-//      break;
-//    }
-//  }
-//  rb_dialing_iter_destroy(&iter);
-//
-//  if(flg_dialing == true) {
-//    return false;
-//  }
+  tmp_const = json_string_value(json_object_get(j_tmp, "count(*)"));
+  if(tmp_const == NULL) {
+    slog(LOG_INFO, "Could not get correct stoppable campaign info.");
+    json_decref(j_tmp);
+    return false;
+  }
+
+  ret = atoi(tmp_const);
+  json_decref(j_tmp);
+
+  if(ret > 0) {
+    return false;
+  }
 
   return true;
 }

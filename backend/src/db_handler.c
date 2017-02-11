@@ -33,6 +33,7 @@ typedef struct {
 
 
 static bool db_sqlite3_connect(const char* filename);
+static bool db_insert_basic(const char* table, const json_t* j_data, int replace);
 //static bool db_sqlite3_lock(void);
 //static bool db_sqlite3_release(void);
 //static void db_sqlite3_msleep(unsigned long milisec);
@@ -270,7 +271,7 @@ void db_free(db_res_t* db_res)
  * @param j_data
  * @return
  */
-bool db_insert(const char* table, const json_t* j_data)
+static bool db_insert_basic(const char* table, const json_t* j_data, int replace)
 {
   char* sql;
 
@@ -284,7 +285,7 @@ bool db_insert(const char* table, const json_t* j_data)
   char*       sql_values;
   char*       tmp_sub;
 
-  slog(LOG_DEBUG, "db_insert.");
+  slog(LOG_DEBUG, "db_insert_basic.");
   if((table == NULL) || (j_data == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
@@ -376,12 +377,67 @@ bool db_insert(const char* table, const json_t* j_data)
   }
   json_decref(j_data_cp);
 
-  asprintf(&sql, "insert into %s(%s) values (%s);", table, sql_keys, sql_values);
+  if(replace == true) {
+    asprintf(&sql, "insert or replace into %s(%s) values (%s);", table, sql_keys, sql_values);
+  }
+  else {
+    asprintf(&sql, "insert into %s(%s) values (%s);", table, sql_keys, sql_values);
+  }
   sfree(sql_keys);
   sfree(sql_values);
 
   ret = db_exec(sql);
   sfree(sql);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert data.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Insert j_data into table.
+ * @param table
+ * @param j_data
+ * @return
+ */
+bool db_insert(const char* table, const json_t* j_data)
+{
+  int ret;
+
+  if((table == NULL) || (j_data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired db_insert");
+
+  ret = db_insert_basic(table, j_data, false);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert data.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Insert or replace j_data into table.
+ * @param table
+ * @param j_data
+ * @return
+ */
+bool db_insert_or_replace(const char* table, const json_t* j_data)
+{
+  int ret;
+
+  if((table == NULL) || (j_data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired db_insert_or_replace");
+
+  ret = db_insert_basic(table, j_data, true);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert data.");
     return false;

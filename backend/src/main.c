@@ -15,6 +15,8 @@
 #include "http_handler.h"
 #include "event_handler.h"
 
+#include "ob_event_handler.h"
+
 
 app* g_app;
 struct event_base*  g_base = NULL;
@@ -123,6 +125,12 @@ bool init(void)
   ret = init_event_handler();
   if(ret == false) {
     slog(LOG_WARNING, "Could not initiate event_handler.");
+    return false;
+  }
+
+  ret = run_outbound();
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not initiate ob_handler.");
     return false;
   }
 

@@ -15,8 +15,11 @@ static const char* g_sql_drop_peer =
 static const char* g_sql_create_peer =
 "create table peer("
 
-"   channel_type varchar(255)    not null,"   // channel type(SIP, ...)
-"   object_name  varchar(255)    not null,"   // name(test-1, test-2, ...)
+// identity
+"   name         varchar(255)    not null,"
+
+"   channel_type varchar(255),"   // channel type(SIP, ...)
+"   object_name  varchar(255),"   // name(test-1, test-2, ...)
 
 "   chan_object_type varchar(255),"   // (peer, ...)
 "   ip_address       varchar(255),"   // address
@@ -39,7 +42,7 @@ static const char* g_sql_create_peer =
 "   tm_update        datetime(6),"   // update time."
 
 
-"   primary key(channel_type, object_name)"
+"   primary key(name)"
 
 ");";
 
@@ -63,8 +66,8 @@ static const char* g_sql_create_queue_param =
 "   abandoned        int,"             // could not distributed call count.
 
 // performance
-"   service_level       int,"    // service level interval time sec.
-"   service_level_perf  real,"   // service level performance(%). completed_call / (abandoned_call + completed_call) * 100
+"   service_level       int,"                 // service level interval time sec.
+"   service_level_perf  real  default 0.0,"   // service level performance(%). completed_call / (abandoned_call + completed_call) * 100
 
 // etc
 "   weight          int,"    // queue priority.
@@ -113,21 +116,22 @@ static const char* g_sql_create_queue_entry =
 
 // identity
 "   queue_name        varchar(255),"
-"   position          int,"
+"   channel           varchar(255),"
 
 // info
-"   channel           varchar(255),"
-"   unique_id         varchar(255),"
-"   caller_id_num     varchar(255),"
-"   caller_id_name    varchar(255),"
+"   position            int,"
+"   unique_id           varchar(255),"
+"   caller_id_num       varchar(255),"
+"   caller_id_name      varchar(255),"
 "   connected_line_num  varchar(255),"
 "   connected_line_name varchar(255),"
-"   wait    int,"
+
+"   wait                int,"
 
 // timestamp. UTC."
 "   tm_update         datetime(6),"   // update time."
 
-"   primary key(queue_name, position)"
+"   primary key(queue_name, channel)"
 
 ");";
 

@@ -30,14 +30,15 @@ typedef enum _E_PLAN_DL_END_HANDLE {
 
 bool init_plan(void);
 
-bool create_plan(const json_t* j_plan);
-bool delete_plan(const char* uuid);
-bool update_plan(const json_t* j_plan);
-json_t* get_plan(const char* uuid);
-json_t* get_plans_all(void);
+bool create_ob_plan(const json_t* j_plan);
+bool delete_ob_plan(const char* uuid);
+bool update_ob_plan(const json_t* j_plan);
+json_t* get_ob_plan(const char* uuid);
+json_t* get_ob_plans_all(void);
+json_t* get_ob_plans_all_uuid(void);
 
-json_t* create_dial_plan_info(json_t* j_plan);
-bool is_endable_plan(json_t* j_plan);
-bool is_nonstop_dl_handle(json_t* j_plan);
+json_t* create_ob_dial_plan_info(json_t* j_plan);
+bool is_endable_ob_plan(json_t* j_plan);
+bool is_nonstop_ob_dl_handle(json_t* j_plan);
 
 #endif /* SRC_PLAN_HANDLER_H_ */

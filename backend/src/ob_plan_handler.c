@@ -39,7 +39,7 @@ bool init_plan(void)
  * @param j_plan
  * @return
  */
-bool create_plan(const json_t* j_plan)
+bool create_ob_plan(const json_t* j_plan)
 {
   int ret;
   char* uuid;
@@ -62,7 +62,7 @@ bool create_plan(const json_t* j_plan)
       json_string_value(json_object_get(j_tmp, "uuid")),
       json_string_value(json_object_get(j_tmp, "name"))? : "<unknown>"
       );
-  ret = db_insert("plan", j_tmp);
+  ret = db_insert("ob_plan", j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     sfree(uuid);
@@ -91,7 +91,7 @@ bool create_plan(const json_t* j_plan)
  * @param uuid
  * @return
  */
-bool delete_plan(const char* uuid)
+bool delete_ob_plan(const char* uuid)
 {
   json_t* j_tmp;
   char* tmp;
@@ -111,13 +111,13 @@ bool delete_plan(const char* uuid)
 
   tmp = db_get_update_str(j_tmp);
   json_decref(j_tmp);
-  asprintf(&sql, "update plan set %s where uuid=\"%s\";", tmp, uuid);
+  asprintf(&sql, "update ob_plan set %s where uuid=\"%s\";", tmp, uuid);
   sfree(tmp);
 
   ret = db_exec(sql);
   sfree(sql);
   if(ret == false) {
-    slog(LOG_WARNING, "Could not delete plan. uuid[%s]\n", uuid);
+    slog(LOG_WARNING, "Could not delete ob_plan. uuid[%s]\n", uuid);
     return false;
   }
 
@@ -135,7 +135,7 @@ bool delete_plan(const char* uuid)
  * @param uuid
  * @return
  */
-json_t* get_plan(const char* uuid)
+json_t* get_ob_plan(const char* uuid)
 {
   char* sql;
   json_t* j_res;
@@ -194,7 +194,7 @@ json_t* get_plan(const char* uuid)
  * Get all plan info.
  * @return
  */
-json_t* get_plans_all(void)
+json_t* get_ob_plans_all(void)
 {
   char* sql;
   json_t* j_res;
@@ -224,11 +224,57 @@ json_t* get_plans_all(void)
 }
 
 /**
+ * Get all plan's uuid array
+ * @return
+ */
+json_t* get_ob_plans_all_uuid(void)
+{
+  char* sql;
+  const char* tmp_const;
+  db_res_t* db_res;
+  json_t* j_res;
+  json_t* j_res_tmp;
+  json_t* j_tmp;
+
+  asprintf(&sql, "select * from plan;");
+  db_res = db_query(sql);
+  sfree(sql);
+  if(db_res == NULL) {
+    slog(LOG_WARNING, "Could not get correct plan.");
+    return NULL;
+  }
+
+  j_res_tmp = json_array();
+  while(1) {
+    j_tmp = db_get_record(db_res);
+    if(j_tmp == NULL) {
+      break;
+    }
+
+    tmp_const = json_string_value(json_object_get(j_tmp, "uuid"));
+    if(tmp_const == NULL) {
+      json_decref(j_tmp);
+      continue;
+    }
+
+    json_array_append_new(j_res_tmp, json_string(tmp_const));
+    json_decref(j_tmp);
+  }
+  db_free(db_res);
+
+  j_res = json_object();
+  json_object_set_new(j_res, "list", j_res_tmp);
+
+  return j_res;
+}
+
+
+/**
  * Update plan
  * @param j_plan
  * @return
  */
-bool update_plan(const json_t* j_plan)
+bool update_ob_plan(const json_t* j_plan)
 {
   char* tmp;
   const char* tmp_const;
@@ -267,13 +313,13 @@ bool update_plan(const json_t* j_plan)
   }
   json_decref(j_tmp);
 
-  asprintf(&sql, "update plan set %s where in_use=%d and uuid=\"%s\";", tmp, E_DL_USE_OK, uuid);
+  asprintf(&sql, "update ob_plan set %s where in_use=%d and uuid=\"%s\";", tmp, E_DL_USE_OK, uuid);
   sfree(tmp);
 
   ret = db_exec(sql);
   sfree(sql);
   if(ret == false) {
-    slog(LOG_WARNING, "Could not update plan info. uuid[%s]\n", uuid);
+    slog(LOG_WARNING, "Could not update ob_plan info. uuid[%s]\n", uuid);
     sfree(uuid);
     return false;
   }
@@ -290,7 +336,7 @@ bool update_plan(const json_t* j_plan)
   return true;
 }
 
-json_t* create_dial_plan_info(json_t* j_plan)
+json_t* create_ob_dial_plan_info(json_t* j_plan)
 {
   json_t* j_res;
 
@@ -317,7 +363,7 @@ json_t* create_dial_plan_info(json_t* j_plan)
  * \param j_plan
  * \return
  */
-bool is_nonstop_dl_handle(json_t* j_plan)
+bool is_nonstop_ob_dl_handle(json_t* j_plan)
 {
   int ret;
 
@@ -338,7 +384,7 @@ bool is_nonstop_dl_handle(json_t* j_plan)
  * \param j_plan
  * \return
  */
-bool is_endable_plan(json_t* j_plan)
+bool is_endable_ob_plan(json_t* j_plan)
 {
   int ret;
 
@@ -347,7 +393,7 @@ bool is_endable_plan(json_t* j_plan)
     return true;
   }
 
-  ret = is_nonstop_dl_handle(j_plan);
+  ret = is_nonstop_ob_dl_handle(j_plan);
   if(ret == true) {
     slog(LOG_VERBOSE, "The plan dl_end_handle is nonstop. plan_uuid[%s], is_nonstop[%d]\n",
         json_string_value(json_object_get(j_plan, "uuid"))? : "",

@@ -255,7 +255,7 @@ bool update_dl_list(json_t* j_dl)
   }
   json_decref(j_tmp);
 
-  asprintf(&sql, "update dl_list set %s where uuid = \"%s\";\n",
+  asprintf(&sql, "update ob_dl_list set %s where uuid = \"%s\";\n",
       tmp, uuid
       );
   sfree(tmp);
@@ -263,7 +263,7 @@ bool update_dl_list(json_t* j_dl)
   ret = db_exec(sql);
   sfree(sql);
   if(ret == false) {
-    slog(LOG_ERR, "Could not update dl_list info.");
+    slog(LOG_ERR, "Could not update ob_dl_list info.");
     return false;
   }
 
@@ -461,7 +461,7 @@ bool create_dlma(const json_t* j_dlma)
       json_string_value(json_object_get(j_tmp, "name"))
       );
 
-  ret = db_insert("dl_list_ma", j_tmp);
+  ret = db_insert("ob_dl_list_ma", j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     sfree(uuid);
@@ -514,13 +514,13 @@ bool update_dlma(const json_t* j_dlma)
     return false;
   }
 
-  asprintf(&sql, "update dl_list_ma set %s where uuid=\"%s\";", tmp, uuid);
+  asprintf(&sql, "update ob_dl_list_ma set %s where uuid=\"%s\";", tmp, uuid);
   sfree(tmp);
 
   ret = db_exec(sql);
   sfree(sql);
   if(ret == false) {
-    slog(LOG_WARNING, "Could not get updated dlma. uuid[%s]\n", uuid);
+    slog(LOG_WARNING, "Could not get updated ob_dlma. uuid[%s]\n", uuid);
     sfree(uuid);
     return false;
   }
@@ -557,13 +557,13 @@ bool delete_dlma(const char* uuid)
 
   tmp = db_get_update_str(j_tmp);
   json_decref(j_tmp);
-  asprintf(&sql, "update dl_list_ma set %s where uuid=\"%s\";", tmp, uuid);
+  asprintf(&sql, "update ob_dl_list_ma set %s where uuid=\"%s\";", tmp, uuid);
   sfree(tmp);
 
   ret = db_exec(sql);
   sfree(sql);
   if(ret == false) {
-    slog(LOG_WARNING, "Could not delete dlma. uuid[%s]\n", uuid);
+    slog(LOG_WARNING, "Could not delete ob_dlma. uuid[%s]\n", uuid);
     return false;
   }
 
@@ -977,7 +977,7 @@ json_t* create_dial_info(
   }
 
   // get dial destination
-  j_dial_dest = create_dial_destination_info(j_dest);
+  j_dial_dest = create_ob_dial_destination_info(j_dest);
   if(j_dial_dest == NULL) {
     slog(LOG_ERR, "Could not create correct dial destination.\n");
     return NULL;
@@ -991,7 +991,7 @@ json_t* create_dial_info(
     return NULL;
   }
 
-  j_dial_plan = create_dial_plan_info(j_plan);
+  j_dial_plan = create_ob_dial_plan_info(j_plan);
   if(j_dial_plan == NULL) {
     slog(LOG_ERR, "Could not create correct dial plan info.\n");
     json_decref(j_dial_dest);
@@ -1227,7 +1227,7 @@ char* create_dl_list(json_t* j_dl)
       json_string_value(json_object_get(j_tmp, "name"))
       );
 
-  ret = db_insert("dl_list", j_tmp);
+  ret = db_insert("ob_dl_list", j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     sfree(uuid);
@@ -1268,13 +1268,13 @@ bool delete_dl_list(const char* uuid)
 
   tmp = db_get_update_str(j_tmp);
   json_decref(j_tmp);
-  asprintf(&sql, "update dl_list set %s where uuid=\"%s\";", tmp, uuid);
+  asprintf(&sql, "update ob_dl_list set %s where uuid=\"%s\";", tmp, uuid);
   sfree(tmp);
 
   ret = db_exec(sql);
   sfree(sql);
   if(ret == false) {
-    slog(LOG_WARNING, "Could not delete dl_list. uuid[%s]\n", uuid);
+    slog(LOG_WARNING, "Could not delete ob_dl_list. uuid[%s]\n", uuid);
     return false;
   }
 

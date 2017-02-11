@@ -10,7 +10,7 @@
 
 // plan
 static const char* g_sql_ob_plan =
-"create table if not exists plan( "
+"create table if not exists ob_plan( "
 
 // identity
 "    uuid        varchar(255) unique not null,"
@@ -55,7 +55,7 @@ static const char* g_sql_ob_plan =
 // original dial list info table"
 // all of other dial lists are copy of this table."
 static const char* g_sql_ob_dial_list =
-"create table if not exists dl_list("
+"create table if not exists ob_dl_list("
 
 // identity"
 "    uuid        varchar(255)    unique,"     // dl uuid"
@@ -123,7 +123,7 @@ static const char* g_sql_ob_dial_list =
 // dial list"
 // manage all of dial list tables"
 static const char* g_sql_ob_dl_list_ma =
-"create table if not exists dl_list_ma("
+"create table if not exists ob_dl_list_ma("
 
 // row identity"
 "    uuid        varchar(255)    unique not null,"    // dial_list_#### reference uuid."
@@ -146,7 +146,7 @@ static const char* g_sql_ob_dl_list_ma =
 
 // destination
 static const char* g_sql_ob_destination =
-"create table if not exists destination("
+"create table if not exists ob_destination("
 
 // identity
 " uuid          varchar(255)    unique,"
@@ -177,7 +177,7 @@ static const char* g_sql_ob_destination =
 
 // campaign
 static const char* g_sql_ob_campaign =
-"create table if not exists campaign("
+"create table if not exists ob_campaign("
 
 // identity"
 "    uuid        varchar(255)    unique,"
@@ -218,7 +218,7 @@ static const char* g_sql_ob_campaign =
 // dl_result
 // campaign dial result table."
 static const char* g_sql_ob_dl_result =
-"create table if not exists dl_result("
+"create table if not exists ob_dl_result("
 
 // identity
 "    dialing_uuid        varchar(255)    not null,"   // dialing uuid(channel unique id)."

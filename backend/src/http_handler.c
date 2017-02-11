@@ -16,6 +16,13 @@
 #include "utils.h"
 #include "http_handler.h"
 #include "db_handler.h"
+#include "resource_handler.h"
+
+#include "ob_campaign_handler.h"
+#include "ob_destination_handler.h"
+#include "ob_dialing_handler.h"
+#include "ob_dl_handler.h"
+#include "ob_plan_handler.h"
 
 #define API_VER "0.1"
 
@@ -31,20 +38,23 @@ static void simple_response_error(evhtp_request_t *req, int status_code, int err
 
 static void cb_htp_ping(evhtp_request_t *req, void *a);
 static void cb_htp_peers(evhtp_request_t *req, void *data);
+
 static void cb_htp_destinations(evhtp_request_t *req, void *data);
+static void cb_htp_destinations_uuid(evhtp_request_t *req, void *data);
+
 static void cb_htp_plans(evhtp_request_t *req, void *data);
 static void cb_htp_campaigns(evhtp_request_t *req, void *data);
 static void cb_htp_campaigns_uuid(evhtp_request_t *req, void *data);
 static void cb_htp_dlmas(evhtp_request_t *req, void *data);
 
-static json_t* get_peers_all(void);
-static json_t* get_destinations_all(void);
-static json_t* get_plans_all(void);
+//static json_t* get_peers_all_name(void);
+//static json_t* get_destinations_all_uuid(void);
+//static json_t* get_plans_all_uuid(void);
 
 //static bool del_campaign(const char* uuid);
-static json_t* get_campaign(const char* uuid);
-static json_t* get_campaigns_all(void);
-static json_t* get_dlmas_all(void);
+//static json_t* get_campaign(const char* uuid);
+//static json_t* get_campaigns_all_uuid(void);
+//static json_t* get_dlmas_all(void);
 
 bool init_http_handler(void)
 {
@@ -52,14 +62,19 @@ bool init_http_handler(void)
   evhtp_bind_socket(g_htp, "0.0.0.0", 8081, 1024);
 
   // register callback
-  evhtp_set_cb(g_htp, "/ping", cb_htp_ping, NULL);
+  evhtp_set_regex_cb(g_htp, "/ping", cb_htp_ping, NULL);
+
+  evhtp_set_regex_cb(g_htp, "/peers", cb_htp_peers, NULL);
+
+  evhtp_set_regex_cb(g_htp, "/destinations/("DEF_REG_UUID")", cb_htp_destinations_uuid, NULL);
   evhtp_set_cb(g_htp, "/destinations", cb_htp_destinations, NULL);
+
   evhtp_set_cb(g_htp, "/plans", cb_htp_plans, NULL);
-  evhtp_set_cb(g_htp, "/campaigns", cb_htp_campaigns, NULL);
+
   evhtp_set_regex_cb(g_htp, "/campaigns/("DEF_REG_UUID")", cb_htp_campaigns_uuid, NULL);
+  evhtp_set_cb(g_htp, "/campaigns", cb_htp_campaigns, NULL);
 
   evhtp_set_cb(g_htp, "/dlmas", cb_htp_dlmas, NULL);
-  evhtp_set_cb(g_htp, "/peers", cb_htp_peers, NULL);
 
   return true;
 }
@@ -176,7 +191,7 @@ static void cb_htp_ping(evhtp_request_t *req, void *a)
 
 static void cb_htp_peers(evhtp_request_t *req, void *data)
 {
-  char* res;
+  int method;
   json_t* j_res;
   json_t* j_tmp;
 
@@ -186,28 +201,49 @@ static void cb_htp_peers(evhtp_request_t *req, void *data)
   }
   slog(LOG_DEBUG, "Fired cb_htp_peers.");
 
-  // get all destinations
-  j_tmp = get_peers_all();
+  // method check
+  method = evhtp_request_get_method(req);
+  if(method != htp_method_GET) {
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
 
-  // create result
-  j_res = create_default_result(200);
-  json_object_set_new(j_res, "result", j_tmp);
+  if(method == htp_method_GET) {
+    j_tmp = get_peers_all_name();
+    if(j_tmp == NULL) {
+      simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+      return;
+    }
 
-  res = json_dumps(j_res, JSON_ENCODE_ANY);
-  json_decref(j_res);
+    // create result
+    j_res = create_default_result(EVHTP_RES_OK);
+    json_object_set_new(j_res, "result", j_tmp);
 
-  evbuffer_add_printf(req->buffer_out, "%s", res);
-  evhtp_send_reply(req, EVHTP_RES_OK);
-  sfree(res);
+    simple_response_normal(req, j_res);
+    json_decref(j_res);
+  }
+  else {
+    // should not reach to here.
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  }
 
   return;
 }
 
+/**
+ * http request handler.
+ * request : ^/destinations
+ * @param req
+ * @param data
+ */
 static void cb_htp_destinations(evhtp_request_t *req, void *data)
 {
-  char* res;
+  int method;
   json_t* j_res;
   json_t* j_tmp;
+  json_t* j_data;
+  char* tmp;
+  const char* tmp_const;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -215,26 +251,141 @@ static void cb_htp_destinations(evhtp_request_t *req, void *data)
   }
   slog(LOG_DEBUG, "Fired cb_htp_destinations.");
 
-  // get all destinations
-  j_tmp = get_destinations_all();
+  // method check
+  method = evhtp_request_get_method(req);
+  if((method != htp_method_GET) && (method != htp_method_POST)) {
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
 
-  // create result
-  j_res = create_default_result(200);
-  json_object_set_new(j_res, "result", j_tmp);
+  if(method == htp_method_GET) {
+    j_tmp = get_ob_destinations_all_uuid();
+    if(j_tmp == NULL) {
+      simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+      return;
+    }
 
-  res = json_dumps(j_res, JSON_ENCODE_ANY);
-  json_decref(j_res);
+    // create result
+    j_res = create_default_result(EVHTP_RES_OK);
+    json_object_set_new(j_res, "result", j_tmp);
 
-  evbuffer_add_printf(req->buffer_out, "%s", res);
-  evhtp_send_reply(req, EVHTP_RES_OK);
-  sfree(res);
+    simple_response_normal(req, j_res);
+    json_decref(j_res);
+  }
+  else if(method == htp_method_POST) {
+    // create new destination
+
+    // get data
+    tmp_const = (char*)evbuffer_pullup(req->buffer_in, evbuffer_get_length(req->buffer_in));
+    if(tmp_const == NULL) {
+      simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+      return;
+    }
+
+    // create json
+    tmp = strndup(tmp_const, evbuffer_get_length(req->buffer_in));
+    slog(LOG_DEBUG, "Requested data. data[%s]", tmp);
+    j_data = json_loads(tmp, JSON_DECODE_ANY, NULL);
+    sfree(tmp);
+    if(j_data == NULL) {
+      simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+      return;
+    }
+
+    // create destination
+    j_tmp = create_ob_destination(j_data);
+    json_decref(j_data);
+    if(j_tmp == NULL) {
+      slog(LOG_INFO, "Could not create destination.");
+      simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+      return;
+    }
+
+    // create result
+    j_res = create_default_result(EVHTP_RES_OK);
+    json_object_set_new(j_res, "result", j_tmp);
+
+    simple_response_normal(req, j_res);
+    json_decref(j_res);
+  }
+  else {
+    // should not reach to here.
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  }
 
   return;
 }
 
+/**
+ * http request handler.
+ * request : ^/destinations/<uuid>
+ * @param req
+ * @param data
+ */
+static void cb_htp_destinations_uuid(evhtp_request_t *req, void *data)
+{
+  int method;
+  json_t* j_res;
+  json_t* j_tmp;
+  const char* uuid;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired cb_htp_destinations_uuid.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if((method != htp_method_GET) && (method != htp_method_PUT)) {
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // get uuid
+  uuid = req->uri->path->match_start;
+  if(uuid == NULL) {
+    simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  if(method == htp_method_GET) {
+    j_tmp = get_ob_destination(uuid);
+    if(j_tmp == NULL) {
+      simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+      return;
+    }
+
+    // create result
+    j_res = create_default_result(EVHTP_RES_OK);
+    json_object_set_new(j_res, "result", j_tmp);
+
+    simple_response_normal(req, j_res);
+    json_decref(j_res);
+  }
+  else if(method == htp_method_PUT) {
+    // create new destination
+
+    simple_response_error(req, EVHTP_RES_NOTIMPL, 0, NULL);
+
+  }
+  else {
+    // should not reach to here.
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  }
+
+  return;
+}
+
+/**
+ * http request handler.
+ * request : ^/plans
+ * @param req
+ * @param data
+ */
 static void cb_htp_plans(evhtp_request_t *req, void *data)
 {
-  char* res;
+  int method;
   json_t* j_res;
   json_t* j_tmp;
 
@@ -244,19 +395,37 @@ static void cb_htp_plans(evhtp_request_t *req, void *data)
   }
   slog(LOG_DEBUG, "Fired cb_htp_plans.");
 
-  // get all destinations
-  j_tmp = get_plans_all();
+  // method check
+  method = evhtp_request_get_method(req);
+  if((method != htp_method_GET) && (method != htp_method_POST)) {
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
 
-  // create result
-  j_res = create_default_result(200);
-  json_object_set_new(j_res, "result", j_tmp);
+  if(method == htp_method_GET) {
+    j_tmp = get_ob_plans_all_uuid();
+    if(j_tmp == NULL) {
+      simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+      return;
+    }
 
-  res = json_dumps(j_res, JSON_ENCODE_ANY);
-  json_decref(j_res);
+    // create result
+    j_res = create_default_result(EVHTP_RES_OK);
+    json_object_set_new(j_res, "result", j_tmp);
 
-  evbuffer_add_printf(req->buffer_out, "%s", res);
-  evhtp_send_reply(req, EVHTP_RES_OK);
-  sfree(res);
+    simple_response_normal(req, j_res);
+    json_decref(j_res);
+  }
+  else if(method == htp_method_POST) {
+    // create new campaign
+
+    // not yet
+    simple_response_error(req, EVHTP_RES_NOTIMPL, 0, NULL);
+  }
+  else {
+    // should not reach to here.
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  }
 
   return;
 }
@@ -288,7 +457,7 @@ static void cb_htp_campaigns(evhtp_request_t *req, void *data)
 
   if(method == htp_method_GET) {
     // get all destinations
-    j_tmp = get_campaigns_all();
+    j_tmp = get_campaigns_all_uuid();
 
     // create result
     j_res = create_default_result(EVHTP_RES_OK);
@@ -300,6 +469,10 @@ static void cb_htp_campaigns(evhtp_request_t *req, void *data)
   else if(method == htp_method_POST) {
     simple_response_error(req, EVHTP_RES_NOTIMPL, 0, NULL);
     return;
+  }
+  else {
+    // sholud not reach to here.
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   }
 
   return;
@@ -331,16 +504,17 @@ static void cb_htp_campaigns_uuid(evhtp_request_t *req, void *data)
     return;
   }
 
+  // get uuid
+  uuid = req->uri->path->match_start;
+  if(uuid == NULL) {
+    simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
   if(method == htp_method_GET) {
-    // get uuid
-    uuid = req->uri->path->match_start;
-    if(uuid == NULL) {
-      simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
-      return;
-    }
 
     // get all destinations
-    j_tmp = get_campaign(uuid);
+    j_tmp = get_ob_campaign(uuid);
 
     // create result
     j_res = create_default_result(EVHTP_RES_OK);
@@ -398,173 +572,31 @@ static void cb_htp_dlmas(evhtp_request_t *req, void *data)
   return;
 }
 
-static json_t* get_peers_all(void)
-{
-  char* sql;
-  char* tmp;
-  db_res_t* db_res;
-  json_t* j_res;
-  json_t* j_tmp;
 
-  asprintf(&sql, "select * from peer;");
-  db_res = db_query(sql);
-  sfree(sql);
-  if(db_res == NULL) {
-    slog(LOG_WARNING, "Could not get correct destination.");
-    return NULL;
-  }
-
-  j_res = json_object();
-  while(1) {
-    j_tmp = db_get_record(db_res);
-    if(j_tmp == NULL) {
-      break;
-    }
-
-    asprintf(&tmp, "%s/%s",
-        json_string_value(json_object_get(j_tmp, "channel_type"))? : "",
-        json_string_value(json_object_get(j_tmp, "object_name"))? : ""
-        );
-    json_object_set_new(j_res, tmp, j_tmp);
-    sfree(tmp);
-  }
-  db_free(db_res);
-
-  return j_res;
-}
-
-static json_t* get_destinations_all(void)
-{
-  char* sql;
-  const char* tmp_const;
-  db_res_t* db_res;
-  json_t* j_res;
-  json_t* j_tmp;
-
-  asprintf(&sql, "select * from destination;");
-  db_res = db_query(sql);
-  sfree(sql);
-  if(db_res == NULL) {
-    slog(LOG_WARNING, "Could not get correct destination.");
-    return NULL;
-  }
-
-  j_res = json_object();
-  while(1) {
-    j_tmp = db_get_record(db_res);
-    if(j_tmp == NULL) {
-      break;
-    }
-
-    tmp_const = json_string_value(json_object_get(j_tmp, "uuid"));
-    if(tmp_const == NULL) {
-      json_decref(j_tmp);
-      continue;
-    }
-
-    json_object_set_new(j_res, tmp_const, j_tmp);
-  }
-  db_free(db_res);
-
-  return j_res;
-}
-
-static json_t* get_plans_all(void)
-{
-  char* sql;
-  const char* tmp_const;
-  db_res_t* db_res;
-  json_t* j_res;
-  json_t* j_tmp;
-
-  asprintf(&sql, "select * from plan;");
-  db_res = db_query(sql);
-  sfree(sql);
-  if(db_res == NULL) {
-    slog(LOG_WARNING, "Could not get correct plan.");
-    return NULL;
-  }
-
-  j_res = json_object();
-  while(1) {
-    j_tmp = db_get_record(db_res);
-    if(j_tmp == NULL) {
-      break;
-    }
-
-    tmp_const = json_string_value(json_object_get(j_tmp, "uuid"));
-    if(tmp_const == NULL) {
-      json_decref(j_tmp);
-      continue;
-    }
-
-    json_object_set_new(j_res, tmp_const, j_tmp);
-  }
-  db_free(db_res);
-
-  return j_res;
-}
-
-static json_t* get_campaigns_all(void)
-{
-  char* sql;
-  const char* tmp_const;
-  db_res_t* db_res;
-  json_t* j_res;
-  json_t* j_tmp;
-
-  asprintf(&sql, "select * from campaign;");
-  db_res = db_query(sql);
-  sfree(sql);
-  if(db_res == NULL) {
-    slog(LOG_WARNING, "Could not get correct campaign.");
-    return NULL;
-  }
-
-  j_res = json_object();
-  while(1) {
-    j_tmp = db_get_record(db_res);
-    if(j_tmp == NULL) {
-      break;
-    }
-
-    tmp_const = json_string_value(json_object_get(j_tmp, "uuid"));
-    if(tmp_const == NULL) {
-      json_decref(j_tmp);
-      continue;
-    }
-
-    json_object_set_new(j_res, tmp_const, j_tmp);
-  }
-  db_free(db_res);
-
-  return j_res;
-}
-
-static json_t* get_campaign(const char* uuid)
-{
-  char* sql;
-  db_res_t* db_res;
-  json_t* j_res;
-
-  if(uuid == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return NULL;
-  }
-
-  asprintf(&sql, "select * from campaign where uuid=\"%s\";", uuid);
-  db_res = db_query(sql);
-  sfree(sql);
-  if(db_res == NULL) {
-    slog(LOG_WARNING, "Could not get correct campaign.");
-    return NULL;
-  }
-
-  j_res = db_get_record(db_res);
-  db_free(db_res);
-
-  return j_res;
-}
+//static json_t* get_campaign(const char* uuid)
+//{
+//  char* sql;
+//  db_res_t* db_res;
+//  json_t* j_res;
+//
+//  if(uuid == NULL) {
+//    slog(LOG_WARNING, "Wrong input parameter.");
+//    return NULL;
+//  }
+//
+//  asprintf(&sql, "select * from campaign where uuid=\"%s\";", uuid);
+//  db_res = db_query(sql);
+//  sfree(sql);
+//  if(db_res == NULL) {
+//    slog(LOG_WARNING, "Could not get correct campaign.");
+//    return NULL;
+//  }
+//
+//  j_res = db_get_record(db_res);
+//  db_free(db_res);
+//
+//  return j_res;
+//}
 
 //static bool del_campaign(const char* uuid)
 //{
@@ -587,38 +619,38 @@ static json_t* get_campaign(const char* uuid)
 //  return true;
 //}
 
-static json_t* get_dlmas_all(void)
-{
-  char* sql;
-  const char* tmp_const;
-  db_res_t* db_res;
-  json_t* j_res;
-  json_t* j_tmp;
-
-  asprintf(&sql, "select * from dl_list_ma;");
-  db_res = db_query(sql);
-  sfree(sql);
-  if(db_res == NULL) {
-    slog(LOG_WARNING, "Could not get correct dlma.");
-    return NULL;
-  }
-
-  j_res = json_object();
-  while(1) {
-    j_tmp = db_get_record(db_res);
-    if(j_tmp == NULL) {
-      break;
-    }
-
-    tmp_const = json_string_value(json_object_get(j_tmp, "uuid"));
-    if(tmp_const == NULL) {
-      json_decref(j_tmp);
-      continue;
-    }
-
-    json_object_set_new(j_res, tmp_const, j_tmp);
-  }
-  db_free(db_res);
-
-  return j_res;
-}
+//static json_t* get_dlmas_all(void)
+//{
+//  char* sql;
+//  const char* tmp_const;
+//  db_res_t* db_res;
+//  json_t* j_res;
+//  json_t* j_tmp;
+//
+//  asprintf(&sql, "select * from dl_list_ma;");
+//  db_res = db_query(sql);
+//  sfree(sql);
+//  if(db_res == NULL) {
+//    slog(LOG_WARNING, "Could not get correct dlma.");
+//    return NULL;
+//  }
+//
+//  j_res = json_object();
+//  while(1) {
+//    j_tmp = db_get_record(db_res);
+//    if(j_tmp == NULL) {
+//      break;
+//    }
+//
+//    tmp_const = json_string_value(json_object_get(j_tmp, "uuid"));
+//    if(tmp_const == NULL) {
+//      json_decref(j_tmp);
+//      continue;
+//    }
+//
+//    json_object_set_new(j_res, tmp_const, j_tmp);
+//  }
+//  db_free(db_res);
+//
+//  return j_res;
+//}

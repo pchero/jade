@@ -64,6 +64,8 @@ static void ami_event_peerentry(json_t* j_msg);
 static void ami_event_queueparams(json_t* j_msg);
 static void ami_event_queuemember(json_t* j_msg);
 static void ami_event_queueentry(json_t* j_msg);
+static void ami_event_queuecallerjoin(json_t* j_msg);
+static void ami_event_queuecallerleave(json_t* j_msg);
 
 
 static void ami_event_outdestinationentry(json_t* j_msg);
@@ -249,6 +251,12 @@ static void ami_message_handler(const char* msg)
   }
   else if(strcmp(event, "QueueEntry") == 0) {
     ami_event_queueentry(j_msg);
+  }
+  else if(strcmp(event, "QueueCallerJoin") == 0) {
+    ami_event_queuecallerjoin(j_msg);
+  }
+  else if(strcmp(event, "QueueCallerLeave") == 0) {
+    ami_event_queuecallerleave(j_msg);
   }
   else {
     tmp = json_dumps(j_msg, JSON_ENCODE_ANY);
@@ -495,6 +503,7 @@ static json_t* parse_ami_msg(const char* msg)
 static void ami_event_peerentry(json_t* j_msg)
 {
   json_t* j_tmp;
+  char* name;
   int ret;
 
   if(j_msg == NULL) {
@@ -503,13 +512,20 @@ static void ami_event_peerentry(json_t* j_msg)
   }
   slog(LOG_DEBUG, "Fired ami_event_peerentry.");
 
+  // create name
+  asprintf(&name, "%s/%s",
+      json_string_value(json_object_get(j_msg, "Channeltype"))? : "",
+      json_string_value(json_object_get(j_msg, "ObjectName"))? : ""
+      );
+
   j_tmp = json_pack("{"
-    "s:s, s:s, "
+    "s:s, s:s, s:s, "
     "s:s, s:s, s:s, "
     "s:s, s:s, s:s, s:s, s:s, s:s, s:s, "
     "s:s, s:s, s:s, s:s"
     "}",
 
+    "name",         name,
     "channel_type", json_string_value(json_object_get(j_msg, "Channeltype"))? : "",
     "object_name",  json_string_value(json_object_get(j_msg, "ObjectName"))? : "",
 
@@ -530,12 +546,13 @@ static void ami_event_peerentry(json_t* j_msg)
     "realtime_device",  json_string_value(json_object_get(j_msg, "RealtimeDevice"))? : "",
     "description",      json_string_value(json_object_get(j_msg, "Description"))? : ""
   );
+  sfree(name);
   if(j_tmp == NULL) {
     slog(LOG_DEBUG, "Could not create message.");
     return;
   }
 
-  ret = db_insert("peer", j_tmp);
+  ret = db_insert_or_replace("peer", j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert destination.");
@@ -588,7 +605,7 @@ static void ami_event_outdestinationentry(json_t* j_msg)
     return;
   }
 
-  ret = db_insert("destination", j_tmp);
+  ret = db_insert("ob_destination", j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert destination.");
@@ -641,7 +658,7 @@ static void ami_event_outdestinationcreate(json_t* j_msg)
     return;
   }
 
-  ret = db_insert("destination", j_tmp);
+  ret = db_insert("ob_destination", j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert destination.");
@@ -694,7 +711,7 @@ static void ami_event_outdestinationupdate(json_t* j_msg)
     return;
   }
 
-  ret = db_insert("destination", j_tmp);
+  ret = db_insert("ob_destination", j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert destination.");
@@ -792,7 +809,7 @@ static void ami_event_outplanentry(json_t* j_msg)
     return;
   }
 
-  ret = db_insert("plan", j_tmp);
+  ret = db_insert("ob_plan", j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert plan.");
@@ -861,7 +878,7 @@ static void ami_event_outplancreate(json_t* j_msg)
     return;
   }
 
-  ret = db_insert("plan", j_tmp);
+  ret = db_insert("ob_plan", j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert plan.");
@@ -930,7 +947,7 @@ static void ami_event_outplanupdate(json_t* j_msg)
     return;
   }
 
-  ret = db_insert("plan", j_tmp);
+  ret = db_insert("ob_plan", j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert plan.");
@@ -1023,7 +1040,7 @@ static void ami_event_outcampaignentry(json_t* j_msg)
     return;
   }
 
-  ret = db_insert("campaign", j_tmp);
+  ret = db_insert("ob_campaign", j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert campaign.");
@@ -1087,7 +1104,7 @@ static void ami_event_outcampaigncreate(json_t* j_msg)
     return;
   }
 
-  ret = db_insert("campaign", j_tmp);
+  ret = db_insert("ob_campaign", j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert campaign.");
@@ -1151,7 +1168,7 @@ static void ami_event_outcampaignupdate(json_t* j_msg)
     return;
   }
 
-  ret = db_insert("campaign", j_tmp);
+  ret = db_insert("ob_campaign", j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert campaign.");
@@ -1228,7 +1245,7 @@ static void ami_event_outdlmaentry(json_t* j_msg)
     return;
   }
 
-  ret = db_insert("dl_list_ma", j_tmp);
+  ret = db_insert("ob_dl_list_ma", j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert dlma.");
@@ -1276,7 +1293,7 @@ static void ami_event_outdlmacreate(json_t* j_msg)
     return;
   }
 
-  ret = db_insert("dl_list_ma", j_tmp);
+  ret = db_insert("ob_dl_list_ma", j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert dlma.");
@@ -1324,7 +1341,7 @@ static void ami_event_outdlmaupdate(json_t* j_msg)
     return;
   }
 
-  ret = db_insert("dl_list_ma", j_tmp);
+  ret = db_insert("ob_dl_list_ma", j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert dlma.");
@@ -1435,7 +1452,7 @@ static void ami_event_outdllistentry(json_t* j_msg)
     return;
   }
 
-  ret = db_insert("dl_list", j_tmp);
+  ret = db_insert("ob_dl_list", j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert dl list.");
@@ -1517,7 +1534,7 @@ static void ami_event_outdllistcreate(json_t* j_msg)
     return;
   }
 
-  ret = db_insert("dl_list", j_tmp);
+  ret = db_insert("ob_dl_list", j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert dl list.");
@@ -1599,7 +1616,7 @@ static void ami_event_outdllistupdate(json_t* j_msg)
     return;
   }
 
-  ret = db_insert("dl_list", j_tmp);
+  ret = db_insert("ob_dl_list", j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert dl list.");
@@ -1685,7 +1702,7 @@ static void ami_event_queueparams(json_t* j_msg)
     return;
   }
 
-  ret = db_insert("queue_param", j_tmp);
+  ret = db_insert_or_replace("queue_param", j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert queue_param.");
@@ -1746,7 +1763,7 @@ static void ami_event_queuemember(json_t* j_msg)
     return;
   }
 
-  ret = db_insert("queue_member", j_tmp);
+  ret = db_insert_or_replace("queue_member", j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert queue_member.");
@@ -1801,7 +1818,7 @@ static void ami_event_queueentry(json_t* j_msg)
     return;
   }
 
-  ret = db_insert("queue_entry", j_tmp);
+  ret = db_insert_or_replace("queue_entry", j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert queue_member.");
@@ -1810,4 +1827,88 @@ static void ami_event_queueentry(json_t* j_msg)
 
   return;
 }
+
+/**
+ * AMI event handler.
+ * Event: QueueCallerJoin
+ * @param j_msg
+ */
+static void ami_event_queuecallerjoin(json_t* j_msg)
+{
+  json_t* j_tmp;
+  int ret;
+  char* timestamp;
+
+  if(j_msg == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired ami_event_queuecallerjoin.");
+
+  timestamp = get_utc_timestamp();
+  j_tmp = json_pack("{"
+      "s:s, s:i, "
+      "s:s, s:s, s:s, s:s, s:s, s:s, "
+      "s:s"
+      "}",
+
+      "queue_name", json_string_value(json_object_get(j_msg, "Queue"))? : "",
+      "position",   json_string_value(json_object_get(j_msg, "Position"))? atoi(json_string_value(json_object_get(j_msg, "Position"))) : 0,
+
+      "channel",              json_string_value(json_object_get(j_msg, "Channel"))? : "",
+      "unique_id",            json_string_value(json_object_get(j_msg, "Uniqueid"))? : "",
+      "caller_id_num",        json_string_value(json_object_get(j_msg, "CallerIDNum"))? : "",
+      "caller_id_name",       json_string_value(json_object_get(j_msg, "CallerIDName"))? : "",
+      "connected_line_num",   json_string_value(json_object_get(j_msg, "ConnectedLineNum"))? : "",
+      "connected_line_name",  json_string_value(json_object_get(j_msg, "ConnectedLineName"))? : "",
+
+      "tm_update",  timestamp
+      );
+  sfree(timestamp);
+  if(j_tmp == NULL) {
+    slog(LOG_DEBUG, "Could not create message.");
+    return;
+  }
+
+  ret = db_insert_or_replace("queue_entry", j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert to queue_entry.");
+    return;
+  }
+
+  return;
+}
+
+/**
+ * AMI event handler.
+ * Event: QueueCallerLeave
+ * @param j_msg
+ */
+static void ami_event_queuecallerleave(json_t* j_msg)
+{
+  int ret;
+  char* sql;
+
+  if(j_msg == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired ami_event_queuecallerleave.");
+
+  asprintf(&sql, "delete from queue_entry where queue_name=\"%s\" and position=%s;",
+      json_string_value(json_object_get(j_msg, "Queue"))? : "",
+      json_string_value(json_object_get(j_msg, "Position"))? : ""
+      );
+
+  ret = db_exec(sql);
+  sfree(sql);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not delete queue_entry.");
+    return;
+  }
+  return;
+}
+
+
 

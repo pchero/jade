@@ -63,7 +63,7 @@ static void dial_redirect(const json_t* j_camp, const json_t* j_plan, const json
 //json_t* get_queue_summary(const char* name);
 //json_t* get_queue_param(const char* name);
 
-static bool write_result_json(json_t* j_res);
+//static bool write_result_json(json_t* j_res);
 
 // todo
 static int check_dial_avaiable_predictive(json_t* j_camp, json_t* j_plan, json_t* j_dlma, json_t* j_dest);
@@ -245,7 +245,7 @@ static void cb_campaign_start(__attribute__((unused)) int fd, __attribute__((unu
   json_t* j_dest;
   int dial_mode;
 
-  j_camp = get_campaign_for_dialing();
+  j_camp = get_ob_campaign_for_dialing();
   if(j_camp == NULL) {
     // Nothing.
     return;
@@ -256,7 +256,7 @@ static void cb_campaign_start(__attribute__((unused)) int fd, __attribute__((unu
 //      );
 
   // get plan
-  j_plan = get_plan(json_string_value(json_object_get(j_camp, "plan")));
+  j_plan = get_ob_plan(json_string_value(json_object_get(j_camp, "plan")));
   if(j_plan == NULL) {
     slog(LOG_WARNING, "Could not get plan info. Stopping campaign camp[%s], plan[%s]\n",
         json_string_value(json_object_get(j_camp, "uuid")),
@@ -268,7 +268,7 @@ static void cb_campaign_start(__attribute__((unused)) int fd, __attribute__((unu
   }
 
   // get destination
-  j_dest = get_destination(json_string_value(json_object_get(j_camp, "dest")));
+  j_dest = get_ob_destination(json_string_value(json_object_get(j_camp, "dest")));
   if(j_dest == NULL) {
     slog(LOG_WARNING, "Could not get dest info. Stopping campaign camp[%s], dest[%s]\n",
             json_string_value(json_object_get(j_camp, "uuid"))? : "",
@@ -367,7 +367,7 @@ static void cb_campaign_starting(__attribute__((unused)) int fd, __attribute__((
   int i;
   int ret;
 
-  j_camps = get_campaigns_by_status(E_CAMP_STARTING);
+  j_camps = get_ob_campaigns_by_status(E_CAMP_STARTING);
   if(j_camps == NULL) {
     // Nothing.
     return;
@@ -384,13 +384,13 @@ static void cb_campaign_starting(__attribute__((unused)) int fd, __attribute__((
     }
 
     // update campaign status
-    slog(LOG_NOTICE, "Update campaign status to start. camp_uuid[%s], camp_name[%s]\n",
+    slog(LOG_NOTICE, "update ob_campaign status to start. camp_uuid[%s], camp_name[%s]\n",
         json_string_value(json_object_get(j_camp, "uuid")),
         json_string_value(json_object_get(j_camp, "name"))
         );
     ret = update_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_START);
     if(ret == false) {
-      slog(LOG_ERR, "Could not update campaign status to start. camp_uuid[%s], camp_name[%s]\n",
+      slog(LOG_ERR, "Could not update ob_campaign status to start. camp_uuid[%s], camp_name[%s]\n",
           json_string_value(json_object_get(j_camp, "uuid")),
           json_string_value(json_object_get(j_camp, "name"))
           );
@@ -414,7 +414,7 @@ static void cb_campaign_stopping(__attribute__((unused)) int fd, __attribute__((
   int size;
   int ret;
 
-  j_camps = get_campaigns_by_status(E_CAMP_STOPPING);
+  j_camps = get_ob_campaigns_by_status(E_CAMP_STOPPING);
   if(j_camps == NULL) {
     // Nothing.
     return;
@@ -431,13 +431,13 @@ static void cb_campaign_stopping(__attribute__((unused)) int fd, __attribute__((
     }
 
     // update status to stop
-    slog(LOG_NOTICE, "Update campaign status to stop. camp_uuid[%s], camp_name[%s]\n",
+    slog(LOG_NOTICE, "update ob_campaign status to stop. camp_uuid[%s], camp_name[%s]\n",
         json_string_value(json_object_get(j_camp, "uuid")),
         json_string_value(json_object_get(j_camp, "name"))
         );
     ret = update_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STOP);
     if(ret == false) {
-      slog(LOG_ERR, "Could not update campaign status to stop. camp_uuid[%s], camp_name[%s]\n",
+      slog(LOG_ERR, "Could not update ob_campaign status to stop. camp_uuid[%s], camp_name[%s]\n",
         json_string_value(json_object_get(j_camp, "uuid")),
         json_string_value(json_object_get(j_camp, "name"))
         );
@@ -744,7 +744,7 @@ static void cb_check_campaign_end(__attribute__((unused)) int fd, __attribute__(
   int size;
   int ret;
 
-  j_camps = get_campaigns_by_status(E_CAMP_START);
+  j_camps = get_ob_campaigns_by_status(E_CAMP_START);
   size = json_array_size(j_camps);
   for(i = 0; i < size; i++) {
     j_camp = json_array_get(j_camps, i);
@@ -752,7 +752,7 @@ static void cb_check_campaign_end(__attribute__((unused)) int fd, __attribute__(
       continue;
     }
 
-    j_plan = get_plan(json_string_value(json_object_get(j_camp, "plan")));
+    j_plan = get_ob_plan(json_string_value(json_object_get(j_camp, "plan")));
     if(j_plan == NULL) {
       update_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STOPPING);
       continue;
@@ -766,7 +766,7 @@ static void cb_check_campaign_end(__attribute__((unused)) int fd, __attribute__(
     }
 
     // check end-able.
-    ret = is_endable_plan(j_plan);
+    ret = is_endable_ob_plan(j_plan);
     ret &= is_endable_dl_list(j_dlma, j_plan);
     if(ret == true) {
       slog(LOG_NOTICE, "The campaign ended. Stopping campaign. uuid[%s], name[%s]\n",
@@ -804,13 +804,13 @@ static void cb_check_campaign_schedule_start(__attribute__((unused)) int fd, __a
       continue;
     }
 
-    slog(LOG_NOTICE, "Update campaign status to starting by scheduling. camp_uuid[%s], camp_name[%s]\n",
+    slog(LOG_NOTICE, "update ob_campaign status to starting by scheduling. camp_uuid[%s], camp_name[%s]\n",
         json_string_value(json_object_get(j_camp, "uuid"))? : "",
         json_string_value(json_object_get(j_camp, "name"))? : ""
         );
     ret = update_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STARTING);
     if(ret == false) {
-      slog(LOG_ERR, "Could not update campaign status to starting. camp_uuid[%s], camp_name[%s]\n",
+      slog(LOG_ERR, "Could not update ob_campaign status to starting. camp_uuid[%s], camp_name[%s]\n",
           json_string_value(json_object_get(j_camp, "uuid"))? : "",
           json_string_value(json_object_get(j_camp, "name"))? : ""
           );
@@ -842,13 +842,13 @@ static void cb_check_campaign_schedule_end(__attribute__((unused)) int fd, __att
       continue;
     }
 
-    slog(LOG_NOTICE, "Update campaign status to stopping by scheduling. camp_uuid[%s], camp_name[%s]\n",
+    slog(LOG_NOTICE, "Update ob_campaign status to stopping by scheduling. camp_uuid[%s], camp_name[%s]\n",
         json_string_value(json_object_get(j_camp, "uuid")),
         json_string_value(json_object_get(j_camp, "name"))
         );
     ret = update_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STOPPING);
     if(ret == false) {
-      slog(LOG_ERR, "Could not update campaign status to schedule_stopping. camp_uuid[%s], camp_name[%s]\n",
+      slog(LOG_ERR, "Could not update ob_campaign status to schedule_stopping. camp_uuid[%s], camp_name[%s]\n",
           json_string_value(json_object_get(j_camp, "uuid")),
           json_string_value(json_object_get(j_camp, "name"))
           );
@@ -1057,7 +1057,7 @@ static int check_dial_avaiable_predictive(
   int ret;
 
   // get available destination count
-  cnt_avail = get_destination_available_count(j_dest);
+  cnt_avail = get_ob_destination_available_count(j_dest);
   if(cnt_avail == DEF_DESTINATION_AVAIL_CNT_UNLIMITED) {
     slog(LOG_DEBUG, "Available destination count is unlimited. cnt[%d]\n", cnt_avail);
     return 1;
@@ -1090,49 +1090,49 @@ static int check_dial_avaiable_predictive(
   return 1;
 }
 
-static bool write_result_json(json_t* j_res)
-{
-  FILE* fp;
-  json_t* j_general;
-  const char* filename;
-  char* tmp;
-
-  if(j_res == NULL) {
-    slog(LOG_ERR, "Wrong input parameter.\n");
-    return false;
-  }
-
-  // open json file
-  j_general = json_object_get(g_app->j_conf, "general");
-  filename = json_string_value(json_object_get(j_general, "result_filename"));
-  if(filename == NULL) {
-    slog(LOG_ERR, "Could not get option value. option[%s]\n", "result_filename");
-    return false;
-  }
-
-  // open file
-  fp = fopen(filename, "a");
-  if(fp == NULL) {
-    slog(LOG_ERR, "Could not open result file. filename[%s], err[%s]\n",
-        filename, strerror(errno)
-        );
-    return false;
-  }
-
-  tmp = json_dumps(j_res, JSON_ENCODE_ANY);
-  if(tmp == NULL) {
-    slog(LOG_ERR, "Could not get result string to the file. filename[%s], err[%s]\n",
-        filename, strerror(errno)
-        );
-    fclose(fp);
-    return false;
-  }
-
-  fprintf(fp, "%s\n", tmp);
-  sfree(tmp);
-  fclose(fp);
-
-  slog(LOG_VERBOSE, "Result write succeed.\n");
-
-  return true;
-}
+//static bool write_result_json(json_t* j_res)
+//{
+//  FILE* fp;
+//  json_t* j_general;
+//  const char* filename;
+//  char* tmp;
+//
+//  if(j_res == NULL) {
+//    slog(LOG_ERR, "Wrong input parameter.\n");
+//    return false;
+//  }
+//
+//  // open json file
+//  j_general = json_object_get(g_app->j_conf, "general");
+//  filename = json_string_value(json_object_get(j_general, "result_filename"));
+//  if(filename == NULL) {
+//    slog(LOG_ERR, "Could not get option value. option[%s]\n", "result_filename");
+//    return false;
+//  }
+//
+//  // open file
+//  fp = fopen(filename, "a");
+//  if(fp == NULL) {
+//    slog(LOG_ERR, "Could not open result file. filename[%s], err[%s]\n",
+//        filename, strerror(errno)
+//        );
+//    return false;
+//  }
+//
+//  tmp = json_dumps(j_res, JSON_ENCODE_ANY);
+//  if(tmp == NULL) {
+//    slog(LOG_ERR, "Could not get result string to the file. filename[%s], err[%s]\n",
+//        filename, strerror(errno)
+//        );
+//    fclose(fp);
+//    return false;
+//  }
+//
+//  fprintf(fp, "%s\n", tmp);
+//  sfree(tmp);
+//  fclose(fp);
+//
+//  slog(LOG_VERBOSE, "Result write succeed.\n");
+//
+//  return true;
+//}
