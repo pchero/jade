@@ -62,7 +62,8 @@ static void htp_post_campaigns(evhtp_request_t *req, void *data);
 static void htp_get_campaigns_uuid(evhtp_request_t *req, void *data);
 static void htp_put_campaigns_uuid(evhtp_request_t *req, void *data);
 
-
+static void htp_get_dlmas(evhtp_request_t *req, void *data);
+static void htp_post_dlmas(evhtp_request_t *req, void *data);
 
 bool init_http_handler(void)
 {
@@ -526,9 +527,7 @@ static void cb_htp_campaigns_uuid(evhtp_request_t *req, void *data)
  */
 static void cb_htp_dlmas(evhtp_request_t *req, void *data)
 {
-  char* res;
-  json_t* j_res;
-  json_t* j_tmp;
+  int method;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -536,19 +535,28 @@ static void cb_htp_dlmas(evhtp_request_t *req, void *data)
   }
   slog(LOG_DEBUG, "Fired cb_htp_dlmas.");
 
-  // get all destinations
-  j_tmp = get_dlmas_all();
+  // method check
+  method = evhtp_request_get_method(req);
+  if((method != htp_method_GET) && (method != htp_method_POST)) {
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
 
-  // create result
-  j_res = create_default_result(200);
-  json_object_set_new(j_res, "result", j_tmp);
+  if(method == htp_method_GET) {
+    htp_get_dlmas(req, data);
+    return;
+  }
+  else if(method == htp_method_POST) {
+    htp_post_dlmas(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  }
 
-  res = json_dumps(j_res, JSON_ENCODE_ANY);
-  json_decref(j_res);
-
-  evbuffer_add_printf(req->buffer_out, "%s", res);
-  evhtp_send_reply(req, EVHTP_RES_OK);
-  sfree(res);
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
 
   return;
 }
@@ -1232,3 +1240,104 @@ static void htp_put_campaigns_uuid(evhtp_request_t *req, void *data)
 
   return;
 }
+
+/**
+ * htp request handler.
+ * request: GET /dlmas
+ * @param req
+ * @param data
+ */
+static void htp_get_dlmas(evhtp_request_t *req, void *data)
+{
+  json_t* j_tmp;
+  json_t* j_res;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired htp_get_dlmas.");
+
+  // get info
+  j_tmp = get_ob_dlmas_all_uuid();
+  if(j_tmp == NULL) {
+    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", j_tmp);
+
+  // response
+  simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * htp request handler.
+ * request: POST /dlmas
+ * @param req
+ * @param data
+ */
+static void htp_post_dlmas(evhtp_request_t *req, void *data)
+{
+  const char* uuid;
+  const char* tmp_const;
+  char* tmp;
+  json_t* j_data;
+  json_t* j_tmp;
+  json_t* j_res;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired htp_post_dlmas.");
+
+  // get uuid
+  uuid = req->uri->path->file;
+  if(uuid == NULL) {
+    simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // get data
+  tmp_const = (char*)evbuffer_pullup(req->buffer_in, evbuffer_get_length(req->buffer_in));
+  if(tmp_const == NULL) {
+    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // create json
+  tmp = strndup(tmp_const, evbuffer_get_length(req->buffer_in));
+  slog(LOG_DEBUG, "Requested data. data[%s]", tmp);
+  j_data = json_loads(tmp, JSON_DECODE_ANY, NULL);
+  sfree(tmp);
+  if(j_data == NULL) {
+    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // create plan
+  j_tmp = create_ob_dlma(j_data);
+  json_decref(j_data);
+  if(j_tmp == NULL) {
+    slog(LOG_INFO, "Could not create ob_plan.");
+    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", j_tmp);
+
+  // response
+  simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+

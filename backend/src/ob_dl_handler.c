@@ -393,7 +393,7 @@ int get_dial_try_cnt(json_t* j_dl_list, int dial_num_point)
  * @param uuid
  * @return
  */
-json_t* get_dlmas_all(void)
+json_t* get_ob_dlmas_all(void)
 {
   char* sql;
   json_t* j_res;
@@ -423,11 +423,57 @@ json_t* get_dlmas_all(void)
 }
 
 /**
+ * Get all dlma's uuid array
+ * @return
+ */
+json_t* get_ob_dlmas_all_uuid(void)
+{
+  char* sql;
+  const char* tmp_const;
+  db_res_t* db_res;
+  json_t* j_res;
+  json_t* j_res_tmp;
+  json_t* j_tmp;
+
+  asprintf(&sql, "select * from ob_dl_list_ma;");
+  db_res = db_query(sql);
+  sfree(sql);
+  if(db_res == NULL) {
+    slog(LOG_WARNING, "Could not get correct ob_dlma info.");
+    return NULL;
+  }
+
+  j_res_tmp = json_array();
+  while(1) {
+    j_tmp = db_get_record(db_res);
+    if(j_tmp == NULL) {
+      break;
+    }
+
+    tmp_const = json_string_value(json_object_get(j_tmp, "uuid"));
+    if(tmp_const == NULL) {
+      json_decref(j_tmp);
+      continue;
+    }
+
+    json_array_append_new(j_res_tmp, json_string(tmp_const));
+    json_decref(j_tmp);
+  }
+  db_free(db_res);
+
+  j_res = json_object();
+  json_object_set_new(j_res, "list", j_res_tmp);
+
+  return j_res;
+}
+
+
+/**
  * Create dl_list_ma.
  * @param j_dlma
  * @return
  */
-bool create_dlma(const json_t* j_dlma)
+json_t* create_ob_dlma(const json_t* j_dlma)
 {
   int ret;
   char* uuid;
@@ -436,7 +482,7 @@ bool create_dlma(const json_t* j_dlma)
   json_t* j_tmp;
 
   if(j_dlma == NULL) {
-    return false;
+    return NULL;
   }
 
   j_tmp = json_deep_copy(j_dlma);
@@ -456,7 +502,7 @@ bool create_dlma(const json_t* j_dlma)
   json_object_set_new(j_tmp, "tm_create", json_string(tmp));
   sfree(tmp);
 
-  slog(LOG_NOTICE, "Create dlma. uuid[%s], name[%s]\n",
+  slog(LOG_NOTICE, "Create dlma. uuid[%s], name[%s]",
       json_string_value(json_object_get(j_tmp, "uuid")),
       json_string_value(json_object_get(j_tmp, "name"))
       );
@@ -464,17 +510,20 @@ bool create_dlma(const json_t* j_dlma)
   ret = db_insert("ob_dl_list_ma", j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
+    slog(LOG_ERR, "Could not create dlma info. uuid[%s]", uuid);
     sfree(uuid);
-    return false;
+    return NULL;
   }
 
-//  // send ami event
-//  j_tmp = get_dlma(uuid);
-//  sfree(uuid);
-//  send_manager_evt_out_dlma_create(j_tmp);
-//  json_decref(j_tmp);
+  j_tmp = get_ob_dlma(uuid);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get created dlma info. uuid[%s]", uuid);
+    sfree(uuid);
+    return NULL;
+  }
+  sfree(uuid);
 
-  return true;
+  return j_tmp;
 }
 
 /**
@@ -482,7 +531,7 @@ bool create_dlma(const json_t* j_dlma)
  * @param j_dlma
  * @return
  */
-bool update_dlma(const json_t* j_dlma)
+bool update_ob_dlma(const json_t* j_dlma)
 {
   char* tmp;
   const char* tmp_const;
@@ -537,7 +586,7 @@ bool update_dlma(const json_t* j_dlma)
   return true;
 }
 
-bool delete_dlma(const char* uuid)
+bool delete_ob_dlma(const char* uuid)
 {
   json_t* j_tmp;
   char* tmp;
@@ -579,7 +628,7 @@ bool delete_dlma(const char* uuid)
  * @param uuid
  * @return
  */
-json_t* get_dlma(const char* uuid)
+json_t* get_ob_dlma(const char* uuid)
 {
   char* sql;
   json_t* j_res;
@@ -611,7 +660,7 @@ json_t* get_dlma(const char* uuid)
  * @param j_plan
  * @return
  */
-json_t* get_dl_lists(const char* dlma_uuid, int count)
+json_t* get_ob_dl_lists(const char* dlma_uuid, int count)
 {
   char* sql;
   db_res_t* db_res;
@@ -623,7 +672,7 @@ json_t* get_dl_lists(const char* dlma_uuid, int count)
     return NULL;
   }
 
-  j_dlma = get_dlma(dlma_uuid);
+  j_dlma = get_ob_dlma(dlma_uuid);
   if(j_dlma == NULL) {
     slog(LOG_WARNING, "Could not find dlma info. dlma_uuid[%s]\n", dlma_uuid);
     return NULL;
@@ -663,7 +712,7 @@ json_t* get_dl_lists(const char* dlma_uuid, int count)
  * @param j_plan
  * @return
  */
-json_t* get_dl_lists_by_count(int count)
+json_t* get_ob_dl_lists_by_count(int count)
 {
   char* sql;
   db_res_t* db_res;
@@ -701,7 +750,7 @@ json_t* get_dl_lists_by_count(int count)
   return j_res;
 }
 
-json_t* get_dl_list(const char* uuid)
+json_t* get_ob_dl_list(const char* uuid)
 {
   char* sql;
   db_res_t* db_res;
@@ -721,7 +770,7 @@ json_t* get_dl_list(const char* uuid)
   return j_res;
 }
 
-int get_dl_list_cnt_total(json_t* j_dlma)
+int get_ob_dl_list_cnt_total(json_t* j_dlma)
 {
   char* sql;
   db_res_t* db_res;
@@ -755,7 +804,7 @@ int get_dl_list_cnt_total(json_t* j_dlma)
  * \param j_plan
  * \return
  */
-int get_dl_list_cnt_finshed(json_t* j_dlma, json_t* j_plan)
+int get_ob_dl_list_cnt_finshed(json_t* j_dlma, json_t* j_plan)
 {
   char* sql;
   db_res_t* db_res;
@@ -815,7 +864,7 @@ int get_dl_list_cnt_finshed(json_t* j_dlma, json_t* j_plan)
  * \param j_plan
  * \return
  */
-int get_dl_list_cnt_available(json_t* j_dlma, json_t* j_plan)
+int get_ob_dl_list_cnt_available(json_t* j_dlma, json_t* j_plan)
 {
   char* sql;
   db_res_t* db_res;
@@ -877,7 +926,7 @@ int get_dl_list_cnt_available(json_t* j_dlma, json_t* j_plan)
  * \param j_plan
  * \return
  */
-int get_dl_list_cnt_dialing(json_t* j_dlma)
+int get_ob_dl_list_cnt_dialing(json_t* j_dlma)
 {
   char* sql;
   db_res_t* db_res;
@@ -912,7 +961,7 @@ int get_dl_list_cnt_dialing(json_t* j_dlma)
  * \param j_plan
  * \return
  */
-int get_dl_list_cnt_tried(json_t* j_dlma)
+int get_ob_dl_list_cnt_tried(json_t* j_dlma)
 {
   char* sql;
   db_res_t* db_res;

@@ -557,7 +557,7 @@ json_t* get_ob_campaign_stat(const char* uuid)
 
   // get plan
   j_plan = get_ob_plan(json_string_value(json_object_get(j_camp, "plan")));
-  j_dlma = get_dlma(json_string_value(json_object_get(j_camp, "dlma")));
+  j_dlma = get_ob_dlma(json_string_value(json_object_get(j_camp, "dlma")));
   if((j_plan == NULL) || (j_dlma == NULL)) {
     slog(LOG_DEBUG, "Could not basic info. camp_uuid[%s], plan_uuid[%s], dlma_uuid[%s]",
         uuid,
@@ -576,11 +576,11 @@ json_t* get_ob_campaign_stat(const char* uuid)
 
       "uuid",                  json_string_value(json_object_get(j_camp, "uuid"))? : "",
 
-      "dial_total_count",      get_dl_list_cnt_total(j_dlma),
-      "dial_finished_count",  get_dl_list_cnt_finshed(j_dlma, j_plan),
-      "dial_available_count",  get_dl_list_cnt_available(j_dlma, j_plan),
-      "dial_dialing_count",    get_dl_list_cnt_dialing(j_dlma),
-      "dial_called_count",    get_dl_list_cnt_tried(j_dlma)
+      "dial_total_count",      get_ob_dl_list_cnt_total(j_dlma),
+      "dial_finished_count",  get_ob_dl_list_cnt_finshed(j_dlma, j_plan),
+      "dial_available_count",  get_ob_dl_list_cnt_available(j_dlma, j_plan),
+      "dial_dialing_count",    get_ob_dl_list_cnt_dialing(j_dlma),
+      "dial_called_count",    get_ob_dl_list_cnt_tried(j_dlma)
       );
 
   json_decref(j_camp);

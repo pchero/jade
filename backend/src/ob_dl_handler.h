@@ -30,9 +30,9 @@ typedef enum _E_DL_USE
   E_DL_USE_OK = 1,
 } E_DL_USE;
 
-bool create_dlma(const json_t* j_dlma);
-bool update_dlma(const json_t* j_dlma);
-bool delete_dlma(const char* uuid);
+json_t* create_ob_dlma(const json_t* j_dlma);
+bool update_ob_dlma(const json_t* j_dlma);
+bool delete_ob_dlma(const char* uuid);
 
 char* create_dl_list(json_t* j_dl);
 bool update_dl_list(json_t* j_dl);
@@ -42,16 +42,17 @@ int get_current_dialing_dl_cnt(const char* camp_uuid, const char* dl_table);
 int get_dial_num_point(json_t* j_dl_list, json_t* j_plan);
 int get_dial_try_cnt(json_t* j_dl_list, int dial_num_point);
 
-json_t* get_dlmas_all(void);
-json_t* get_dlma(const char* uuid);
-json_t* get_dl_list(const char* uuid);
-json_t* get_dl_lists(const char* dlma_uuid, int count);
-json_t* get_dl_lists_by_count(int count);
-int get_dl_list_cnt_total(json_t* j_dlma);
-int get_dl_list_cnt_finshed(json_t* j_dlma, json_t* j_plan);
-int get_dl_list_cnt_available(json_t* j_dlma, json_t* j_plan);
-int get_dl_list_cnt_dialing(json_t* j_dlma);
-int get_dl_list_cnt_tried(json_t* j_dlma);
+json_t* get_ob_dlmas_all(void);
+json_t* get_ob_dlmas_all_uuid(void);
+json_t* get_ob_dlma(const char* uuid);
+json_t* get_ob_dl_list(const char* uuid);
+json_t* get_ob_dl_lists(const char* dlma_uuid, int count);
+json_t* get_ob_dl_lists_by_count(int count);
+int get_ob_dl_list_cnt_total(json_t* j_dlma);
+int get_ob_dl_list_cnt_finshed(json_t* j_dlma, json_t* j_plan);
+int get_ob_dl_list_cnt_available(json_t* j_dlma, json_t* j_plan);
+int get_ob_dl_list_cnt_dialing(json_t* j_dlma);
+int get_ob_dl_list_cnt_tried(json_t* j_dlma);
 
 
 json_t* get_dl_available_predictive(json_t* j_dlma, json_t* j_plan);

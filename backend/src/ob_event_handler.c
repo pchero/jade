@@ -281,7 +281,7 @@ static void cb_campaign_start(__attribute__((unused)) int fd, __attribute__((unu
   }
 
   // get dl_master_info
-  j_dlma = get_dlma(json_string_value(json_object_get(j_camp, "dlma")));
+  j_dlma = get_ob_dlma(json_string_value(json_object_get(j_camp, "dlma")));
   if(j_dlma == NULL)
   {
     slog(LOG_ERR, "Could not find dial list master info. Stopping campaign. camp[%s], dlma[%s]\n",
@@ -758,7 +758,7 @@ static void cb_check_campaign_end(__attribute__((unused)) int fd, __attribute__(
       continue;
     }
 
-    j_dlma = get_dlma(json_string_value(json_object_get(j_camp, "dlma")));
+    j_dlma = get_ob_dlma(json_string_value(json_object_get(j_camp, "dlma")));
     if(j_dlma == NULL) {
       update_ob_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STOPPING);
       json_decref(j_plan);
