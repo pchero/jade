@@ -348,12 +348,101 @@ bool init_ami_handler(void)
   return true;
 }
 
-int send_ami_cmd(const char* cmd)
+/**
+ * AMI command msg send handler.
+ * send_ami_cmd
+ * @param data
+ */
+bool send_ami_cmd(json_t* j_cmd)
+{
+  int ret;
+  json_t* j_val;
+  const char* key;
+  int type;
+  char* tmp;
+  const char* tmp_const;
+
+  char* cmd;
+  char* cmd_sub;
+
+  // just for log
+  if(j_cmd == NULL) {
+    return NULL;
+  }
+
+  // Get action
+  j_val = json_object_get(j_cmd, "Action");
+  if(j_val == NULL) {
+    slog(LOG_ERR, " not get the action.");
+    return NULL;
+  }
+
+  asprintf(&cmd, "Action: %s\r\n", json_string_value(j_val));
+  slog(LOG_DEBUG, "AMI Action command. action[%s]", json_string_value(j_val));
+
+  json_object_foreach(j_cmd, key, j_val){
+    ret = strcmp(key, "Action");
+    if(ret == 0) {
+      continue;
+    }
+
+    ret = strcmp(key, "Variables");
+    if(ret == 0) {
+      tmp_const = json_string_value(j_val);
+      cmd_sub = get_variables_info_ami_str_from_string(tmp_const);
+      if(tmp != NULL) {
+        asprintf(&tmp, "%s%s\r\n", cmd, cmd_sub);
+        sfree(cmd);
+        cmd = tmp;
+      }
+      continue;
+    }
+
+    type = json_typeof(j_val);
+    switch(type) {
+      case JSON_REAL:
+      case JSON_INTEGER:
+      {
+        asprintf(&cmd_sub, "%s: %lld", key, json_integer_value(j_val));
+      }
+      break;
+
+      case JSON_FALSE:
+      case JSON_TRUE:
+      case JSON_STRING:
+      {
+        asprintf(&cmd_sub, "%s: %s", key, json_string_value(j_val));
+      }
+      break;
+
+      default:
+      {
+        slog(LOG_WARNING, "Invalid type. Set to <unknown>. type[%d]", type);
+        asprintf(&cmd_sub, "%s: %s", key, "<unknown>");
+      }
+      break;
+    }
+
+    asprintf(&tmp, "%s%s\r\n", cmd, cmd_sub);
+    sfree(cmd);
+    cmd = tmp;
+  }
+
+  asprintf(&tmp, "%s\r\n", cmd);
+  sfree(cmd);
+
+  cmd = tmp;
+  ret = send_ami_cmd_raw(cmd);
+
+  return true;
+}
+
+int send_ami_cmd_raw(const char* cmd)
 {
   int ret;
   
   if(cmd == NULL) {
-    printf("Wrong input parameter.\n");
+    slog(LOG_WARNING, "Wrong input parameter.");
     return -1;
   }
   
@@ -378,7 +467,7 @@ static bool ami_login(void)
   
   asprintf(&cmd, "Action: Login\r\nUsername: %s\r\nSecret: %s\r\n\r\n", username, password);
     
-  send_ami_cmd(cmd);
+  send_ami_cmd_raw(cmd);
   sfree(cmd);
   
   return true;
@@ -386,42 +475,30 @@ static bool ami_login(void)
 
 static bool ami_get_init_info(void)
 {
-  char* cmd;
-
-  // campaign
-  asprintf(&cmd, "Action: OutCampaignShow\r\n\r\n");
-  send_ami_cmd(cmd);
-  sfree(cmd);
-
-  // plan
-  asprintf(&cmd, "Action: OutPlanShow\r\n\r\n");
-  send_ami_cmd(cmd);
-  sfree(cmd);
-
-  // dlma
-  asprintf(&cmd, "Action: OutDlmaShow\r\n\r\n");
-  send_ami_cmd(cmd);
-  sfree(cmd);
-
-  // destination
-  asprintf(&cmd, "Action: OutDestinationShow\r\n\r\n");
-  send_ami_cmd(cmd);
-  sfree(cmd);
-
-  // dl list
-  asprintf(&cmd, "Action: OutDlListShow\r\nCount:100000\r\n\r\n");
-  send_ami_cmd(cmd);
-  sfree(cmd);
+  json_t* j_tmp;
+  int ret;
 
   // sip peers
-  asprintf(&cmd, "Action: SipPeers\r\n\r\n");
-  send_ami_cmd(cmd);
-  sfree(cmd);
+  j_tmp = json_pack("{s:s}",
+      "Action", "SipPeers"
+      );
+  ret = send_ami_cmd(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not send ami action. action[%s]", "SipPeers");
+    return false;
+  }
+  json_decref(j_tmp);
 
   // queue status
-  asprintf(&cmd, "Action: QueueStatus\r\n\r\n");
-  send_ami_cmd(cmd);
-  sfree(cmd);
+  j_tmp = json_pack("{s:s}",
+      "Action", "QueueStatus"
+      );
+  ret = send_ami_cmd(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not send ami action. action[%s]", "QueueStatus");
+    return false;
+  }
+  json_decref(j_tmp);
 
   return true;
 }
@@ -737,7 +814,7 @@ static void ami_event_outdestinationdelete(json_t* j_msg)
   }
   slog(LOG_DEBUG, "Fired ami_event_outdestinationdelete.");
 
-  asprintf(&sql, "delete from destination where uuid=\"%s\";",
+  asprintf(&sql, "delete from ob_destination where uuid=\"%s\";",
       json_string_value(json_object_get(j_msg, "Uuid"))? : ""
       );
   ret = db_exec(sql);
@@ -973,7 +1050,7 @@ static void ami_event_outplandelete(json_t* j_msg)
   }
   slog(LOG_DEBUG, "Fired ami_event_outplandelete.");
 
-  asprintf(&sql, "delete from plan where uuid=\"%s\";",
+  asprintf(&sql, "delete from ob_plan where uuid=\"%s\";",
       json_string_value(json_object_get(j_msg, "Uuid"))? : ""
       );
   ret = db_exec(sql);
@@ -1194,7 +1271,7 @@ static void ami_event_outcampaigndelete(json_t* j_msg)
   }
   slog(LOG_DEBUG, "Fired ami_event_outcampaigndelete.");
 
-  asprintf(&sql, "delete from campaign where uuid=\"%s\";",
+  asprintf(&sql, "delete from ob_campaign where uuid=\"%s\";",
       json_string_value(json_object_get(j_msg, "Uuid"))? : ""
       );
   ret = db_exec(sql);
@@ -1367,7 +1444,7 @@ static void ami_event_outdlmadelete(json_t* j_msg)
   }
   slog(LOG_DEBUG, "Fired ami_event_outdlmadelete.");
 
-  asprintf(&sql, "delete from dlma where uuid=\"%s\";",
+  asprintf(&sql, "delete from ob_dlma where uuid=\"%s\";",
       json_string_value(json_object_get(j_msg, "Uuid"))? : ""
       );
   ret = db_exec(sql);
@@ -1642,7 +1719,7 @@ static void ami_event_outdllistdelete(json_t* j_msg)
   }
   slog(LOG_DEBUG, "Fired ami_event_outdllistdelete.");
 
-  asprintf(&sql, "delete from dl_list where uuid=\"%s\";",
+  asprintf(&sql, "delete from ob_dl_list where uuid=\"%s\";",
       json_string_value(json_object_get(j_msg, "Uuid"))? : ""
       );
   ret = db_exec(sql);

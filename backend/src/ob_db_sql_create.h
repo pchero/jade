@@ -187,6 +187,7 @@ static const char* g_sql_ob_campaign =
 "    name              varchar(255),"                  // campaign name"
 "    status            int              default 0,"    // status code(stop(0), start(1), pause(2), stopping(10), starting(11), pausing(12)"
 "    in_use            int              default 1,"    // in use:1, not in use:0"
+"    variables         text,"
 
 "    next_campaign     varchar(255),"                  // next campaign uuid"
 
@@ -302,7 +303,7 @@ static const char* g_sql_ob_dialing =
 "   info_camp     text,"
 "   info_plan     text,"
 "   info_dlma     text,"
-"   info dest     text,"
+"   info_dest     text,"
 "   info_dl_list  text,"
 "   info_dial     text,"
 

@@ -48,7 +48,7 @@ json_t* create_ob_destination(const json_t* j_dest)
   json_t* j_tmp;
 
   if(j_dest == NULL) {
-    slog(LOG_ERR, "Wrong input parameter.\n");
+    slog(LOG_ERR, "Wrong input parameter.");
     return false;
   }
   j_tmp = json_deep_copy(j_dest);
@@ -60,7 +60,7 @@ json_t* create_ob_destination(const json_t* j_dest)
   json_object_set_new(j_tmp, "tm_create", json_string(tmp));
   sfree(tmp);
 
-  slog(LOG_NOTICE, "Create ob_destination. uuid[%s], name[%s]\n",
+  slog(LOG_NOTICE, "Create ob_destination. uuid[%s], name[%s]",
       json_string_value(json_object_get(j_tmp, "uuid")),
       json_string_value(json_object_get(j_tmp, "name"))? : ""
       );
@@ -92,7 +92,7 @@ bool delete_ob_destination(const char* uuid)
 
   if(uuid == NULL) {
     // invalid parameter.
-    slog(LOG_ERR, "Wrong input parameter.\n");
+    slog(LOG_ERR, "Wrong input parameter.");
     return false;
   }
 
@@ -110,7 +110,7 @@ bool delete_ob_destination(const char* uuid)
   ret = db_exec(sql);
   sfree(sql);
   if(ret == false) {
-    slog(LOG_WARNING, "Could not delete ob_destination. uuid[%s]\n", uuid);
+    slog(LOG_WARNING, "Could not delete ob_destination. uuid[%s]", uuid);
     return false;
   }
 
@@ -133,7 +133,7 @@ json_t* get_ob_destination(const char* uuid)
   char* sql;
 
   if(uuid == NULL) {
-    slog(LOG_ERR, "Wrong input parameter.\n");
+    slog(LOG_ERR, "Wrong input parameter.");
     return NULL;
   }
   slog(LOG_DEBUG, "Get ob_destination info. uuid[%s]", uuid);
@@ -165,10 +165,10 @@ json_t* get_ob_destination(const char* uuid)
 //  char* sql;
 //
 //  if(uuid == NULL) {
-//    slog(LOG_ERR, "Wrong input parameter.\n");
+//    slog(LOG_ERR, "Wrong input parameter.");
 //    return NULL;
 //  }
-//  slog(LOG_VERBOSE, "Get destination info. uuid[%s]\n", uuid);
+//  slog(LOG_VERBOSE, "Get destination info. uuid[%s]", uuid);
 //
 //  // get specified destination
 //  asprintf(&sql, "select * from destination where uuid=\"%s\" and in_use=%d;", uuid, E_DL_USE_NO);
@@ -176,7 +176,7 @@ json_t* get_ob_destination(const char* uuid)
 //  db_res = db_query(sql);
 //  sfree(sql);
 //  if(db_res == NULL) {
-//    slog(LOG_WARNING, "Could not get destination info.\n");
+//    slog(LOG_WARNING, "Could not get destination info.");
 //    return NULL;
 //  }
 //
@@ -195,7 +195,7 @@ json_t* get_ob_destinations_all_uuid(void)
   json_t* j_res_tmp;
   json_t* j_tmp;
 
-  asprintf(&sql, "select * from ob_destination;");
+  asprintf(&sql, "select * from ob_destination where in_use=%d;", E_DL_USE_OK);
   db_res = db_query(sql);
   sfree(sql);
   if(db_res == NULL) {
@@ -244,7 +244,7 @@ json_t* get_ob_destinations_all(void)
   db_res = db_query(sql);
   sfree(sql);
   if(db_res == NULL) {
-    slog(LOG_WARNING, "Could not get ob_destinations info.\n");
+    slog(LOG_WARNING, "Could not get ob_destinations info.");
     return NULL;
   }
 
@@ -277,7 +277,7 @@ json_t* update_ob_destination(const json_t* j_dest)
   int ret;
 
   if(j_dest == NULL) {
-    slog(LOG_ERR, "Wrong input parameter.\n");
+    slog(LOG_ERR, "Wrong input parameter.");
     return false;
   }
 
@@ -386,13 +386,13 @@ static int get_avail_cnt_app(json_t* j_dest)
   int ret;
 
   if(j_dest == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.\n");
+    slog(LOG_WARNING, "Wrong input parameter.");
     return 0;
   }
 
   application = json_string_value(json_object_get(j_dest, "application"));
   if(application == NULL) {
-    slog(LOG_WARNING, "Could not get correct application name. uuid[%s]\n",
+    slog(LOG_WARNING, "Could not get correct application name. uuid[%s]",
         json_string_value(json_object_get(j_dest, "uuid"))
         );
     return 0;
@@ -407,11 +407,10 @@ static int get_avail_cnt_app(json_t* j_dest)
     ret = get_avail_cnt_app_park();
   }
   else {
-    slog(LOG_WARNING, "Unsupported application. Consider unlimited. application[%s]\n", application);
+    slog(LOG_WARNING, "Unsupported application. Consider unlimited. application[%s]", application);
     ret = DEF_DESTINATION_AVAIL_CNT_UNLIMITED;
   }
-
-  slog(LOG_VERBOSE, "Available application count. cnt[%d]", ret);
+  slog(LOG_DEBUG, "Available application count. cnt[%d]", ret);
 
   return ret;
 }
@@ -419,7 +418,6 @@ static int get_avail_cnt_app(json_t* j_dest)
 static int get_avail_cnt_app_queue_available_member(const char* name)
 {
   char* sql;
-  const char* tmp_const;
   db_res_t* db_res;
   json_t* j_res;
   int ret;
@@ -453,16 +451,8 @@ static int get_avail_cnt_app_queue_available_member(const char* name)
     return 0;
   }
 
-  tmp_const = json_string_value(json_object_get(j_res, "count(*)"));
-  if(tmp_const == NULL) {
-    json_decref(j_res);
-    return 0;
-  }
+  ret = json_integer_value(json_object_get(j_res, "count(*)"));
   json_decref(j_res);
-
-  ret = atoi(tmp_const);
-  slog(LOG_DEBUG, "Application queue available count. name[%s], available_member_cnt[%d]", name, ret);
-
   return ret;
 }
 
@@ -475,7 +465,7 @@ static int get_avail_cnt_app_queue_service_perf(const char* name)
   int ret;
 
   if(name == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.\n");
+    slog(LOG_WARNING, "Wrong input parameter.");
     return 0;
   }
   slog(LOG_DEBUG, "fired get_avail_cnt_app_queue_service_perf.");
@@ -527,7 +517,7 @@ static int get_avail_cnt_app_queue(const char* name)
   avail = get_avail_cnt_app_queue_available_member(name);
 
   ret = avail * perf / 100;
-  slog(LOG_DEBUG, "Application queue available count. name[%s], available[%d], performance[%d]\n", name, avail, perf);
+  slog(LOG_DEBUG, "Application queue available count. name[%s], available[%d], performance[%d]", name, avail, perf);
 
   return ret;
 }
@@ -559,14 +549,14 @@ static int get_avail_cnt_app_park(void)
 //  if(name == NULL) {
 //    return NULL;
 //  }
-//  slog(LOG_DEBUG, "Getting queue param info. queue_name[%s]\n", name);
+//  slog(LOG_DEBUG, "Getting queue param info. queue_name[%s]", name);
 //
 ////  todo:
 //  slog(LOG_ERR, "Need to fix. Need to get queue status.");
 //
 ////  j_ami_res = ami_cmd_queue_status(name);
 ////  if(j_ami_res == NULL) {
-////    slog(LOG_NOTICE, "Could not get queue status. name[%s]\n", name);
+////    slog(LOG_NOTICE, "Could not get queue status. name[%s]", name);
 ////    return NULL;
 ////  }
 //
@@ -598,7 +588,7 @@ static int get_avail_cnt_app_park(void)
 //  }
 //  json_decref(j_ami_res);
 //  if(j_param == NULL) {
-//    slog(LOG_NOTICE, "Could not get queue param. name[%s]\n", name);
+//    slog(LOG_NOTICE, "Could not get queue param. name[%s]", name);
 //    return NULL;
 //  }
 //
@@ -623,7 +613,7 @@ static int get_avail_cnt_app_park(void)
 //
 ////  j_ami_res = ami_cmd_queue_summary(name);
 ////  if(j_ami_res == NULL) {
-////    slog(LOG_NOTICE, "Could not get queue summary. name[%s]\n", name);
+////    slog(LOG_NOTICE, "Could not get queue summary. name[%s]", name);
 ////    return NULL;
 ////  }
 //
@@ -644,7 +634,7 @@ static int get_avail_cnt_app_park(void)
 //  }
 //  json_decref(j_ami_res);
 //  if(j_queue == NULL) {
-//    slog(LOG_NOTICE, "Could not get queue summary. name[%s]\n", name);
+//    slog(LOG_NOTICE, "Could not get queue summary. name[%s]", name);
 //    return NULL;
 //  }
 //
@@ -656,7 +646,7 @@ static json_t* create_destination_exten(json_t* j_dest)
   json_t* j_res;
 
   if(j_dest == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.\n");
+    slog(LOG_WARNING, "Wrong input parameter.");
     return NULL;
   }
 
@@ -675,7 +665,7 @@ static json_t* create_dial_destination_application(json_t* j_dest)
   json_t* j_res;
 
   if(j_dest == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.\n");
+    slog(LOG_WARNING, "Wrong input parameter.");
     return NULL;
   }
 
@@ -694,7 +684,7 @@ json_t* create_ob_dial_destination_info(json_t* j_dest)
   json_t* j_res;
 
   if(j_dest == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.\n");
+    slog(LOG_WARNING, "Wrong input parameter.");
     return NULL;
   }
 
@@ -714,14 +704,14 @@ json_t* create_ob_dial_destination_info(json_t* j_dest)
 
     default:
     {
-      slog(LOG_ERR, "No support destination type. type[%d]\n", type);
+      slog(LOG_ERR, "No support destination type. type[%d]", type);
       j_res = NULL;
     }
     break;
   }
 
   if(j_res == NULL) {
-    slog(LOG_ERR, "Could not get correct dial destination info.\n");
+    slog(LOG_ERR, "Could not get correct dial destination info.");
     return NULL;
   }
 
@@ -742,14 +732,13 @@ bool is_exist_ob_destination(const char* uuid)
   db_res_t* db_res;
   json_t* j_tmp;
   int ret;
-  const char* tmp_const;
 
   if(uuid == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
 
-  asprintf(&sql, "select count(*) from ob_destination where uuid=\"%s\";", uuid);
+  asprintf(&sql, "select count(*) from ob_destination where uuid=\"%s\" and in_use=%d;", uuid, E_DL_USE_OK);
 
   db_res = db_query(sql);
   sfree(sql);
@@ -765,16 +754,9 @@ bool is_exist_ob_destination(const char* uuid)
     return false;
   }
 
-  tmp_const = json_string_value(json_object_get(j_tmp, "count(*)"));
-  if(tmp_const == NULL) {
-    json_decref(j_tmp);
-    slog(LOG_ERR, "Could not get correct ob_destination info. uuid[%s]", uuid);
-    return false;
-  }
-
-  ret = atoi(tmp_const);
+  // result
+  ret = json_integer_value(json_object_get(j_tmp, "count(*)"));
   json_decref(j_tmp);
-
   if(ret <= 0) {
     return false;
   }

@@ -13,6 +13,7 @@
 #include <string.h>
 #include <uuid/uuid.h>
 #include <ctype.h>
+#include <jansson.h>
 
 #include "utils.h"
 
@@ -205,43 +206,41 @@ int get_utc_timestamp_day(void)
   return localtime(&time)->tm_wday;
 }
 
-///**
-// *
-// * @param str
-// * @return
-// */
-//char* get_variables_info_ami_str_from_string(const char* str)
-//{
-//  struct json* j_tmp;
-//  struct ast_json_iter* iter;
-//  char* variable;
-//  char* variables;
-//
-//  if((str == NULL) || (strlen(str) == 0)) {
-//    return NULL;
-//  }
-//
-//  j_tmp = ast_json_load_string(str, NULL);
-//
-//  variables = NULL;
-//  for(iter = ast_json_object_iter(j_tmp);
-//      iter != NULL;
-//      iter = ast_json_object_iter_next(j_tmp, iter))
-//  {
-//    ast_asprintf(&variable, "%sVariable: %s=%s\r\n",
-//        variables? : "",
-//        ast_json_object_iter_key(iter)? : "",
-//        ast_json_string_get(ast_json_object_iter_value(iter))? : ""
-//        );
-//    if(variables != NULL) {
-//      ast_free(variables);
-//    }
-//    variables = variable;
-//  }
-//  AST_JSON_UNREF(j_tmp);
-//
-//  return variables;
-//}
+/**
+ *
+ * @param str
+ * @return
+ */
+char* get_variables_info_ami_str_from_string(const char* str)
+{
+  const char* key;
+  json_t* j_tmp;
+  json_t* j_val;
+  char* res_sub;
+  char* res;
+  char* tmp;
+
+  if((str == NULL) || (strlen(str) == 0)) {
+    return NULL;
+  }
+
+  j_tmp = json_loads(str, JSON_DECODE_ANY, NULL);
+
+  json_object_foreach(j_tmp, key, j_val) {
+    asprintf(&res_sub, "%s=%s\r\n",
+        key,
+        json_string_value(j_val)? : ""
+        );
+
+    asprintf(&tmp, "%s%s", res, res_sub);
+    sfree(res_sub);
+    sfree(res);
+    res = tmp;
+  }
+
+  return res;
+}
+
 //
 //char* get_variables_info_ami_str(struct ast_json* j_obj, const char* name)
 //{

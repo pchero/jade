@@ -274,7 +274,6 @@ void db_free(db_res_t* db_res)
 static bool db_insert_basic(const char* table, const json_t* j_data, int replace)
 {
   char* sql;
-
   json_t*     j_data_cp;
   char*       tmp;
   const char* key;
@@ -285,11 +284,11 @@ static bool db_insert_basic(const char* table, const json_t* j_data, int replace
   char*       sql_values;
   char*       tmp_sub;
 
-  slog(LOG_DEBUG, "db_insert_basic.");
   if((table == NULL) || (j_data == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
+  slog(LOG_DEBUG, "db_insert_basic.");
 
   // copy original.
   j_data_cp = json_deep_copy(j_data);
@@ -472,16 +471,8 @@ char* db_get_update_str(const json_t* j_data)
   tmp_sub = NULL;
 
   json_object_foreach(j_data_cp, key, j_val) {
-    // copy/set previous sql.
-    if(is_first == true) {
-      asprintf(&tmp, "%s", " ");
-      is_first = false;
-    }
-    else {
-      asprintf(&tmp, "%s, ", res);
-    }
-    sfree(res);
 
+    // create update string
     type = json_typeof(j_val);
     switch(type) {
       // string
@@ -529,6 +520,7 @@ char* db_get_update_str(const json_t* j_data)
       break;
     }
 
+    // copy/set previous sql.
     sfree(tmp);
     if(is_first == true) {
       asprintf(&tmp, "%s", tmp_sub);

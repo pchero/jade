@@ -231,7 +231,7 @@ json_t* get_ob_campaigns_all_uuid(void)
   json_t* j_res_tmp;
   json_t* j_tmp;
 
-  asprintf(&sql, "select * from ob_campaign;");
+  asprintf(&sql, "select * from ob_campaign where in_use=%d;", E_DL_USE_OK);
   db_res = db_query(sql);
   sfree(sql);
   if(db_res == NULL) {
@@ -275,7 +275,7 @@ json_t* get_campaigns_schedule_start(void)
   db_res_t* db_res;
   int ret;
 
-  asprintf(&sql, "select * from campaign where status == %d and sc_mode == %d;",
+  asprintf(&sql, "select * from ob_campaign where status == %d and sc_mode == %d;",
       E_CAMP_STOP,
       E_CAMP_SCHEDULE_ON
       );
@@ -318,7 +318,7 @@ json_t* get_campaigns_schedule_end(void)
   db_res_t* db_res;
   int ret;
 
-  asprintf(&sql, "select * from campaign where status == %d and sc_mode == %d;",
+  asprintf(&sql, "select * from ob_campaign where status == %d and sc_mode == %d;",
       E_CAMP_START,
       E_CAMP_SCHEDULE_ON
       );
@@ -396,8 +396,8 @@ json_t* update_ob_campaign(const json_t* j_camp)
 
   asprintf(&sql, "update ob_campaign set %s where uuid=\"%s\" and in_use=%d;", tmp, uuid, E_DL_USE_OK);
   sfree(tmp);
-  sfree(uuid);
 
+  // update
   db_exec(sql);
   sfree(sql);
 
@@ -643,7 +643,6 @@ bool is_stoppable_campgain(json_t* j_camp)
   char* sql;
   db_res_t* db_res;
   json_t* j_tmp;
-  const char* tmp_const;
   int ret;
 
   if(j_camp == NULL) {
@@ -673,16 +672,8 @@ bool is_stoppable_campgain(json_t* j_camp)
     return false;
   }
 
-  tmp_const = json_string_value(json_object_get(j_tmp, "count(*)"));
-  if(tmp_const == NULL) {
-    slog(LOG_INFO, "Could not get correct stoppable campaign info.");
-    json_decref(j_tmp);
-    return false;
-  }
-
-  ret = atoi(tmp_const);
+  ret = json_integer_value(json_object_get(j_tmp, "count(*)"));
   json_decref(j_tmp);
-
   if(ret > 0) {
     return false;
   }
@@ -876,14 +867,13 @@ bool is_exist_ob_campaign(const char* uuid)
   db_res_t* db_res;
   json_t* j_tmp;
   int ret;
-  const char* tmp_const;
 
   if(uuid == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
 
-  asprintf(&sql, "select count(*) from ob_campaign where uuid=\"%s\";", uuid);
+  asprintf(&sql, "select count(*) from ob_campaign where uuid=\"%s\" and in_use=%d;", uuid, E_DL_USE_OK);
 
   db_res = db_query(sql);
   sfree(sql);
@@ -899,16 +889,9 @@ bool is_exist_ob_campaign(const char* uuid)
     return false;
   }
 
-  tmp_const = json_string_value(json_object_get(j_tmp, "count(*)"));
-  if(tmp_const == NULL) {
-    json_decref(j_tmp);
-    slog(LOG_ERR, "Could not get correct ob_campaign info. uuid[%s]", uuid);
-    return false;
-  }
-
-  ret = atoi(tmp_const);
+  // result
+  ret = json_integer_value(json_object_get(j_tmp, "count(*)"));
   json_decref(j_tmp);
-
   if(ret <= 0) {
     return false;
   }

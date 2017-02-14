@@ -20,121 +20,6 @@
 #include "ob_dialing_handler.h"
 #include "ob_event_handler.h"
 
-//AST_MUTEX_DEFINE_STATIC(g_rb_dialing_mutex);
-
-//static int rb_dialing_cmp_cb(void* obj, void* arg, int flags);
-//static int rb_dialing_sort_cb(const void* o_left, const void* o_right, int flags);
-//static void rb_dialing_destructor(void* obj);
-//static bool rb_dialing_update(rb_dialing* dialing);
-
-//static struct ao2_container* g_rb_dialings = NULL;  ///< dialing container
-
-/**
- * Initiate rb_diailing.
- * @return
- */
-int init_rb_dialing(void)
-{
-  slog(LOG_ERR, "Need to fix.");
-//  g_rb_dialings = ao2_container_alloc_rbtree(AO2_ALLOC_OPT_LOCK_MUTEX, AO2_CONTAINER_ALLOC_OPT_DUPS_REJECT, rb_dialing_sort_cb, rb_dialing_cmp_cb);
-//  if(g_rb_dialings == NULL) {
-//    slog(LOG_ERROR, "Could not create rbtree.\n");
-//    return false;
-//  }
-//   slog(LOG_NOTICE, "Initiated dialing handler.\n");
-//
-  return true;
-}
-
-///**
-// *
-// * @param o_left
-// * @param o_right
-// * @param flags
-// * @return
-// */
-//static int rb_dialing_sort_cb(const void* o_left, const void* o_right, int flags)
-//{
-//  const rb_dialing* dialing_left;
-//  const char* key;
-//
-//  dialing_left = (rb_dialing*)o_left;
-//
-//  if(flags & OBJ_SEARCH_KEY) {
-//    key = (char*)o_right;
-//
-//    return strcmp(dialing_left->uuid, key);
-//  }
-//  else if(flags & OBJ_SEARCH_PARTIAL_KEY) {
-//    key = (char*)o_right;
-//
-//    if((dialing_left->name == NULL) || (key == NULL)) {
-//      return 0;
-//    }
-//    return strcmp(dialing_left->name, key);
-//  }
-//  else {
-//    const rb_dialing* dialing_right;
-//
-//    dialing_right = (rb_dialing*)o_right;
-//    return strcmp(dialing_left->uuid, dialing_right->uuid);
-//  }
-//}
-
-///**
-// *
-// * @param obj
-// * @param arg
-// * @param flags
-// * @return
-// */
-//static int rb_dialing_cmp_cb(void* obj, void* arg, int flags)
-//{
-//  slog(LOG_ERR, "Need to fix.");
-//  return false;
-//
-////  rb_dialing* dialing;
-////  const char *key;
-////
-////  dialing = (rb_dialing*)obj;
-////
-////  if(flags & OBJ_SEARCH_KEY) {
-////    key = (const char*)arg;
-////
-////    // channel unique id
-////    if(dialing->uuid == NULL) {
-////      return 0;
-////    }
-////    if(strcmp(dialing->uuid, key) == 0) {
-////      return CMP_MATCH;
-////    }
-////    return 0;
-////  }
-////  else if(flags & OBJ_SEARCH_PARTIAL_KEY) {
-////    key = (const char*)arg;
-////
-////    // channel name
-////    if((dialing->name == NULL) || (key == NULL)) {
-////      return 0;
-////    }
-////
-////    if(strcmp(dialing->name, key) == 0) {
-////      return CMP_MATCH;
-////    }
-////    return 0;
-////  }
-////  else {
-////    // channel id
-////    rb_dialing* dialing_right;
-////
-////    dialing_right = (rb_dialing*)arg;
-////    if(strcmp(dialing->uuid, dialing_right->uuid) == 0) {
-////      return CMP_MATCH;
-////    }
-////    return 0;
-////  }
-//}
-
 /**
  * Create dialing obj.
  * @param j_camp
@@ -142,7 +27,7 @@ int init_rb_dialing(void)
  * @param j_dl
  * @return
  */
-json_t* rb_dialing_create(
+json_t* create_ob_dialing(
     const char* dialing_uuid,
     json_t* j_camp,
     json_t* j_plan,
@@ -171,11 +56,46 @@ json_t* rb_dialing_create(
 
   j_dialing = json_object();
 
+  ///// identity
   // uuid
   json_object_set_new(j_dialing, "uuid", json_string(dialing_uuid));
 
   // status
   json_object_set_new(j_dialing, "status", json_integer(E_DIALING_NONE));
+
+
+  ///// dial info
+  // dial_channel
+  tmp_const = json_string_value(json_object_get(j_dial, "dial_channel"));
+  json_object_set_new(j_dialing, "dial_channel", json_string(tmp_const));
+
+  // dial_channel
+  tmp_const = json_string_value(json_object_get(j_dial, "dial_addr"));
+  json_object_set_new(j_dialing, "dial_addr", json_string(tmp_const));
+
+  // dial_index
+  ret = json_integer_value(json_object_get(j_dial, "dial_index"));
+  json_object_set_new(j_dialing, "dial_addr", json_integer(ret));
+
+  // dial_trycnt
+  ret = json_integer_value(json_object_get(j_dial, "dial_trycnt"));
+  json_object_set_new(j_dialing, "dial_trycnt", json_integer(ret));
+
+  // dial_timeout
+  ret = json_integer_value(json_object_get(j_dial, "dial_timeout"));
+  json_object_set_new(j_dialing, "dial_timeout", json_integer(ret));
+
+  // dial_type
+  ret = json_integer_value(json_object_get(j_dial, "dial_type"));
+  json_object_set_new(j_dialing, "dial_type", json_integer(ret));
+
+  // dial_exten
+  tmp_const = json_string_value(json_object_get(j_dial, "dial_exten"));
+  json_object_set_new(j_dialing, "dial_exten", json_string(tmp_const));
+
+  // dial_application
+  tmp_const = json_string_value(json_object_get(j_dial, "dial_application"));
+  json_object_set_new(j_dialing, "dial_application", json_string(tmp_const));
 
 
   ///// uuid info
@@ -232,40 +152,6 @@ json_t* rb_dialing_create(
   sfree(tmp);
 
 
-  ///// dial info
-  // dial_channel
-  tmp_const = json_string_value(json_object_get(j_dial, "dial_channel"));
-  json_object_set_new(j_dialing, "dial_channel", json_string(tmp_const));
-
-  // dial_channel
-  tmp_const = json_string_value(json_object_get(j_dial, "dial_addr"));
-  json_object_set_new(j_dialing, "dial_addr", json_string(tmp_const));
-
-  // dial_index
-  ret = json_integer_value(json_object_get(j_dial, "dial_index"));
-  json_object_set_new(j_dialing, "dial_addr", json_integer(ret));
-
-  // dial_trycnt
-  ret = json_integer_value(json_object_get(j_dial, "dial_trycnt"));
-  json_object_set_new(j_dialing, "dial_trycnt", json_integer(ret));
-
-  // dial_timeout
-  ret = json_integer_value(json_object_get(j_dial, "dial_timeout"));
-  json_object_set_new(j_dialing, "dial_timeout", json_integer(ret));
-
-  // dial_type
-  ret = json_integer_value(json_object_get(j_dial, "dial_type"));
-  json_object_set_new(j_dialing, "dial_type", json_integer(ret));
-
-  // dial_exten
-  tmp_const = json_string_value(json_object_get(j_dial, "dial_exten"));
-  json_object_set_new(j_dialing, "dial_exten", json_string(tmp_const));
-
-  // dial_application
-  tmp_const = json_string_value(json_object_get(j_dial, "dial_application"));
-  json_object_set_new(j_dialing, "dial_application", json_string(tmp_const));
-
-
   //// timestamp
   // tm_create
   tmp = get_utc_timestamp();
@@ -273,7 +159,7 @@ json_t* rb_dialing_create(
   sfree(tmp);
 
   // insert data
-  slog(LOG_DEBUG, "Check value. dial_channel[%s], dial_addr[%s], dial_index[%lld], dial_trycnt[%lld], dial_timeout[%lld], dial_type[%lld], dial_exten[%s], dial_application[%s]\n",
+  slog(LOG_DEBUG, "Check value. dial_channel[%s], dial_addr[%s], dial_index[%lld], dial_trycnt[%lld], dial_timeout[%lld], dial_type[%lld], dial_exten[%s], dial_application[%s]",
       json_string_value(json_object_get(j_dial, "dial_channel"))? : "",
       json_string_value(json_object_get(j_dial, "dial_addr"))? : "",
       json_integer_value(json_object_get(j_dial, "dial_index")),
@@ -283,16 +169,23 @@ json_t* rb_dialing_create(
       json_string_value(json_object_get(j_dial, "dial_exten"))? : "",
       json_string_value(json_object_get(j_dial, "dial_application"))? : ""
       );
-  db_insert("ob_dialing", j_dialing);
+  ret = db_insert("ob_dialing", j_dialing);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create ob_dialing info.");
+    json_decref(j_dialing);
+    return NULL;
+  }
+
   return j_dialing;
 }
 
 void rb_dialing_destory(rb_dialing* dialing)
 {
-  slog(LOG_ERR, "Need to fix.");
+  // todo:
+//  slog(LOG_ERR, "Need to fix.");
 //  ast_mutex_lock(&g_rb_dialing_mutex);
 //
-//  slog(LOG_DEBUG, "Destroying dialing.\n");
+//  slog(LOG_DEBUG, "Destroying dialing.");
 //  ao2_unlink(g_rb_dialings, dialing);
 //  ao2_ref(dialing, -1);
 //
@@ -319,7 +212,7 @@ void rb_dialing_destory(rb_dialing* dialing)
 //  if(dialing->tm_update != NULL)  sfree(dialing->tm_update);
 //  if(dialing->tm_delete != NULL)  sfree(dialing->tm_delete);
 //
-//  slog(LOG_DEBUG, "Called destroyer.\n");
+//  slog(LOG_DEBUG, "Called destroyer.");
 //}
 
 ///**
@@ -348,7 +241,8 @@ void rb_dialing_destory(rb_dialing* dialing)
 
 bool rb_dialing_update_name(rb_dialing* dialing, const char* name)
 {
-  slog(LOG_ERR, "Need to fix.");
+  // todo
+//  slog(LOG_ERR, "Need to fix.");
   return false;
 //  if((dialing == NULL) || (name == NULL)) {
 //    return false;
@@ -365,7 +259,8 @@ bool rb_dialing_update_name(rb_dialing* dialing, const char* name)
 
 bool rb_dialing_update_events_append(rb_dialing* dialing, json_t* j_evt)
 {
-  slog(LOG_ERR, "Need to fix.");
+  // todo
+//  slog(LOG_ERR, "Need to fix.");
   return false;
 //  const char* tmp_const;
 //  int ret;
@@ -403,7 +298,8 @@ bool rb_dialing_update_events_append(rb_dialing* dialing, json_t* j_evt)
  */
 bool rb_dialing_update_dialing_update(rb_dialing* dialing, json_t* j_res)
 {
-  slog(LOG_ERR, "Need to fix.");
+  // todo:
+//  slog(LOG_ERR, "Need to fix.");
   return false;
 
 //  int ret;
@@ -435,7 +331,8 @@ bool rb_dialing_update_dialing_update(rb_dialing* dialing, json_t* j_res)
  */
 bool rb_dialing_update_current_update(rb_dialing* dialing, json_t* j_evt)
 {
-  slog(LOG_ERR, "Need to fix.");
+  // todo:
+//  slog(LOG_ERR, "Need to fix.");
   return false;
 
 //  if((dialing == NULL) || (j_evt == NULL)) {
@@ -459,7 +356,8 @@ bool rb_dialing_update_current_update(rb_dialing* dialing, json_t* j_evt)
  */
 bool rb_dialing_update_event_substitute(rb_dialing* dialing, json_t* j_evt)
 {
-  slog(LOG_ERR, "Need to fix.");
+  // todo:
+//  slog(LOG_ERR, "Need to fix.");
   return false;
 
 //  if((dialing == NULL) || (j_evt == NULL)) {
@@ -479,27 +377,46 @@ bool rb_dialing_update_event_substitute(rb_dialing* dialing, json_t* j_evt)
 //  return true;
 }
 
-//bool rb_dialing_update_status(rb_dialing* dialing, E_DIALING_STATUS_T status)
-//{
-//  slog(LOG_ERR, "Need to fix.");
-//  return false;
-//
-////  if(dialing == NULL) {
-////    return false;
-////  }
-////
-////  ast_mutex_lock(&g_rb_dialing_mutex);
-////
-////  dialing->status = status;
-////
-////  ast_mutex_unlock(&g_rb_dialing_mutex);
-////
-////  return true;
-//}
+bool update_ob_dialing_status(const char* uuid, E_DIALING_STATUS_T status)
+{
+  json_t* j_tmp;
+  char* timestamp;
+  char* tmp;
+  char* sql;
+  int ret;
+
+  if(uuid == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired update_ob_dialing_status.");
+
+  timestamp = get_utc_timestamp();
+  j_tmp = json_pack("{s:i, s:s}",
+      "status",     status,
+      "tm_update",  timestamp
+      );
+  sfree(timestamp);
+
+  tmp = db_get_update_str(j_tmp);
+  json_decref(j_tmp);
+
+  asprintf(&sql, "update ob_dialing set %s where uuid=\"%s\";", tmp, uuid);
+
+  ret = db_exec(sql);
+  sfree(sql);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update ob_dialing status. uuid[%s]", uuid);
+    return false;
+  }
+
+  return true;
+}
 
 rb_dialing* rb_dialing_find_chan_name(const char* name)
 {
-  slog(LOG_ERR, "Need to fix.");
+  // todo:
+//  slog(LOG_ERR, "Need to fix.");
   return NULL;
 
 //  rb_dialing* dialing;
@@ -508,7 +425,7 @@ rb_dialing* rb_dialing_find_chan_name(const char* name)
 //    return NULL;
 //  }
 //
-//  slog(LOG_DEBUG, "rb_dialing_find_chan_name. name[%s]\n", name);
+//  slog(LOG_DEBUG, "rb_dialing_find_chan_name. name[%s]", name);
 //  ast_mutex_lock(&g_rb_dialing_mutex);
 //  dialing = ao2_find(g_rb_dialings, name, OBJ_SEARCH_PARTIAL_KEY);
 //  if(dialing == NULL) {
@@ -523,7 +440,8 @@ rb_dialing* rb_dialing_find_chan_name(const char* name)
 
 rb_dialing* rb_dialing_find_chan_uuid(const char* uuid)
 {
-  slog(LOG_ERR, "Need to fix.");
+  // todo:
+//  slog(LOG_ERR, "Need to fix.");
   return NULL;
 
 //  rb_dialing* dialing;
@@ -532,7 +450,7 @@ rb_dialing* rb_dialing_find_chan_uuid(const char* uuid)
 //    return NULL;
 //  }
 //
-//  slog(LOG_DEBUG, "rb_dialing_find_chan_uuid. uuid[%s]\n", uuid);
+//  slog(LOG_DEBUG, "rb_dialing_find_chan_uuid. uuid[%s]", uuid);
 //  ast_mutex_lock(&g_rb_dialing_mutex);
 //  dialing = ao2_find(g_rb_dialings, uuid, OBJ_SEARCH_KEY);
 //  if(dialing == NULL) {
@@ -545,153 +463,23 @@ rb_dialing* rb_dialing_find_chan_uuid(const char* uuid)
 //  return dialing;
 }
 
-bool rb_dialing_is_exist_uuid(const char* uuid)
-{
-  rb_dialing* dialing;
-
-  if(uuid == NULL) {
-    return false;
-  }
-
-  dialing = rb_dialing_find_chan_uuid(uuid);
-  if(dialing == NULL) {
-    return false;
-  }
-
-  return true;
-}
-
-//struct ao2_iterator rb_dialing_iter_init(void)
-//{
-//  slog(LOG_ERR, "Need to fix.");
-//  return NULL;
-//
-////  struct ao2_iterator iter;
-////
-////  ast_mutex_lock(&g_rb_dialing_mutex);
-////  iter = ao2_iterator_init(g_rb_dialings, 0);
-////  ast_mutex_unlock(&g_rb_dialing_mutex);
-////
-////  return iter;
-//}
-
-void rb_dialing_iter_destroy(struct ao2_iterator* iter)
-{
-  slog(LOG_ERR, "Need to fix.");
-  return;
-//  ao2_iterator_destroy(iter);
-//  return;
-}
-
-rb_dialing* rb_dialing_iter_next(struct ao2_iterator *iter)
-{
-  slog(LOG_ERR, "Need to fix.");
-  return NULL;
-
-//  rb_dialing* dialing;
-//
-//  ast_mutex_lock(&g_rb_dialing_mutex);
-//  dialing = ao2_iterator_next(iter);
-//  if(dialing == NULL) {
-//    ast_mutex_unlock(&g_rb_dialing_mutex);
-//    return NULL;
-//  }
-//  ao2_ref(dialing, -1);
-//  ast_mutex_unlock(&g_rb_dialing_mutex);
-//
-//  return dialing;
-}
-
-//json_t* rb_dialing_get_all_for_cli(void)
-//{
-//  struct ao2_iterator iter;
-//  rb_dialing* dialing;
-//  json_t* j_res;
-//  json_t* j_tmp;
-//
-//  j_res = json_array();
-//  iter = rb_dialing_iter_init();
-//  while(1) {
-//    dialing = rb_dialing_iter_next(&iter);
-//    if(dialing == NULL) {
-//      break;
-//    }
-//
-//    j_tmp = json_deep_copy(dialing->j_dialing);
-//    json_object_set_new(j_tmp, "status", json_integer(dialing->status));
-//    json_array_append_new(j_res, j_tmp);
-//  }
-//  rb_dialing_iter_destroy(&iter);
-//
-//  return j_res;
-//}
-
-json_t* rb_dialing_get_info_for_cli(const char* uuid)
-{
-  rb_dialing* dialing;
-  json_t* j_res;
-
-  dialing = rb_dialing_find_chan_uuid(uuid);
-  if(dialing == NULL) {
-    return false;
-  }
-
-  j_res = json_pack("{"
-      "s:s, s:i, s:s, "
-      "s:s, s:s, s:s"
-      "}",
-      "uuid",        dialing->uuid? : "",
-      "status",      dialing->status,
-      "name",        dialing->name? : "",
-
-      "tm_create",  dialing->tm_create? : "",
-      "tm_update",  dialing->tm_update? : "",
-      "tm_delete",  dialing->tm_delete? : ""
-      );
-  json_object_set_new(j_res, "j_dialing", json_incref(dialing->j_dialing));
-  json_object_set_new(j_res, "j_event", json_incref(dialing->j_event));
-
-  return j_res;
-}
-
-/**
- * Get count of dialings
- * @return
- */
-int rb_dialing_get_count(void)
-{
-  slog(LOG_ERR, "Need to fix.");
-  return 0;
-
-//  int ret;
-//
-//  if(g_rb_dialings == NULL) {
-//    return 0;
-//  }
-//
-//  ret = ao2_container_count(g_rb_dialings);
-//
-//  return ret;
-}
-
 /**
  * Return the count of the dialings of the campaign.
  * @param camp_uuid
  * @return
  */
-int rb_dialing_get_count_by_camp_uuid(const char* camp_uuid)
+int get_ob_dialing_count_by_camp_uuid(const char* camp_uuid)
 {
   char* sql;
   db_res_t* db_res;
   json_t* j_res;
-  const char* tmp_const;
   int ret;
 
   if(camp_uuid == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
-  slog(LOG_DEBUG, "Fired rb_dialing_get_count_by_camp_uuid.");
+  slog(LOG_DEBUG, "Fired get_ob_dialing_count_by_camp_uuid.");
 
   // sql
   asprintf(&sql, "select count(*) from ob_dialing where uuid_camp = \"%s\";", camp_uuid);
@@ -706,13 +494,7 @@ int rb_dialing_get_count_by_camp_uuid(const char* camp_uuid)
   j_res = db_get_record(db_res);
   db_free(db_res);
 
-  tmp_const = json_string_value(json_object_get(j_res, "count(*)"));
-  if(tmp_const == NULL) {
-    json_decref(j_res);
-    slog(LOG_ERR, "Could not get correct result.");
-    return -1;
-  }
-  ret = atoi(tmp_const);
+  ret = json_integer_value(json_object_get(j_res, "count(*)"));
   json_decref(j_res);
 
   return ret;

@@ -58,7 +58,7 @@ json_t* create_ob_plan(const json_t* j_plan)
   json_object_set_new(j_tmp, "tm_create", json_string(tmp));
   sfree(tmp);
 
-  slog(LOG_NOTICE, "Create plan. uuid[%s], name[%s]\n",
+  slog(LOG_NOTICE, "Create plan. uuid[%s], name[%s]",
       json_string_value(json_object_get(j_tmp, "uuid")),
       json_string_value(json_object_get(j_tmp, "name"))? : "<unknown>"
       );
@@ -68,7 +68,7 @@ json_t* create_ob_plan(const json_t* j_plan)
     sfree(uuid);
     return NULL;
   }
-  slog(LOG_DEBUG, "Finished insert.\n");
+  slog(LOG_DEBUG, "Finished insert.");
 
   j_tmp = get_ob_plan(uuid);
   if(j_tmp == NULL) {
@@ -112,7 +112,7 @@ bool delete_ob_plan(const char* uuid)
   ret = db_exec(sql);
   sfree(sql);
   if(ret == false) {
-    slog(LOG_WARNING, "Could not delete ob_plan. uuid[%s]\n", uuid);
+    slog(LOG_WARNING, "Could not delete ob_plan. uuid[%s]", uuid);
     return false;
   }
 
@@ -137,15 +137,15 @@ json_t* get_ob_plan(const char* uuid)
   db_res_t* db_res;
 
   if(uuid == NULL) {
-    slog(LOG_WARNING, "Invalid input parameters.\n");
+    slog(LOG_WARNING, "Invalid input parameters.");
     return NULL;
   }
-  asprintf(&sql, "select * from plan where in_use=%d and uuid=\"%s\";", E_DL_USE_OK, uuid);
+  asprintf(&sql, "select * from ob_plan where in_use=%d and uuid=\"%s\";", E_DL_USE_OK, uuid);
 
   db_res = db_query(sql);
   sfree(sql);
   if(db_res == NULL) {
-    slog(LOG_ERR, "Could not get plan info. uuid[%s]\n", uuid);
+    slog(LOG_ERR, "Could not get ob_plan info. uuid[%s]", uuid);
     return NULL;
   }
 
@@ -167,15 +167,15 @@ json_t* get_ob_plan(const char* uuid)
 //  db_res_t* db_res;
 //
 //  if(uuid == NULL) {
-//    slog(LOG_WARNING, "Invalid input parameters.\n");
+//    slog(LOG_WARNING, "Invalid input parameters.");
 //    return NULL;
 //  }
-//  asprintf(&sql, "select * from plan where in_use=%d and uuid=\"%s\";", E_DL_USE_NO, uuid);
+//  asprintf(&sql, "select * from ob_plan where in_use=%d and uuid=\"%s\";", E_DL_USE_NO, uuid);
 //
 //  db_res = db_query(sql);
 //  sfree(sql);
 //  if(db_res == NULL) {
-//    slog(LOG_ERR, "Could not get plan info. uuid[%s]\n", uuid);
+//    slog(LOG_ERR, "Could not get ob_plan info. uuid[%s]", uuid);
 //    return NULL;
 //  }
 //
@@ -196,12 +196,14 @@ json_t* get_ob_plans_all(void)
   json_t* j_tmp;
   db_res_t* db_res;
 
-  asprintf(&sql, "select * from plan where in_use=%d;", E_DL_USE_OK);
+  slog(LOG_DEBUG, "Fired get_ob_plans_all.");
+
+  asprintf(&sql, "select * from ob_plan where in_use=%d;", E_DL_USE_OK);
 
   db_res = db_query(sql);
   sfree(sql);
   if(db_res == NULL) {
-    slog(LOG_ERR, "Could not get plan all info.\n");
+    slog(LOG_ERR, "Could not get ob_plan all info.");
     return NULL;
   }
 
@@ -231,11 +233,13 @@ json_t* get_ob_plans_all_uuid(void)
   json_t* j_res_tmp;
   json_t* j_tmp;
 
-  asprintf(&sql, "select * from plan;");
+  slog(LOG_DEBUG, "Fired get_ob_plans_all_uuid.");
+
+  asprintf(&sql, "select * from ob_plan where in_use=%d;", E_DL_USE_OK);
   db_res = db_query(sql);
   sfree(sql);
   if(db_res == NULL) {
-    slog(LOG_WARNING, "Could not get correct plan.");
+    slog(LOG_WARNING, "Could not get correct ob_plan.");
     return NULL;
   }
 
@@ -278,6 +282,7 @@ json_t* update_ob_plan(const json_t* j_plan)
   char* uuid;
 
   if(j_plan == NULL) {
+    slog(LOG_WARNING, "Wrong inpu parameter.");
     return NULL;
   }
 
@@ -334,7 +339,7 @@ json_t* create_ob_dial_plan_info(json_t* j_plan)
   json_t* j_res;
 
   if(j_plan == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.\n");
+    slog(LOG_WARNING, "Wrong input parameter.");
     return NULL;
   }
 
@@ -361,7 +366,7 @@ bool is_nonstop_ob_dl_handle(json_t* j_plan)
   int ret;
 
   if(j_plan == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.\n");
+    slog(LOG_WARNING, "Wrong input parameter.");
     return true;
   }
 
@@ -382,13 +387,13 @@ bool is_endable_ob_plan(json_t* j_plan)
   int ret;
 
   if(j_plan == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.\n");
+    slog(LOG_WARNING, "Wrong input parameter.");
     return true;
   }
 
   ret = is_nonstop_ob_dl_handle(j_plan);
   if(ret == true) {
-    slog(LOG_VERBOSE, "The plan dl_end_handle is nonstop. plan_uuid[%s], is_nonstop[%d]\n",
+    slog(LOG_DEBUG, "The plan dl_end_handle is nonstop. plan_uuid[%s], is_nonstop[%d]",
         json_string_value(json_object_get(j_plan, "uuid"))? : "",
         ret
         );
@@ -409,14 +414,16 @@ bool is_exist_ob_plan(const char* uuid)
   db_res_t* db_res;
   json_t* j_tmp;
   int ret;
-  const char* tmp_const;
 
   if(uuid == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
 
-  asprintf(&sql, "select count(*) from ob_plan where uuid=\"%s\";", uuid);
+  asprintf(&sql, "select count(*) from ob_plan where uuid=\"%s\" and in_use=%d;",
+      uuid,
+      E_DL_USE_OK
+      );
 
   db_res = db_query(sql);
   sfree(sql);
@@ -428,20 +435,13 @@ bool is_exist_ob_plan(const char* uuid)
   j_tmp = db_get_record(db_res);
   db_free(db_res);
   if(j_tmp == NULL) {
-    slog(LOG_ERR, "Could not get correct ob_plan info. uuid[%s]", uuid);
+    slog(LOG_ERR, "Could not get correct ob_plan record. uuid[%s]", uuid);
     return false;
   }
 
-  tmp_const = json_string_value(json_object_get(j_tmp, "count(*)"));
-  if(tmp_const == NULL) {
-    json_decref(j_tmp);
-    slog(LOG_ERR, "Could not get correct ob_plan info. uuid[%s]", uuid);
-    return false;
-  }
-
-  ret = atoi(tmp_const);
+  // result
+  ret = json_integer_value(json_object_get(j_tmp, "count(*)"));
   json_decref(j_tmp);
-
   if(ret <= 0) {
     return false;
   }
