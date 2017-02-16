@@ -287,10 +287,11 @@ static const char* g_sql_ob_dl_result =
 static const char* g_sql_ob_dialing =
 "create table if not exists ob_dialing("
 
-"   uuid    varchar(255)  not null,"
-
-"   name    varchar(255),"
-"   status  int,"
+// identity
+"   uuid        varchar(255)  not null,"
+"   name        varchar(255),"
+"   status      int,"
+"   action_id   varchar(255),"  // action id
 
 // uuid info
 "   uuid_camp       varchar(255),"
@@ -316,7 +317,7 @@ static const char* g_sql_ob_dialing =
 "   dial_type           int,"
 "   dial_exten          varchar(255),"
 "   dial_application    varchar(255),"
-
+"   dial_data           varchar(255),"
 
 // timestamp. UTC."
 "    tm_create           datetime(6),"   // create time."

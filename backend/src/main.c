@@ -38,6 +38,14 @@ static bool init_db(void)
 {
   int ret;
 
+  // action
+  db_exec(g_sql_drop_action);
+  ret = db_exec(g_sql_create_action);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create table. table[%s]", "action");
+    return false;
+  }
+
   // peer
   db_exec(g_sql_drop_peer);
   ret = db_exec(g_sql_create_peer);

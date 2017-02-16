@@ -1664,7 +1664,7 @@ static json_t* get_dl_available(json_t* j_dlma, json_t* j_plan)
 
 bool update_dl_list_after_create_dialing_info(json_t* j_dialing)
 {
-  char* tmp;
+  char* timestamp;
   const char* tmp_const;
   char* try_count_field;
   json_t* j_dl_update;
@@ -1691,23 +1691,27 @@ bool update_dl_list_after_create_dialing_info(json_t* j_dialing)
   }
 
   // get timestamp
-  tmp = get_utc_timestamp();
+  timestamp = get_utc_timestamp();
 
   // get
   asprintf(&try_count_field, "trycnt_%lld", json_integer_value(json_object_get(j_dialing, "dial_index")));
 
   // create update dl_list
   j_dl_update = json_pack("{s:s, s:i, s:i, s:s, s:s, s:s, s:s}",
-      "uuid",               json_string_value(json_object_get(j_dialing, "uid_dl_list")),
+      "uuid",               json_string_value(json_object_get(j_dialing, "uuid_dl_list"))? : "",
       try_count_field,      json_integer_value(json_object_get(j_dialing, "dial_trycnt")),
       "status",             E_DL_DIALING,
-      "dialing_uuid",       json_string_value(json_object_get(j_dialing, "uuid")),
-      "dialing_camp_uuid",  json_string_value(json_object_get(j_dialing, "uuid_camp")),
-      "dialing_plan_uuid",  json_string_value(json_object_get(j_dialing, "uuid_plan")),
-      "tm_last_dial",       tmp
+      "dialing_uuid",       json_string_value(json_object_get(j_dialing, "uuid"))? : "",
+      "dialing_camp_uuid",  json_string_value(json_object_get(j_dialing, "uuid_camp"))? : "",
+      "dialing_plan_uuid",  json_string_value(json_object_get(j_dialing, "uuid_plan"))? : "",
+      "tm_last_dial",       timestamp? : ""
       );
-  sfree(tmp);
+  sfree(timestamp);
   sfree(try_count_field);
+  if(j_dl_update == NULL) {
+    slog(LOG_ERR, "Could not create updated dl info.");
+    return false;
+  }
 
   // dl update
   j_tmp = update_ob_dl(j_dl_update);

@@ -21,7 +21,9 @@ typedef enum _E_DIALING_STATUS_T
   E_DIALING_ORIGINATE_RESPONSE  = 5,
   E_DIALING_HANGUP,
 
-  E_DIALING_ERROR         = 10,   ///< error
+  E_DIALING_ERROR                       = 10,             ///< error
+  E_DIALING_ORIGINATE_REQUEST_FAILED    = 11,   ///< Could not send originate request
+  E_DIALING_ORIGINATE_RESPONSE_FAILED   = 12,    ///< originate response was wrong
 } E_DIALING_STATUS_T;
 
 typedef struct _rb_dialing{
@@ -59,6 +61,7 @@ bool rb_dialing_update_current_update(rb_dialing* dialing, json_t* j_evt);
 bool rb_dialing_update_event_substitute(rb_dialing* dialing, json_t* j_evt);
 
 int get_ob_dialing_count_by_camp_uuid(const char* camp_uuid);
+json_t* get_ob_dialing_by_action_id(const char* action_id);
 
 
 #endif /* SRC_DIALING_HANDLER_H_ */

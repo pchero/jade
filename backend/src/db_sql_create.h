@@ -8,10 +8,26 @@
 #ifndef SRC_DB_SQL_CREATE_H_
 #define SRC_DB_SQL_CREATE_H_
 
-// peer
-static const char* g_sql_drop_peer =
-"drop table if exists peer;";
 
+// queue entry
+static const char* g_sql_drop_action = "drop table if exists action;";
+static const char* g_sql_create_action =
+"create table action("
+
+// identity
+"   id        varchar(255),"
+"   type             varchar(255),"
+
+// timestamp. UTC."
+"   tm_update         datetime(6),"   // update time."
+
+"   primary key(id)"
+
+");";
+
+
+// peer
+static const char* g_sql_drop_peer = "drop table if exists peer;";
 static const char* g_sql_create_peer =
 "create table peer("
 
@@ -48,8 +64,7 @@ static const char* g_sql_create_peer =
 
 
 // queue param
-static const char* g_sql_drop_queue_param =
-"drop table if exists queue_param;";
+static const char* g_sql_drop_queue_param = "drop table if exists queue_param;";
 static const char* g_sql_create_queue_param =
 "create table queue_param("
 

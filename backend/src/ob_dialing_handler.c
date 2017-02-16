@@ -19,6 +19,7 @@
 
 #include "ob_dialing_handler.h"
 #include "ob_event_handler.h"
+#include "ob_dl_handler.h"
 
 /**
  * Create dialing obj.
@@ -63,6 +64,10 @@ json_t* create_ob_dialing(
   // status
   json_object_set_new(j_dialing, "status", json_integer(E_DIALING_NONE));
 
+  // action
+  tmp = gen_uuid();
+  json_object_set_new(j_dialing, "action_id", json_string(tmp));
+  sfree(tmp);
 
   ///// dial info
   // dial_channel
@@ -75,7 +80,7 @@ json_t* create_ob_dialing(
 
   // dial_index
   ret = json_integer_value(json_object_get(j_dial, "dial_index"));
-  json_object_set_new(j_dialing, "dial_addr", json_integer(ret));
+  json_object_set_new(j_dialing, "dial_index", json_integer(ret));
 
   // dial_trycnt
   ret = json_integer_value(json_object_get(j_dial, "dial_trycnt"));
@@ -96,6 +101,10 @@ json_t* create_ob_dialing(
   // dial_application
   tmp_const = json_string_value(json_object_get(j_dial, "dial_application"));
   json_object_set_new(j_dialing, "dial_application", json_string(tmp_const));
+
+  // dial_data
+  tmp_const = json_string_value(json_object_get(j_dial, "dial_data"));
+  json_object_set_new(j_dialing, "dial_data", json_string(tmp_const));
 
 
   ///// uuid info
@@ -498,4 +507,39 @@ int get_ob_dialing_count_by_camp_uuid(const char* camp_uuid)
   json_decref(j_res);
 
   return ret;
+}
+
+/**
+ * Get dialing info using action_id.
+ * @param action_id
+ * @return
+ */
+json_t* get_ob_dialing_by_action_id(const char* action_id)
+{
+  char* sql;
+  db_res_t* db_res;
+  json_t* j_res;
+
+  if(action_id == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  asprintf(&sql, "select * from ob_dialing where action_id=\"%s\";", action_id);
+
+  db_res = db_query(sql);
+  sfree(sql);
+  if(db_res == NULL) {
+    slog(LOG_ERR, "Could not get correct ob_dialing record info.");
+    return NULL;
+  }
+
+  j_res = db_get_record(db_res);
+  db_free(db_res);
+  if(j_res == NULL) {
+    slog(LOG_ERR, "Could not get correct dialing info by action id. action[%s]", action_id);
+    return NULL;
+  }
+
+  return j_res;
 }

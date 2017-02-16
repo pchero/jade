@@ -26,7 +26,9 @@
 #include "slog.h"
 #include "utils.h"
 #include "ami_handler.h"
+#include "action_handler.h"
 #include "db_handler.h"
+#include "ob_ami_handler.h"
 
 #define DLE     0x0f  // Data link escape
 #define DO      0xfd
@@ -59,6 +61,8 @@ static void ami_message_handler(const char* msg);
 static json_t* parse_ami_msg(const char* msg);
 
 static void cb_ami_handler(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg);
+
+static void ami_response_handler(json_t* j_msg);
 
 static void ami_event_peerentry(json_t* j_msg);
 static void ami_event_queueparams(json_t* j_msg);
@@ -157,6 +161,7 @@ static void ami_message_handler(const char* msg)
 	json_t* j_msg;
 	char* tmp;
 	const char* event;
+	const char* response;
 
 	if(msg == NULL) {
 		slog(LOG_WARNING, "Wrong input parameter.");
@@ -171,6 +176,14 @@ static void ami_message_handler(const char* msg)
     return;
   }
 
+  // get response
+  // if there's response object, the ami_response_handler handle the message.
+  response = json_string_value(json_object_get(j_msg, "Response"));
+  if(response != NULL) {
+    ami_response_handler(j_msg);
+    return;
+  }
+
   // get event
   event = json_string_value(json_object_get(j_msg, "Event"));
   if(event == NULL) {
@@ -180,7 +193,26 @@ static void ami_message_handler(const char* msg)
   }
   slog(LOG_DEBUG, "Get event info. event[%s]", event);
 
-  if(strcmp(event, "OutDestinationEntry") == 0) {
+  if(strcmp(event, "PeerEntry") == 0) {
+    ami_event_peerentry(j_msg);
+  }
+  else if(strcmp(event, "QueueParams") == 0) {
+    ami_event_queueparams(j_msg);
+  }
+  else if(strcmp(event, "QueueMember") == 0) {
+    ami_event_queuemember(j_msg);
+  }
+  else if(strcmp(event, "QueueEntry") == 0) {
+    ami_event_queueentry(j_msg);
+  }
+  else if(strcmp(event, "QueueCallerJoin") == 0) {
+    ami_event_queuecallerjoin(j_msg);
+  }
+  else if(strcmp(event, "QueueCallerLeave") == 0) {
+    ami_event_queuecallerleave(j_msg);
+  }
+
+  else if(strcmp(event, "OutDestinationEntry") == 0) {
     ami_event_outdestinationentry(j_msg);
   }
   else if(strcmp(event, "OutDestinationCreate") == 0) {
@@ -240,24 +272,7 @@ static void ami_message_handler(const char* msg)
   else if(strcmp(event, "OutDlListDelete") == 0) {
     ami_event_outdllistdelete(j_msg);
   }
-  else if(strcmp(event, "PeerEntry") == 0) {
-    ami_event_peerentry(j_msg);
-  }
-  else if(strcmp(event, "QueueParams") == 0) {
-    ami_event_queueparams(j_msg);
-  }
-  else if(strcmp(event, "QueueMember") == 0) {
-    ami_event_queuemember(j_msg);
-  }
-  else if(strcmp(event, "QueueEntry") == 0) {
-    ami_event_queueentry(j_msg);
-  }
-  else if(strcmp(event, "QueueCallerJoin") == 0) {
-    ami_event_queuecallerjoin(j_msg);
-  }
-  else if(strcmp(event, "QueueCallerLeave") == 0) {
-    ami_event_queuecallerleave(j_msg);
-  }
+
   else {
     tmp = json_dumps(j_msg, JSON_ENCODE_ANY);
     slog(LOG_DEBUG, "Could not find correct message parser. msg[%s]", tmp);
@@ -265,6 +280,47 @@ static void ami_message_handler(const char* msg)
   }
 
   json_decref(j_msg);
+
+  return;
+}
+
+static void ami_response_handler(json_t* j_msg)
+{
+  const char* id;
+  const char* type;
+  json_t* j_action;
+
+  if(j_msg == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired ami_response_handler.");
+
+  id = json_string_value(json_object_get(j_msg, "ActionID"));
+  if(id == NULL) {
+    slog(LOG_NOTICE, "Could not get ActionID.");
+    return;
+  }
+
+  // get action
+  j_action = get_action_and_delete(id);
+  if(j_action == NULL) {
+    slog(LOG_NOTICE, "Could not get action info. id[%s]", id);
+    return;
+  }
+
+  type = json_string_value(json_object_get(j_action, "type"));
+  if(type == NULL) {
+    slog(LOG_ERR, "Could not get action type info. id[%s]", id);
+    json_decref(j_action);
+    return;
+  }
+
+  if(strcmp(type, "ob_originate") == 0) {
+    ob_ami_response_handler_originate(j_msg);
+  }
+
+  json_decref(j_action);
 
   return;
 }

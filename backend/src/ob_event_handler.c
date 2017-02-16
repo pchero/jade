@@ -21,6 +21,7 @@
 #include "ast_causes.h"
 #include "ob_db_sql_create.h"
 #include "ob_event_handler.h"
+#include "ob_ami_handler.h"
 #include "ob_dialing_handler.h"
 #include "ob_campaign_handler.h"
 #include "ob_dl_handler.h"
@@ -36,7 +37,7 @@
 extern struct event_base*  g_base;
 extern app* g_app;
 
-static int init_outbound(void);
+static bool init_outbound(void);
 static bool init_outbound_db(void);
 
 static void cb_campaign_start(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg);
@@ -49,9 +50,6 @@ static void cb_check_campaign_end(__attribute__((unused)) int fd, __attribute__(
 static void cb_check_campaign_schedule_start(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg);
 static void cb_check_campaign_schedule_end(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg);
 //static void cb_campaign_schedule_stopping(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg);
-
-static bool originate_to_exten(json_t* j_dialing);
-
 
 //static json_t* get_queue_info(const char* uuid);
 
@@ -203,7 +201,7 @@ static bool init_outbound_db(void)
   return true;
 }
 
-static int init_outbound(void)
+static bool init_outbound(void)
 {
   int ret;
 
@@ -259,7 +257,7 @@ static void cb_campaign_start(__attribute__((unused)) int fd, __attribute__((unu
   // get plan
   j_plan = get_ob_plan(json_string_value(json_object_get(j_camp, "plan")));
   if(j_plan == NULL) {
-    slog(LOG_WARNING, "Could not get plan info. Stopping campaign camp[%s], plan[%s]",
+    slog(LOG_WARNING, "Could not get plan info. Stopping campaign. camp_uuid[%s], plan_uuid[%s]",
         json_string_value(json_object_get(j_camp, "uuid")),
         json_string_value(json_object_get(j_camp, "plan"))
         );
@@ -271,7 +269,7 @@ static void cb_campaign_start(__attribute__((unused)) int fd, __attribute__((unu
   // get destination
   j_dest = get_ob_destination(json_string_value(json_object_get(j_camp, "dest")));
   if(j_dest == NULL) {
-    slog(LOG_WARNING, "Could not get dest info. Stopping campaign camp[%s], dest[%s]",
+    slog(LOG_WARNING, "Could not get dest info. Stopping campaign. camp_uuid[%s], dest_uuid[%s]",
             json_string_value(json_object_get(j_camp, "uuid"))? : "",
             json_string_value(json_object_get(j_camp, "dest"))? : ""
             );
@@ -285,7 +283,7 @@ static void cb_campaign_start(__attribute__((unused)) int fd, __attribute__((unu
   j_dlma = get_ob_dlma(json_string_value(json_object_get(j_camp, "dlma")));
   if(j_dlma == NULL)
   {
-    slog(LOG_ERR, "Could not find dial list master info. Stopping campaign. camp[%s], dlma[%s]",
+    slog(LOG_ERR, "Could not find dial list master info. Stopping campaign. camp_uuid[%s], dlma_uuid[%s]",
         json_string_value(json_object_get(j_camp, "uuid")),
         json_string_value(json_object_get(j_camp, "dlma"))
         );
@@ -976,15 +974,13 @@ static void dial_predictive(json_t* j_camp, json_t* j_plan, json_t* j_dlma, json
     break;
 
     case DESTINATION_APPLICATION: {
-//      j_res = ami_cmd_originate_to_application(j_dial);
-      slog(LOG_ERR, "Need to fix it.");
+      ret = originate_to_application(j_dialing);
     }
     break;
 
     default: {
       slog(LOG_ERR, "Unsupported dialing type.");
-      clear_dl_list_dialing(json_string_value(json_object_get(j_dialing, "uuid_dl_list")));
-      return;
+      ret = false;
     }
     break;
   }
@@ -992,8 +988,9 @@ static void dial_predictive(json_t* j_camp, json_t* j_plan, json_t* j_dlma, json
 
   if(ret == false) {
     slog(LOG_WARNING, "Originating has been failed.");
-    json_decref(j_dialing);
     clear_dl_list_dialing(json_string_value(json_object_get(j_dialing, "uuid_dl_list")));
+    update_ob_dialing_status(json_string_value(json_object_get(j_dialing, "uuid")), E_DIALING_ORIGINATE_REQUEST_FAILED);
+    json_decref(j_dialing);
     return;
   }
 
@@ -1130,96 +1127,5 @@ static int check_dial_avaiable_predictive(
 //  return true;
 //}
 
-/**
- * Originate the call and send to extension
- * @param name
- * @return
- */
-static bool originate_to_exten(json_t* j_dialing)
-{
-  json_t* j_cmd;
-  int ret;
-  char* tmp;
 
-  if(j_dialing == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return NULL;
-  }
-  slog(LOG_DEBUG, "Fired originate_to_exten.");
 
-  //  Action: Originate
-  //  ActionID: <value>
-  //  Channel: <value>
-  //  Exten: <value>
-  //  Context: <value>
-  //  Priority: <value>
-  //  Application: <value>
-  //  Data: <value>
-  //  Timeout: <value>
-  //  CallerID: <value>
-  //  Variable: <value>
-  //  Account: <value>
-  //  EarlyMedia: <value>
-  //  Async: <value>
-  //  Codecs: <value>
-  //  ChannelId: <value>
-  //  OtherChannelId: <value>
-  j_cmd = json_pack("{s:s, s:s, s:s, s:s, s:s, s:s}",
-      "Action",   "Originate",
-      "Channel",  json_string_value(json_object_get(j_dialing, "dial_channel")),
-      "Async",    "true",
-      "Exten",    json_string_value(json_object_get(j_dialing, "dial_exten")),
-      "Context",  json_string_value(json_object_get(j_dialing, "dial_context")),
-      "Priority", json_string_value(json_object_get(j_dialing, "dial_priority"))
-      );
-
-  if(json_object_get(j_dialing, "dial_timeout") != NULL) {
-    json_object_set(j_cmd, "Timeout", json_incref(json_object_get(j_dialing, "dial_timeout")));
-  }
-
-  if(json_object_get(j_dialing, "callerid") != NULL) {
-    json_object_set(j_cmd, "CallerID", json_incref(json_object_get(j_dialing, "callerid")));
-  }
-
-  if(json_object_get(j_dialing, "account") != NULL) {
-    json_object_set(j_cmd, "Account", json_incref(json_object_get(j_dialing, "account")));
-  }
-
-  if(json_object_get(j_dialing, "early_media") != NULL) {
-    json_object_set(j_cmd, "EarlyMedia", json_incref(json_object_get(j_dialing, "early_media")));
-  }
-
-  if(json_object_get(j_dialing, "codecs") != NULL) {
-    json_object_set(j_cmd, "Codecs", json_incref(json_object_get(j_dialing, "codecs")));
-  }
-
-  if(json_object_get(j_dialing, "channelid") != NULL) {
-    json_object_set(j_cmd, "ChannelId", json_incref(json_object_get(j_dialing, "channelid")));
-  }
-
-  if(json_object_get(j_dialing, "otherchannelid") != NULL) {
-    json_object_set(j_cmd, "OtherChannelId", json_incref(json_object_get(j_dialing, "otherchannelid")));
-  }
-
-  // Variables
-  if(json_object_get(j_dialing, "variables") != NULL) {
-    json_object_set(j_cmd, "Variables", json_incref(json_object_get(j_dialing, "variables")));
-  }
-
-  // dump command string
-  if(j_cmd == NULL) {
-    slog(LOG_ERR, "Could not create ami json.\n");
-    return NULL;
-  }
-  tmp = json_dumps(j_cmd, JSON_ENCODE_ANY);
-  slog(LOG_DEBUG, "Dialing. tmp[%s]\n", tmp);
-  sfree(tmp);
-
-  ret = send_ami_cmd(j_cmd);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not send originate request.");
-    return false;
-  }
-
-  return true;
-}
