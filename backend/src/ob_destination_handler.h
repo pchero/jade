@@ -19,7 +19,7 @@ typedef enum _E_DESTINATION_TYPE {
 #define DEF_DESTINATION_AVAIL_CNT_UNLIMITED  -1
 
 json_t* create_ob_destination(const json_t* j_dest);
-bool delete_ob_destination(const char* uuid);
+json_t* delete_ob_destination(const char* uuid);
 json_t* get_ob_destination(const char* uuid);
 json_t* get_ob_destinations_all(void);
 json_t* get_ob_destinations_all_uuid(void);

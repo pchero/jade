@@ -31,7 +31,7 @@ typedef enum _E_PLAN_DL_END_HANDLE {
 bool init_plan(void);
 
 json_t* create_ob_plan(const json_t* j_plan);
-bool delete_ob_plan(const char* uuid);
+json_t* delete_ob_plan(const char* uuid);
 json_t* update_ob_plan(const json_t* j_plan);
 json_t* get_ob_plan(const char* uuid);
 json_t* get_ob_plans_all(void);

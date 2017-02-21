@@ -23,7 +23,7 @@
 #include "ob_campaign_handler.h"
 #include "ob_dl_handler.h"
 
-//static json_t* get_plan_deleted(const char* uuid);
+static json_t* get_deleted_ob_plan(const char* uuid);
 
 /**
  *
@@ -86,7 +86,7 @@ json_t* create_ob_plan(const json_t* j_plan)
  * @param uuid
  * @return
  */
-bool delete_ob_plan(const char* uuid)
+json_t* delete_ob_plan(const char* uuid)
 {
   json_t* j_tmp;
   char* tmp;
@@ -95,6 +95,7 @@ bool delete_ob_plan(const char* uuid)
 
   if(uuid == NULL) {
     // invalid parameter.
+    slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
 
@@ -113,15 +114,16 @@ bool delete_ob_plan(const char* uuid)
   sfree(sql);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete ob_plan. uuid[%s]", uuid);
-    return false;
+    return NULL;
   }
 
-//  // send notification
-//  j_tmp = get_plan_deleted(uuid);
-//  send_manager_evt_out_plan_delete(j_tmp);
-//  json_decref(j_tmp);
-
-  return true;
+  // get deleted info
+  j_tmp = get_deleted_ob_plan(uuid);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not delete ob_plan info. uuid[%s]", uuid);
+    return NULL;
+  }
+  return j_tmp;
 }
 
 
@@ -155,35 +157,35 @@ json_t* get_ob_plan(const char* uuid)
   return j_res;
 }
 
-///**
-// * Get deleted plan info.
-// * @param uuid
-// * @return
-// */
-//static json_t* get_plan_deleted(const char* uuid)
-//{
-//  char* sql;
-//  json_t* j_res;
-//  db_res_t* db_res;
-//
-//  if(uuid == NULL) {
-//    slog(LOG_WARNING, "Invalid input parameters.");
-//    return NULL;
-//  }
-//  asprintf(&sql, "select * from ob_plan where in_use=%d and uuid=\"%s\";", E_DL_USE_NO, uuid);
-//
-//  db_res = db_query(sql);
-//  sfree(sql);
-//  if(db_res == NULL) {
-//    slog(LOG_ERR, "Could not get ob_plan info. uuid[%s]", uuid);
-//    return NULL;
-//  }
-//
-//  j_res = db_get_record(db_res);
-//  db_free(db_res);
-//
-//  return j_res;
-//}
+/**
+ * Get deleted plan info.
+ * @param uuid
+ * @return
+ */
+static json_t* get_deleted_ob_plan(const char* uuid)
+{
+  char* sql;
+  json_t* j_res;
+  db_res_t* db_res;
+
+  if(uuid == NULL) {
+    slog(LOG_WARNING, "Invalid input parameters.");
+    return NULL;
+  }
+  asprintf(&sql, "select * from ob_plan where in_use=%d and uuid=\"%s\";", E_DL_USE_NO, uuid);
+
+  db_res = db_query(sql);
+  sfree(sql);
+  if(db_res == NULL) {
+    slog(LOG_ERR, "Could not get ob_plan info. uuid[%s]", uuid);
+    return NULL;
+  }
+
+  j_res = db_get_record(db_res);
+  db_free(db_res);
+
+  return j_res;
+}
 
 /**
  * Get all plan info.

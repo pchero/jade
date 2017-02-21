@@ -23,7 +23,7 @@
 #include "db_handler.h"
 #include "ob_dl_handler.h"
 
-//static json_t* get_destination_deleted(const char* uuid);
+static json_t* get_deleted_ob_destination(const char* uuid);
 
 static int get_avail_cnt_exten(json_t* j_dest);
 static int get_avail_cnt_app(json_t* j_dest);
@@ -83,7 +83,7 @@ json_t* create_ob_destination(const json_t* j_dest)
  * @param uuid
  * @return
  */
-bool delete_ob_destination(const char* uuid)
+json_t* delete_ob_destination(const char* uuid)
 {
   json_t* j_tmp;
   char* tmp;
@@ -93,7 +93,7 @@ bool delete_ob_destination(const char* uuid)
   if(uuid == NULL) {
     // invalid parameter.
     slog(LOG_ERR, "Wrong input parameter.");
-    return false;
+    return NULL;
   }
 
   j_tmp = json_object();
@@ -111,15 +111,16 @@ bool delete_ob_destination(const char* uuid)
   sfree(sql);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete ob_destination. uuid[%s]", uuid);
-    return false;
+    return NULL;
   }
 
-//  // send notification
-//  j_tmp = get_destination_deleted(uuid);
-//  send_manager_evt_out_destination_delete(j_tmp);
-//  json_decref(j_tmp);
+  j_tmp = get_deleted_ob_destination(uuid);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get deleted destination info. uuid[%s]", uuid);
+    return NULL;
+  }
 
-  return true;
+  return j_tmp;
 }
 
 /**
@@ -154,37 +155,37 @@ json_t* get_ob_destination(const char* uuid)
   return j_res;
 }
 
-///**
-// * Get specified destination
-// * @return
-// */
-//static json_t* get_destination_deleted(const char* uuid)
-//{
-//  json_t* j_res;
-//  db_res_t* db_res;
-//  char* sql;
-//
-//  if(uuid == NULL) {
-//    slog(LOG_ERR, "Wrong input parameter.");
-//    return NULL;
-//  }
-//  slog(LOG_VERBOSE, "Get destination info. uuid[%s]", uuid);
-//
-//  // get specified destination
-//  asprintf(&sql, "select * from destination where uuid=\"%s\" and in_use=%d;", uuid, E_DL_USE_NO);
-//
-//  db_res = db_query(sql);
-//  sfree(sql);
-//  if(db_res == NULL) {
-//    slog(LOG_WARNING, "Could not get destination info.");
-//    return NULL;
-//  }
-//
-//  j_res = db_get_record(db_res);
-//  db_free(db_res);
-//
-//  return j_res;
-//}
+/**
+ * Get specified destination
+ * @return
+ */
+static json_t* get_deleted_ob_destination(const char* uuid)
+{
+  json_t* j_res;
+  db_res_t* db_res;
+  char* sql;
+
+  if(uuid == NULL) {
+    slog(LOG_ERR, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Get destination info. uuid[%s]", uuid);
+
+  // get specified destination
+  asprintf(&sql, "select * from destination where in_use=%d and uuid=\"%s\";", E_DL_USE_NO, uuid);
+
+  db_res = db_query(sql);
+  sfree(sql);
+  if(db_res == NULL) {
+    slog(LOG_WARNING, "Could not get destination info.");
+    return NULL;
+  }
+
+  j_res = db_get_record(db_res);
+  db_free(db_res);
+
+  return j_res;
+}
 
 json_t* get_ob_destinations_all_uuid(void)
 {

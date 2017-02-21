@@ -54,11 +54,13 @@ static void htp_get_destinations(evhtp_request_t *req, void *data);
 static void htp_post_destinations(evhtp_request_t *req, void *data);
 static void htp_get_destinations_uuid(evhtp_request_t *req, void *data);
 static void htp_put_destinations_uuid(evhtp_request_t *req, void *data);
+static void htp_delete_destinations_uuid(evhtp_request_t *req, void *data);
 
 static void htp_get_plans(evhtp_request_t *req, void *data);
 static void htp_post_plans(evhtp_request_t *req, void *data);
 static void htp_get_plans_uuid(evhtp_request_t *req, void *data);
 static void htp_put_plans_uuid(evhtp_request_t *req, void *data);
+static void htp_delete_plans_uuid(evhtp_request_t *req, void *data);
 
 static void htp_get_campaigns(evhtp_request_t *req, void *data);
 static void htp_post_campaigns(evhtp_request_t *req, void *data);
@@ -307,7 +309,6 @@ static void cb_htp_destinations(evhtp_request_t *req, void *data)
 static void cb_htp_destinations_uuid(evhtp_request_t *req, void *data)
 {
   int method;
-  const char* uuid;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -317,15 +318,8 @@ static void cb_htp_destinations_uuid(evhtp_request_t *req, void *data)
 
   // method check
   method = evhtp_request_get_method(req);
-  if((method != htp_method_GET) && (method != htp_method_PUT)) {
+  if((method != htp_method_GET) && (method != htp_method_PUT) && (method != htp_method_DELETE)) {
     simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-    return;
-  }
-
-  // get uuid
-  uuid = req->uri->path->match_start;
-  if(uuid == NULL) {
-    simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
     return;
   }
 
@@ -335,6 +329,10 @@ static void cb_htp_destinations_uuid(evhtp_request_t *req, void *data)
   }
   else if(method == htp_method_PUT) {
     htp_put_destinations_uuid(req, data);
+    return;
+  }
+  else if(method == htp_method_DELETE) {
+    htp_delete_destinations_uuid(req, data);
     return;
   }
   else {
@@ -400,7 +398,6 @@ static void cb_htp_plans(evhtp_request_t *req, void *data)
 static void cb_htp_plans_uuid(evhtp_request_t *req, void *data)
 {
   int method;
-  const char* uuid;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -410,15 +407,9 @@ static void cb_htp_plans_uuid(evhtp_request_t *req, void *data)
 
   // method check
   method = evhtp_request_get_method(req);
-  if((method != htp_method_GET) && (method != htp_method_PUT)) {
+  if((method != htp_method_GET) && (method != htp_method_PUT) && (method != htp_method_DELETE)) {
+    slog(LOG_ERR, "Wrong method request. method[%d]", method);
     simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-    return;
-  }
-
-  // get uuid
-  uuid = req->uri->path->match_start;
-  if(uuid == NULL) {
-    simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
     return;
   }
 
@@ -428,6 +419,10 @@ static void cb_htp_plans_uuid(evhtp_request_t *req, void *data)
   }
   else if(method == htp_method_PUT) {
     htp_put_plans_uuid(req, data);
+    return;
+  }
+  else if(method == htp_method_DELETE) {
+    htp_delete_plans_uuid(req, data);
     return;
   }
   else {
@@ -957,6 +952,58 @@ static void htp_put_destinations_uuid(evhtp_request_t *req, void *data)
 
 /**
  * htp request handler.
+ * request: DELETE /destinations/<uuid>
+ * @param req
+ * @param data
+ */
+static void htp_delete_destinations_uuid(evhtp_request_t *req, void *data)
+{
+  const char* uuid;
+  json_t* j_tmp;
+  json_t* j_res;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired htp_delete_destinations_uuid.");
+
+  // get uuid
+  uuid = req->uri->path->file;
+  if(uuid == NULL) {
+    simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // check existence
+  ret = is_exist_ob_destination(uuid);
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not find correct ob_destination info. uuid[%s]", uuid);
+    simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // delete info
+  j_tmp = delete_ob_destination(uuid);
+  if(j_tmp == NULL) {
+    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", j_tmp);
+
+  // response
+  simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * htp request handler.
  * request: GET /plans
  * @param req
  * @param data
@@ -1164,6 +1211,58 @@ static void htp_put_plans_uuid(evhtp_request_t *req, void *data)
   json_object_set_new(j_data, "uuid", json_string(uuid));
   j_tmp = update_ob_plan(j_data);
   json_decref(j_data);
+  if(j_tmp == NULL) {
+    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", j_tmp);
+
+  // response
+  simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * htp request handler.
+ * request: DELETE /plans/<uuid>
+ * @param req
+ * @param data
+ */
+static void htp_delete_plans_uuid(evhtp_request_t *req, void *data)
+{
+  const char* uuid;
+  json_t* j_tmp;
+  json_t* j_res;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired htp_delete_plans_uuid.");
+
+  // get uuid
+  uuid = req->uri->path->file;
+  if(uuid == NULL) {
+    simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // check existence
+  ret = is_exist_ob_plan(uuid);
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not find correct ob_plan info. uuid[%s]", uuid);
+    simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // delete info
+  j_tmp = delete_ob_plan(uuid);
   if(j_tmp == NULL) {
     simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
