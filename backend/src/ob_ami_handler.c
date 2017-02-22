@@ -72,7 +72,7 @@ void ob_ami_response_handler_originate(json_t* j_msg)
     // update dialing status to dialing failed
     update_ob_dialing_status(json_string_value(json_object_get(j_dialing, "uuid")), E_DIALING_ORIGINATE_RESPONSE_FAILED);
     slog(LOG_INFO, "Could not outbound dialing. message[%s]",
-        json_string_value(json_object_get(j_dialing, "Message"))
+        json_string_value(json_object_get(j_msg, "Message"))
         );
   }
   json_decref(j_dialing);

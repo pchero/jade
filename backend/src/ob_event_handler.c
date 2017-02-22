@@ -5,6 +5,7 @@
  *    Author: pchero
  */
 
+#define _GNU_SOURCE
 
 #include <stdbool.h>
 #include <jansson.h>
@@ -45,7 +46,8 @@ static void cb_campaign_starting(__attribute__((unused)) int fd, __attribute__((
 static void cb_campaign_stopping(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg);
 static void cb_campaign_stopping_force(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg);
 static void cb_check_dialing_end(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg);
-static void cb_check_dialing_error(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg);
+static void cb_check_dialing_originaterequestfailed(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg);
+static void cb_check_dialing_originateresponsefailed(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg);
 static void cb_check_campaign_end(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg);
 static void cb_check_campaign_schedule_start(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg);
 static void cb_check_campaign_schedule_end(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg);
@@ -62,7 +64,7 @@ static void dial_redirect(const json_t* j_camp, const json_t* j_plan, const json
 //json_t* get_queue_summary(const char* name);
 //json_t* get_queue_param(const char* name);
 
-//static bool write_result_json(json_t* j_res);
+static bool write_result_json(json_t* j_res);
 
 // todo
 static int check_dial_avaiable_predictive(json_t* j_camp, json_t* j_plan, json_t* j_dlma, json_t* j_dest);
@@ -127,8 +129,12 @@ int run_outbound(void)
   ev = event_new(g_base, -1, EV_TIMEOUT | EV_PERSIST, cb_check_dialing_end, NULL);
   event_add(ev, &tm_fast);
 
-  // check diaing error
-  ev = event_new(g_base, -1, EV_TIMEOUT | EV_PERSIST, cb_check_dialing_error, NULL);
+  // check diaing originate request failed
+  ev = event_new(g_base, -1, EV_TIMEOUT | EV_PERSIST, cb_check_dialing_originaterequestfailed, NULL);
+  event_add(ev, &tm_fast);
+
+  // check diaing originate response failed
+  ev = event_new(g_base, -1, EV_TIMEOUT | EV_PERSIST, cb_check_dialing_originateresponsefailed, NULL);
   event_add(ev, &tm_fast);
 
   // check end
@@ -562,173 +568,356 @@ static void cb_campaign_stopping_force(__attribute__((unused)) int fd, __attribu
 
 static void cb_check_dialing_end(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg)
 {
-  // todo:
-//  slog(LOG_ERR, "Need to fix.");
-//  struct ao2_iterator iter;
-//  rb_dialing* dialing;
-//  json_t* j_tmp;
-//  int ret;
-//  char* timestamp;
-//
-//  iter = rb_dialing_iter_init();
-//  while(1) {
-//    dialing = rb_dialing_iter_next(&iter);
-//    if(dialing == NULL) {
-//      break;
-//    }
-//
-//    if(dialing->status != E_DIALING_HANGUP) {
-//      continue;
-//    }
-//
-//    // create dl_list for update
-//    timestamp = get_utc_timestamp();
-//    j_tmp = json_pack("{s:s, s:i, s:O, s:O, s:O, s:s}",
-//        "uuid",         json_string_value(json_object_get(dialing->j_dialing, "dl_list_uuid")),
-//        "status",         E_DL_IDLE,
-//        "dialing_uuid",     json_null(),
-//        "dialing_camp_uuid",  json_null(),
-//        "dialing_plan_uuid",  json_null(),
-//        "tm_last_hangup",      timestamp
-//        );
-//    json_object_set_new(j_tmp, "res_hangup", json_incref(json_object_get(dialing->j_dialing, "res_hangup")));
-//    json_object_set_new(j_tmp, "res_dial", json_incref(json_object_get(dialing->j_dialing, "res_dial")));
-//    sfree(timestamp);
-//    if(j_tmp == NULL) {
-//      slog(LOG_ERR, "Could not create update dl_list json. dl_list_uuid[%s], res_hangup[%lld], res_dial[%lld]",
-//          json_string_value(json_object_get(dialing->j_dialing, "dl_list_uuid")),
-//          json_integer_value(json_object_get(dialing->j_dialing, "res_hangup")),
-//          json_integer_value(json_object_get(dialing->j_dialing, "res_dial"))
-//          );
-//    }
-//
-//    // update dl_list
-//    ret = update_dl_list(j_tmp);
-//    json_decref(j_tmp);
-//    if(ret == false) {
-//      slog(LOG_WARNING, "Could not update dialing result. dialing_uuid[%s], dl_list_uuid[%s]",
-//          dialing->uuid, json_string_value(json_object_get(dialing->j_dialing, "dl_list_uuid")));
-//      continue;
-//    }
-//
-//    // create result data
-//    j_tmp = create_json_for_dl_result(dialing);
-//    slog(LOG_DEBUG, "Check result value. dial_channel[%s], dial_addr[%s], dial_index[%lld], dial_trycnt[%lld], dial_timeout[%lld], dial_type[%lld], dial_exten[%s], res_dial[%lld], res_hangup[%lld], res_hangup_detail[%s]",
-//
-//        // dial
-//        json_string_value(json_object_get(j_tmp, "dial_channel")),
-//        json_string_value(json_object_get(j_tmp, "dial_addr")),
-//        json_integer_value(json_object_get(j_tmp, "dial_index")),
-//        json_integer_value(json_object_get(j_tmp, "dial_trycnt")),
-//        json_integer_value(json_object_get(j_tmp, "dial_timeout")),
-//        json_integer_value(json_object_get(j_tmp, "dial_type")),
-//        json_string_value(json_object_get(j_tmp, "dial_exten")),
-//
-//        // result
-//        json_integer_value(json_object_get(j_tmp, "res_dial")),
-//        json_integer_value(json_object_get(j_tmp, "res_hangup")),
-//        json_string_value(json_object_get(j_tmp, "res_hangup_detail"))
-//        );
-//
-////    db_insert("dl_result", j_tmp);
-//    ret = write_result_json(j_tmp);
-//    json_decref(j_tmp);
-//    if(ret == false) {
-//      slog(LOG_ERR, "Could not write result correctly.");
-//      continue;
-//    }
-//
-//    rb_dialing_destory(dialing);
-//    slog(LOG_DEBUG, "Destroyed dialing info.");
-//
-//  }
-//  ao2_iterator_destroy(&iter);
-//
-//  return;
+  char* sql;
+  db_res_t* db_res;
+  json_t* j_dialings;
+  json_t* j_dialing;
+  json_t* j_dl_update;
+  json_t* j_tmp;
+  json_t* j_res;
+  char* timestamp;
+  int idx;
+  int ret;
+
+  asprintf(&sql, "select * from ob_dialing where status=%d;", E_DIALING_HANGUP);
+
+  db_res = db_query(sql);
+  sfree(sql);
+  if(db_res == NULL) {
+    slog(LOG_ERR, "Could not get ended dialing info.");
+    return;
+  }
+
+  // get ended dialing info
+  j_dialings = json_array();
+  while(1) {
+    j_tmp = db_get_record(db_res);
+    if(j_tmp == NULL) {
+      break;
+    }
+
+    json_array_append_new(j_dialings, j_tmp);
+  }
+  db_free(db_res);
+
+  // return immediately if the array is empty
+  ret = json_array_size(j_dialings);
+  if(ret == 0) {
+    json_decref(j_dialings);
+    return;
+  }
+  slog(LOG_DEBUG, "Fired cb_check_dialing_end. size[%d]", ret);
+
+  json_array_foreach(j_dialings, idx, j_dialing) {
+    // create dl_list for update
+    timestamp = get_utc_timestamp();
+    j_dl_update = json_pack("{s:s, s:i, s:o, s:o, s:o, s:s}",
+        "uuid",               json_string_value(json_object_get(j_dialing, "uuid_dl_list")),
+        "status",             E_DL_IDLE,
+        "dialing_uuid",       json_null(),
+        "dialing_camp_uuid",  json_null(),
+        "dialing_plan_uuid",  json_null(),
+        "tm_last_hangup",     timestamp
+        );
+    sfree(timestamp);
+    if(j_dl_update == NULL) {
+      slog(LOG_ERR, "Could not create update dl_list json. uuid_dl_list[%s], res_hangup[%lld], res_dial[%lld]",
+          json_string_value(json_object_get(j_dialing, "uuid_dl_list")),
+          json_integer_value(json_object_get(j_dialing, "res_hangup")),
+          json_integer_value(json_object_get(j_dialing, "res_dial"))
+          );
+      continue;
+    }
+
+    // set result
+    json_object_set(j_dl_update, "res_hangup", json_object_get(j_dialing, "res_hangup"));
+    json_object_set(j_dl_update, "res_dial", json_object_get(j_dialing, "res_dial"));
+
+    // update dl_list
+    j_tmp = update_ob_dl(j_dl_update);
+    json_decref(j_dl_update);
+    if(j_tmp == NULL) {
+      slog(LOG_WARNING, "Could not update dialing result. dialing_uuid[%s], dl_list_uuid[%s]",
+          json_string_value(json_object_get(j_dialing, "uuid")),
+          json_string_value(json_object_get(j_dialing, "dl_list_uuid"))
+          );
+      continue;
+    }
+    json_decref(j_tmp);
+
+    // create result data
+    j_res = create_json_for_dl_result(j_dialing);
+    slog(LOG_DEBUG, "Check result value. dial_channel[%s], dial_addr[%s], dial_index[%lld], dial_trycnt[%lld], dial_timeout[%lld], dial_type[%lld], dial_exten[%s], res_dial[%lld], res_hangup[%lld], res_hangup_detail[%s]",
+
+        // dial
+        json_string_value(json_object_get(j_res, "dial_channel")),
+        json_string_value(json_object_get(j_res, "dial_addr")),
+        json_integer_value(json_object_get(j_res, "dial_index")),
+        json_integer_value(json_object_get(j_res, "dial_trycnt")),
+        json_integer_value(json_object_get(j_res, "dial_timeout")),
+        json_integer_value(json_object_get(j_res, "dial_type")),
+        json_string_value(json_object_get(j_res, "dial_exten")),
+
+        // result
+        json_integer_value(json_object_get(j_res, "res_dial")),
+        json_integer_value(json_object_get(j_res, "res_hangup")),
+        json_string_value(json_object_get(j_res, "res_hangup_detail"))
+        );
+
+//    db_insert("dl_result", j_tmp);
+    ret = write_result_json(j_res);
+    json_decref(j_res);
+    if(ret == false) {
+      slog(LOG_ERR, "Could not write result correctly.");
+      continue;
+    }
+
+    // delete ob_dialing
+    ret = delete_ob_dialing(json_string_value(json_object_get(j_dialing, "uuid")));
+    if(ret == false) {
+      slog(LOG_ERR, "Could not delete ob_dialing info. uuid[%s]",
+          json_string_value(json_object_get(j_dialing, "uuid"))
+          );
+      continue;
+    }
+  }
+  json_decref(j_dialings);
 }
 
-static void cb_check_dialing_error(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg)
+static void cb_check_dialing_originateresponsefailed(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg)
 {
-  // todo:
-//  slog(LOG_ERR, "Need to fix.");
-//  struct ao2_iterator iter;
-//  rb_dialing* dialing;
-//  json_t* j_tmp;
-//  int ret;
-//  char* timestamp;
-//
-//  iter = rb_dialing_iter_init();
-//  while(1) {
-//    dialing = rb_dialing_iter_next(&iter);
-//    if(dialing == NULL) {
-//      break;
-//    }
-//
-//    if(dialing->status != E_DIALING_ERROR) {
-//      continue;
-//    }
-//
-//
-//    // create dl_list for update
-//    timestamp = get_utc_timestamp();
-//    j_tmp = json_pack("{s:s, s:i, s:O, s:O, s:O, s:s}",
-//        "uuid",         json_string_value(json_object_get(dialing->j_dialing, "dl_list_uuid")),
-//        "status",         E_DL_IDLE,
-//        "dialing_uuid",     json_null(),
-//        "dialing_camp_uuid",  json_null(),
-//        "dialing_plan_uuid",  json_null(),
-//        "tm_last_hangup",      timestamp
-//        );
-//    json_object_set_new(j_tmp, "res_hangup", json_incref(json_object_get(dialing->j_dialing, "res_hangup")));
-//    json_object_set_new(j_tmp, "res_dial", json_incref(json_object_get(dialing->j_dialing, "res_dial")));
-//    sfree(timestamp);
-//    if(j_tmp == NULL) {
-//      slog(LOG_ERR, "Could not create update dl_list json. dl_list_uuid[%s], res_hangup[%lld], res_dial[%lld]",
-//          json_string_value(json_object_get(dialing->j_dialing, "dl_list_uuid")),
-//          json_integer_value(json_object_get(dialing->j_dialing, "res_hangup")),
-//          json_integer_value(json_object_get(dialing->j_dialing, "res_dial"))
-//          );
-//    }
-//
-//    // update dl_list
-//    ret = update_dl_list(j_tmp);
-//    json_decref(j_tmp);
-//    if(ret == false) {
-//      slog(LOG_WARNING, "Could not update dialing result. dialing_uuid[%s], dl_list_uuid[%s]",
-//          dialing->uuid, json_string_value(json_object_get(dialing->j_dialing, "dl_list_uuid")));
-//      continue;
-//    }
-//
-//    // create result data
-//    j_tmp = create_json_for_dl_result(dialing);
-//    slog(LOG_DEBUG, "Check result value. dial_channel[%s], dial_addr[%s], dial_index[%lld], dial_trycnt[%lld], dial_timeout[%lld], dial_type[%lld], dial_exten[%s], res_dial[%lld], res_hangup[%lld], res_hangup_detail[%s]",
-//
-//        // dial
-//        json_string_value(json_object_get(j_tmp, "dial_channel")),
-//        json_string_value(json_object_get(j_tmp, "dial_addr")),
-//        json_integer_value(json_object_get(j_tmp, "dial_index")),
-//        json_integer_value(json_object_get(j_tmp, "dial_trycnt")),
-//        json_integer_value(json_object_get(j_tmp, "dial_timeout")),
-//        json_integer_value(json_object_get(j_tmp, "dial_type")),
-//        json_string_value(json_object_get(j_tmp, "dial_exten")),
-//
-//        // result
-//        json_integer_value(json_object_get(j_tmp, "res_dial")),
-//        json_integer_value(json_object_get(j_tmp, "res_hangup")),
-//        json_string_value(json_object_get(j_tmp, "res_hangup_detail"))
-//        );
-//
-//    ret = write_result_json(j_tmp);
-//    json_decref(j_tmp);
-//
-//    rb_dialing_destory(dialing);
-//    slog(LOG_DEBUG, "Destroyed!");
-//
-//  }
-//  ao2_iterator_destroy(&iter);
-//
-//  return;
+  char* sql;
+  db_res_t* db_res;
+  json_t* j_dialings;
+  json_t* j_dialing;
+  json_t* j_tmp;
+  json_t* j_res;
+  json_t* j_dl_update;
+  char* timestamp;
+  int idx;
+  int ret;
+
+  asprintf(&sql, "select * from ob_dialing where status=%d", E_DIALING_ORIGINATE_RESPONSE_FAILED);
+
+  db_res = db_query(sql);
+  sfree(sql);
+  if(db_res == NULL) {
+    slog(LOG_ERR, "Could not get correct error status dialing info.");
+    return;
+  }
+
+  // get error record
+  j_dialings = json_array();
+  while(1) {
+    j_dialing = db_get_record(db_res);
+    if(j_dialing == NULL) {
+      break;
+    }
+
+    json_array_append_new(j_dialings, j_dialing);
+  }
+  db_free(db_res);
+
+  // return immediately if the array is empty
+  ret = json_array_size(j_dialings);
+  if(ret == 0) {
+    json_decref(j_dialings);
+    return;
+  }
+  slog(LOG_DEBUG, "Fired cb_check_dialing_originateresponsefailed. size[%d]", ret);
+
+  json_array_foreach(j_dialings, idx, j_dialing) {
+    // create dl_list for update
+    timestamp = get_utc_timestamp();
+    j_dl_update = json_pack("{s:s, s:i, s:o, s:o, s:o, s:s}",
+        "uuid",               json_string_value(json_object_get(j_dialing, "uuid_dl_list")),
+        "status",             E_DL_IDLE,
+        "dialing_uuid",       json_null(),
+        "dialing_camp_uuid",  json_null(),
+        "dialing_plan_uuid",  json_null(),
+        "tm_last_hangup",     timestamp
+        );
+    sfree(timestamp);
+    if(j_dl_update == NULL) {
+      slog(LOG_ERR, "Could not create update dl_list json. uuid_dl_list[%s], res_hangup[%lld], res_dial[%lld]",
+          json_string_value(json_object_get(j_dialing, "uuid_dl_list")),
+          json_integer_value(json_object_get(j_dialing, "res_hangup")),
+          json_integer_value(json_object_get(j_dialing, "res_dial"))
+          );
+      continue;
+    }
+    json_object_set(j_dl_update, "res_hangup", json_object_get(j_dialing, "res_hangup"));
+    json_object_set(j_dl_update, "res_dial", json_object_get(j_dialing, "res_dial"));
+
+    // update dl_list
+    j_tmp = update_ob_dl(j_dl_update);
+    json_decref(j_dl_update);
+    if(j_tmp == NULL) {
+      slog(LOG_WARNING, "Could not update dialing result. dialing_uuid[%s], dl_list_uuid[%s]",
+          json_string_value(json_object_get(j_dialing, "dl_list_uuid")),
+          json_string_value(json_object_get(j_dialing, "dl_list_uuid"))
+          );
+      continue;
+    }
+    json_decref(j_tmp);
+
+    // create result data
+    j_res = create_json_for_dl_result(j_dialing);
+    slog(LOG_DEBUG, "Check result value. dial_channel[%s], dial_addr[%s], dial_index[%lld], dial_trycnt[%lld], dial_timeout[%lld], dial_type[%lld], dial_exten[%s], res_dial[%lld], res_hangup[%lld], res_hangup_detail[%s]",
+
+        // dial
+        json_string_value(json_object_get(j_res, "dial_channel")),
+        json_string_value(json_object_get(j_res, "dial_addr")),
+        json_integer_value(json_object_get(j_res, "dial_index")),
+        json_integer_value(json_object_get(j_res, "dial_trycnt")),
+        json_integer_value(json_object_get(j_res, "dial_timeout")),
+        json_integer_value(json_object_get(j_res, "dial_type")),
+        json_string_value(json_object_get(j_res, "dial_exten")),
+
+        // result
+        json_integer_value(json_object_get(j_res, "res_dial")),
+        json_integer_value(json_object_get(j_res, "res_hangup")),
+        json_string_value(json_object_get(j_res, "res_hangup_detail"))
+        );
+
+    ret = write_result_json(j_res);
+    json_decref(j_res);
+    if(ret == false) {
+      slog(LOG_ERR, "Could not write result correctly.");
+      continue;
+    }
+
+    // delete ob_dialing
+    ret = delete_ob_dialing(json_string_value(json_object_get(j_dialing, "uuid")));
+    if(ret == false) {
+      slog(LOG_ERR, "Could not delete ob_dialing info. uuid[%s]",
+          json_string_value(json_object_get(j_dialing, "uuid"))
+          );
+      continue;
+    }
+  }
+  json_decref(j_dialings);
+
+  return;
 }
+
+static void cb_check_dialing_originaterequestfailed(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg)
+{
+  char* sql;
+  db_res_t* db_res;
+  json_t* j_dialings;
+  json_t* j_dialing;
+  json_t* j_tmp;
+  json_t* j_res;
+  json_t* j_dl_update;
+  char* timestamp;
+  int idx;
+  int ret;
+
+  asprintf(&sql, "select * from ob_dialing where status=%d", E_DIALING_ORIGINATE_REQUEST_FAILED);
+
+  db_res = db_query(sql);
+  sfree(sql);
+  if(db_res == NULL) {
+    slog(LOG_ERR, "Could not get correct error status dialing info.");
+    return;
+  }
+
+  // get error record
+  j_dialings = json_array();
+  while(1) {
+    j_dialing = db_get_record(db_res);
+    if(j_dialing == NULL) {
+      break;
+    }
+
+    json_array_append_new(j_dialings, j_dialing);
+  }
+  db_free(db_res);
+
+  // return immediately if the array is empty
+  ret = json_array_size(j_dialings);
+  if(ret == 0) {
+    json_decref(j_dialings);
+    return;
+  }
+  slog(LOG_DEBUG, "Fired cb_check_dialing_originaterequestfailed. size[%d]", ret);
+
+  json_array_foreach(j_dialings, idx, j_dialing) {
+    // create dl_list for update
+    timestamp = get_utc_timestamp();
+    j_dl_update = json_pack("{s:s, s:i, s:o, s:o, s:o, s:s}",
+        "uuid",               json_string_value(json_object_get(j_dialing, "uuid_dl_list")),
+        "status",             E_DL_IDLE,
+        "dialing_uuid",       json_null(),
+        "dialing_camp_uuid",  json_null(),
+        "dialing_plan_uuid",  json_null(),
+        "tm_last_hangup",     timestamp
+        );
+    sfree(timestamp);
+    if(j_dl_update == NULL) {
+      slog(LOG_ERR, "Could not create update dl_list json. uuid_dl_list[%s], res_hangup[%lld], res_dial[%lld]",
+          json_string_value(json_object_get(j_dialing, "uuid_dl_list")),
+          json_integer_value(json_object_get(j_dialing, "res_hangup")),
+          json_integer_value(json_object_get(j_dialing, "res_dial"))
+          );
+      continue;
+    }
+    json_object_set(j_dl_update, "res_hangup", json_object_get(j_dialing, "res_hangup"));
+    json_object_set(j_dl_update, "res_dial", json_object_get(j_dialing, "res_dial"));
+
+    // update dl_list
+    j_tmp = update_ob_dl(j_dl_update);
+    json_decref(j_dl_update);
+    if(j_tmp == NULL) {
+      slog(LOG_WARNING, "Could not update dialing result. dialing_uuid[%s], dl_list_uuid[%s]",
+          json_string_value(json_object_get(j_dialing, "dl_list_uuid")),
+          json_string_value(json_object_get(j_dialing, "dl_list_uuid"))
+          );
+      continue;
+    }
+    json_decref(j_tmp);
+
+    // create result data
+    j_res = create_json_for_dl_result(j_dialing);
+    slog(LOG_DEBUG, "Check result value. dial_channel[%s], dial_addr[%s], dial_index[%lld], dial_trycnt[%lld], dial_timeout[%lld], dial_type[%lld], dial_exten[%s], res_dial[%lld], res_hangup[%lld], res_hangup_detail[%s]",
+
+        // dial
+        json_string_value(json_object_get(j_res, "dial_channel")),
+        json_string_value(json_object_get(j_res, "dial_addr")),
+        json_integer_value(json_object_get(j_res, "dial_index")),
+        json_integer_value(json_object_get(j_res, "dial_trycnt")),
+        json_integer_value(json_object_get(j_res, "dial_timeout")),
+        json_integer_value(json_object_get(j_res, "dial_type")),
+        json_string_value(json_object_get(j_res, "dial_exten")),
+
+        // result
+        json_integer_value(json_object_get(j_res, "res_dial")),
+        json_integer_value(json_object_get(j_res, "res_hangup")),
+        json_string_value(json_object_get(j_res, "res_hangup_detail"))
+        );
+
+    ret = write_result_json(j_res);
+    json_decref(j_res);
+    if(ret == false) {
+      slog(LOG_ERR, "Could not write result correctly.");
+      continue;
+    }
+
+    // delete ob_dialing
+    ret = delete_ob_dialing(json_string_value(json_object_get(j_dialing, "uuid")));
+    if(ret == false) {
+      slog(LOG_ERR, "Could not delete ob_dialing info. uuid[%s]",
+          json_string_value(json_object_get(j_dialing, "uuid"))
+          );
+      continue;
+    }
+  }
+  json_decref(j_dialings);
+
+  return;
+}
+
 
 /**
  * Check ended campaign. If the campaign is end-able, set the status to STOPPING.
@@ -1080,52 +1269,52 @@ static int check_dial_avaiable_predictive(
   return 1;
 }
 
-//static bool write_result_json(json_t* j_res)
-//{
-//  FILE* fp;
-//  json_t* j_general;
-//  const char* filename;
-//  char* tmp;
-//
-//  if(j_res == NULL) {
-//    slog(LOG_ERR, "Wrong input parameter.");
-//    return false;
-//  }
-//
-//  // open json file
-//  j_general = json_object_get(g_app->j_conf, "general");
-//  filename = json_string_value(json_object_get(j_general, "result_filename"));
-//  if(filename == NULL) {
-//    slog(LOG_ERR, "Could not get option value. option[%s]", "result_filename");
-//    return false;
-//  }
-//
-//  // open file
-//  fp = fopen(filename, "a");
-//  if(fp == NULL) {
-//    slog(LOG_ERR, "Could not open result file. filename[%s], err[%s]",
-//        filename, strerror(errno)
-//        );
-//    return false;
-//  }
-//
-//  tmp = json_dumps(j_res, JSON_ENCODE_ANY);
-//  if(tmp == NULL) {
-//    slog(LOG_ERR, "Could not get result string to the file. filename[%s], err[%s]",
-//        filename, strerror(errno)
-//        );
-//    fclose(fp);
-//    return false;
-//  }
-//
-//  fprintf(fp, "%s", tmp);
-//  sfree(tmp);
-//  fclose(fp);
-//
-//  slog(LOG_VERBOSE, "Result write succeed.");
-//
-//  return true;
-//}
+static bool write_result_json(json_t* j_res)
+{
+  FILE* fp;
+  json_t* j_general;
+  const char* filename;
+  char* tmp;
+
+  if(j_res == NULL) {
+    slog(LOG_ERR, "Wrong input parameter.");
+    return false;
+  }
+
+  // open json file
+  j_general = json_object_get(g_app->j_conf, "general");
+  filename = json_string_value(json_object_get(j_general, "result_filename"));
+  if(filename == NULL) {
+    slog(LOG_ERR, "Could not get option value. option[%s]", "result_filename");
+    return false;
+  }
+
+  // open file
+  fp = fopen(filename, "a");
+  if(fp == NULL) {
+    slog(LOG_ERR, "Could not open result file. filename[%s], err[%s]",
+        filename, strerror(errno)
+        );
+    return false;
+  }
+
+  tmp = json_dumps(j_res, JSON_ENCODE_ANY);
+  if(tmp == NULL) {
+    slog(LOG_ERR, "Could not get result string to the file. filename[%s], err[%s]",
+        filename, strerror(errno)
+        );
+    fclose(fp);
+    return false;
+  }
+
+  fprintf(fp, "%s\n", tmp);
+  sfree(tmp);
+  fclose(fp);
+
+  slog(LOG_DEBUG, "Result write succeed.");
+
+  return true;
+}
 
 
 

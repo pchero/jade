@@ -188,6 +188,33 @@ json_t* create_ob_dialing(
   return j_dialing;
 }
 
+/**
+ * Delete ob_dialing record.
+ * @param uuid
+ * @return
+ */
+bool delete_ob_dialing(const char* uuid)
+{
+  char* sql;
+  int ret;
+
+  if(uuid == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  asprintf(&sql, "delete from ob_dialing where uuid=\"%s\";", uuid);
+  ret = db_exec(sql);
+  sfree(sql);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not delete ob_dialing info. uuid[%s]", uuid);
+    return false;
+  }
+
+  return true;
+
+}
+
 void rb_dialing_destory(rb_dialing* dialing)
 {
   // todo:

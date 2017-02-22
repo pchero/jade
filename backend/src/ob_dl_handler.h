@@ -63,7 +63,7 @@ bool is_endable_dl_list(json_t* j_dlma, json_t* j_plan);
 void clear_dl_list_dialing(const char* uuid);
 
 json_t* create_dial_info(json_t* j_plan, json_t* j_dl_list, json_t* j_dest);
-json_t* create_json_for_dl_result(rb_dialing* dialing);
+json_t* create_json_for_dl_result(json_t* j_dialing);
 
 bool update_dl_list_after_create_dialing_info(json_t* dialing);
 

@@ -293,6 +293,12 @@ static const char* g_sql_ob_dialing =
 "   status      int,"
 "   action_id   varchar(255),"  // action id
 
+// result
+"   res_dial          int default 0,"
+"   res_dial_detail   text,"
+"   res_hangup        int default 0,"
+"   res_hangup_detail text,"
+
 // uuid info
 "   uuid_camp       varchar(255),"
 "   uuid_plan       varchar(255),"

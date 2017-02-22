@@ -1270,20 +1270,20 @@ static char* get_dial_number(json_t* j_dlist, const int cnt)
  * @param dialing
  * @return
  */
-json_t* create_json_for_dl_result(rb_dialing* dialing)
+json_t* create_json_for_dl_result(json_t* j_dialing)
 {
   json_t* j_res;
   const char* tmp_const;
 
 
-  j_res = json_deep_copy(dialing->j_dialing);
+  j_res = json_deep_copy(j_dialing);
 
   slog(LOG_DEBUG, "Check value. dialing_uuid[%s], camp_uuid[%s], plan_uuid[%s], dlma_uuid[%s], dl_list_uuid[%s]",
-      json_string_value(json_object_get(j_res, "dialing_uuid")),
-      json_string_value(json_object_get(j_res, "camp_uuid")),
-      json_string_value(json_object_get(j_res, "plan_uuid")),
-      json_string_value(json_object_get(j_res, "dlma_uuid")),
-      json_string_value(json_object_get(j_res, "dl_list_uuid"))
+      json_string_value(json_object_get(j_res, "uuid")),
+      json_string_value(json_object_get(j_res, "uuid_camp")),
+      json_string_value(json_object_get(j_res, "uuid_plan")),
+      json_string_value(json_object_get(j_res, "uuid_dlma")),
+      json_string_value(json_object_get(j_res, "uuid_dl_list"))
       );
 
   // result_info_enable
@@ -1303,12 +1303,12 @@ json_t* create_json_for_dl_result(rb_dialing* dialing)
     json_object_del(j_res, "info_events");
   }
 
-  // check history options.
-  tmp_const = json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "result_history_events_enable"));
-  if((tmp_const != NULL) && (atoi(tmp_const) == 1)) {
-    // write info
-    json_object_set_new(j_res, "history_events", json_incref(dialing->j_events));
-  }
+//  // check history options.
+//  tmp_const = json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "result_history_events_enable"));
+//  if((tmp_const != NULL) && (atoi(tmp_const) == 1)) {
+//    // write info
+//    json_object_set_new(j_res, "history_events", json_incref(dialing->j_events));
+//  }
 
   return j_res;
 }
