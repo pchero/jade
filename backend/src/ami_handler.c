@@ -72,6 +72,7 @@ static void ami_event_queueentry(json_t* j_msg);
 static void ami_event_queuecallerjoin(json_t* j_msg);
 static void ami_event_queuecallerleave(json_t* j_msg);
 static void ami_event_hangup(json_t* j_msg);
+static void ami_event_newchannel(json_t* j_msg);
 
 
 static void ami_event_outdestinationentry(json_t* j_msg);
@@ -196,7 +197,16 @@ static void ami_message_handler(const char* msg)
   }
   slog(LOG_DEBUG, "Get event info. event[%s]", event);
 
-  if(strcmp(event, "PeerEntry") == 0) {
+  if(strcmp(event, "AgentCalled") == 0) {
+    // need to do something later
+  }
+  else if(strcmp(event, "Hangup") == 0) {
+    ami_event_hangup(j_msg);
+  }
+  else if(strcmp(event, "NewChannel") == 0) {
+    ami_event_newchannel(j_msg);
+  }
+  else if(strcmp(event, "PeerEntry") == 0) {
     ami_event_peerentry(j_msg);
   }
   else if(strcmp(event, "QueueParams") == 0) {
@@ -213,9 +223,6 @@ static void ami_message_handler(const char* msg)
   }
   else if(strcmp(event, "QueueCallerLeave") == 0) {
     ami_event_queuecallerleave(j_msg);
-  }
-  else if(strcmp(event, "Hangup") == 0) {
-    ami_event_hangup(j_msg);
   }
 
   else if(strcmp(event, "OutDestinationEntry") == 0) {
@@ -2059,6 +2066,8 @@ static void ami_event_queuecallerleave(json_t* j_msg)
 static void ami_event_hangup(json_t* j_msg)
 {
   int hangup;
+  int ret;
+  char* sql;
   char* tmp;
   const char* uuid;
   const char* tmp_const;
@@ -2070,9 +2079,24 @@ static void ami_event_hangup(json_t* j_msg)
   }
   slog(LOG_DEBUG, "Fired ami_event_hangup.");
 
+  // check event
   tmp = json_dumps(j_msg, JSON_ENCODE_ANY);
   slog(LOG_DEBUG, "Event message. msg[%s]", tmp);
   sfree(tmp);
+
+  asprintf(&sql, "delete from channel where name=\"%s\";",
+      json_string_value(json_object_get(j_msg, "Channel"))
+      );
+
+  ret = db_exec(sql);
+  sfree(sql);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not delete channel.");
+    return;
+  }
+
+
+  ///// for ob_dialing
 
   // get values
   uuid = json_string_value(json_object_get(j_msg, "Linkedid"));
@@ -2089,6 +2113,67 @@ static void ami_event_hangup(json_t* j_msg)
   return;
 }
 
+/**
+ * AMI event handler.
+ * Event: NewChannel
+ * @param j_msg
+ */
+static void ami_event_newchannel(json_t* j_msg)
+{
+  json_t* j_tmp;
+  int ret;
+  char* timestamp;
+
+  if(j_msg == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired ami_event_newchannel.");
+
+  timestamp = get_utc_timestamp();
+  j_tmp = json_pack("{"
+      "s:s, "
+      "s:i, s:s, "
+      "s:s, s:s, s:s, s:s, s:s, s:s, "
+      "s:s, s:s, s:s, s:s, s:s, "
+      "s:s"
+      "}",
+
+      "name",   json_string_value(json_object_get(j_msg, "Channel"))? : "",
+
+      "state",      json_string_value(json_object_get(j_msg, "ChannelState"))? atoi(json_string_value(json_object_get(j_msg, "ChannelState"))): 0,
+      "state_desc", json_string_value(json_object_get(j_msg, "ChannelStateDesc"))? : "",
+
+      "caller_id_num",        json_string_value(json_object_get(j_msg, "CallerIDNum"))? : "",
+      "caller_id_name",       json_string_value(json_object_get(j_msg, "CallerIDName"))? : "",
+      "connected_line_num",   json_string_value(json_object_get(j_msg, "ConnectedLineNum"))? : "",
+      "connected_line_name",  json_string_value(json_object_get(j_msg, "ConnectedLineName"))? : "",
+      "language",             json_string_value(json_object_get(j_msg, "Language"))? : "",
+      "account_code",         json_string_value(json_object_get(j_msg, "AccountCode"))? : "",
+
+      "context",    json_string_value(json_object_get(j_msg, "Context"))? : "",
+      "exten",      json_string_value(json_object_get(j_msg, "Exten"))? : "",
+      "priority",   json_string_value(json_object_get(j_msg, "Priority"))? : "",
+      "unique_id",  json_string_value(json_object_get(j_msg, "Uniqueid"))? : "",
+      "linked_id",  json_string_value(json_object_get(j_msg, "Linkedid"))? : "",
+
+      "tm_update",  timestamp
+      );
+  sfree(timestamp);
+  if(j_tmp == NULL) {
+    slog(LOG_DEBUG, "Could not create message.");
+    return;
+  }
+
+  ret = db_insert_or_replace("channel", j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert to channel.");
+    return;
+  }
+
+  return;
+}
 
 
 

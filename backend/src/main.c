@@ -46,6 +46,14 @@ static bool init_db(void)
     return false;
   }
 
+  // channel
+  db_exec(g_sql_drop_channel);
+  ret = db_exec(g_sql_create_channel);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create table. table[%s]", "channel");
+    return false;
+  }
+
   // peer
   db_exec(g_sql_drop_peer);
   ret = db_exec(g_sql_create_peer);

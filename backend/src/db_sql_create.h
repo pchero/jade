@@ -9,7 +9,7 @@
 #define SRC_DB_SQL_CREATE_H_
 
 
-// queue entry
+// action
 static const char* g_sql_drop_action = "drop table if exists action;";
 static const char* g_sql_create_action =
 "create table action("
@@ -25,6 +25,39 @@ static const char* g_sql_create_action =
 
 ");";
 
+
+// channel
+static const char* g_sql_drop_channel = "drop table if exists channel;";
+static const char* g_sql_create_channel =
+"create table channel("
+
+// identity
+"   name    varchar(255)  not null,"
+
+// status
+"   state       int,"
+"   state_desc  varchar(255),"
+
+// dial info
+"   caller_id_num       varchar(255),"
+"   caller_id_name      varchar(255),"
+"   connected_line_num  varchar(255),"
+"   connected_line_name varchar(255),"
+"   language            varchar(255),"
+"   account_code        varchar(255),"
+
+// dialplan
+"   context     varchar(255),"
+"   exten       varchar(255),"
+"   priority    varchar(255),"
+"   unique_id   varchar(255),"
+"   linked_id   varchar(255),"
+
+// timestamp. UTC."
+"   tm_update     datetime(6),"
+
+"   primary key(name)"
+");";
 
 // peer
 static const char* g_sql_drop_peer = "drop table if exists peer;";
