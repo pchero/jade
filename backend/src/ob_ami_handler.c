@@ -114,14 +114,15 @@ bool originate_to_exten(json_t* j_dialing)
   //  Codecs: <value>
   //  ChannelId: <value>
   //  OtherChannelId: <value>
-  j_cmd = json_pack("{s:s, s:s, s:s, s:s, s:s, s:s, s:s}",
-      "Action",   "Originate",
-      "ActionID", json_string_value(json_object_get(j_dialing, "action_id")),
-      "Async",    "true",
-      "Channel",  json_string_value(json_object_get(j_dialing, "dial_channel")),
-      "Exten",    json_string_value(json_object_get(j_dialing, "dial_exten")),
-      "Context",  json_string_value(json_object_get(j_dialing, "dial_context")),
-      "Priority", json_string_value(json_object_get(j_dialing, "dial_priority"))
+  j_cmd = json_pack("{s:s, s:s, s:s, s:s, s:s, s:s, s:s, s:s}",
+      "Action",     "Originate",
+      "ActionID",   json_string_value(json_object_get(j_dialing, "action_id"))? : "",
+      "Async",      "true",
+      "Channel",    json_string_value(json_object_get(j_dialing, "dial_channel"))? : "",
+      "Exten",      json_string_value(json_object_get(j_dialing, "dial_exten"))? : "",
+      "Context",    json_string_value(json_object_get(j_dialing, "dial_context"))? : "",
+      "Priority",   json_string_value(json_object_get(j_dialing, "dial_priority"))? : "",
+      "ChannelId",  json_string_value(json_object_get(j_dialing, "uuid"))
       );
   if(j_cmd == NULL) {
     slog(LOG_ERR, "Could not create default originate request info.");
@@ -218,13 +219,14 @@ bool originate_to_application(json_t* j_dialing)
   //  Codecs: <value>
   //  ChannelId: <value>
   //  OtherChannelId: <value>
-  j_cmd = json_pack("{s:s, s:s, s:s, s:s, s:s, s:s}",
+  j_cmd = json_pack("{s:s, s:s, s:s, s:s, s:s, s:s, s:s}",
       "Action",       "Originate",
       "ActionID",     json_string_value(json_object_get(j_dialing, "action_id")),
       "Async",        "true",
       "Channel",      json_string_value(json_object_get(j_dialing, "dial_channel")),
       "Application",  json_string_value(json_object_get(j_dialing, "dial_application"))? : "",
-      "Data",         json_string_value(json_object_get(j_dialing, "dial_data"))? : ""
+      "Data",         json_string_value(json_object_get(j_dialing, "dial_data"))? : "",
+      "ChannelId",    json_string_value(json_object_get(j_dialing, "uuid"))
       );
   if(j_cmd == NULL) {
     slog(LOG_ERR, "Could not create default originate request info.");

@@ -1235,10 +1235,10 @@ static char* create_chan_addr_for_dial(json_t* j_plan, json_t* j_dl_list, int di
 
   // create dial addr
   if(strlen(trunk_name) > 0) {
-    asprintf(&chan_addr, "%s%s@%s", tech_name, dest_addr, trunk_name);
+    asprintf(&chan_addr, "%s/%s@%s", tech_name, dest_addr, trunk_name);
   }
   else {
-    asprintf(&chan_addr, "%s%s", tech_name, dest_addr);
+    asprintf(&chan_addr, "%s/%s", tech_name, dest_addr);
   }
   slog(LOG_DEBUG, "Created dialing channel address. chan_addr[%s].", chan_addr);
   sfree(dest_addr);
@@ -1668,7 +1668,6 @@ bool update_dl_list_after_create_dialing_info(json_t* j_dialing)
   const char* tmp_const;
   char* try_count_field;
   json_t* j_dl_update;
-  json_t* j_dial;
   json_t* j_tmp;
 
   if(j_dialing == NULL) {
@@ -1680,13 +1679,6 @@ bool update_dl_list_after_create_dialing_info(json_t* j_dialing)
   tmp_const = json_string_value(json_object_get(j_dialing, "info_dial"));
   if(tmp_const == NULL) {
     slog(LOG_ERR, "Could not get info_dial.");
-    return false;
-  }
-
-  // get dial
-  j_dial = json_loads(tmp_const, JSON_DECODE_ANY, NULL);
-  if(j_dial == NULL) {
-    slog(LOG_ERR, "Could not get dial.");
     return false;
   }
 

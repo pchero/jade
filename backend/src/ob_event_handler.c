@@ -631,7 +631,9 @@ static void cb_check_dialing_end(__attribute__((unused)) int fd, __attribute__((
 
     // set result
     json_object_set(j_dl_update, "res_hangup", json_object_get(j_dialing, "res_hangup"));
+    json_object_set(j_dl_update, "res_hangup_detail", json_object_get(j_dialing, "res_hangup_detail"));
     json_object_set(j_dl_update, "res_dial", json_object_get(j_dialing, "res_dial"));
+    json_object_set(j_dl_update, "res_dial_detail", json_object_get(j_dialing, "res_dial_detail"));
 
     // update dl_list
     j_tmp = update_ob_dl(j_dl_update);

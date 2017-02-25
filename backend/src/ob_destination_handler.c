@@ -487,8 +487,11 @@ static int get_avail_cnt_app_queue_service_perf(const char* name)
     slog(LOG_ERR, "Could not get correct queue performance info. queue_name[%s]", name);
     return 0;
   }
+  db_free(db_res);
 
+  // get service level performance
   service_perf = json_real_value(json_object_get(j_res, "service_level_perf"));
+  json_decref(j_res);
   if(service_perf == 0) {
     service_perf = 100.0;
   }

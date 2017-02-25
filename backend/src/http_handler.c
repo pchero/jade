@@ -1045,6 +1045,7 @@ static void htp_get_plans(evhtp_request_t *req, void *data)
  */
 static void htp_post_plans(evhtp_request_t *req, void *data)
 {
+  int ret;
   const char* uuid;
   const char* tmp_const;
   char* tmp;
@@ -1078,6 +1079,15 @@ static void htp_post_plans(evhtp_request_t *req, void *data)
   j_data = json_loads(tmp, JSON_DECODE_ANY, NULL);
   sfree(tmp);
   if(j_data == NULL) {
+    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // validate plan
+  ret = validate_ob_plan(j_data);
+  if(ret == false) {
+    slog(LOG_DEBUG, "Could not pass the validation.");
+    json_decref(j_data);
     simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }

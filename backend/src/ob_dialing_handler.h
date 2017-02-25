@@ -43,6 +43,9 @@ typedef struct _rb_dialing{
 
 json_t* create_ob_dialing(const char* dialing_uuid, json_t* j_camp, json_t* j_plan, json_t* j_dlma, json_t* j_dest, json_t* j_dl_list, json_t* j_dial);
 bool delete_ob_dialing(const char* uuid);
+bool is_exist_ob_dialing(const char* uuid);
+bool update_ob_dialing_hangup(const char* uuid, int hangup, const char* hangup_detail);
+
 
 void rb_dialing_destory(rb_dialing* dialing);
 

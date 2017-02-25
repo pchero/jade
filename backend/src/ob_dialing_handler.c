@@ -436,8 +436,68 @@ bool update_ob_dialing_status(const char* uuid, E_DIALING_STATUS_T status)
 
   tmp = db_get_update_str(j_tmp);
   json_decref(j_tmp);
-
+  if(tmp == NULL) {
+    slog(LOG_ERR, "Could not create update sql.");
+    return false;
+  }
   asprintf(&sql, "update ob_dialing set %s where uuid=\"%s\";", tmp, uuid);
+  sfree(tmp);
+
+  ret = db_exec(sql);
+  sfree(sql);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update ob_dialing status. uuid[%s]", uuid);
+    return false;
+  }
+
+  return true;
+}
+
+bool update_ob_dialing_hangup(const char* uuid, int hangup, const char* hangup_detail)
+{
+  char* timestamp;
+  char* sql;
+  char* tmp;
+  json_t* j_tmp;
+  int ret;
+
+  if(uuid == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired update_ob_dialing_hangup. uuid[%s], hangup[%d], hangup_detail[%s]",
+      uuid, hangup, hangup_detail? : ""
+      );
+
+  // check exist
+  ret = is_exist_ob_dialing(uuid);
+  if(ret == false) {
+    // not ob_dialing call
+    return false;
+  }
+
+  timestamp = get_utc_timestamp();
+  j_tmp = json_pack("{s:i, s:i, s:s, s:s}",
+      "status",             E_DIALING_HANGUP,
+      "res_hangup",         hangup,
+      "res_hangup_detail",  hangup_detail? : "",
+      "tm_update",          timestamp
+      );
+  sfree(timestamp);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not create update ob_dialing info.");
+    return false;
+  }
+
+  // create update sql
+  tmp = db_get_update_str(j_tmp);
+  json_decref(j_tmp);
+  if(tmp == NULL) {
+    slog(LOG_ERR, "Could not create update sql.");
+    return false;
+  }
+  asprintf(&sql, "update ob_dialing set %s where uuid=\"%s\";", tmp, uuid);
+  sfree(tmp);
 
   ret = db_exec(sql);
   sfree(sql);
@@ -570,3 +630,47 @@ json_t* get_ob_dialing_by_action_id(const char* action_id)
 
   return j_res;
 }
+
+/**
+ * Return existence of given ob_dialing uuid.
+ * @param uuid
+ * @return
+ */
+bool is_exist_ob_dialing(const char* uuid)
+{
+  char* sql;
+  db_res_t* db_res;
+  json_t* j_tmp;
+  int ret;
+
+  if(uuid == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  asprintf(&sql, "select count(*) from ob_dialing where uuid=\"%s\";", uuid);
+
+  db_res = db_query(sql);
+  sfree(sql);
+  if(db_res == NULL) {
+    slog(LOG_ERR, "Could not get ob_dialing info. uuid[%s]", uuid);
+    return false;
+  }
+
+  j_tmp = db_get_record(db_res);
+  db_free(db_res);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get correct ob_plan record. uuid[%s]", uuid);
+    return false;
+  }
+
+  // result
+  ret = json_integer_value(json_object_get(j_tmp, "count(*)"));
+  json_decref(j_tmp);
+  if(ret <= 0) {
+    return false;
+  }
+
+  return true;
+}
+

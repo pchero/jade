@@ -28,8 +28,8 @@ static const char* g_sql_ob_plan =
 "    dl_end_handle   int default 1,"                // stratery when it running out dial list(keep_running, stop)"
 "    retry_delay     int default 60,"               // retry delaytime(sec)"
 "    trunk_name      varchar(255) default null,"    // trunk name"
-"    tech_name       varchar(255) default null,"      // tech name"
-"    service_level   int unsigned default 0,"     // service level. determine how many calls can going out campare to available agents."
+"    tech_name       varchar(255) default null,"    // tech name"
+"    service_level   int unsigned default 0,"       // service level. determine how many calls can going out campare to available agents."
 "    early_media     varchar(255) default null,"
 "    codecs          varchar(255) default null,"
 

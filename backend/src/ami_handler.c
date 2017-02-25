@@ -29,6 +29,7 @@
 #include "action_handler.h"
 #include "db_handler.h"
 #include "ob_ami_handler.h"
+#include "ob_dialing_handler.h"
 
 #define DLE     0x0f  // Data link escape
 #define DO      0xfd
@@ -70,6 +71,7 @@ static void ami_event_queuemember(json_t* j_msg);
 static void ami_event_queueentry(json_t* j_msg);
 static void ami_event_queuecallerjoin(json_t* j_msg);
 static void ami_event_queuecallerleave(json_t* j_msg);
+static void ami_event_hangup(json_t* j_msg);
 
 
 static void ami_event_outdestinationentry(json_t* j_msg);
@@ -181,6 +183,7 @@ static void ami_message_handler(const char* msg)
   response = json_string_value(json_object_get(j_msg, "Response"));
   if(response != NULL) {
     ami_response_handler(j_msg);
+    json_decref(j_msg);
     return;
   }
 
@@ -210,6 +213,9 @@ static void ami_message_handler(const char* msg)
   }
   else if(strcmp(event, "QueueCallerLeave") == 0) {
     ami_event_queuecallerleave(j_msg);
+  }
+  else if(strcmp(event, "Hangup") == 0) {
+    ami_event_hangup(j_msg);
   }
 
   else if(strcmp(event, "OutDestinationEntry") == 0) {
@@ -480,6 +486,7 @@ bool send_ami_cmd(json_t* j_cmd)
     }
 
     asprintf(&tmp, "%s%s\r\n", cmd, cmd_sub);
+    sfree(cmd_sub);
     sfree(cmd);
     cmd = tmp;
   }
@@ -489,6 +496,7 @@ bool send_ami_cmd(json_t* j_cmd)
 
   cmd = tmp;
   ret = send_ami_cmd_raw(cmd);
+  sfree(cmd);
 
   return true;
 }
@@ -2042,6 +2050,45 @@ static void ami_event_queuecallerleave(json_t* j_msg)
   }
   return;
 }
+
+/**
+ * AMI event handler.
+ * Event: Hangup
+ * @param j_msg
+ */
+static void ami_event_hangup(json_t* j_msg)
+{
+  int hangup;
+  char* tmp;
+  const char* uuid;
+  const char* tmp_const;
+  const char* hangup_detail;
+
+  if(j_msg == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired ami_event_hangup.");
+
+  tmp = json_dumps(j_msg, JSON_ENCODE_ANY);
+  slog(LOG_DEBUG, "Event message. msg[%s]", tmp);
+  sfree(tmp);
+
+  // get values
+  uuid = json_string_value(json_object_get(j_msg, "Linkedid"));
+  if((uuid == NULL) || (strlen(uuid) == 0)) {
+    uuid = json_string_value(json_object_get(j_msg, "Uniqueid"));
+  }
+  hangup_detail = json_string_value(json_object_get(j_msg, "Cause-txt"));
+  tmp_const = json_string_value(json_object_get(j_msg, "Cause"))? : 0;
+  hangup = atoi(tmp_const);
+
+  // update ob_dialing channel
+  update_ob_dialing_hangup(uuid, hangup, hangup_detail);
+
+  return;
+}
+
 
 
 

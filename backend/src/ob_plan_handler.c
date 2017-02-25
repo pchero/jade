@@ -25,12 +25,48 @@
 
 static json_t* get_deleted_ob_plan(const char* uuid);
 
+#define DEF_OB_PLAN_TECH_NAME "SIP"
+
 /**
  *
  * @return
  */
 bool init_plan(void)
 {
+  return true;
+}
+
+/**
+ * Validate plan
+ * @param j_plan
+ * @return
+ */
+bool validate_ob_plan(json_t* j_data)
+{
+  const char* tmp_const;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired validate_ob_plan.");
+
+  // tech_name
+  tmp_const = json_string_value(json_object_get(j_data, "tech_name"));
+  if(tmp_const == NULL) {
+    slog(LOG_DEBUG, "Could not get tech_name. Set default value. tech_name[%s]", DEF_OB_PLAN_TECH_NAME);
+    json_object_set_new(j_data, "tech_name", json_string(DEF_OB_PLAN_TECH_NAME));
+  }
+  else if(tmp_const != NULL) {
+    if((strcasecmp(tmp_const, "SIP") != 0)
+        && (strcasecmp(tmp_const, "PJSIP") != 0)
+        && (strcasecmp(tmp_const, "DAHDI") != 0)
+        ) {
+      slog(LOG_DEBUG, "Wrong tech_name value. value[%s]", tmp_const);
+      return false;
+    }
+  }
+
   return true;
 }
 
