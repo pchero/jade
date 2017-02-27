@@ -66,11 +66,11 @@ void ob_ami_response_handler_originate(json_t* j_msg)
 
   if(strcmp(response, "Success") == 0) {
     // update dialing status to dialing ok
-    update_ob_dialing_status(json_string_value(json_object_get(j_dialing, "uuid")), E_DIALING_ORIGINATE_RESPONSE);
+    update_ob_dialing_status(json_string_value(json_object_get(j_dialing, "uuid")), E_DIALING_ORIGINATE_QUEUED);
   }
   else {
     // update dialing status to dialing failed
-    update_ob_dialing_status(json_string_value(json_object_get(j_dialing, "uuid")), E_DIALING_ORIGINATE_RESPONSE_FAILED);
+    update_ob_dialing_status(json_string_value(json_object_get(j_dialing, "uuid")), E_DIALING_ORIGINATE_QUEUED_FAILED);
     slog(LOG_INFO, "Could not outbound dialing. message[%s]",
         json_string_value(json_object_get(j_msg, "Message"))
         );

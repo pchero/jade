@@ -1187,7 +1187,7 @@ static void dial_predictive(json_t* j_camp, json_t* j_plan, json_t* j_dlma, json
 
   ret = update_ob_dialing_status(
       json_string_value(json_object_get(j_dialing, "uuid")),
-      E_DIALING_ORIGINATE_REQUEST
+      E_DIALING_ORIGINATE_REQUESTED
       );
   json_decref(j_dialing);
   return;

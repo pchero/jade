@@ -425,7 +425,14 @@ bool update_ob_dialing_status(const char* uuid, E_DIALING_STATUS_T status)
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
-  slog(LOG_DEBUG, "Fired update_ob_dialing_status.");
+
+  // check ob_dialing exists
+  ret = is_exist_ob_dialing(uuid);
+  if(ret == false) {
+    // not ob_dialing call
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired update_ob_dialing_status. dialing_uuid[%s], status[%d]", uuid, status);
 
   timestamp = get_utc_timestamp();
   j_tmp = json_pack("{s:i, s:s}",

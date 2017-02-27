@@ -65,14 +65,16 @@ static void cb_ami_handler(__attribute__((unused)) int fd, __attribute__((unused
 
 static void ami_response_handler(json_t* j_msg);
 
+static void ami_event_dialbegin(json_t* j_msg)
+static void ami_event_dialend(json_t* j_msg);
+static void ami_event_hangup(json_t* j_msg);
+static void ami_event_newchannel(json_t* j_msg);
 static void ami_event_peerentry(json_t* j_msg);
 static void ami_event_queueparams(json_t* j_msg);
 static void ami_event_queuemember(json_t* j_msg);
 static void ami_event_queueentry(json_t* j_msg);
 static void ami_event_queuecallerjoin(json_t* j_msg);
 static void ami_event_queuecallerleave(json_t* j_msg);
-static void ami_event_hangup(json_t* j_msg);
-static void ami_event_newchannel(json_t* j_msg);
 
 
 static void ami_event_outdestinationentry(json_t* j_msg);
@@ -199,6 +201,12 @@ static void ami_message_handler(const char* msg)
 
   if(strcmp(event, "AgentCalled") == 0) {
     // need to do something later
+  }
+  else if(strcasecmp(event, "DialBegin") == 0) {
+    ami_event_dialbegin(j_msg);
+  }
+  else if(strcasecmp(event, "DialEnd") == 0) {
+    ami_event_dialend(j_msg);
   }
   else if(strcasecmp(event, "Hangup") == 0) {
     ami_event_hangup(j_msg);
@@ -2057,6 +2065,73 @@ static void ami_event_queuecallerleave(json_t* j_msg)
   }
   return;
 }
+
+/**
+ * AMI event handler.
+ * Event: DialBegin
+ * @param j_msg
+ */
+static void ami_event_dialbegin(json_t* j_msg)
+{
+  int hangup;
+  int ret;
+  char* sql;
+  char* tmp;
+  const char* uuid;
+  const char* tmp_const;
+  const char* hangup_detail;
+
+  if(j_msg == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired ami_event_dialbegin.");
+
+  // check event
+  tmp = json_dumps(j_msg, JSON_ENCODE_ANY);
+  slog(LOG_DEBUG, "Event message. msg[%s]", tmp);
+  sfree(tmp);
+
+  // update ob_dialing info
+  uuid = json_string_value(json_object_get(j_msg, "DestUniqueid"));
+  update_ob_dialing_status(uuid, E_DIALING_DIAL_BEGIN);
+
+  return;
+}
+
+/**
+ * AMI event handler.
+ * Event: DialEnd
+ * @param j_msg
+ */
+static void ami_event_dialend(json_t* j_msg)
+{
+  int hangup;
+  int ret;
+  char* sql;
+  char* tmp;
+  const char* uuid;
+  const char* tmp_const;
+  const char* hangup_detail;
+
+  if(j_msg == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired ami_event_dialend.");
+
+  // check event
+  tmp = json_dumps(j_msg, JSON_ENCODE_ANY);
+  slog(LOG_DEBUG, "Event message. msg[%s]", tmp);
+  sfree(tmp);
+
+  // update ob_dialing info
+  uuid = json_string_value(json_object_get(j_msg, "DestUniqueid"));
+  update_ob_dialing_status(uuid, E_DIALING_DIAL_END);
+
+  return;
+}
+
 
 /**
  * AMI event handler.
