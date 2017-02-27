@@ -99,7 +99,6 @@ static void cb_signal_term(int sock, short which, void* arg)
 static void cb_signal_int(evutil_socket_t sig, short events, void *user_data)
 {
   slog(LOG_INFO, "Fired cb_signal_int.");
-  printf("Fired cb_signal_int.");
   event_base_loopbreak(g_base);
 
   return;

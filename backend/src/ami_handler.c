@@ -200,28 +200,28 @@ static void ami_message_handler(const char* msg)
   if(strcmp(event, "AgentCalled") == 0) {
     // need to do something later
   }
-  else if(strcmp(event, "Hangup") == 0) {
+  else if(strcasecmp(event, "Hangup") == 0) {
     ami_event_hangup(j_msg);
   }
-  else if(strcmp(event, "NewChannel") == 0) {
+  else if(strcasecmp(event, "NewChannel") == 0) {
     ami_event_newchannel(j_msg);
   }
-  else if(strcmp(event, "PeerEntry") == 0) {
+  else if(strcasecmp(event, "PeerEntry") == 0) {
     ami_event_peerentry(j_msg);
   }
-  else if(strcmp(event, "QueueParams") == 0) {
+  else if(strcasecmp(event, "QueueParams") == 0) {
     ami_event_queueparams(j_msg);
   }
-  else if(strcmp(event, "QueueMember") == 0) {
+  else if(strcasecmp(event, "QueueMember") == 0) {
     ami_event_queuemember(j_msg);
   }
-  else if(strcmp(event, "QueueEntry") == 0) {
+  else if(strcasecmp(event, "QueueEntry") == 0) {
     ami_event_queueentry(j_msg);
   }
-  else if(strcmp(event, "QueueCallerJoin") == 0) {
+  else if(strcasecmp(event, "QueueCallerJoin") == 0) {
     ami_event_queuecallerjoin(j_msg);
   }
-  else if(strcmp(event, "QueueCallerLeave") == 0) {
+  else if(strcasecmp(event, "QueueCallerLeave") == 0) {
     ami_event_queuecallerleave(j_msg);
   }
 
