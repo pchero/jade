@@ -107,42 +107,49 @@ bool init(void)
     printf("Failed initiate log.");
     return false;
   }
+  slog(LOG_DEBUG, "Finished init_log.");
 
   ret = init_event();
   if(ret == false) {
     slog(LOG_WARNING, "Could not initiate event.");
     return false;
   }
-  
+  slog(LOG_DEBUG, "Finished init_event.");
+
   ret = db_init();
   if(ret == false) {
     slog(LOG_WARNING, "Could not initiate db.");
     return false;
   }
+  slog(LOG_DEBUG, "Finished db_init.");
 
   ret = init_db();
   if(ret == false) {
     slog(LOG_WARNING, "Could not initiate database.");
     return false;
   }
+  slog(LOG_DEBUG, "Finished init_db.");
 
   ret = init_ami_handler();
   if(ret == false) {
     slog(LOG_WARNING, "Could not initiate ami_handle.");
     return false;
   }
+  slog(LOG_DEBUG, "Finished init_ami_handler.");
 
   ret = init_http_handler();
   if(ret == false) {
     slog(LOG_WARNING, "Could not initiate http_handler.");
     return false;
   }
+  slog(LOG_DEBUG, "Finished init_http_handler.");
   
   ret = init_event_handler();
   if(ret == false) {
     slog(LOG_WARNING, "Could not initiate event_handler.");
     return false;
   }
+  slog(LOG_DEBUG, "Finished init_event_handler.");
 
   ret = run_outbound();
   if(ret == false) {

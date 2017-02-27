@@ -47,14 +47,14 @@
 extern struct event_base* g_base;
 extern app* g_app;
 
-static struct termios tin;
+//static struct termios tin;
 static int ami_sock = 0;
 
 static char g_ami_buffer[MAX_AMI_RECV_BUF_LEN];
 
 //static void negotiate(int sock, unsigned char *buf, int len);
-static void terminal_reset(void);
-static void terminal_set(void);
+//static void terminal_reset(void);
+//static void terminal_set(void);
 static bool ami_login(void);
 static bool ami_get_init_info(void);
 static void ami_message_handler(const char* msg);
@@ -97,22 +97,22 @@ static void ami_event_outdllistupdate(json_t* j_msg);
 static void ami_event_outdllistdelete(json_t* j_msg);
 
 
-static void terminal_set(void) 
-{
-  // save terminal configuration
-  tcgetattr(STDIN_FILENO, &tin);
-
-  static struct termios tlocal;
-  memcpy(&tlocal, &tin, sizeof(tin));
-  cfmakeraw(&tlocal);
-  tcsetattr(STDIN_FILENO,TCSANOW,&tlocal);
-}
- 
-static void terminal_reset(void) 
-{
-  // restore terminal upon exit
-  tcsetattr(STDIN_FILENO,TCSANOW,&tin);
-}
+//static void terminal_set(void)
+//{
+//  // save terminal configuration
+//  tcgetattr(STDIN_FILENO, &tin);
+//
+//  static struct termios tlocal;
+//  memcpy(&tlocal, &tin, sizeof(tin));
+//  cfmakeraw(&tlocal);
+//  tcsetattr(STDIN_FILENO,TCSANOW,&tlocal);
+//}
+//
+//static void terminal_reset(void)
+//{
+//  // restore terminal upon exit
+//  tcsetattr(STDIN_FILENO,TCSANOW,&tin);
+//}
 
 static void cb_ami_handler(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg)
 {
@@ -351,7 +351,7 @@ bool init_ami_handler(void)
   if(g_app == NULL) {
     return false;
   }
-  slog(LOG_DEBUG, "init_ami_handler");
+  slog(LOG_DEBUG, "Fired init_ami_handler");
   
   serv_addr = json_string_value(json_object_get(g_app->j_conf, "serv_addr"));
   serv_port = json_string_value(json_object_get(g_app->j_conf, "serv_port"));
@@ -393,9 +393,9 @@ bool init_ami_handler(void)
   ret = fcntl(ami_sock, F_SETFL, flag);
   slog(LOG_DEBUG, "Set the non-block option for the Asterisk socket. ret[%d]", ret);
 
-  // set terminal
-  terminal_set();
-  atexit(terminal_reset);
+//  // set terminal
+//  terminal_set();
+//  atexit(terminal_reset);
   
   // login
   ret = ami_login();

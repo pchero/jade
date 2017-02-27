@@ -25,7 +25,8 @@ extern app* g_app;
 extern struct event_base*  g_base;
 
 static void cb_signal_term(int sock, short which, void* arg);
-static void cb_signal_int(int sock, short which, void* arg);
+static void cb_signal_int(evutil_socket_t sig, short events, void *user_data);
+
 static void cb_pid_update(int sock, short which, void* arg);
 
 static bool pid_update(void);
@@ -35,13 +36,33 @@ bool init_event_handler(void)
   struct event* ev;
   struct event* ev_pid;
   struct timeval tv;
+  int ret;
 
   // add signal handler
-  ev = event_new(g_base, SIGTERM, EV_SIGNAL | EV_PERSIST, cb_signal_term, NULL);
-  event_add(ev, NULL);
 
-  ev = event_new(g_base, SIGINT, EV_SIGNAL | EV_PERSIST, cb_signal_int, NULL);
-  event_add(ev, NULL);
+  // sigterm
+  ev = evsignal_new(g_base, SIGTERM, cb_signal_term, NULL);
+  if(ev == NULL) {
+    slog(LOG_ERR, "Could not create event for the signal handler. signal[%s]", "SIGTERM");
+    return false;
+  }
+  ret = event_add(ev, NULL);
+  if(ret != 0) {
+    slog(LOG_ERR, "Could not add the signal handler. signal[%s]", "SIGTERM");
+    return false;
+  }
+
+  // sigint
+  ev = evsignal_new(g_base, SIGINT, cb_signal_int, NULL);
+  if(ev == NULL) {
+    slog(LOG_ERR, "Could not create event for the signal handler. signal[%s]", "SIGINT");
+    return false;
+  }
+  ret = event_add(ev, NULL);
+  if(ret != 0) {
+    slog(LOG_ERR, "Could not add the signal handler. signal[%s]", "SIGINT");
+    return false;
+  }
 
   // add pid update
   tv.tv_sec = DEF_PID_TIMEOUT_SEC;
@@ -53,6 +74,13 @@ bool init_event_handler(void)
   return true;
 }
 
+/**
+ * Signal handler.
+ * signal: sig_term
+ * @param sock
+ * @param which
+ * @param arg
+ */
 static void cb_signal_term(int sock, short which, void* arg)
 {
   slog(LOG_INFO, "Fired cb_signal_term.");
@@ -61,14 +89,21 @@ static void cb_signal_term(int sock, short which, void* arg)
   return;
 }
 
-static void cb_signal_int(int sock, short which, void* arg)
+/**
+ * Signal handler.
+ * signal: sig_int
+ * @param sock
+ * @param which
+ * @param arg
+ */
+static void cb_signal_int(evutil_socket_t sig, short events, void *user_data)
 {
   slog(LOG_INFO, "Fired cb_signal_int.");
+  printf("Fired cb_signal_int.");
   event_base_loopbreak(g_base);
 
   return;
 }
-
 
 static void cb_pid_update(int sock, short which, void* arg)
 {
