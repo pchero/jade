@@ -181,19 +181,11 @@ static void ami_message_handler(const char* msg)
     return;
   }
 
-  // get response
-  // if there's response object, the ami_response_handler handle the message.
-  response = json_string_value(json_object_get(j_msg, "Response"));
-  if(response != NULL) {
-    ami_response_handler(j_msg);
-    json_decref(j_msg);
-    return;
-  }
-
   // get event
   event = json_string_value(json_object_get(j_msg, "Event"));
   if(event == NULL) {
-    slog(LOG_NOTICE, "Could not get message event. msg[%s]", msg);
+    // if there's no Event, consider the response of action request.
+    ami_response_handler(j_msg);
     json_decref(j_msg);
     return;
   }
@@ -2087,14 +2079,14 @@ static void ami_event_dialbegin(json_t* j_msg)
   }
   slog(LOG_DEBUG, "Fired ami_event_dialbegin.");
 
-  // check event
-  tmp = json_dumps(j_msg, JSON_ENCODE_ANY);
-  slog(LOG_DEBUG, "Event message. msg[%s]", tmp);
-  sfree(tmp);
-
-  // update ob_dialing info
-  uuid = json_string_value(json_object_get(j_msg, "DestUniqueid"));
-  update_ob_dialing_status(uuid, E_DIALING_DIAL_BEGIN);
+//  // check event
+//  tmp = json_dumps(j_msg, JSON_ENCODE_ANY);
+//  slog(LOG_DEBUG, "Event message. msg[%s]", tmp);
+//  sfree(tmp);
+//
+//  // update ob_dialing info
+//  uuid = json_string_value(json_object_get(j_msg, "DestUniqueid"));
+//  update_ob_dialing_status(uuid, E_DIALING_DIAL_BEGIN);
 
   return;
 }
@@ -2106,28 +2098,20 @@ static void ami_event_dialbegin(json_t* j_msg)
  */
 static void ami_event_dialend(json_t* j_msg)
 {
-  int hangup;
-  int ret;
-  char* sql;
-  char* tmp;
-  const char* uuid;
-  const char* tmp_const;
-  const char* hangup_detail;
-
   if(j_msg == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
   slog(LOG_DEBUG, "Fired ami_event_dialend.");
 
-  // check event
-  tmp = json_dumps(j_msg, JSON_ENCODE_ANY);
-  slog(LOG_DEBUG, "Event message. msg[%s]", tmp);
-  sfree(tmp);
-
-  // update ob_dialing info
-  uuid = json_string_value(json_object_get(j_msg, "DestUniqueid"));
-  update_ob_dialing_status(uuid, E_DIALING_DIAL_END);
+//  // check event
+//  tmp = json_dumps(j_msg, JSON_ENCODE_ANY);
+//  slog(LOG_DEBUG, "Event message. msg[%s]", tmp);
+//  sfree(tmp);
+//
+//  // update ob_dialing info
+//  uuid = json_string_value(json_object_get(j_msg, "DestUniqueid"));
+//  update_ob_dialing_status(uuid, E_DIALING_DIAL_END);
 
   return;
 }
@@ -2174,10 +2158,10 @@ static void ami_event_hangup(json_t* j_msg)
   ///// for ob_dialing
 
   // get values
-  uuid = json_string_value(json_object_get(j_msg, "Linkedid"));
-  if((uuid == NULL) || (strlen(uuid) == 0)) {
-    uuid = json_string_value(json_object_get(j_msg, "Uniqueid"));
-  }
+  uuid = json_string_value(json_object_get(j_msg, "Uniqueid"));
+//  if((uuid == NULL) || (strlen(uuid) == 0)) {
+//    uuid = json_string_value(json_object_get(j_msg, "Uniqueid"));
+//  }
   hangup_detail = json_string_value(json_object_get(j_msg, "Cause-txt"));
   tmp_const = json_string_value(json_object_get(j_msg, "Cause"))? : 0;
   hangup = atoi(tmp_const);

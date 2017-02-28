@@ -516,6 +516,64 @@ bool update_ob_dialing_hangup(const char* uuid, int hangup, const char* hangup_d
   return true;
 }
 
+bool update_ob_dialing_dialend(const char* uuid, const char* dial_status)
+{
+  char* timestamp;
+  char* sql;
+  char* tmp;
+  json_t* j_tmp;
+  int ret;
+
+  if((uuid == NULL) || (dial_status == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired update_ob_dialing_dialend. uuid[%s], dial_status[%s]", uuid, dial_status);
+
+  // check exist
+  ret = is_exist_ob_dialing(uuid);
+  if(ret == false) {
+    // not ob_dialing call
+    return false;
+  }
+
+  if(strcasecmp(dial_status, "ANSWER") == 0) {
+
+  }
+
+  timestamp = get_utc_timestamp();
+  j_tmp = json_pack("{s:i, s:i, s:s, s:s}",
+      "status",             E_DIALING_HANGUP,
+      "res_hangup",         hangup,
+      "res_hangup_detail",  hangup_detail? : "",
+      "tm_update",          timestamp
+      );
+  sfree(timestamp);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not create update ob_dialing info.");
+    return false;
+  }
+
+  // create update sql
+  tmp = db_get_update_str(j_tmp);
+  json_decref(j_tmp);
+  if(tmp == NULL) {
+    slog(LOG_ERR, "Could not create update sql.");
+    return false;
+  }
+  asprintf(&sql, "update ob_dialing set %s where uuid=\"%s\";", tmp, uuid);
+  sfree(tmp);
+
+  ret = db_exec(sql);
+  sfree(sql);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update ob_dialing status. uuid[%s]", uuid);
+    return false;
+  }
+
+  return true;
+}
+
 rb_dialing* rb_dialing_find_chan_name(const char* name)
 {
   // todo:
