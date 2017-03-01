@@ -65,10 +65,11 @@ static void cb_ami_handler(__attribute__((unused)) int fd, __attribute__((unused
 
 static void ami_response_handler(json_t* j_msg);
 
-static void ami_event_dialbegin(json_t* j_msg)
+static void ami_event_dialbegin(json_t* j_msg);
 static void ami_event_dialend(json_t* j_msg);
 static void ami_event_hangup(json_t* j_msg);
 static void ami_event_newchannel(json_t* j_msg);
+static void ami_event_originateresponse(json_t* j_msg);
 static void ami_event_peerentry(json_t* j_msg);
 static void ami_event_queueparams(json_t* j_msg);
 static void ami_event_queuemember(json_t* j_msg);
@@ -166,7 +167,6 @@ static void ami_message_handler(const char* msg)
 	json_t* j_msg;
 	char* tmp;
 	const char* event;
-	const char* response;
 
 	if(msg == NULL) {
 		slog(LOG_WARNING, "Wrong input parameter.");
@@ -205,6 +205,9 @@ static void ami_message_handler(const char* msg)
   }
   else if(strcasecmp(event, "NewChannel") == 0) {
     ami_event_newchannel(j_msg);
+  }
+  else if(strcasecmp(event, "OriginateResponse") == 0) {
+    ami_event_originateresponse(j_msg);
   }
   else if(strcasecmp(event, "PeerEntry") == 0) {
     ami_event_peerentry(j_msg);
@@ -2065,13 +2068,13 @@ static void ami_event_queuecallerleave(json_t* j_msg)
  */
 static void ami_event_dialbegin(json_t* j_msg)
 {
-  int hangup;
-  int ret;
-  char* sql;
-  char* tmp;
-  const char* uuid;
-  const char* tmp_const;
-  const char* hangup_detail;
+//  int hangup;
+//  int ret;
+//  char* sql;
+//  char* tmp;
+//  const char* uuid;
+//  const char* tmp_const;
+//  const char* hangup_detail;
 
   if(j_msg == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -2115,6 +2118,45 @@ static void ami_event_dialend(json_t* j_msg)
 
   return;
 }
+
+/**
+ * AMI event handler.
+ * Event: OriginateResponse
+ * @param j_msg
+ */
+static void ami_event_originateresponse(json_t* j_msg)
+{
+  char* tmp;
+  const char* uuid;
+  const char* tmp_const;
+  int res_dial;
+
+  if(j_msg == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired ami_event_originateresponse.");
+
+  // check event
+  tmp = json_dumps(j_msg, JSON_ENCODE_ANY);
+  slog(LOG_DEBUG, "Event message. msg[%s]", tmp);
+  sfree(tmp);
+
+  // get uuid/res_dial
+  uuid = json_string_value(json_object_get(j_msg, "Uniqueid"));
+  tmp_const = json_string_value(json_object_get(j_msg, "Reason"));
+  if(tmp_const == NULL) {
+    slog(LOG_ERR, "Could not get originate response reason code.");
+    return;
+  }
+  res_dial = atoi(tmp_const);
+
+  // update ob_dialing
+  update_ob_dialing_res_dial(uuid, res_dial);
+
+  return;
+}
+
 
 
 /**

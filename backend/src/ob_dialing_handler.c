@@ -16,10 +16,87 @@
 #include "slog.h"
 #include "utils.h"
 #include "db_handler.h"
+#include "ast_header.h"
 
 #include "ob_dialing_handler.h"
 #include "ob_event_handler.h"
 #include "ob_dl_handler.h"
+
+
+typedef struct _map_res_dial {
+  int res_dial;
+  const char* res_dial_detail;
+} map_res_dial;
+
+map_res_dial g_map_res_dial[] =
+{
+  (map_res_dial){.res_dial = AST_CONTROL_HANGUP,        .res_dial_detail = "Other end has hungup"},
+  (map_res_dial){.res_dial = AST_CONTROL_RING,          .res_dial_detail = "Local ring"},
+  (map_res_dial){.res_dial = AST_CONTROL_RINGING,       .res_dial_detail = "Remote end is ringing"},
+  (map_res_dial){.res_dial = AST_CONTROL_ANSWER,        .res_dial_detail = "Remote end has answered"},
+  (map_res_dial){.res_dial = AST_CONTROL_BUSY,          .res_dial_detail = "Remote end is busy"},
+
+  (map_res_dial){.res_dial = AST_CONTROL_TAKEOFFHOOK,       .res_dial_detail = "Make it go off hook"},
+  (map_res_dial){.res_dial = AST_CONTROL_OFFHOOK,           .res_dial_detail = "Line is off hook"},
+  (map_res_dial){.res_dial = AST_CONTROL_CONGESTION,        .res_dial_detail = "Congestion (circuits busy)"},
+  (map_res_dial){.res_dial = AST_CONTROL_FLASH,             .res_dial_detail = "Flash hook"},
+  (map_res_dial){.res_dial = AST_CONTROL_WINK,              .res_dial_detail = "Wink"},
+  (map_res_dial){.res_dial = AST_CONTROL_OPTION,            .res_dial_detail = "Set a low-level option"},
+  (map_res_dial){.res_dial = AST_CONTROL_RADIO_KEY,         .res_dial_detail = "Key Radio"},
+  (map_res_dial){.res_dial = AST_CONTROL_RADIO_UNKEY,       .res_dial_detail = "Un-Key Radio"},
+  (map_res_dial){.res_dial = AST_CONTROL_PROGRESS,          .res_dial_detail = "Indicate PROGRESS"},
+  (map_res_dial){.res_dial = AST_CONTROL_PROCEEDING,        .res_dial_detail = "Indicate CALL PROCEEDING"},
+  (map_res_dial){.res_dial = AST_CONTROL_HOLD,              .res_dial_detail = "Indicate call is placed on hold"},
+  (map_res_dial){.res_dial = AST_CONTROL_UNHOLD,            .res_dial_detail = "Indicate call is left from hold"},
+  (map_res_dial){.res_dial = AST_CONTROL_VIDUPDATE,         .res_dial_detail = "Indicate video frame update"},
+  (map_res_dial){.res_dial = _XXX_AST_CONTROL_T38,          .res_dial_detail = "T38 state change request/notification. This is no longer supported. Use AST_CONTROL_T38_PARAMETERS instead"},
+  (map_res_dial){.res_dial = AST_CONTROL_SRCUPDATE,         .res_dial_detail = "Indicate source of media has changed"},
+  (map_res_dial){.res_dial = AST_CONTROL_TRANSFER,          .res_dial_detail = "Indicate status of a transfer request"},
+  (map_res_dial){.res_dial = AST_CONTROL_CONNECTED_LINE,    .res_dial_detail = "Indicate connected line has changed"},
+  (map_res_dial){.res_dial = AST_CONTROL_REDIRECTING,       .res_dial_detail = "Indicate redirecting id has changed"},
+  (map_res_dial){.res_dial = AST_CONTROL_T38_PARAMETERS,    .res_dial_detail = "T38 state change request/notification with parameters"},
+  (map_res_dial){.res_dial = AST_CONTROL_CC,                .res_dial_detail = "Indication that Call completion service is possible"},
+  (map_res_dial){.res_dial = AST_CONTROL_SRCCHANGE,         .res_dial_detail = "Media source has changed and requires a new RTP SSRC"},
+  (map_res_dial){.res_dial = AST_CONTROL_READ_ACTION,       .res_dial_detail = "Tell ast_read to take a specific action"},
+  (map_res_dial){.res_dial = AST_CONTROL_AOC,               .res_dial_detail = "Advice of Charge with encoded generic AOC payload"},
+  (map_res_dial){.res_dial = AST_CONTROL_END_OF_Q,          .res_dial_detail = "Indicate that this position was the end of the channel queue for a softhangup."},
+  (map_res_dial){.res_dial = AST_CONTROL_INCOMPLETE,        .res_dial_detail = "Indication that the extension dialed is incomplete"},
+  (map_res_dial){.res_dial = AST_CONTROL_MCID,              .res_dial_detail = "Indicate that the caller is being malicious"},
+  (map_res_dial){.res_dial = AST_CONTROL_UPDATE_RTP_PEER,   .res_dial_detail = "Interrupt the bridge and have it update the peer"},
+  (map_res_dial){.res_dial = AST_CONTROL_PVT_CAUSE_CODE,    .res_dial_detail = "Contains an update to the protocol-specific cause-code stored for branching dials"},
+  (map_res_dial){.res_dial = AST_CONTROL_MASQUERADE_NOTIFY, .res_dial_detail = "A masquerade is about to begin/end. (Never sent as a frame but directly with ast_indicate_data().)"},
+
+  /*
+   * WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING
+   *
+   * IAX2 sends these values out over the wire.  To prevent future
+   * incompatibilities, pick the next value in the enum from whatever
+   * is on the current trunk.  If you lose the merge race you need to
+   * fix the previous branches to match what is on trunk.  In addition
+   * you need to change chan_iax2 to explicitly allow the control
+   * frame over the wire if it makes sense for the frame to be passed
+   * to another Asterisk instance.
+   *
+   * WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING
+   */
+
+  /* Control frames used to manipulate a stream on a channel. The values for these
+   * must be greater than the allowed value for a 8-bit char, so that they avoid
+   * conflicts with DTMF values. */
+  (map_res_dial){.res_dial = AST_CONTROL_STREAM_STOP,       .res_dial_detail = "Indicate to a channel in playback to stop the stream"},
+  (map_res_dial){.res_dial = AST_CONTROL_STREAM_SUSPEND,    .res_dial_detail = "Indicate to a channel in playback to suspend the stream"},
+  (map_res_dial){.res_dial = AST_CONTROL_STREAM_RESTART,    .res_dial_detail = "Indicate to a channel in playback to restart the stream"},
+  (map_res_dial){.res_dial = AST_CONTROL_STREAM_REVERSE,    .res_dial_detail = "Indicate to a channel in playback to rewind"},
+  (map_res_dial){.res_dial = AST_CONTROL_STREAM_FORWARD,    .res_dial_detail = "Indicate to a channel in playback to fast forward"},
+
+  (map_res_dial){.res_dial = AST_CONTROL_RECORD_CANCEL,     .res_dial_detail = "Indicated to a channel in record to stop recording and discard the file"},
+  (map_res_dial){.res_dial = AST_CONTROL_RECORD_STOP,       .res_dial_detail = "Indicated to a channel in record to stop recording"},
+  (map_res_dial){.res_dial = AST_CONTROL_RECORD_SUSPEND,    .res_dial_detail = "Indicated to a channel in record to suspend/unsuspend recording"},
+  (map_res_dial){.res_dial = AST_CONTROL_RECORD_MUTE,       .res_dial_detail = "Indicated to a channel in record to mute/unmute (i.e. write silence) recording"},
+};
+
+
+static const char* get_res_dial_detail_string(int res_dial);
 
 /**
  * Create dialing obj.
@@ -516,19 +593,21 @@ bool update_ob_dialing_hangup(const char* uuid, int hangup, const char* hangup_d
   return true;
 }
 
-bool update_ob_dialing_dialend(const char* uuid, const char* dial_status)
+bool update_ob_dialing_res_dial(const char* uuid, int res_dial)
 {
   char* timestamp;
   char* sql;
   char* tmp;
   json_t* j_tmp;
   int ret;
+  const char* res_dial_detail;
 
-  if((uuid == NULL) || (dial_status == NULL)) {
+  if(uuid == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
-  slog(LOG_DEBUG, "Fired update_ob_dialing_dialend. uuid[%s], dial_status[%s]", uuid, dial_status);
+  slog(LOG_DEBUG, "Fired update_ob_dialing_res_dial. uuid[%s], res_dial[%d]",
+      uuid, res_dial);
 
   // check exist
   ret = is_exist_ob_dialing(uuid);
@@ -537,16 +616,13 @@ bool update_ob_dialing_dialend(const char* uuid, const char* dial_status)
     return false;
   }
 
-  if(strcasecmp(dial_status, "ANSWER") == 0) {
-
-  }
-
+  // create update info
   timestamp = get_utc_timestamp();
-  j_tmp = json_pack("{s:i, s:i, s:s, s:s}",
-      "status",             E_DIALING_HANGUP,
-      "res_hangup",         hangup,
-      "res_hangup_detail",  hangup_detail? : "",
-      "tm_update",          timestamp
+  res_dial_detail = get_res_dial_detail_string(res_dial);
+  j_tmp = json_pack("{s:i, s:s, s:s}",
+      "res_dial",        res_dial,
+      "res_dial_detail", res_dial_detail? : "",
+      "tm_update",  timestamp
       );
   sfree(timestamp);
   if(j_tmp == NULL) {
@@ -564,15 +640,81 @@ bool update_ob_dialing_dialend(const char* uuid, const char* dial_status)
   asprintf(&sql, "update ob_dialing set %s where uuid=\"%s\";", tmp, uuid);
   sfree(tmp);
 
+  // update result
   ret = db_exec(sql);
   sfree(sql);
   if(ret == false) {
-    slog(LOG_ERR, "Could not update ob_dialing status. uuid[%s]", uuid);
+    slog(LOG_ERR, "Could not update ob_dialing originate response info.");
+    return false;
+  }
+
+  // update status
+  ret = update_ob_dialing_status(uuid, E_DIALING_ORIGINATE_RESPONSED);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update ob_dialing status info.");
     return false;
   }
 
   return true;
 }
+
+//bool update_ob_dialing_dialend(const char* uuid, const char* dial_status)
+//{
+//  char* timestamp;
+//  char* sql;
+//  char* tmp;
+//  json_t* j_tmp;
+//  int ret;
+//
+//  if((uuid == NULL) || (dial_status == NULL)) {
+//    slog(LOG_WARNING, "Wrong input parameter.");
+//    return false;
+//  }
+//  slog(LOG_DEBUG, "Fired update_ob_dialing_dialend. uuid[%s], dial_status[%s]", uuid, dial_status);
+//
+//  // check exist
+//  ret = is_exist_ob_dialing(uuid);
+//  if(ret == false) {
+//    // not ob_dialing call
+//    return false;
+//  }
+//
+//  if(strcasecmp(dial_status, "ANSWER") == 0) {
+//
+//  }
+//
+//  timestamp = get_utc_timestamp();
+//  j_tmp = json_pack("{s:i, s:i, s:s, s:s}",
+//      "status",             E_DIALING_HANGUP,
+//      "res_hangup",         hangup,
+//      "res_hangup_detail",  hangup_detail? : "",
+//      "tm_update",          timestamp
+//      );
+//  sfree(timestamp);
+//  if(j_tmp == NULL) {
+//    slog(LOG_ERR, "Could not create update ob_dialing info.");
+//    return false;
+//  }
+//
+//  // create update sql
+//  tmp = db_get_update_str(j_tmp);
+//  json_decref(j_tmp);
+//  if(tmp == NULL) {
+//    slog(LOG_ERR, "Could not create update sql.");
+//    return false;
+//  }
+//  asprintf(&sql, "update ob_dialing set %s where uuid=\"%s\";", tmp, uuid);
+//  sfree(tmp);
+//
+//  ret = db_exec(sql);
+//  sfree(sql);
+//  if(ret == false) {
+//    slog(LOG_ERR, "Could not update ob_dialing status. uuid[%s]", uuid);
+//    return false;
+//  }
+//
+//  return true;
+//}
 
 rb_dialing* rb_dialing_find_chan_name(const char* name)
 {
@@ -739,3 +881,21 @@ bool is_exist_ob_dialing(const char* uuid)
   return true;
 }
 
+static const char* get_res_dial_detail_string(int res_dial)
+{
+  int size;
+  int i;
+  int res;
+
+  // get size
+  size = sizeof(g_map_res_dial) / sizeof(map_res_dial);
+
+  for(i = 0; i < size; i++) {
+    res = g_map_res_dial[i].res_dial;
+    if(res == res_dial) {
+      return g_map_res_dial[i].res_dial_detail;
+    }
+  }
+
+  return NULL;
+}

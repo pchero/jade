@@ -19,7 +19,7 @@ typedef enum _E_DIALING_STATUS_T
   E_DIALING_DIAL_BEGIN,
   E_DIALING_CHANNEL_CREATE,
   E_DIALING_DIAL_END,
-  E_DIALING_ORIGINATE_RESPONSE,
+  E_DIALING_ORIGINATE_RESPONSED,
   E_DIALING_HANGUP,
 
   E_DIALING_ERROR                       = 10,             ///< error
@@ -47,7 +47,7 @@ json_t* create_ob_dialing(const char* dialing_uuid, json_t* j_camp, json_t* j_pl
 bool delete_ob_dialing(const char* uuid);
 bool is_exist_ob_dialing(const char* uuid);
 bool update_ob_dialing_hangup(const char* uuid, int hangup, const char* hangup_detail);
-
+bool update_ob_dialing_res_dial(const char* uuid, int res);
 
 void rb_dialing_destory(rb_dialing* dialing);
 
