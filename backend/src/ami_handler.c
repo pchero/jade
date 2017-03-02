@@ -12,6 +12,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <strings.h>
 #include <unistd.h>
 #include <string.h>
 #include <arpa/inet.h>
@@ -2130,6 +2131,7 @@ static void ami_event_originateresponse(json_t* j_msg)
   const char* uuid;
   const char* tmp_const;
   int res_dial;
+  int success;
 
   if(j_msg == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -2142,8 +2144,21 @@ static void ami_event_originateresponse(json_t* j_msg)
   slog(LOG_DEBUG, "Event message. msg[%s]", tmp);
   sfree(tmp);
 
-  // get uuid/res_dial
+  // get uuid/res_dial/response
   uuid = json_string_value(json_object_get(j_msg, "Uniqueid"));
+
+  // get res_dial
+  tmp_const = json_string_value(json_object_get(j_msg, "Response"));
+  if(tmp_const == NULL) {
+    slog(LOG_ERR, "Could not get originate response.");
+    return;
+  }
+  success = true;
+  if(strcasecmp(tmp_const, "Failure") == 0) {
+    success = false;
+  }
+
+  // get reason
   tmp_const = json_string_value(json_object_get(j_msg, "Reason"));
   if(tmp_const == NULL) {
     slog(LOG_ERR, "Could not get originate response reason code.");
@@ -2152,7 +2167,7 @@ static void ami_event_originateresponse(json_t* j_msg)
   res_dial = atoi(tmp_const);
 
   // update ob_dialing
-  update_ob_dialing_res_dial(uuid, res_dial);
+  update_ob_dialing_res_dial(uuid, success, res_dial);
 
   return;
 }

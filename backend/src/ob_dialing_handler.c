@@ -593,7 +593,7 @@ bool update_ob_dialing_hangup(const char* uuid, int hangup, const char* hangup_d
   return true;
 }
 
-bool update_ob_dialing_res_dial(const char* uuid, int res_dial)
+bool update_ob_dialing_res_dial(const char* uuid, bool success, int res_dial)
 {
   char* timestamp;
   char* sql;
@@ -606,8 +606,8 @@ bool update_ob_dialing_res_dial(const char* uuid, int res_dial)
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
-  slog(LOG_DEBUG, "Fired update_ob_dialing_res_dial. uuid[%s], res_dial[%d]",
-      uuid, res_dial);
+  slog(LOG_DEBUG, "Fired update_ob_dialing_res_dial. uuid[%s], success[%d], reason[%d]",
+      uuid, success, res_dial);
 
   // check exist
   ret = is_exist_ob_dialing(uuid);
@@ -620,9 +620,9 @@ bool update_ob_dialing_res_dial(const char* uuid, int res_dial)
   timestamp = get_utc_timestamp();
   res_dial_detail = get_res_dial_detail_string(res_dial);
   j_tmp = json_pack("{s:i, s:s, s:s}",
-      "res_dial",        res_dial,
-      "res_dial_detail", res_dial_detail? : "",
-      "tm_update",  timestamp
+      "res_dial",         res_dial,
+      "res_dial_detail",  res_dial_detail? : "",
+      "tm_update",        timestamp
       );
   sfree(timestamp);
   if(j_tmp == NULL) {
@@ -649,7 +649,12 @@ bool update_ob_dialing_res_dial(const char* uuid, int res_dial)
   }
 
   // update status
-  ret = update_ob_dialing_status(uuid, E_DIALING_ORIGINATE_RESPONSED);
+  if(success == true) {
+    ret = update_ob_dialing_status(uuid, E_DIALING_ORIGINATE_RESPONSED);
+  }
+  else {
+    ret = update_ob_dialing_status(uuid, E_DIALING_ORIGINATE_RESPONSE_FAILED);
+  }
   if(ret == false) {
     slog(LOG_ERR, "Could not update ob_dialing status info.");
     return false;

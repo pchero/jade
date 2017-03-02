@@ -47,26 +47,11 @@ json_t* create_ob_dialing(const char* dialing_uuid, json_t* j_camp, json_t* j_pl
 bool delete_ob_dialing(const char* uuid);
 bool is_exist_ob_dialing(const char* uuid);
 bool update_ob_dialing_hangup(const char* uuid, int hangup, const char* hangup_detail);
-bool update_ob_dialing_res_dial(const char* uuid, int res);
+bool update_ob_dialing_res_dial(const char* uuid, bool success, int res_dial);
 
 void rb_dialing_destory(rb_dialing* dialing);
 
-rb_dialing* rb_dialing_find_chan_name(const char* chan);
-rb_dialing* rb_dialing_find_chan_uuid(const char* chan);
-
-struct ao2_iterator rb_dialing_iter_init(void);
-rb_dialing* rb_dialing_iter_next(struct ao2_iterator *iter);
-
-//json_t* rb_dialing_get_all_for_cli(void);
-json_t* rb_dialing_get_info_for_cli(const char* uuid);
-
-bool rb_dialing_update_name(rb_dialing* dialing, const char* name);
 bool update_ob_dialing_status(const char* uuid, E_DIALING_STATUS_T status);
-bool rb_dialing_update_events_append(rb_dialing* dialing, json_t* j_evt);
-bool rb_dialing_update_dialing_update(rb_dialing* dialing, json_t* j_dialing);
-bool rb_dialing_update_current_update(rb_dialing* dialing, json_t* j_evt);
-bool rb_dialing_update_event_substitute(rb_dialing* dialing, json_t* j_evt);
-
 int get_ob_dialing_count_by_camp_uuid(const char* camp_uuid);
 json_t* get_ob_dialing_by_action_id(const char* action_id);
 
