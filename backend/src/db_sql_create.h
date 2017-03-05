@@ -183,4 +183,22 @@ static const char* g_sql_create_queue_entry =
 
 ");";
 
+
+// database
+static const char* g_sql_drop_database = "drop table if exists database;";
+static const char* g_sql_create_database =
+"create table database("
+
+// identity
+"   key            varchar(255)," // database key
+"   value          text,"         // database value
+
+// timestamp. UTC."
+"   tm_update         datetime(6),"   // update time."
+
+"   primary key(key)"
+
+");";
+
+
 #endif /* SRC_DB_SQL_CREATE_H_ */

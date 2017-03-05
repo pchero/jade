@@ -39,8 +39,9 @@ static void simple_response_error(evhtp_request_t *req, int status_code, int err
 static void cb_htp_ping(evhtp_request_t *req, void *a);
 static void cb_htp_peers(evhtp_request_t *req, void *data);
 
-static void cb_htp_destinations(evhtp_request_t *req, void *data);
-static void cb_htp_destinations_uuid(evhtp_request_t *req, void *data);
+static void cb_htp_databases(evhtp_request_t *req, void *data);
+static void cb_htp_databases_key(evhtp_request_t *req, void *data);
+
 static void cb_htp_plans(evhtp_request_t *req, void *data);
 static void cb_htp_plans_uuid(evhtp_request_t *req, void *data);
 static void cb_htp_campaigns(evhtp_request_t *req, void *data);
@@ -50,29 +51,36 @@ static void cb_htp_dlmas_uuid(evhtp_request_t *req, void *data);
 static void cb_htp_dls(evhtp_request_t *req, void *data);
 static void cb_htp_dls_uuid(evhtp_request_t *req, void *data);
 
+// destinations
+static void cb_htp_destinations(evhtp_request_t *req, void *data);
+static void cb_htp_destinations_uuid(evhtp_request_t *req, void *data);
 static void htp_get_destinations(evhtp_request_t *req, void *data);
 static void htp_post_destinations(evhtp_request_t *req, void *data);
 static void htp_get_destinations_uuid(evhtp_request_t *req, void *data);
 static void htp_put_destinations_uuid(evhtp_request_t *req, void *data);
 static void htp_delete_destinations_uuid(evhtp_request_t *req, void *data);
 
+// plans
 static void htp_get_plans(evhtp_request_t *req, void *data);
 static void htp_post_plans(evhtp_request_t *req, void *data);
 static void htp_get_plans_uuid(evhtp_request_t *req, void *data);
 static void htp_put_plans_uuid(evhtp_request_t *req, void *data);
 static void htp_delete_plans_uuid(evhtp_request_t *req, void *data);
 
+// campaigns
 static void htp_get_campaigns(evhtp_request_t *req, void *data);
 static void htp_post_campaigns(evhtp_request_t *req, void *data);
 static void htp_get_campaigns_uuid(evhtp_request_t *req, void *data);
 static void htp_put_campaigns_uuid(evhtp_request_t *req, void *data);
 
+// dlmas
 static void htp_get_dlmas(evhtp_request_t *req, void *data);
 static void htp_post_dlmas(evhtp_request_t *req, void *data);
 static void htp_get_dlmas_uuid(evhtp_request_t *req, void *data);
 static void htp_put_dlmas_uuid(evhtp_request_t *req, void *data);
 static void htp_delete_dlmas_uuid(evhtp_request_t *req, void *data);
 
+// dls
 static void htp_get_dls(evhtp_request_t *req, void *data);
 static void htp_post_dls(evhtp_request_t *req, void *data);
 static void htp_get_dls_uuid(evhtp_request_t *req, void *data);
@@ -88,6 +96,9 @@ bool init_http_handler(void)
   evhtp_set_regex_cb(g_htp, "/ping", cb_htp_ping, NULL);
 
   evhtp_set_regex_cb(g_htp, "/peers", cb_htp_peers, NULL);
+
+  evhtp_set_regex_cb(g_htp, "/databases/", cb_htp_databases_key, NULL);
+  evhtp_set_regex_cb(g_htp, "/databases", cb_htp_databases, NULL);
 
   evhtp_set_regex_cb(g_htp, "/destinations/("DEF_REG_UUID")", cb_htp_destinations_uuid, NULL);
   evhtp_set_regex_cb(g_htp, "/destinations", cb_htp_destinations, NULL);
@@ -257,6 +268,111 @@ static void cb_htp_peers(evhtp_request_t *req, void *data)
 
   return;
 }
+
+static void cb_htp_databases(evhtp_request_t *req, void *data)
+{
+  int method;
+  json_t* j_res;
+  json_t* j_tmp;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired cb_htp_databases.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if(method != htp_method_GET) {
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  if(method == htp_method_GET) {
+    j_tmp = get_databases_all_key();
+    if(j_tmp == NULL) {
+      simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+      return;
+    }
+
+    // create result
+    j_res = create_default_result(EVHTP_RES_OK);
+    json_object_set_new(j_res, "result", j_tmp);
+
+    simple_response_normal(req, j_res);
+    json_decref(j_res);
+  }
+  else {
+    // should not reach to here.
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  }
+
+  return;
+}
+
+static void cb_htp_databases_key(evhtp_request_t *req, void *data)
+{
+  int method;
+  json_t* j_data;
+  json_t* j_res;
+  json_t* j_tmp;
+  const char* tmp_const;
+  char* tmp;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired cb_htp_databases_key.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if(method != htp_method_GET) {
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  if(method == htp_method_GET) {
+    // get data
+    tmp_const = (char*)evbuffer_pullup(req->buffer_in, evbuffer_get_length(req->buffer_in));
+    if(tmp_const == NULL) {
+      simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+      return;
+    }
+
+    // create json
+    tmp = strndup(tmp_const, evbuffer_get_length(req->buffer_in));
+    slog(LOG_DEBUG, "Requested data. data[%s]", tmp);
+    j_data = json_loads(tmp, JSON_DECODE_ANY, NULL);
+    sfree(tmp);
+    if(j_data == NULL) {
+      simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+      return;
+    }
+
+    // get value
+    j_tmp = get_database_info(json_string_value(json_object_get(j_data, "key")));
+    json_decref(j_data);
+    if(j_tmp == NULL) {
+      simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+      return;
+    }
+
+    // create result
+    j_res = create_default_result(EVHTP_RES_OK);
+    json_object_set_new(j_res, "result", j_tmp);
+
+    simple_response_normal(req, j_res);
+    json_decref(j_res);
+  }
+  else {
+    // should not reach to here.
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  }
+
+  return;
+}
+
 
 /**
  * http request handler.
