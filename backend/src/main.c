@@ -86,6 +86,13 @@ static bool init_db(void)
     return false;
   }
 
+  db_exec(g_sql_drop_database);
+  ret = db_exec(g_sql_create_database);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create table. table[%s]", "database");
+    return false;
+  }
+
   return true;
 }
 

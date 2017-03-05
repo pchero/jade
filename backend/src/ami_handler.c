@@ -31,6 +31,7 @@
 #include "db_handler.h"
 #include "ob_ami_handler.h"
 #include "ob_dialing_handler.h"
+#include "ami_event_handler.h"
 
 #define DLE     0x0f  // Data link escape
 #define DO      0xfd
@@ -333,7 +334,10 @@ static void ami_response_handler(json_t* j_msg)
     return;
   }
 
-  if(strcmp(type, "ob_originate") == 0) {
+  if(strcasecmp(type, "command.databaseshow") == 0) {
+    ami_response_handler_databaseshow(j_msg);
+  }
+  else if(strcasecmp(type, "ob_originate") == 0) {
     ob_ami_response_handler_originate(j_msg);
   }
 
@@ -552,6 +556,7 @@ static bool ami_get_init_info(void)
 {
   json_t* j_tmp;
   int ret;
+  char* action_id;
 
   // sip peers
   j_tmp = json_pack("{s:s}",
@@ -575,6 +580,22 @@ static bool ami_get_init_info(void)
   }
   json_decref(j_tmp);
 
+  // database
+  action_id = gen_uuid();
+  j_tmp = json_pack("{s:s, s:s, s:s}",
+      "Action",   "Command",
+      "Command",  "database show",
+      "ActionID", action_id
+      );
+  sfree(action_id);
+  ret = send_ami_cmd(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not send ami action. action[%s]", "Command");
+    return false;
+  }
+  insert_action(json_string_value(json_object_get(j_tmp, "ActionID")), "command.databaseshow");
+  json_decref(j_tmp);
+
   return true;
 }
 
@@ -593,6 +614,7 @@ static json_t* parse_ami_msg(const char* msg)
   char* key;
   char* value;
   char* dump;
+  int parsed;
 
 	if(msg == NULL) {
 		slog(LOG_WARNING, "Wrong input parameter.");
@@ -602,6 +624,7 @@ static json_t* parse_ami_msg(const char* msg)
   j_tmp = json_object();
   bzero(tmp, sizeof(tmp));
   for(i = 0, j = 0; i < strlen(msg); i++) {
+    parsed = false;
 
     if((msg[i] != '\r') || (msg[i+1] != '\n')) {
       tmp[j] = msg[i];
@@ -626,16 +649,30 @@ static json_t* parse_ami_msg(const char* msg)
 		trim(key);
 		trim(value);
 
-		ret = strcmp(key, "Variable");
+		// check Variable
+		ret = strcasecmp(key, "Variable");
 		if(ret == 0) {
 			if(json_object_get(j_tmp, "Variable") == NULL) {
 				json_object_set_new(j_tmp, "Variable", json_array());
 			}
 			json_array_append_new(json_object_get(j_tmp, "Variable"), json_string(value));
+			parsed = true;
 		}
-		else {
+
+		// check Output
+		ret = strcasecmp(key, "Output");
+		if(ret == 0) {
+		  if(json_object_get(j_tmp, "Output") == NULL) {
+		    json_object_set_new(j_tmp, "Output", json_array());
+		  }
+		  json_array_append_new(json_object_get(j_tmp, "Output"), json_string(value));
+		  parsed = true;
+		}
+
+		if(parsed != true) {
 			json_object_set_new(j_tmp, key, json_string(value));
 		}
+
 
 		sfree(dump);
 		memset(tmp, 0x00, sizeof(tmp));
