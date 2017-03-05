@@ -8,6 +8,6 @@
 #ifndef BACKEND_SRC_AMI_EVENT_HANDLER_H_
 #define BACKEND_SRC_AMI_EVENT_HANDLER_H_
 
-void ami_response_handler_databaseshow(json_t* j_msg);
+void ami_message_handler(const char* msg);
 
 #endif /* BACKEND_SRC_AMI_EVENT_HANDLER_H_ */

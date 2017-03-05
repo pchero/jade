@@ -176,7 +176,7 @@ bool originate_to_exten(json_t* j_dialing)
     slog(LOG_ERR, "Could not send originate extension request.");
     return false;
   }
-  insert_action(json_string_value(json_object_get(j_dialing, "ActionID")), "ob_originate");
+  insert_action(json_string_value(json_object_get(j_dialing, "action_id")), "ob.originate");
 
   return true;
 }
