@@ -85,6 +85,117 @@ sessions and are temporary.
 Resources
 *********
 
+/databases
+==========
+
+Methods
+-------
+GET : Get list of all database keys.
+
+Method: GET
+-----------
+Get list of all database keys.
+
+Call
+++++
+::
+
+  GET /databases
+
+Returns
++++++++
+::
+
+  {
+    $defhdr,
+    "reuslt": {
+      "list": [
+        "<database-key>",
+        ...
+      ]
+    }
+  }
+  
+* ``list`` : array of database-key.
+
+Example
++++++++
+::
+
+  $ curl -X GET 192.168.200.10:8081/databases
+  
+  {
+    "api_ver": "0.1",
+    "result": {
+        "list": [
+            "/Queue/PersistentMembers/sales_1",
+            "/SIP/Registry/300",
+            "/SIP/Registry/301",
+            "/SIP/Registry/302",
+            "/SIP/Registry/agent-01",
+            "/SIP/Registry/agent-02",
+            "/SIP/Registry/agent-03",
+            "/dundi/secret",
+            "/dundi/secretexpiry",
+            "/pbx/UUID",
+            "/sample_database/test"
+        ]
+    },
+    "statuscode": 200,
+    "timestamp": "2017-03-05T07:51:41.829683573Z"
+  }
+
+/databases/
+===========
+
+Methods
+-------
+GET : Get value of input key.
+
+Method: GET
+-----------
+GET : Get value of input key.
+
+Call
+++++
+::
+
+  GET /databases/
+
+Returns
++++++++
+::
+
+  {
+    $defhdr,
+    "reuslt": {
+      "list": [
+        "<database-key>",
+        ...
+      ]
+    }
+  }
+  
+* ``list`` : array of database-key.
+
+Example
++++++++
+::
+
+  $ curl -X GET 192.168.200.10:8081/databases/ -d'{"key":"/Queue/PersistentMembers/sales_1"}' 
+  
+  {
+    "api_ver": "0.1",
+    "result": {
+        "key": "/Queue/PersistentMembers/sales_1",
+        "tm_update": null,
+        "value": "sip/agent-01;0;0;sip/agent-01;sip/agent-01;|sip/agent-02;0;0;sip/agent-02;sip/agent-02;|sip/agent-03;0;0;sip/agent-03;sip/agent-03;"
+    },
+    "statuscode": 200,
+    "timestamp": "2017-03-05T07:52:18.392313868Z"
+  }
+
+
 /plans
 ======
 

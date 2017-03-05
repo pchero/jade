@@ -350,7 +350,7 @@ static bool ami_get_init_info(void)
     slog(LOG_ERR, "Could not send ami action. action[%s]", "Command");
     return false;
   }
-  insert_action(json_string_value(json_object_get(j_tmp, "ActionID")), "command.databaseshow");
+  insert_action(json_string_value(json_object_get(j_tmp, "ActionID")), "command.databaseshowall");
   json_decref(j_tmp);
 
   return true;

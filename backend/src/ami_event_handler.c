@@ -59,7 +59,7 @@ static void ami_event_outdllistdelete(json_t* j_msg);
 
 // action response handlers
 
-void ami_response_handler_databaseshow(json_t* j_msg);
+void ami_response_handler_databaseshowall(json_t* j_msg);
 
 /**
  * Event message handler
@@ -236,8 +236,8 @@ static void ami_response_handler(json_t* j_msg)
     return;
   }
 
-  if(strcasecmp(type, "command.databaseshow") == 0) {
-    ami_response_handler_databaseshow(j_msg);
+  if(strcasecmp(type, "command.databaseshowall") == 0) {
+    ami_response_handler_databaseshowall(j_msg);
   }
   else if(strcasecmp(type, "ob.originate") == 0) {
     ob_ami_response_handler_originate(j_msg);
@@ -248,7 +248,7 @@ static void ami_response_handler(json_t* j_msg)
   return;
 }
 
-void ami_response_handler_databaseshow(json_t* j_msg)
+void ami_response_handler_databaseshowall(json_t* j_msg)
 {
   char* tmp;
   const char* tmp_const;
@@ -259,12 +259,21 @@ void ami_response_handler_databaseshow(json_t* j_msg)
   char* dump;
   char* key;
   int ret;
+  char* sql;
 
   if(j_msg == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
   slog(LOG_DEBUG, "Fired ami_response_handler_databaseshow.");
+
+  // delete all database info.
+  asprintf(&sql, "delete from database;");
+  ret = db_exec(sql);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not clean up the database.");
+    return;
+  }
 
   tmp = json_dumps(j_msg, JSON_ENCODE_ANY);
   slog(LOG_DEBUG, "received message. msg[%s]", tmp);
