@@ -172,12 +172,12 @@ static json_t* get_deleted_ob_destination(const char* uuid)
   slog(LOG_DEBUG, "Get destination info. uuid[%s]", uuid);
 
   // get specified destination
-  asprintf(&sql, "select * from destination where in_use=%d and uuid=\"%s\";", E_DL_USE_NO, uuid);
+  asprintf(&sql, "select * from ob_destination where in_use=%d and uuid=\"%s\";", E_DL_USE_NO, uuid);
 
   db_res = db_query(sql);
   sfree(sql);
   if(db_res == NULL) {
-    slog(LOG_WARNING, "Could not get destination info.");
+    slog(LOG_WARNING, "Could not get deleted ob_destination info.");
     return NULL;
   }
 

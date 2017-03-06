@@ -885,12 +885,12 @@ static void htp_post_destinations(evhtp_request_t *req, void *data)
   json_t* j_data;
   json_t* j_tmp;
   json_t* j_res;
-  int ret;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
+  slog(LOG_DEBUG, "Fired htp_post_destinations.");
 
   // get uuid
   uuid = req->uri->path->file;
@@ -899,16 +899,10 @@ static void htp_post_destinations(evhtp_request_t *req, void *data)
     return;
   }
 
-  // check existence
-  ret = is_exist_ob_destination(uuid);
-  if(ret == false) {
-    simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
-    return;
-  }
-
   // get data
   tmp_const = (char*)evbuffer_pullup(req->buffer_in, evbuffer_get_length(req->buffer_in));
   if(tmp_const == NULL) {
+    slog(LOG_ERR, "Could not get data from request.");
     simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }

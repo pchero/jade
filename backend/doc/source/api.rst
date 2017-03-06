@@ -700,3 +700,537 @@ Example
        "tm_update": "2017-02-22T17:59:41.59248781Z"
      }
    }
+
+/destinations
+=============
+
+Methods
+-------
+POST : Create new destination.
+
+GET : Get list of all destinations.
+
+Method: POST
+------------
+Create new destination.
+
+Call
+++++
+::
+
+  POST /destinations
+  
+  {
+    "application": null,
+    "context": null,
+    "data": null,
+    "detail": null,
+    "exten": null,
+    "in_use": 1,
+    "name": null,
+    "priority": null,
+    "type": 0,
+    "variables": null
+  }
+
+Returns
++++++++
+Created destination info.
+
+::
+
+  {
+    $defhdr,
+    "reuslt": {
+      "uuid": "5ff9611c-136b-47d7-b8d4-0bd6f0d5b037",
+      "application": null,
+      "context": null,
+      "data": null,
+      "detail": null,
+      "exten": null,
+      "in_use": 1,
+      "name": null,
+      "priority": null,
+      "type": 0,
+      "variables": null,
+      "tm_create": "2017-03-05T08:48:43.745658496Z",
+      "tm_delete": null,
+      "tm_update": null
+    }
+  }
+
+
+Example
++++++++
+::
+
+  $ curl -X POST 192.168.200.10:8081/destinations -d'{}'
+
+  {
+    "api_ver": "0.1",
+    "statuscode": 200,
+    "timestamp": "2017-03-05T08:48:43.789657952Z",
+    "result": {
+      "application": null,
+      "context": null,
+      "data": null,
+      "detail": null,
+      "exten": null,
+      "in_use": 1,
+      "name": null,
+      "priority": null,
+      "tm_create": "2017-03-05T08:48:43.745658496Z",
+      "tm_delete": null,
+      "tm_update": null,
+      "type": 0,
+      "uuid": "5ff9611c-136b-47d7-b8d4-0bd6f0d5b037",
+      "variables": null
+    }
+  }
+
+Method: GET
+-----------
+Get list of all destinations.
+
+Call
+++++
+::
+
+  GET /destinations
+  
+Returns
++++++++
+::
+
+  {
+    $defhdr,
+    "reuslt": {
+      "list": [
+        "<destination-uuid>",
+        ...
+      ]
+    }
+  }
+  
+* ``list`` : array of destination-uuid.
+
+Example
++++++++
+::
+
+  curl -X GET 192.168.200.10:8081/destinations
+  
+  {
+    "api_ver": "0.1",
+    "result": {
+        "list": [
+            "45122654-5633-4af0-a739-e32eddfbd2ae",
+            "5ff9611c-136b-47d7-b8d4-0bd6f0d5b037"
+        ]
+    },
+    "statuscode": 200,
+    "timestamp": "2017-03-05T08:58:09.460418643Z"
+  }
+
+/destinations/<uuid>
+====================
+
+Methods
+-------
+GET : Get specified destination detail info.
+
+PUT : Update specified destination detail info.
+
+DELETE : Delete specified destination
+
+Method: GET
+-----------
+Get specified destination detail info.
+
+Call
+++++
+::
+
+  GET /destinations/<uuid>
+
+Returns
++++++++
+Specified destination detail info.
+
+::
+
+  {
+    $defhdr,
+    "reuslt": {
+      "application": "<string>",
+      "context": "<string>",
+      "data": "<string>",
+      "detail": "<string>",
+      "exten": "<string>",
+      "in_use": 1,
+      "name": "<string>",
+      "priority": null,
+      "type": 0,
+      "uuid": "<string>",
+      "variables": null,
+      "tm_create": "2017-03-05T08:48:43.745658496Z",
+      "tm_delete": null,
+      "tm_update": null
+    }
+  }
+
+
+Example
++++++++
+::
+
+  $ curl -X GET 192.168.200.10:8081/destinations/5ff9611c-136b-47d7-b8d4-0bd6f0d5b037
+
+  {
+    "api_ver": "0.1",
+    "result": {
+      "application": null,
+      "context": null,
+      "data": null,
+      "detail": null,
+      "exten": null,
+      "in_use": 1,
+      "name": null,
+      "priority": null,
+      "tm_create": "2017-03-05T08:48:43.745658496Z",
+      "tm_delete": null,
+      "tm_update": null,
+      "type": 0,
+      "uuid": "5ff9611c-136b-47d7-b8d4-0bd6f0d5b037",
+      "variables": null
+    },
+    "statuscode": 200,
+    "timestamp": "2017-03-05T09:04:23.954636454Z"
+  }
+
+Method: PUT
+-----------
+Get specified destination detail info.
+
+Call
+++++
+::
+
+  PUT /destinations/<uuid>
+  
+  {
+  }
+
+Returns
++++++++
+Return the updated destination detail info.
+
+::
+
+  {
+    $defhdr,
+    "reuslt": {
+      "application": null,
+      "context": null,
+      "data": null,
+      "detail": null,
+      "exten": null,
+      "in_use": 1,
+      "name": "new updated name",
+      "priority": null,
+      "tm_create": "2017-03-05T08:48:43.745658496Z",
+      "tm_delete": null,
+      "tm_update": "2017-03-05T09:31:57.663960574Z",
+      "type": 0,
+      "uuid": "5ff9611c-136b-47d7-b8d4-0bd6f0d5b037",
+      "variables": null
+    }
+  }
+
+
+Example
++++++++
+::
+
+  $ curl -X PUT 192.168.200.10:8081/destinations/5ff9611c-136b-47d7-b8d4-0bd6f0d5b037 \
+    -d '{"name":"new updated name"}'
+
+  {
+    "api_ver": "0.1",
+    "result": {
+      "application": null,
+      "context": null,
+      "data": null,
+      "detail": null,
+      "exten": null,
+      "in_use": 1,
+      "name": "new updated name",
+      "priority": null,
+      "tm_create": "2017-03-05T08:48:43.745658496Z",
+      "tm_delete": null,
+      "tm_update": "2017-03-05T09:31:57.663960574Z",
+      "type": 0,
+      "uuid": "5ff9611c-136b-47d7-b8d4-0bd6f0d5b037",
+      "variables": null
+    },
+    "statuscode": 200,
+    "timestamp": "2017-03-05T09:31:57.884592113Z"
+  }
+
+Method: DELETE
+--------------
+Delete specified destination info.
+
+Call
+++++
+::
+
+  DELETE /destinations/<uuid>  
+
+Returns
++++++++
+Return the deleted destination detail info.
+
+::
+
+  {
+    $defhdr,
+    "reuslt": {
+    }
+  }
+
+
+Example
++++++++
+::
+
+  $ curl -X DELETE 192.168.200.10:8081/destinations/38dd5d48-4758-4194-9b7d-24acada05e08
+
+  {
+    "api_ver": "0.1",
+    "result": {
+      "application": null,
+      "context": null,
+      "data": null,
+      "detail": null,
+      "exten": null,
+      "in_use": 0,
+      "name": null,
+      "priority": null,
+      "tm_create": "2017-03-05T09:40:44.52708509Z",
+      "tm_delete": "2017-03-05T09:40:57.912346237Z",
+      "tm_update": null,
+      "type": 0,
+      "uuid": "38dd5d48-4758-4194-9b7d-24acada05e08",
+      "variables": null
+    },
+    "statuscode": 200,
+    "timestamp": "2017-03-05T09:40:57.954045594Z"
+  }
+
+
+/campaigns
+==========
+
+Methods
+-------
+POST : Create new campaign.
+
+GET : Get list of all campaigns.
+
+Method: POST
+------------
+Create new campaign.
+
+Call
+++++
+::
+
+  POST /campaign
+  
+  {
+  }
+
+Returns
++++++++
+Created campaign info.
+
+::
+
+  {
+    $defhdr,
+    "reuslt": {
+    }
+  }
+
+
+Example
++++++++
+::
+
+  $ curl -X POST 192.168.200.10:8081/destinations -d'{}'
+
+  {
+    }
+  }
+
+Method: GET
+-----------
+Get list of all campaigns.
+
+Call
+++++
+::
+
+  GET /campaigns
+  
+Returns
++++++++
+::
+
+  {
+    $defhdr,
+    "reuslt": {
+      "list": [
+        "<campaign-uuid>",
+        ...
+      ]
+    }
+  }
+  
+* ``list`` : array of campaign-uuid
+
+Example
++++++++
+::
+
+  curl -X GET 192.168.200.10:8081/campaigns
+  
+  {
+    "api_ver": "0.1",
+    "result": {
+        "list": [
+            "9841bc9e-3103-4fea-ab11-54ccfcc8322f"
+        ]
+    },
+    "statuscode": 200,
+    "timestamp": "2017-03-05T09:10:23.658031316Z"
+  }
+
+/campaigns/<uuid>
+=================
+
+Methods
+-------
+GET : Get specified campaign detail info.
+
+PUT : Update specified campaign detail info.
+
+DELETE : Delete specified campaign.
+
+Method: GET
+-----------
+Get specified campaign detail info.
+
+Call
+++++
+::
+
+  GET /campaign/uuid
+  
+  {
+  }
+
+Returns
++++++++
+Specified campaign detail info.
+
+::
+
+  {
+    $defhdr,
+    "reuslt": {
+    }
+  }
+
+
+Example
++++++++
+::
+
+  $ curl -X GET 192.168.200.10:8081/campaigns/9841bc9e-3103-4fea-ab11-54ccfcc8322f
+
+  {
+    "api_ver": "0.1",
+    "result": {
+        "dest": "45122654-5633-4af0-a739-e32eddfbd2ae",
+        "detail": null,
+        "dlma": "6526c474-280e-4652-a1bf-731089c981a2",
+        "in_use": 1,
+        "name": "test campaign",
+        "next_campaign": null,
+        "plan": "552e9808-23bc-40b1-947a-60b0b96581cb",
+        "sc_date_end": null,
+        "sc_date_list": null,
+        "sc_date_list_except": null,
+        "sc_date_start": null,
+        "sc_day_list": null,
+        "sc_mode": 0,
+        "sc_time_end": null,
+        "sc_time_start": null,
+        "status": 0,
+        "tm_create": "2017-02-07T20:32:59.812399819Z",
+        "tm_delete": null,
+        "tm_update": "2017-02-22T14:46:49.622227668Z",
+        "uuid": "9841bc9e-3103-4fea-ab11-54ccfcc8322f"
+    },
+    "statuscode": 200,
+    "timestamp": "2017-03-05T09:15:41.329887897Z"
+  }
+
+Method: GET
+-----------
+Get list of all campaigns.
+
+Call
+++++
+::
+
+  GET /campaigns
+  
+Returns
++++++++
+::
+
+  {
+    $defhdr,
+    "reuslt": {
+      "list": [
+        "<campaign-uuid>",
+        ...
+      ]
+    }
+  }
+  
+* ``list`` : array of campaign-uuid
+
+Example
++++++++
+::
+
+  curl -X GET 192.168.200.10:8081/campaigns
+  
+  {
+    "api_ver": "0.1",
+    "result": {
+        "list": [
+            "9841bc9e-3103-4fea-ab11-54ccfcc8322f"
+        ]
+    },
+    "statuscode": 200,
+    "timestamp": "2017-03-05T09:10:23.658031316Z"
+  }
+
+
+
+   
