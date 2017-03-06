@@ -21,7 +21,7 @@
 #include "ob_dl_handler.h"
 #include "ob_plan_handler.h"
 
-//static json_t* get_campaign_deleted(const char* uuid);
+static json_t* get_deleted_campaign(const char* uuid);
 
 static bool is_startable_campaign_schedule(json_t* j_camp);
 static bool is_startable_campaign_schedule_day(json_t* j_camp, int day);
@@ -81,17 +81,20 @@ json_t* create_ob_campaign(const json_t* j_camp)
  * @param uuid
  * @return
  */
-bool delete_ob_campaign(const char* uuid)
+json_t* delete_ob_campaign(const char* uuid)
 {
   json_t* j_tmp;
+  json_t* j_res;
   char* tmp;
   char* sql;
   int ret;
 
   if(uuid == NULL) {
     // invalid parameter.
-    return false;
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
   }
+  slog(LOG_DEBUG, "Fired delete_ob_campaign. uuid[%s]", uuid);
 
   j_tmp = json_object();
   tmp = get_utc_timestamp();
@@ -109,15 +112,16 @@ bool delete_ob_campaign(const char* uuid)
   sfree(sql);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete campaign. uuid[%s]", uuid);
-    return false;
+    return NULL;
   }
 
-//  // send notification
-//  j_tmp = get_campaign_deleted(uuid);
-//  send_manager_evt_out_campaign_delete(j_tmp);
-//  json_decref(j_tmp);
+  j_res = get_deleted_campaign(uuid);
+  if(j_res == NULL) {
+    slog(LOG_ERR, "Could not get deleted campaign info. uuid[%s]", uuid);
+    return NULL;
+  }
 
-  return true;
+  return j_res;
 }
 
 /**
@@ -151,36 +155,36 @@ json_t* get_ob_campaign(const char* uuid)
   return j_res;
 }
 
-///**
-// * Get deleted campaign.
-// * @return
-// */
-//static json_t* get_campaign_deleted(const char* uuid)
-//{
-//  json_t* j_res;
-//  db_res_t* db_res;
-//  char* sql;
-//
-//  if(uuid == NULL) {
-//    return NULL;
-//  }
-//  slog(LOG_DEBUG, "Get deleted campaign info. uuid[%s]", uuid);
-//
-//  // get specified campaign
-//  asprintf(&sql, "select * from campaign where uuid=\"%s\" and in_use=%d;", uuid, E_DL_USE_NO);
-//
-//  db_res = db_query(sql);
-//  sfree(sql);
-//  if(db_res == NULL) {
-//    slog(LOG_WARNING, "Could not get campaign info.");
-//    return NULL;
-//  }
-//
-//  j_res = db_get_record(db_res);
-//  db_free(db_res);
-//
-//  return j_res;
-//}
+/**
+ * Get deleted campaign.
+ * @return
+ */
+static json_t* get_deleted_campaign(const char* uuid)
+{
+  json_t* j_res;
+  db_res_t* db_res;
+  char* sql;
+
+  if(uuid == NULL) {
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Get deleted campaign info. uuid[%s]", uuid);
+
+  // get specified campaign
+  asprintf(&sql, "select * from ob_campaign where uuid=\"%s\" and in_use=%d;", uuid, E_DL_USE_NO);
+
+  db_res = db_query(sql);
+  sfree(sql);
+  if(db_res == NULL) {
+    slog(LOG_WARNING, "Could not get deleted ob_campaign info.");
+    return NULL;
+  }
+
+  j_res = db_get_record(db_res);
+  db_free(db_res);
+
+  return j_res;
+}
 
 /**
  * Get all campaigns

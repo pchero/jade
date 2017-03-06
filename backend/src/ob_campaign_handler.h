@@ -36,7 +36,7 @@ typedef enum _E_CAMP_SCHEDULE_MODE
 } E_CAMP_SCHEDULE_MODE;
 
 json_t* create_ob_campaign(const json_t* j_camp);
-bool delete_ob_campaign(const char* uuid);
+json_t* delete_ob_campaign(const char* uuid);
 json_t* update_ob_campaign(const json_t* j_camp);
 bool update_ob_campaign_status(const char* uuid, E_CAMP_STATUS_T status);
 
