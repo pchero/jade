@@ -12,6 +12,9 @@ Asterisk based call manager.
 * libevhtp
 * libssl
 
+## Manual
+* https://rawgit.com/pchero/jade/master/backend/doc/build/html/index.html
+
 ## License
 * BSD License
 
