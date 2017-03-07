@@ -1,0 +1,734 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Outbound Structure &mdash; jade 0.0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="jade 0.0.1 documentation" href="index.html" />
+    <link rel="next" title="API basics" href="api.html" />
+    <link rel="prev" title="Basic" href="ob_basic.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="api.html" title="API basics"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="ob_basic.html" title="Basic"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">jade 0.0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="outbound-structure">
+<h1>Outbound Structure<a class="headerlink" href="#outbound-structure" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="basic-structures">
+<h2>Basic structures<a class="headerlink" href="#basic-structures" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="dial-list-end-handling">
+<h3>Dial list end handling<a class="headerlink" href="#dial-list-end-handling" title="Permalink to this headline">¶</a></h3>
+<table border="1" class="docutils" id="id1">
+<caption>Dail list end handling</caption>
+<colgroup>
+<col width="17%" />
+<col width="83%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Mode</th>
+<th class="head">Detail</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>0</td>
+<td>Keep current status.</td>
+</tr>
+<tr class="row-odd"><td>1</td>
+<td>Stop the campaign.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="tech-name">
+<span id="id2"></span><h3>Tech name<a class="headerlink" href="#tech-name" title="Permalink to this headline">¶</a></h3>
+<table border="1" class="docutils">
+<caption>Tech name</caption>
+<colgroup>
+<col width="18%" />
+<col width="82%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Mode</th>
+<th class="head">Detail</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>sip/</td>
+<td>Normal sip tech</td>
+</tr>
+<tr class="row-odd"><td>...</td>
+<td>...</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="trunk-name">
+<span id="id3"></span><h3>Trunk name<a class="headerlink" href="#trunk-name" title="Permalink to this headline">¶</a></h3>
+<p>Determine outbound call trunk info.</p>
+</div>
+<div class="section" id="dial-status">
+<h3>Dial status<a class="headerlink" href="#dial-status" title="Permalink to this headline">¶</a></h3>
+<table border="1" class="docutils" id="id4">
+<caption>Dial status</caption>
+<colgroup>
+<col width="19%" />
+<col width="81%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Status</th>
+<th class="head">Detail</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>0</td>
+<td>None</td>
+</tr>
+<tr class="row-odd"><td>1</td>
+<td>Originate request send</td>
+</tr>
+<tr class="row-even"><td>2</td>
+<td>Dialing begin</td>
+</tr>
+<tr class="row-odd"><td>3</td>
+<td>Channel create</td>
+</tr>
+<tr class="row-even"><td>4</td>
+<td>Dialing end</td>
+</tr>
+<tr class="row-odd"><td>5</td>
+<td>Originate response receive</td>
+</tr>
+<tr class="row-even"><td>6</td>
+<td>Hangup</td>
+</tr>
+<tr class="row-odd"><td>10</td>
+<td>Error occurred</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="dial-result">
+<h3>Dial result<a class="headerlink" href="#dial-result" title="Permalink to this headline">¶</a></h3>
+<table border="1" class="docutils" id="id5">
+<caption>Dial result</caption>
+<colgroup>
+<col width="5%" />
+<col width="95%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Result</th>
+<th class="head">Detail</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>0</td>
+<td>Dialing failed</td>
+</tr>
+<tr class="row-odd"><td>1</td>
+<td>Other end has hungup</td>
+</tr>
+<tr class="row-even"><td>2</td>
+<td>Local ring</td>
+</tr>
+<tr class="row-odd"><td>3</td>
+<td>Remote end is ringing</td>
+</tr>
+<tr class="row-even"><td>4</td>
+<td>Remote end has answered</td>
+</tr>
+<tr class="row-odd"><td>5</td>
+<td>Remote end is busy</td>
+</tr>
+<tr class="row-even"><td>6</td>
+<td>Make it go off hook</td>
+</tr>
+<tr class="row-odd"><td>7</td>
+<td>Line is off hook</td>
+</tr>
+<tr class="row-even"><td>8</td>
+<td>Congestion (circuits busy)</td>
+</tr>
+<tr class="row-odd"><td>9</td>
+<td>Flash hook</td>
+</tr>
+<tr class="row-even"><td>10</td>
+<td>Wink</td>
+</tr>
+<tr class="row-odd"><td>11</td>
+<td>Set a low-level option</td>
+</tr>
+<tr class="row-even"><td>12</td>
+<td>Key Radio</td>
+</tr>
+<tr class="row-odd"><td>13</td>
+<td>Un-Key Radio</td>
+</tr>
+<tr class="row-even"><td>14</td>
+<td>Indicate PROGRESS</td>
+</tr>
+<tr class="row-odd"><td>15</td>
+<td>Indicate CALL PROCEEDING</td>
+</tr>
+<tr class="row-even"><td>16</td>
+<td>Indicate call is placed on hold</td>
+</tr>
+<tr class="row-odd"><td>17</td>
+<td>Indicate call is left from hold</td>
+</tr>
+<tr class="row-even"><td>18</td>
+<td>Indicate video frame update</td>
+</tr>
+<tr class="row-odd"><td>19</td>
+<td>T38 state change request/notification deprecated This is no longer supported. Use AST_CONTROL_T38_PARAMETERS instead.</td>
+</tr>
+<tr class="row-even"><td>20</td>
+<td>Indicate source of media has changed</td>
+</tr>
+<tr class="row-odd"><td>21</td>
+<td>Indicate status of a transfer request</td>
+</tr>
+<tr class="row-even"><td>22</td>
+<td>Indicate connected line has changed</td>
+</tr>
+<tr class="row-odd"><td>23</td>
+<td>Indicate redirecting id has changed</td>
+</tr>
+<tr class="row-even"><td>24</td>
+<td>T38 state change request/notification with parameters</td>
+</tr>
+<tr class="row-odd"><td>25</td>
+<td>Indication that Call completion service is possible</td>
+</tr>
+<tr class="row-even"><td>26</td>
+<td>Media source has changed and requires a new RTP SSRC</td>
+</tr>
+<tr class="row-odd"><td>27</td>
+<td>Tell ast_read to take a specific action</td>
+</tr>
+<tr class="row-even"><td>28</td>
+<td>Advice of Charge with encoded generic AOC payload</td>
+</tr>
+<tr class="row-odd"><td>29</td>
+<td>Indicate that this position was the end of the channel queue for a softhangup.</td>
+</tr>
+<tr class="row-even"><td>30</td>
+<td>Indication that the extension dialed is incomplete</td>
+</tr>
+<tr class="row-odd"><td>31</td>
+<td>Indicate that the caller is being malicious.</td>
+</tr>
+<tr class="row-even"><td>32</td>
+<td>Interrupt the bridge and have it update the peer</td>
+</tr>
+<tr class="row-odd"><td>33</td>
+<td>Contains an update to the protocol-specific cause-code stored for branching dials</td>
+</tr>
+<tr class="row-even"><td>34</td>
+<td>A masquerade is about to begin/end. (Never sent as a frame but directly with ast_indicate_data().)</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="hangup-result">
+<h3>Hangup result<a class="headerlink" href="#hangup-result" title="Permalink to this headline">¶</a></h3>
+<table border="1" class="docutils" id="id6">
+<caption>Hangup result</caption>
+<colgroup>
+<col width="14%" />
+<col width="86%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Result</th>
+<th class="head">Detail</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>1</td>
+<td>Unallocated.</td>
+</tr>
+<tr class="row-odd"><td>2</td>
+<td>No route trasit network.</td>
+</tr>
+<tr class="row-even"><td>3</td>
+<td>No route destination.</td>
+</tr>
+<tr class="row-odd"><td>5</td>
+<td>Mis dialled trunk prefix.</td>
+</tr>
+<tr class="row-even"><td>6</td>
+<td>Channel unacceptable.</td>
+</tr>
+<tr class="row-odd"><td>7</td>
+<td>Call awarded delivered.</td>
+</tr>
+<tr class="row-even"><td>8</td>
+<td>Pre empted.</td>
+</tr>
+<tr class="row-odd"><td>14</td>
+<td>Number ported not here.</td>
+</tr>
+<tr class="row-even"><td>16</td>
+<td>Normal clearing.</td>
+</tr>
+<tr class="row-odd"><td>17</td>
+<td>User busy.</td>
+</tr>
+<tr class="row-even"><td>18</td>
+<td>No user response.</td>
+</tr>
+<tr class="row-odd"><td>19</td>
+<td>No answer.</td>
+</tr>
+<tr class="row-even"><td>20</td>
+<td>Subscriber absent.</td>
+</tr>
+<tr class="row-odd"><td>21</td>
+<td>Call rejected.</td>
+</tr>
+<tr class="row-even"><td>22</td>
+<td>Number changed.</td>
+</tr>
+<tr class="row-odd"><td>23</td>
+<td>Redirected to new destination.</td>
+</tr>
+<tr class="row-even"><td>26</td>
+<td>Answered eleswhere.</td>
+</tr>
+<tr class="row-odd"><td>27</td>
+<td>Destination out of order.</td>
+</tr>
+<tr class="row-even"><td>28</td>
+<td>Invalid number format.</td>
+</tr>
+<tr class="row-odd"><td>29</td>
+<td>Facility rejected.</td>
+</tr>
+<tr class="row-even"><td>30</td>
+<td>Response to status enquiry.</td>
+</tr>
+<tr class="row-odd"><td>31</td>
+<td>Normal unspecified.</td>
+</tr>
+<tr class="row-even"><td>34</td>
+<td>Normal circuit congestion.</td>
+</tr>
+<tr class="row-odd"><td>38</td>
+<td>Network out of order.</td>
+</tr>
+<tr class="row-even"><td>41</td>
+<td>Normal temporary failure.</td>
+</tr>
+<tr class="row-odd"><td>42</td>
+<td>Switch congestion.</td>
+</tr>
+<tr class="row-even"><td>43</td>
+<td>Access info discarded.</td>
+</tr>
+<tr class="row-odd"><td>44</td>
+<td>Requested chan unavail.</td>
+</tr>
+<tr class="row-even"><td>50</td>
+<td>Facility not subscribed.</td>
+</tr>
+<tr class="row-odd"><td>52</td>
+<td>Outgoing call barred.</td>
+</tr>
+<tr class="row-even"><td>54</td>
+<td>Incoming call barred.</td>
+</tr>
+<tr class="row-odd"><td>57</td>
+<td>Bearer capability not auth.</td>
+</tr>
+<tr class="row-even"><td>58</td>
+<td>Bearer capability not available.</td>
+</tr>
+<tr class="row-odd"><td>65</td>
+<td>Bearer capability not implemented.</td>
+</tr>
+<tr class="row-even"><td>66</td>
+<td>Channel not implemented.</td>
+</tr>
+<tr class="row-odd"><td>69</td>
+<td>Facility not implemented.</td>
+</tr>
+<tr class="row-even"><td>81</td>
+<td>Invalid call reference.</td>
+</tr>
+<tr class="row-odd"><td>88</td>
+<td>Incompatible destination.</td>
+</tr>
+<tr class="row-even"><td>95</td>
+<td>Invalid message unspecified.</td>
+</tr>
+<tr class="row-odd"><td>96</td>
+<td>Madatory item missing.</td>
+</tr>
+<tr class="row-even"><td>97</td>
+<td>Message type nonexist.</td>
+</tr>
+<tr class="row-odd"><td>98</td>
+<td>Wrong message.</td>
+</tr>
+<tr class="row-even"><td>99</td>
+<td>Item nonexist.</td>
+</tr>
+<tr class="row-odd"><td>100</td>
+<td>Invalid item contents.</td>
+</tr>
+<tr class="row-even"><td>101</td>
+<td>Wrong call state.</td>
+</tr>
+<tr class="row-odd"><td>102</td>
+<td>Recovery on timer expire.</td>
+</tr>
+<tr class="row-even"><td>103</td>
+<td>Mandatory item length error.</td>
+</tr>
+<tr class="row-odd"><td>111</td>
+<td>Protocol error.</td>
+</tr>
+<tr class="row-even"><td>127</td>
+<td>Internetwroking.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="destination">
+<h2>Destination<a class="headerlink" href="#destination" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="destination-type">
+<h3>Destination type<a class="headerlink" href="#destination-type" title="Permalink to this headline">¶</a></h3>
+<table border="1" class="docutils" id="id7">
+<caption>Destination type</caption>
+<colgroup>
+<col width="18%" />
+<col width="82%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Type</th>
+<th class="head">Detail</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>0</td>
+<td>Extensioin</td>
+</tr>
+<tr class="row-odd"><td>1</td>
+<td>Application</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="application-availability">
+<h3>Application availability<a class="headerlink" href="#application-availability" title="Permalink to this headline">¶</a></h3>
+<table border="1" class="docutils" id="id8">
+<caption>Application availability</caption>
+<colgroup>
+<col width="31%" />
+<col width="69%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Application</th>
+<th class="head">Detail</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>queue</td>
+<td>QueueSummary&#8217;s Available.</td>
+</tr>
+<tr class="row-odd"><td>park</td>
+<td>Unlimited.</td>
+</tr>
+<tr class="row-even"><td>others</td>
+<td>Unlimited.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="campaign">
+<h2>Campaign<a class="headerlink" href="#campaign" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="campaign-status">
+<span id="id9"></span><h3>Campaign status<a class="headerlink" href="#campaign-status" title="Permalink to this headline">¶</a></h3>
+<table border="1" class="docutils">
+<caption>Campaign status</caption>
+<colgroup>
+<col width="26%" />
+<col width="74%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Status</th>
+<th class="head">Detail</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>0</td>
+<td>Stop</td>
+</tr>
+<tr class="row-odd"><td>1</td>
+<td>Start</td>
+</tr>
+<tr class="row-even"><td>2</td>
+<td>Pause</td>
+</tr>
+<tr class="row-odd"><td>10</td>
+<td>Stopping</td>
+</tr>
+<tr class="row-even"><td>11</td>
+<td>Starting</td>
+</tr>
+<tr class="row-odd"><td>12</td>
+<td>Pausing</td>
+</tr>
+<tr class="row-even"><td>30</td>
+<td>Stopping forcedly</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="scheduling">
+<span id="id10"></span><h3>Scheduling<a class="headerlink" href="#scheduling" title="Permalink to this headline">¶</a></h3>
+<p>The campaign can sets schedule. If the schedule sets, the campaign start and stop automatically on schedule.</p>
+<div class="section" id="scheduling-mode">
+<span id="id11"></span><h4>Scheduling mode<a class="headerlink" href="#scheduling-mode" title="Permalink to this headline">¶</a></h4>
+<table border="1" class="docutils">
+<caption>Scheduling mode</caption>
+<colgroup>
+<col width="15%" />
+<col width="85%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Mode</th>
+<th class="head">Detail</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>0</td>
+<td>Scheduling on</td>
+</tr>
+<tr class="row-odd"><td>1</td>
+<td>Scheduling off</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="scheduling-time">
+<span id="id12"></span><h4>Scheduling time<a class="headerlink" href="#scheduling-time" title="Permalink to this headline">¶</a></h4>
+<p>Scheduling time. 24H</p>
+<div class="highlight-python"><div class="highlight"><pre>hh:mm:ss
+</pre></div>
+</div>
+<ul class="simple">
+<li>hh : Hour. 00 ~ 23</li>
+<li>mm : Minute. 00 ~ 59</li>
+<li>ss : Second. 00 ~ 59</li>
+</ul>
+<p>Example</p>
+<div class="highlight-python"><div class="highlight"><pre>15:00:00
+</pre></div>
+</div>
+</div>
+<div class="section" id="scheduling-date">
+<span id="id13"></span><h4>Scheduling date<a class="headerlink" href="#scheduling-date" title="Permalink to this headline">¶</a></h4>
+<p>Scheduling date.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">YYYY</span><span class="o">-</span><span class="n">MM</span><span class="o">-</span><span class="n">DD</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li>YYYY : Year.</li>
+<li>MM : Month.</li>
+<li>DD : Day.</li>
+</ul>
+<p>Example</p>
+<dl class="docutils">
+<dt>::</dt>
+<dd>2016-11-17</dd>
+</dl>
+</div>
+<div class="section" id="scheduling-date-list">
+<span id="id14"></span><h4>Scheduling date list<a class="headerlink" href="#scheduling-date-list" title="Permalink to this headline">¶</a></h4>
+<p>List of scheduling date.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">YYYY</span><span class="o">-</span><span class="n">MM</span><span class="o">-</span><span class="n">DD</span><span class="p">,</span> <span class="n">YYYY</span><span class="o">-</span><span class="n">MM</span><span class="o">-</span><span class="n">DD</span>
+</pre></div>
+</div>
+<p>Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="mi">2016</span><span class="o">-</span><span class="mi">11</span><span class="o">-</span><span class="mi">16</span><span class="p">,</span> <span class="mi">2016</span><span class="o">-</span><span class="mi">11</span><span class="o">-</span><span class="mi">17</span><span class="p">,</span> <span class="mi">2016</span><span class="o">-</span><span class="mi">11</span><span class="o">-</span><span class="mi">18</span><span class="p">,</span> <span class="o">...</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="scheduling-day-list">
+<span id="id15"></span><h4>Scheduling day list<a class="headerlink" href="#scheduling-day-list" title="Permalink to this headline">¶</a></h4>
+<p>List of scheduling day.</p>
+<div class="highlight-python"><div class="highlight"><pre>0 : Sunday
+1 : Monday
+2 : Tuesday
+3 : Wednesday
+4 : Thursday
+5 : Friday
+6 : Satursay
+</pre></div>
+</div>
+<p>Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="plan">
+<h2>Plan<a class="headerlink" href="#plan" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="dial-mode">
+<h3>Dial mode<a class="headerlink" href="#dial-mode" title="Permalink to this headline">¶</a></h3>
+<table border="1" class="docutils" id="id16">
+<caption>Dial mode</caption>
+<colgroup>
+<col width="18%" />
+<col width="82%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Mode</th>
+<th class="head">Detail</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>0</td>
+<td>None(No dial mode)</td>
+</tr>
+<tr class="row-odd"><td>1</td>
+<td>Predictive</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Outbound Structure</a><ul>
+<li><a class="reference internal" href="#basic-structures">Basic structures</a><ul>
+<li><a class="reference internal" href="#dial-list-end-handling">Dial list end handling</a></li>
+<li><a class="reference internal" href="#tech-name">Tech name</a></li>
+<li><a class="reference internal" href="#trunk-name">Trunk name</a></li>
+<li><a class="reference internal" href="#dial-status">Dial status</a></li>
+<li><a class="reference internal" href="#dial-result">Dial result</a></li>
+<li><a class="reference internal" href="#hangup-result">Hangup result</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#destination">Destination</a><ul>
+<li><a class="reference internal" href="#destination-type">Destination type</a></li>
+<li><a class="reference internal" href="#application-availability">Application availability</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#campaign">Campaign</a><ul>
+<li><a class="reference internal" href="#campaign-status">Campaign status</a></li>
+<li><a class="reference internal" href="#scheduling">Scheduling</a><ul>
+<li><a class="reference internal" href="#scheduling-mode">Scheduling mode</a></li>
+<li><a class="reference internal" href="#scheduling-time">Scheduling time</a></li>
+<li><a class="reference internal" href="#scheduling-date">Scheduling date</a></li>
+<li><a class="reference internal" href="#scheduling-date-list">Scheduling date list</a></li>
+<li><a class="reference internal" href="#scheduling-day-list">Scheduling day list</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#plan">Plan</a><ul>
+<li><a class="reference internal" href="#dial-mode">Dial mode</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="ob_basic.html"
+                        title="previous chapter">Basic</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="api.html"
+                        title="next chapter">API basics</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/ob_structure.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="api.html" title="API basics"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="ob_basic.html" title="Basic"
+             >previous</a> |</li>
+        <li><a href="index.html">jade 0.0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2017, pchero.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>
