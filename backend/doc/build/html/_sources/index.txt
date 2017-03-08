@@ -16,6 +16,7 @@ Contents:
    ob_basic
    ob_structure
    api
+   ob_tutorial
 
 Indices and tables
 ==================
