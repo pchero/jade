@@ -2,8 +2,26 @@ Jade
 ====
 Asterisk based call manager.
 
+This module makes easy to managing the calls.
+
+## Call manapulating
+* Call monitoring.
+* Call handling.
+
+## Stratigical outbound call managing
+* Call balancing
+* Stratigical retrying
+* Customer info based dial list
+* Call capsulization
+* Dynamic resource management
+* Campaign scheduling
+* Set variables
+* Monitoring
+* Detail dial result
+
 ## Requirements
 * Asterisk-13.6 or later
+* Asterisk-14.3 or later
 * Asterisk-manager module
 * libsqlite3
 * libevent2
