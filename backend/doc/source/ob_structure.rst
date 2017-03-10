@@ -7,35 +7,6 @@ Outbound Structure
 Basic structures
 ================
 
-   
-Dial list end handling
-----------------------
-
-.. _dial_list_end_handling:
-
-.. table:: Dail list end handling
-
-   ==== ==================
-   Mode Detail
-   ==== ==================
-   0    Keep current status.
-   1    Stop the campaign.
-   ==== ==================
-
-.. _tech_name:
-
-Tech name
----------
-
-.. table:: Tech name
-
-   ==== ==================
-   Mode Detail
-   ==== ==================
-   sip/ Normal sip tech
-   ...  ...
-   ==== ==================
-
 .. _trunk_name:
 
 Trunk name
@@ -337,3 +308,37 @@ Dial mode
    1    Predictive
    ==== ==================
 
+.. _tech_name:
+
+Tech name
+---------
+
+.. table:: Tech name
+
+   ==== ==================
+   Mode Detail
+   ==== ==================
+   sip  Normal sip tech
+   ...  ...
+   ==== ==================
+
+   
+Dial list end handling
+----------------------
+
+.. _dial_list_end_handling:
+
+.. table:: Dail list end handling
+
+   ==== ==================
+   Mode Detail
+   ==== ==================
+   0    Keep current status.
+   1    Stop the campaign.
+   ==== ==================
+
+.. _trunk_name:
+
+Trunk name
+----------
+Outbound trunk
