@@ -56,14 +56,13 @@ objects. This objects will not be explain again.
     "result": {
       "message": "<message-name>",
       "type": "<message-type>",
-      "timestamp_ms": "<YYYY-mm-ddTHH:MM:SS.fffZ>"
+      "timestamp": "<YYYY-mm-ddTHH:MM:SS.fffZ>"
     }
   }
 
 * ``message``: Represents message name. Fixed.
 * ``type``: Represents message type. Fixed.
-* ``timestamp_ms`` Denotes when the message has been created.
-  See the :term:`Timestamp`.
+* ``timestamp`` Denotes when the message has been created. See the :term:`Timestamp`.
 
 Example
 +++++++

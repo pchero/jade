@@ -13,9 +13,10 @@ Contents:
 
    glossary
    intro
+   api
    ob_basic
    ob_structure
-   api
+   ob_api
    ob_tutorial
 
 Indices and tables

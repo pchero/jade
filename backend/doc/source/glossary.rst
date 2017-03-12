@@ -7,6 +7,8 @@ Glossary
 Terms
 =====
 
+.. _timestamp:
+
 #. Timestamp
 
 

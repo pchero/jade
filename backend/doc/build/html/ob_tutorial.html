@@ -24,7 +24,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="jade 0.0.1 documentation" href="index.html" />
-    <link rel="prev" title="API basics" href="api.html" /> 
+    <link rel="prev" title="/plans" href="ob_api.html" /> 
   </head>
   <body>
     <div class="related">
@@ -34,7 +34,7 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="api.html" title="API basics"
+          <a href="ob_api.html" title="/plans"
              accesskey="P">previous</a> |</li>
         <li><a href="index.html">jade 0.0.1 documentation</a> &raquo;</li> 
       </ul>
@@ -195,32 +195,27 @@ agent-03/26315780         192.168.200.1                            D  No        
 <div class="section" id="create-dlma-and-dial-list">
 <h3>Create dlma and dial list<a class="headerlink" href="#create-dlma-and-dial-list" title="Permalink to this headline">¶</a></h3>
 <p>Create dlma.</p>
-<dl class="docutils">
-<dt>::</dt>
-<dd><p class="first">$ curl -X POST <a class="reference external" href="http://192.168.200.10:8081/dlmas">http://192.168.200.10:8081/dlmas</a> -d
-&#8216;{&#8220;name&#8221;: &#8220;basic tutorial dlma&#8221;, &#8220;detail&#8221;: &#8220;test dlma for basic tutorial&#8221;}&#8217;</p>
-<dl class="docutils">
-<dt>{</dt>
-<dd><p class="first">&#8220;api_ver&#8221;: &#8220;0.1&#8221;,
-&#8220;result&#8221;: {</p>
-<blockquote>
-<div>&#8220;detail&#8221;: &#8220;test dlma for basic tutorial&#8221;,
-&#8220;dl_table&#8221;: &#8220;42b72a18_a6c5_43bf_b9aa_6043ff32128d&#8221;,
-&#8220;in_use&#8221;: 1,
-&#8220;name&#8221;: &#8220;basic tutorial dlma&#8221;,
-&#8220;tm_create&#8221;: &#8220;2017-03-08T01:51:40.978836362Z&#8221;,
-&#8220;tm_delete&#8221;: null,
-&#8220;tm_update&#8221;: null,
-&#8220;uuid&#8221;: &#8220;42b72a18-a6c5-43bf-b9aa-6043ff32128d&#8221;,
-&#8220;variables&#8221;: null</div></blockquote>
-<p class="last">},
-&#8220;statuscode&#8221;: 200,
-&#8220;timestamp&#8221;: &#8220;2017-03-08T01:51:41.37138842Z&#8221;</p>
-</dd>
-</dl>
-<p class="last">}</p>
-</dd>
-</dl>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X POST http://192.168.200.10:8081/dlmas -d
+&#39;{&quot;name&quot;: &quot;basic tutorial dlma&quot;, &quot;detail&quot;: &quot;test dlma for basic tutorial&quot;}&#39;
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;result&quot;: {
+    &quot;detail&quot;: &quot;test dlma for basic tutorial&quot;,
+    &quot;dl_table&quot;: &quot;42b72a18_a6c5_43bf_b9aa_6043ff32128d&quot;,
+    &quot;in_use&quot;: 1,
+    &quot;name&quot;: &quot;basic tutorial dlma&quot;,
+    &quot;tm_create&quot;: &quot;2017-03-08T01:51:40.978836362Z&quot;,
+    &quot;tm_delete&quot;: null,
+    &quot;tm_update&quot;: null,
+    &quot;uuid&quot;: &quot;42b72a18-a6c5-43bf-b9aa-6043ff32128d&quot;,
+    &quot;variables&quot;: null
+  },
+  &quot;statuscode&quot;: 200,
+  &quot;timestamp&quot;: &quot;2017-03-08T01:51:41.37138842Z&quot;
+}
+</pre></div>
+</div>
 <p>Create dial list</p>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -X POST http://192.168.200.10:8081/dls -d
 &#39;{&quot;dlma_uuid&quot;:&quot;42b72a18-a6c5-43bf-b9aa-6043ff32128d&quot;, &quot;name&quot;: &quot;basic tutorial test customer 1&quot;, &quot;detail&quot;: &quot;test customer for basic tutorial&quot;, &quot;number_1&quot;: &quot;300&quot;}&#39;
@@ -820,8 +815,8 @@ And if the client answer the call, the agent&#8217;s device will be ringing.</p>
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="api.html"
-                        title="previous chapter">API basics</a></p>
+  <p class="topless"><a href="ob_api.html"
+                        title="previous chapter">/plans</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="_sources/ob_tutorial.txt"
@@ -851,7 +846,7 @@ And if the client answer the call, the agent&#8217;s device will be ringing.</p>
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="api.html" title="API basics"
+          <a href="ob_api.html" title="/plans"
              >previous</a> |</li>
         <li><a href="index.html">jade 0.0.1 documentation</a> &raquo;</li> 
       </ul>

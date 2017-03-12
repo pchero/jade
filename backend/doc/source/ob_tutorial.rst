@@ -163,6 +163,7 @@ Create dlma and dial list
 Create dlma.
 
 ::
+
    $ curl -X POST http://192.168.200.10:8081/dlmas -d 
    '{"name": "basic tutorial dlma", "detail": "test dlma for basic tutorial"}'
    

@@ -1,0 +1,2869 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>/plans &mdash; jade 0.0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="jade 0.0.1 documentation" href="index.html" />
+    <link rel="next" title="Outbound tutorial" href="ob_tutorial.html" />
+    <link rel="prev" title="Outbound Structure" href="ob_structure.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="ob_tutorial.html" title="Outbound tutorial"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="ob_structure.html" title="Outbound Structure"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">jade 0.0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="plans">
+<span id="ob-api"></span><h1>/plans<a class="headerlink" href="#plans" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="methods">
+<h2>Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h2>
+<p>POST : Create new plan.</p>
+<p>GET : Get list of all plans.</p>
+</div>
+<div class="section" id="method-post">
+<h2>Method: POST<a class="headerlink" href="#method-post" title="Permalink to this headline">¶</a></h2>
+<p>Create new plan.</p>
+<div class="section" id="call">
+<h3>Call<a class="headerlink" href="#call" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>POST /plans
+
+{
+  &quot;name&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;detail&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;tech_name&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;trunk_name&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;dl_end_handle&quot;: &lt;integer&gt;,
+  &quot;caller_id&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;dial_mode&quot;: &lt;integer&gt;,
+  &quot;dial_timeout&quot;: &lt;integer&gt;,
+  &quot;retry_delay&quot;: &lt;integer&gt;,
+  &quot;service_level&quot;: &lt;integer&gt;,
+  &quot;early_media&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;codecs&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;variables&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;max_retry_cnt_1&quot;: &lt;integer&gt;,
+  &quot;max_retry_cnt_2&quot;: &lt;integer&gt;,
+  &quot;max_retry_cnt_3&quot;: &lt;integer&gt;,
+  &quot;max_retry_cnt_4&quot;: &lt;integer&gt;,
+  &quot;max_retry_cnt_5&quot;: &lt;integer&gt;,
+  &quot;max_retry_cnt_6&quot;: &lt;integer&gt;,
+  &quot;max_retry_cnt_7&quot;: &lt;integer&gt;,
+  &quot;max_retry_cnt_8&quot;: &lt;integer&gt;
+}
+</pre></div>
+</div>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">name</span></tt>: Plan name.</li>
+<li><tt class="docutils literal"><span class="pre">detail</span></tt>: Detail info.</li>
+<li><tt class="docutils literal"><span class="pre">tech_name</span></tt>: Tech name for outbound dialing. See detail <a class="reference internal" href="ob_structure.html#tech-name"><em>Tech name</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">trunk_name</span></tt>: Trunkname for outbound dialing. See detail <a class="reference internal" href="ob_structure.html#trunk-name"><em>Trunk name</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">dl_end_handle</span></tt>: Determine behavior of when the dial list end. See detail <a class="reference internal" href="ob_structure.html#id15"><em>Dail list end handling</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">caller_id</span></tt>: Caller&#8217;s id.</li>
+<li><tt class="docutils literal"><span class="pre">dial_mode</span></tt>: Dialling mode. See detail <a class="reference internal" href="ob_structure.html#id13"><em>Dial mode</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">dial_timeout</span></tt>: Ringing timeout(ms).</li>
+<li><tt class="docutils literal"><span class="pre">retry_delay</span></tt>: Delay time for next try(sec).</li>
+<li><tt class="docutils literal"><span class="pre">service_level</span></tt>: Determine service level.</li>
+<li><tt class="docutils literal"><span class="pre">early_media</span></tt>: Set to true to force call bridge on early media.</li>
+<li><tt class="docutils literal"><span class="pre">codecs</span></tt>: Codecs. Comma-separated list of codecs to use for this call.</li>
+<li><tt class="docutils literal"><span class="pre">max_retry_cnt_1</span></tt>: Max retry count for number 1.</li>
+<li><tt class="docutils literal"><span class="pre">max_retry_cnt_2</span></tt>: Max retry count for number 2.</li>
+<li><tt class="docutils literal"><span class="pre">max_retry_cnt_3</span></tt>: Max retry count for number 3.</li>
+<li><tt class="docutils literal"><span class="pre">max_retry_cnt_4</span></tt>: Max retry count for number 4.</li>
+<li><tt class="docutils literal"><span class="pre">max_retry_cnt_5</span></tt>: Max retry count for number 5.</li>
+<li><tt class="docutils literal"><span class="pre">max_retry_cnt_6</span></tt>: Max retry count for number 6.</li>
+<li><tt class="docutils literal"><span class="pre">max_retry_cnt_7</span></tt>: Max retry count for number 7.</li>
+<li><tt class="docutils literal"><span class="pre">max_retry_cnt_8</span></tt>: Max retry count for number 8.</li>
+<li><tt class="docutils literal"><span class="pre">variables</span></tt>:</li>
+</ul>
+</div>
+<div class="section" id="returns">
+<h3>Returns<a class="headerlink" href="#returns" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr,
+  &quot;reuslt&quot;: {
+    &quot;uuid&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;name&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;detail&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;tech_name&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;trunk_name&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;dl_end_handle&quot;: &lt;integer&gt;,
+    &quot;caller_id&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;dial_mode&quot;: &lt;integer&gt;,
+    &quot;dial_timeout&quot;: &lt;integer&gt;,
+    &quot;retry_delay&quot;: &lt;integer&gt;,
+    &quot;service_level&quot;: &lt;integer&gt;,
+    &quot;early_media&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;codecs&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;max_retry_cnt_1&quot;: &lt;integer&gt;,
+    &quot;max_retry_cnt_2&quot;: &lt;integer&gt;,
+    &quot;max_retry_cnt_3&quot;: &lt;integer&gt;,
+    &quot;max_retry_cnt_4&quot;: &lt;integer&gt;,
+    &quot;max_retry_cnt_5&quot;: &lt;integer&gt;,
+    &quot;max_retry_cnt_6&quot;: &lt;integer&gt;,
+    &quot;max_retry_cnt_7&quot;: &lt;integer&gt;,
+    &quot;max_retry_cnt_8&quot;: &lt;integer&gt;,
+    &quot;variables&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;in_use&quot;: &lt;integer&gt;,
+    &quot;tm_create&quot;: &quot;&lt;timestamp&gt;&quot;,
+    &quot;tm_update&quot;: &quot;&lt;timestamp&gt;&quot;,
+    &quot;tm_delete&quot;: &quot;&lt;timestamp&gt;&quot;
+  }
+}
+</pre></div>
+</div>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">uuid</span></tt> : Created plan uuid.</li>
+<li><tt class="docutils literal"><span class="pre">name</span></tt>: Plan name.</li>
+<li><tt class="docutils literal"><span class="pre">detail</span></tt>: Detail info.</li>
+<li><tt class="docutils literal"><span class="pre">tech_name</span></tt>: Tech name for outbound dialing. See detail <a class="reference internal" href="ob_structure.html#tech-name"><em>Tech name</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">trunk_name</span></tt>: Trunkname for outbound dialing. See detail <a class="reference internal" href="ob_structure.html#trunk-name"><em>Trunk name</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">dl_end_handle</span></tt>: Determine behavior of when the dial list end. See detail <a class="reference internal" href="ob_structure.html#id15"><em>Dail list end handling</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">caller_id</span></tt>: Caller&#8217;s id.</li>
+<li><tt class="docutils literal"><span class="pre">dial_mode</span></tt>: Dialling mode. See detail <a class="reference internal" href="ob_structure.html#id13"><em>Dial mode</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">dial_timeout</span></tt>: Ringing timeout(ms).</li>
+<li><tt class="docutils literal"><span class="pre">retry_delay</span></tt>: Delay time for next try(sec).</li>
+<li><tt class="docutils literal"><span class="pre">service_level</span></tt>: Determine service level.</li>
+<li><tt class="docutils literal"><span class="pre">early_media</span></tt>: Set to true to force call bridge on early media.</li>
+<li><tt class="docutils literal"><span class="pre">codecs</span></tt>: Codecs. Comma-separated list of codecs to use for this call.</li>
+<li><tt class="docutils literal"><span class="pre">max_retry_cnt_1</span></tt>: Max retry count for number 1.</li>
+<li><tt class="docutils literal"><span class="pre">max_retry_cnt_2</span></tt>: Max retry count for number 2.</li>
+<li><tt class="docutils literal"><span class="pre">max_retry_cnt_3</span></tt>: Max retry count for number 3.</li>
+<li><tt class="docutils literal"><span class="pre">max_retry_cnt_4</span></tt>: Max retry count for number 4.</li>
+<li><tt class="docutils literal"><span class="pre">max_retry_cnt_5</span></tt>: Max retry count for number 5.</li>
+<li><tt class="docutils literal"><span class="pre">max_retry_cnt_6</span></tt>: Max retry count for number 6.</li>
+<li><tt class="docutils literal"><span class="pre">max_retry_cnt_7</span></tt>: Max retry count for number 7.</li>
+<li><tt class="docutils literal"><span class="pre">max_retry_cnt_8</span></tt>: Max retry count for number 8.</li>
+<li><tt class="docutils literal"><span class="pre">variables</span></tt>:</li>
+</ul>
+</div>
+<div class="section" id="example">
+<h3>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X POST 192.168.200.10:8081/plans -d &#39;{&quot;name&quot;: &quot;Test plan create&quot;}&#39;
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;timestamp&quot;: &quot;2017-02-22T16:57:49.973941490Z&quot;,
+  &quot;statuscode&quot;: 200,
+  &quot;result&quot;: {
+    &quot;detail&quot;: null,
+    &quot;tech_name&quot;: &quot;SIP&quot;,
+    &quot;uuid&quot;: &quot;c8b521ab-8114-4a62-b4e9-488d770d4ee8&quot;,
+    &quot;dl_end_handle&quot;: 1,
+    &quot;name&quot;: &quot;Test plan create&quot;,
+    &quot;tm_delete&quot;: null,
+    &quot;max_retry_cnt_5&quot;: 5,
+    &quot;caller_id&quot;: null,
+    &quot;variables&quot;: null,
+    &quot;max_retry_cnt_4&quot;: 5,
+    &quot;in_use&quot;: 1,
+    &quot;dial_mode&quot;: 1,
+    &quot;retry_delay&quot;: 60,
+    &quot;dial_timeout&quot;: 30000,
+    &quot;trunk_name&quot;: null,
+    &quot;tm_create&quot;: &quot;2017-02-22T16:57:49.962162166Z&quot;,
+    &quot;service_level&quot;: 0,
+    &quot;early_media&quot;: null,
+    &quot;codecs&quot;: null,
+    &quot;max_retry_cnt_1&quot;: 5,
+    &quot;max_retry_cnt_2&quot;: 5,
+    &quot;max_retry_cnt_3&quot;: 5,
+    &quot;max_retry_cnt_6&quot;: 5,
+    &quot;max_retry_cnt_7&quot;: 5,
+    &quot;max_retry_cnt_8&quot;: 5,
+    &quot;tm_update&quot;: null
+  }
+}
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="method-get">
+<h2>Method: GET<a class="headerlink" href="#method-get" title="Permalink to this headline">¶</a></h2>
+<p>Get list of all plans.</p>
+<div class="section" id="id1">
+<h3>Call<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">GET</span> <span class="o">/</span><span class="n">plans</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id2">
+<h3>Returns<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr,
+  &quot;reuslt&quot;: {
+    &quot;list&quot;: [
+      &quot;&lt;plan-uuid&gt;&quot;,
+      ...
+    ]
+  }
+}
+</pre></div>
+</div>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">list</span></tt> : array of plan-uuid.</li>
+</ul>
+</div>
+<div class="section" id="id3">
+<h3>Example<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>curl -X GET 192.168.200.10:8081/plans
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;result&quot;: {
+    &quot;list&quot;: [
+       &quot;552e9808-23bc-40b1-947a-60b0b96581cb&quot;
+    ]
+  },
+  &quot;statuscode&quot;: 200,
+  &quot;timestamp&quot;: &quot;2017-02-22T16:48:04.890697147Z&quot;
+}
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="plans-uuid">
+<h1>/plans/&lt;uuid&gt;<a class="headerlink" href="#plans-uuid" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id4">
+<h2>Methods<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<p>GET : Get specified plan detail info.</p>
+<p>PUT : Update specified plan detail info.</p>
+<p>DELETE : Delete specified plan</p>
+</div>
+<div class="section" id="id5">
+<h2>Method: GET<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<p>Get plan detail info.</p>
+<div class="section" id="id6">
+<h3>Call<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>GET /plans/&lt;plan-uuid&gt;
+</pre></div>
+</div>
+</div>
+<div class="section" id="id7">
+<h3>Returns<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr,
+  &quot;reuslt&quot;: {
+    &quot;uuid&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;name&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;detail&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;tech_name&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;trunk_name&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;dl_end_handle&quot;: &lt;integer&gt;,
+    &quot;caller_id&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;dial_mode&quot;: &lt;integer&gt;,
+    &quot;dial_timeout&quot;: &lt;integer&gt;,
+    &quot;retry_delay&quot;: &lt;integer&gt;,
+    &quot;service_level&quot;: &lt;integer&gt;,
+    &quot;early_media&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;codecs&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;max_retry_cnt_1&quot;: &lt;integer&gt;,
+    &quot;max_retry_cnt_2&quot;: &lt;integer&gt;,
+    &quot;max_retry_cnt_3&quot;: &lt;integer&gt;,
+    &quot;max_retry_cnt_4&quot;: &lt;integer&gt;,
+    &quot;max_retry_cnt_5&quot;: &lt;integer&gt;,
+    &quot;max_retry_cnt_6&quot;: &lt;integer&gt;,
+    &quot;max_retry_cnt_7&quot;: &lt;integer&gt;,
+    &quot;max_retry_cnt_8&quot;: &lt;integer&gt;,
+    &quot;variables&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;in_use&quot;: &lt;integer&gt;,
+    &quot;tm_create&quot;: &quot;&lt;timestamp&gt;&quot;,
+    &quot;tm_update&quot;: &quot;&lt;timestamp&gt;&quot;,
+    &quot;tm_delete&quot;: &quot;&lt;timestamp&gt;&quot;
+  }
+}
+</pre></div>
+</div>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">uuid</span></tt> : Plan uuid.</li>
+<li><tt class="docutils literal"><span class="pre">name</span></tt>: Plan name.</li>
+<li><tt class="docutils literal"><span class="pre">detail</span></tt>: Detail info.</li>
+<li><tt class="docutils literal"><span class="pre">tech_name</span></tt>: Tech name for outbound dialing. See detail <a class="reference internal" href="ob_structure.html#tech-name"><em>Tech name</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">trunk_name</span></tt>: Trunkname for outbound dialing. See detail <a class="reference internal" href="ob_structure.html#trunk-name"><em>Trunk name</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">dl_end_handle</span></tt>: Determine behavior of when the dial list end. See detail <a class="reference internal" href="ob_structure.html#id15"><em>Dail list end handling</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">caller_id</span></tt>: Caller&#8217;s id.</li>
+<li><tt class="docutils literal"><span class="pre">dial_mode</span></tt>: Dialling mode. See detail <a class="reference internal" href="ob_structure.html#id13"><em>Dial mode</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">dial_timeout</span></tt>: Ringing timeout(ms).</li>
+<li><tt class="docutils literal"><span class="pre">retry_delay</span></tt>: Delay time for next try(sec).</li>
+<li><tt class="docutils literal"><span class="pre">service_level</span></tt>: Determine service level.</li>
+<li><tt class="docutils literal"><span class="pre">early_media</span></tt>: Set to true to force call bridge on early media.</li>
+<li><tt class="docutils literal"><span class="pre">codecs</span></tt>: Codecs. Comma-separated list of codecs to use for this call.</li>
+<li><tt class="docutils literal"><span class="pre">max_retry_cnt_1</span></tt>: Max retry count for number 1.</li>
+<li><tt class="docutils literal"><span class="pre">max_retry_cnt_2</span></tt>: Max retry count for number 2.</li>
+<li><tt class="docutils literal"><span class="pre">max_retry_cnt_3</span></tt>: Max retry count for number 3.</li>
+<li><tt class="docutils literal"><span class="pre">max_retry_cnt_4</span></tt>: Max retry count for number 4.</li>
+<li><tt class="docutils literal"><span class="pre">max_retry_cnt_5</span></tt>: Max retry count for number 5.</li>
+<li><tt class="docutils literal"><span class="pre">max_retry_cnt_6</span></tt>: Max retry count for number 6.</li>
+<li><tt class="docutils literal"><span class="pre">max_retry_cnt_7</span></tt>: Max retry count for number 7.</li>
+<li><tt class="docutils literal"><span class="pre">max_retry_cnt_8</span></tt>: Max retry count for number 8.</li>
+<li><tt class="docutils literal"><span class="pre">variables</span></tt>:</li>
+</ul>
+</div>
+<div class="section" id="id8">
+<h3>Example<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/plans/552e9808-23bc-40b1-947a-60b0b96581cb
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;result&quot;: {
+    &quot;caller_id&quot;: null,
+    &quot;codecs&quot;: null,
+    &quot;detail&quot;: null,
+    &quot;dial_mode&quot;: 1,
+    &quot;dial_timeout&quot;: 30000,
+    &quot;dl_end_handle&quot;: 1,
+    &quot;early_media&quot;: null,
+    &quot;in_use&quot;: 1,
+    &quot;max_retry_cnt_1&quot;: 1000,
+    &quot;max_retry_cnt_2&quot;: 5,
+    &quot;max_retry_cnt_3&quot;: 5,
+    &quot;max_retry_cnt_4&quot;: 5,
+    &quot;max_retry_cnt_5&quot;: 5,
+    &quot;max_retry_cnt_6&quot;: 5,
+    &quot;max_retry_cnt_7&quot;: 5,
+    &quot;max_retry_cnt_8&quot;: 5,
+    &quot;name&quot;: null,
+    &quot;retry_delay&quot;: 60,
+    &quot;service_level&quot;: 0,
+    &quot;tech_name&quot;: &quot;SIP&quot;,
+    &quot;tm_create&quot;: &quot;2017-02-21T13:53:16.684583113Z&quot;,
+    &quot;tm_delete&quot;: null,
+    &quot;tm_update&quot;: &quot;2017-02-21T14:08:21.484784844Z&quot;,
+    &quot;trunk_name&quot;: null,
+    &quot;uuid&quot;: &quot;552e9808-23bc-40b1-947a-60b0b96581cb&quot;,
+    &quot;variables&quot;: null
+  },
+  &quot;statuscode&quot;: 200,
+  &quot;timestamp&quot;: &quot;2017-02-22T17:43:11.217963213Z&quot;
+}
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="method-put">
+<h2>Method: PUT<a class="headerlink" href="#method-put" title="Permalink to this headline">¶</a></h2>
+<p>Get plan detail info.</p>
+<div class="section" id="id9">
+<h3>Call<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<p>Update specified plan info.</p>
+<div class="highlight-python"><div class="highlight"><pre>PUT /plans/&lt;plan-uuid&gt;
+
+{
+  &quot;name&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;detail&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;tech_name&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;trunk_name&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;dl_end_handle&quot;: &lt;integer&gt;,
+  &quot;caller_id&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;dial_mode&quot;: &lt;integer&gt;,
+  &quot;dial_timeout&quot;: &lt;integer&gt;,
+  &quot;retry_delay&quot;: &lt;integer&gt;,
+  &quot;service_level&quot;: &lt;integer&gt;,
+  &quot;early_media&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;codecs&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;max_retry_cnt_1&quot;: &lt;integer&gt;,
+  &quot;max_retry_cnt_2&quot;: &lt;integer&gt;,
+  &quot;max_retry_cnt_3&quot;: &lt;integer&gt;,
+  &quot;max_retry_cnt_4&quot;: &lt;integer&gt;,
+  &quot;max_retry_cnt_5&quot;: &lt;integer&gt;,
+  &quot;max_retry_cnt_6&quot;: &lt;integer&gt;,
+  &quot;max_retry_cnt_7&quot;: &lt;integer&gt;,
+  &quot;max_retry_cnt_8&quot;: &lt;integer&gt;,
+  &quot;variables&quot;: &quot;&lt;string&gt;&quot;
+}
+</pre></div>
+</div>
+</div>
+<div class="section" id="id10">
+<h3>Returns<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
+<p>Updated plan info.</p>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr,
+  &quot;reuslt&quot;: {
+    &quot;uuid&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;name&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;detail&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;tech_name&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;trunk_name&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;dl_end_handle&quot;: &lt;integer&gt;,
+    &quot;caller_id&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;dial_mode&quot;: &lt;integer&gt;,
+    &quot;dial_timeout&quot;: &lt;integer&gt;,
+    &quot;retry_delay&quot;: &lt;integer&gt;,
+    &quot;service_level&quot;: &lt;integer&gt;,
+    &quot;early_media&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;codecs&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;max_retry_cnt_1&quot;: &lt;integer&gt;,
+    &quot;max_retry_cnt_2&quot;: &lt;integer&gt;,
+    &quot;max_retry_cnt_3&quot;: &lt;integer&gt;,
+    &quot;max_retry_cnt_4&quot;: &lt;integer&gt;,
+    &quot;max_retry_cnt_5&quot;: &lt;integer&gt;,
+    &quot;max_retry_cnt_6&quot;: &lt;integer&gt;,
+    &quot;max_retry_cnt_7&quot;: &lt;integer&gt;,
+    &quot;max_retry_cnt_8&quot;: &lt;integer&gt;,
+    &quot;variables&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;in_use&quot;: &lt;integer&gt;,
+    &quot;tm_create&quot;: &quot;&lt;timestamp&gt;&quot;,
+    &quot;tm_update&quot;: &quot;&lt;timestamp&gt;&quot;,
+    &quot;tm_delete&quot;: &quot;&lt;timestamp&gt;&quot;
+  }
+}
+</pre></div>
+</div>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">uuid</span></tt> : plan uuid.</li>
+<li><tt class="docutils literal"><span class="pre">name</span></tt> : Plan name. Default null.</li>
+<li><tt class="docutils literal"><span class="pre">detail</span></tt> : Detail info. Default null.</li>
+<li><tt class="docutils literal"><span class="pre">tech_name</span></tt> : Tech name for outbound dialing. Default null. See detail <a class="reference internal" href="ob_structure.html#tech-name"><em>Tech name</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">trunk_name</span></tt> : Trunkname for outbound dialing. Default null.</li>
+<li><tt class="docutils literal"><span class="pre">dl_end_handle</span></tt>: Determine behavior of when the dial list end. See detail <a class="reference internal" href="ob_structure.html#id15"><em>Dail list end handling</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">caller_id</span></tt>: Caller’s id.</li>
+<li><tt class="docutils literal"><span class="pre">dial_mode</span></tt>: Dialling mode. See detail Dial mode. See detail <a class="reference internal" href="ob_structure.html#id13"><em>Dial mode</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">dial_timeout</span></tt>: Ringing timeout(ms).</li>
+<li><tt class="docutils literal"><span class="pre">retry_delay</span></tt>: Delay time for next try(sec).</li>
+<li><tt class="docutils literal"><span class="pre">service_level</span></tt>: Determine service level.</li>
+<li><tt class="docutils literal"><span class="pre">early_media</span></tt>: Set to true to force call bridge on early media.</li>
+<li><tt class="docutils literal"><span class="pre">codecs</span></tt>: Codecs. Comma-separated list of codecs to use for this call.</li>
+<li><tt class="docutils literal"><span class="pre">max_retry_cnt_1</span></tt>: Max retry count for number 1.</li>
+<li><tt class="docutils literal"><span class="pre">max_retry_cnt_2</span></tt>: Max retry count for number 2.</li>
+<li><tt class="docutils literal"><span class="pre">max_retry_cnt_3</span></tt>: Max retry count for number 3.</li>
+<li><tt class="docutils literal"><span class="pre">max_retry_cnt_4</span></tt>: Max retry count for number 4.</li>
+<li><tt class="docutils literal"><span class="pre">max_retry_cnt_5</span></tt>: Max retry count for number 5.</li>
+<li><tt class="docutils literal"><span class="pre">max_retry_cnt_6</span></tt>: Max retry count for number 6.</li>
+<li><tt class="docutils literal"><span class="pre">max_retry_cnt_7</span></tt>: Max retry count for number 7.</li>
+<li><tt class="docutils literal"><span class="pre">max_retry_cnt_8</span></tt>: Max retry count for number 8.</li>
+<li><tt class="docutils literal"><span class="pre">variables</span></tt>:</li>
+</ul>
+</div>
+<div class="section" id="id11">
+<h3>Example<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X PUT 192.168.200.10:8081/plans/c8b521ab-8114-4a62-b4e9-488d770d4ee8 \
+ -d &#39;{&quot;name&quot;: &quot;Updated plan name&quot;}&#39;
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;timestamp&quot;: &quot;2017-02-22T17:59:41.91267195Z&quot;,
+  &quot;statuscode&quot;: 200,
+  &quot;result&quot;: {
+    &quot;detail&quot;: null,
+    &quot;tech_name&quot;: &quot;SIP&quot;,
+    &quot;uuid&quot;: &quot;c8b521ab-8114-4a62-b4e9-488d770d4ee8&quot;,
+    &quot;dl_end_handle&quot;: 1,
+    &quot;name&quot;: &quot;Updated plan name&quot;,
+    &quot;tm_delete&quot;: null,
+    &quot;max_retry_cnt_5&quot;: 5,
+    &quot;caller_id&quot;: null,
+    &quot;variables&quot;: null,
+    &quot;max_retry_cnt_4&quot;: 5,
+    &quot;in_use&quot;: 1,
+    &quot;dial_mode&quot;: 1,
+    &quot;retry_delay&quot;: 60,
+    &quot;dial_timeout&quot;: 30000,
+    &quot;trunk_name&quot;: null,
+    &quot;tm_create&quot;: &quot;2017-02-22T16:57:49.962162166Z&quot;,
+    &quot;service_level&quot;: 0,
+    &quot;early_media&quot;: null,
+    &quot;codecs&quot;: null,
+    &quot;max_retry_cnt_1&quot;: 5,
+    &quot;max_retry_cnt_2&quot;: 5,
+    &quot;max_retry_cnt_3&quot;: 5,
+    &quot;max_retry_cnt_6&quot;: 5,
+    &quot;max_retry_cnt_7&quot;: 5,
+    &quot;max_retry_cnt_8&quot;: 5,
+    &quot;tm_update&quot;: &quot;2017-02-22T17:59:41.59248781Z&quot;
+  }
+}
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="method-delete">
+<h2>Method: DELETE<a class="headerlink" href="#method-delete" title="Permalink to this headline">¶</a></h2>
+<p>Delete specified plan info.</p>
+<div class="section" id="id12">
+<h3>Call<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
+<p>Delete specified plan info.</p>
+<div class="highlight-python"><div class="highlight"><pre>DELETE /plans/&lt;plan-uuid&gt;
+</pre></div>
+</div>
+</div>
+<div class="section" id="id13">
+<h3>Returns<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h3>
+<p>Deleted plan info.</p>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr,
+  &quot;reuslt&quot;: {
+    &quot;uuid&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;name&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;detail&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;tech_name&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;trunk_name&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;dl_end_handle&quot;: &lt;integer&gt;,
+    &quot;caller_id&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;dial_mode&quot;: &lt;integer&gt;,
+    &quot;dial_timeout&quot;: &lt;integer&gt;,
+    &quot;retry_delay&quot;: &lt;integer&gt;,
+    &quot;service_level&quot;: &lt;integer&gt;,
+    &quot;early_media&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;codecs&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;max_retry_cnt_1&quot;: &lt;integer&gt;,
+    &quot;max_retry_cnt_2&quot;: &lt;integer&gt;,
+    &quot;max_retry_cnt_3&quot;: &lt;integer&gt;,
+    &quot;max_retry_cnt_4&quot;: &lt;integer&gt;,
+    &quot;max_retry_cnt_5&quot;: &lt;integer&gt;,
+    &quot;max_retry_cnt_6&quot;: &lt;integer&gt;,
+    &quot;max_retry_cnt_7&quot;: &lt;integer&gt;,
+    &quot;max_retry_cnt_8&quot;: &lt;integer&gt;,
+    &quot;variables&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;in_use&quot;: &lt;integer&gt;,
+    &quot;tm_create&quot;: &quot;&lt;timestamp&gt;&quot;,
+    &quot;tm_update&quot;: &quot;&lt;timestamp&gt;&quot;,
+    &quot;tm_delete&quot;: &quot;&lt;timestamp&gt;&quot;
+  }
+}
+</pre></div>
+</div>
+</div>
+<div class="section" id="id14">
+<h3>Example<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>curl -X DELETE 192.168.200.10:8081/plans/c8b521ab-8114-4a62-b4e9-488d770d4ee8
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;timestamp&quot;: &quot;2017-02-22T18:05:00.598284056Z&quot;,
+  &quot;statuscode&quot;: 200,
+  &quot;result&quot;: {
+    &quot;detail&quot;: null,
+    &quot;tech_name&quot;: &quot;SIP&quot;,
+    &quot;uuid&quot;: &quot;c8b521ab-8114-4a62-b4e9-488d770d4ee8&quot;,
+    &quot;dl_end_handle&quot;: 1,
+    &quot;name&quot;: &quot;Updated plan name&quot;,
+    &quot;tm_delete&quot;: &quot;2017-02-22T18:05:00.548497354Z&quot;,
+    &quot;max_retry_cnt_5&quot;: 5,
+    &quot;caller_id&quot;: null,
+    &quot;variables&quot;: null,
+    &quot;max_retry_cnt_4&quot;: 5,
+    &quot;in_use&quot;: 0,
+    &quot;dial_mode&quot;: 1,
+    &quot;retry_delay&quot;: 60,
+    &quot;dial_timeout&quot;: 30000,
+    &quot;trunk_name&quot;: null,
+    &quot;tm_create&quot;: &quot;2017-02-22T16:57:49.962162166Z&quot;,
+    &quot;service_level&quot;: 0,
+    &quot;early_media&quot;: null,
+    &quot;codecs&quot;: null,
+    &quot;max_retry_cnt_1&quot;: 5,
+    &quot;max_retry_cnt_2&quot;: 5,
+    &quot;max_retry_cnt_3&quot;: 5,
+    &quot;max_retry_cnt_6&quot;: 5,
+    &quot;max_retry_cnt_7&quot;: 5,
+    &quot;max_retry_cnt_8&quot;: 5,
+    &quot;tm_update&quot;: &quot;2017-02-22T17:59:41.59248781Z&quot;
+  }
+}
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="destinations">
+<h1>/destinations<a class="headerlink" href="#destinations" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id15">
+<h2>Methods<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h2>
+<p>POST : Create new destination.</p>
+<p>GET : Get list of all destinations.</p>
+</div>
+<div class="section" id="id16">
+<h2>Method: POST<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h2>
+<p>Create new destination.</p>
+<div class="section" id="id17">
+<h3>Call<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>POST /destinations
+
+{
+  &quot;name&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;detail&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;type&quot;: &lt;integer&gt;,
+  &quot;application&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;data&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;context&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;exten&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;priority&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;variables&quot;: &quot;&lt;string&gt;&quot;
+}
+</pre></div>
+</div>
+<p>Parameters
+* <tt class="docutils literal"><span class="pre">name</span></tt>: Destination name.
+* <tt class="docutils literal"><span class="pre">detail</span></tt>: Detail info.
+* <tt class="docutils literal"><span class="pre">type</span></tt>: Destination type. See detail <a class="reference internal" href="ob_structure.html#id4"><em>Destination type</em></a>.
+* <tt class="docutils literal"><span class="pre">application</span></tt>: Application name. Type: 1(application) only
+* <tt class="docutils literal"><span class="pre">data</span></tt>: Application data. Type: 1(application) only
+* <tt class="docutils literal"><span class="pre">context</span></tt>: Conetxt. Type: 0(exten) only
+* <tt class="docutils literal"><span class="pre">exten</span></tt>: Extension. Type: 0(exten) only
+* <tt class="docutils literal"><span class="pre">priority</span></tt>: Priority. Type: 0(exten) only
+* <tt class="docutils literal"><span class="pre">variables</span></tt>: Set(var=val). Could be more than one. Type: 0(exten) only.</p>
+</div>
+<div class="section" id="id18">
+<h3>Returns<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h3>
+<p>Created destination info.</p>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr,
+  &quot;reuslt&quot;: {
+    &quot;uuid&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;name&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;detail&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;type&quot;: &lt;integer&gt;,
+    &quot;application&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;data&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;context&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;exten&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;priority&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;variables&quot;: &quot;&lt;string&gt;&quot;
+    &quot;in_use&quot;: 1,
+    &quot;tm_create&quot;: &quot;&lt;timestamp&gt;&quot;,
+    &quot;tm_delete&quot;: &quot;&lt;timestamp&gt;&quot;,
+    &quot;tm_update&quot;: &quot;&lt;timestamp&gt;&quot;
+  }
+}
+</pre></div>
+</div>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">uuid</span></tt>: Created destination uuid.</li>
+<li><tt class="docutils literal"><span class="pre">name</span></tt>: Destination name.</li>
+<li><tt class="docutils literal"><span class="pre">detail</span></tt>: Detail info.</li>
+<li><tt class="docutils literal"><span class="pre">type</span></tt>: Destination type. See detail <a class="reference internal" href="ob_structure.html#id4"><em>Destination type</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">application</span></tt>: Application name. Type: 1(application) only</li>
+<li><tt class="docutils literal"><span class="pre">data</span></tt>: Application data. Type: 1(application) only</li>
+<li><tt class="docutils literal"><span class="pre">context</span></tt>: Conetxt. Type: 0(exten) only</li>
+<li><tt class="docutils literal"><span class="pre">exten</span></tt>: Extension. Type: 0(exten) only</li>
+<li><tt class="docutils literal"><span class="pre">priority</span></tt>: Priority. Type: 0(exten) only</li>
+<li><tt class="docutils literal"><span class="pre">variables</span></tt>: Set(var=val). Could be more than one. Type: 0(exten) only.</li>
+</ul>
+</div>
+<div class="section" id="id19">
+<h3>Example<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X POST 192.168.200.10:8081/destinations -d&#39;{}&#39;
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;statuscode&quot;: 200,
+  &quot;timestamp&quot;: &quot;2017-03-05T08:48:43.789657952Z&quot;,
+  &quot;result&quot;: {
+    &quot;application&quot;: null,
+    &quot;context&quot;: null,
+    &quot;data&quot;: null,
+    &quot;detail&quot;: null,
+    &quot;exten&quot;: null,
+    &quot;in_use&quot;: 1,
+    &quot;name&quot;: null,
+    &quot;priority&quot;: null,
+    &quot;tm_create&quot;: &quot;2017-03-05T08:48:43.745658496Z&quot;,
+    &quot;tm_delete&quot;: null,
+    &quot;tm_update&quot;: null,
+    &quot;type&quot;: 0,
+    &quot;uuid&quot;: &quot;5ff9611c-136b-47d7-b8d4-0bd6f0d5b037&quot;,
+    &quot;variables&quot;: null
+  }
+}
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="id20">
+<h2>Method: GET<a class="headerlink" href="#id20" title="Permalink to this headline">¶</a></h2>
+<p>Get list of all destinations.</p>
+<div class="section" id="id21">
+<h3>Call<a class="headerlink" href="#id21" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">GET</span> <span class="o">/</span><span class="n">destinations</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id22">
+<h3>Returns<a class="headerlink" href="#id22" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr,
+  &quot;reuslt&quot;: {
+    &quot;list&quot;: [
+      &quot;&lt;destination-uuid&gt;&quot;,
+      ...
+    ]
+  }
+}
+</pre></div>
+</div>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">list</span></tt> : array of destination-uuid.</li>
+</ul>
+</div>
+<div class="section" id="id23">
+<h3>Example<a class="headerlink" href="#id23" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>curl -X GET 192.168.200.10:8081/destinations
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;result&quot;: {
+      &quot;list&quot;: [
+          &quot;45122654-5633-4af0-a739-e32eddfbd2ae&quot;,
+          &quot;5ff9611c-136b-47d7-b8d4-0bd6f0d5b037&quot;
+      ]
+  },
+  &quot;statuscode&quot;: 200,
+  &quot;timestamp&quot;: &quot;2017-03-05T08:58:09.460418643Z&quot;
+}
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="destinations-uuid">
+<h1>/destinations/&lt;uuid&gt;<a class="headerlink" href="#destinations-uuid" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id24">
+<h2>Methods<a class="headerlink" href="#id24" title="Permalink to this headline">¶</a></h2>
+<p>GET : Get specified destination detail info.</p>
+<p>PUT : Update specified destination detail info.</p>
+<p>DELETE : Delete specified destination</p>
+</div>
+<div class="section" id="id25">
+<h2>Method: GET<a class="headerlink" href="#id25" title="Permalink to this headline">¶</a></h2>
+<p>Get specified destination detail info.</p>
+<div class="section" id="id26">
+<h3>Call<a class="headerlink" href="#id26" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>GET /destinations/&lt;uuid&gt;
+</pre></div>
+</div>
+</div>
+<div class="section" id="id27">
+<h3>Returns<a class="headerlink" href="#id27" title="Permalink to this headline">¶</a></h3>
+<p>Specified destination detail info.</p>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr,
+  &quot;reuslt&quot;: {
+    &quot;uuid&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;name&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;detail&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;type&quot;: &lt;integer&gt;,
+    &quot;application&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;data&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;context&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;exten&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;priority&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;variables&quot;: &quot;&lt;string&gt;&quot;
+    &quot;in_use&quot;: 1,
+    &quot;tm_create&quot;: &quot;&lt;timestamp&gt;&quot;,
+    &quot;tm_delete&quot;: &quot;&lt;timestamp&gt;&quot;,
+    &quot;tm_update&quot;: &quot;&lt;timestamp&gt;&quot;
+  }
+}
+</pre></div>
+</div>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">uuid</span></tt>: Destination uuid.</li>
+<li><tt class="docutils literal"><span class="pre">name</span></tt>: Destination name.</li>
+<li><tt class="docutils literal"><span class="pre">detail</span></tt>: Detail info.</li>
+<li><tt class="docutils literal"><span class="pre">type</span></tt>: Destination type. See detail <a class="reference internal" href="ob_structure.html#id4"><em>Destination type</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">application</span></tt>: Application name. Type: 1(application) only</li>
+<li><tt class="docutils literal"><span class="pre">data</span></tt>: Application data. Type: 1(application) only</li>
+<li><tt class="docutils literal"><span class="pre">context</span></tt>: Conetxt. Type: 0(exten) only</li>
+<li><tt class="docutils literal"><span class="pre">exten</span></tt>: Extension. Type: 0(exten) only</li>
+<li><tt class="docutils literal"><span class="pre">priority</span></tt>: Priority. Type: 0(exten) only</li>
+<li><tt class="docutils literal"><span class="pre">variables</span></tt>: Set(var=val). Could be more than one. Type: 0(exten) only.</li>
+</ul>
+</div>
+<div class="section" id="id28">
+<h3>Example<a class="headerlink" href="#id28" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/destinations/5ff9611c-136b-47d7-b8d4-0bd6f0d5b037
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;result&quot;: {
+    &quot;application&quot;: null,
+    &quot;context&quot;: null,
+    &quot;data&quot;: null,
+    &quot;detail&quot;: null,
+    &quot;exten&quot;: null,
+    &quot;in_use&quot;: 1,
+    &quot;name&quot;: null,
+    &quot;priority&quot;: null,
+    &quot;tm_create&quot;: &quot;2017-03-05T08:48:43.745658496Z&quot;,
+    &quot;tm_delete&quot;: null,
+    &quot;tm_update&quot;: null,
+    &quot;type&quot;: 0,
+    &quot;uuid&quot;: &quot;5ff9611c-136b-47d7-b8d4-0bd6f0d5b037&quot;,
+    &quot;variables&quot;: null
+  },
+  &quot;statuscode&quot;: 200,
+  &quot;timestamp&quot;: &quot;2017-03-05T09:04:23.954636454Z&quot;
+}
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="id29">
+<h2>Method: PUT<a class="headerlink" href="#id29" title="Permalink to this headline">¶</a></h2>
+<p>Update specified destination detail info.</p>
+<div class="section" id="id30">
+<h3>Call<a class="headerlink" href="#id30" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>PUT /destinations/&lt;uuid&gt;
+
+{
+  &quot;name&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;detail&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;type&quot;: &lt;integer&gt;,
+  &quot;application&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;data&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;context&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;exten&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;priority&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;variables&quot;: &quot;&lt;string&gt;&quot;
+}
+</pre></div>
+</div>
+<p>Parameters
+* <tt class="docutils literal"><span class="pre">name</span></tt>: Destination name.
+* <tt class="docutils literal"><span class="pre">detail</span></tt>: Detail info.
+* <tt class="docutils literal"><span class="pre">type</span></tt>: Destination type. See detail <a class="reference internal" href="ob_structure.html#id4"><em>Destination type</em></a>.
+* <tt class="docutils literal"><span class="pre">application</span></tt>: Application name. Type: 1(application) only
+* <tt class="docutils literal"><span class="pre">data</span></tt>: Application data. Type: 1(application) only
+* <tt class="docutils literal"><span class="pre">context</span></tt>: Conetxt. Type: 0(exten) only
+* <tt class="docutils literal"><span class="pre">exten</span></tt>: Extension. Type: 0(exten) only
+* <tt class="docutils literal"><span class="pre">priority</span></tt>: Priority. Type: 0(exten) only
+* <tt class="docutils literal"><span class="pre">variables</span></tt>: Set(var=val). Could be more than one. Type: 0(exten) only.</p>
+</div>
+<div class="section" id="id31">
+<h3>Returns<a class="headerlink" href="#id31" title="Permalink to this headline">¶</a></h3>
+<p>Return the updated destination detail info.</p>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr,
+  &quot;reuslt&quot;: {
+    &quot;uuid&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;name&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;detail&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;type&quot;: &lt;integer&gt;,
+    &quot;application&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;data&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;context&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;exten&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;priority&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;variables&quot;: &quot;&lt;string&gt;&quot;
+    &quot;in_use&quot;: 1,
+    &quot;tm_create&quot;: &quot;&lt;timestamp&gt;&quot;,
+    &quot;tm_delete&quot;: &quot;&lt;timestamp&gt;&quot;,
+    &quot;tm_update&quot;: &quot;&lt;timestamp&gt;&quot;
+  }
+}
+</pre></div>
+</div>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">uuid</span></tt>: Destination uuid.</li>
+<li><tt class="docutils literal"><span class="pre">name</span></tt>: Destination name.</li>
+<li><tt class="docutils literal"><span class="pre">detail</span></tt>: Detail info.</li>
+<li><tt class="docutils literal"><span class="pre">type</span></tt>: Destination type. See detail <a class="reference internal" href="ob_structure.html#id4"><em>Destination type</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">application</span></tt>: Application name. Type: 1(application) only</li>
+<li><tt class="docutils literal"><span class="pre">data</span></tt>: Application data. Type: 1(application) only</li>
+<li><tt class="docutils literal"><span class="pre">context</span></tt>: Conetxt. Type: 0(exten) only</li>
+<li><tt class="docutils literal"><span class="pre">exten</span></tt>: Extension. Type: 0(exten) only</li>
+<li><tt class="docutils literal"><span class="pre">priority</span></tt>: Priority. Type: 0(exten) only</li>
+<li><tt class="docutils literal"><span class="pre">variables</span></tt>: Set(var=val). Could be more than one. Type: 0(exten) only.</li>
+</ul>
+</div>
+<div class="section" id="id32">
+<h3>Example<a class="headerlink" href="#id32" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X PUT 192.168.200.10:8081/destinations/5ff9611c-136b-47d7-b8d4-0bd6f0d5b037 \
+  -d &#39;{&quot;name&quot;:&quot;new updated name&quot;}&#39;
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;result&quot;: {
+    &quot;application&quot;: null,
+    &quot;context&quot;: null,
+    &quot;data&quot;: null,
+    &quot;detail&quot;: null,
+    &quot;exten&quot;: null,
+    &quot;in_use&quot;: 1,
+    &quot;name&quot;: &quot;new updated name&quot;,
+    &quot;priority&quot;: null,
+    &quot;tm_create&quot;: &quot;2017-03-05T08:48:43.745658496Z&quot;,
+    &quot;tm_delete&quot;: null,
+    &quot;tm_update&quot;: &quot;2017-03-05T09:31:57.663960574Z&quot;,
+    &quot;type&quot;: 0,
+    &quot;uuid&quot;: &quot;5ff9611c-136b-47d7-b8d4-0bd6f0d5b037&quot;,
+    &quot;variables&quot;: null
+  },
+  &quot;statuscode&quot;: 200,
+  &quot;timestamp&quot;: &quot;2017-03-05T09:31:57.884592113Z&quot;
+}
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="id33">
+<h2>Method: DELETE<a class="headerlink" href="#id33" title="Permalink to this headline">¶</a></h2>
+<p>Delete specified destination info.</p>
+<div class="section" id="id34">
+<h3>Call<a class="headerlink" href="#id34" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>DELETE /destinations/&lt;uuid&gt;
+</pre></div>
+</div>
+</div>
+<div class="section" id="id35">
+<h3>Returns<a class="headerlink" href="#id35" title="Permalink to this headline">¶</a></h3>
+<p>Return the deleted destination detail info.</p>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr,
+  &quot;reuslt&quot;: {
+    &quot;uuid&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;name&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;detail&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;type&quot;: &lt;integer&gt;,
+    &quot;application&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;data&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;context&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;exten&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;priority&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;variables&quot;: &quot;&lt;string&gt;&quot;
+    &quot;in_use&quot;: 0,
+    &quot;tm_create&quot;: &quot;&lt;timestamp&gt;&quot;,
+    &quot;tm_delete&quot;: &quot;&lt;timestamp&gt;&quot;,
+    &quot;tm_update&quot;: &quot;&lt;timestamp&gt;&quot;
+  }
+}
+</pre></div>
+</div>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">uuid</span></tt>: Destination uuid.</li>
+<li><tt class="docutils literal"><span class="pre">name</span></tt>: Destination name.</li>
+<li><tt class="docutils literal"><span class="pre">detail</span></tt>: Detail info.</li>
+<li><tt class="docutils literal"><span class="pre">type</span></tt>: Destination type. See detail <a class="reference internal" href="ob_structure.html#id4"><em>Destination type</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">application</span></tt>: Application name. Type: 1(application) only</li>
+<li><tt class="docutils literal"><span class="pre">data</span></tt>: Application data. Type: 1(application) only</li>
+<li><tt class="docutils literal"><span class="pre">context</span></tt>: Conetxt. Type: 0(exten) only</li>
+<li><tt class="docutils literal"><span class="pre">exten</span></tt>: Extension. Type: 0(exten) only</li>
+<li><tt class="docutils literal"><span class="pre">priority</span></tt>: Priority. Type: 0(exten) only</li>
+<li><tt class="docutils literal"><span class="pre">variables</span></tt>: Set(var=val). Could be more than one. Type: 0(exten) only.</li>
+</ul>
+</div>
+<div class="section" id="id36">
+<h3>Example<a class="headerlink" href="#id36" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X DELETE 192.168.200.10:8081/destinations/38dd5d48-4758-4194-9b7d-24acada05e08
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;result&quot;: {
+    &quot;application&quot;: null,
+    &quot;context&quot;: null,
+    &quot;data&quot;: null,
+    &quot;detail&quot;: null,
+    &quot;exten&quot;: null,
+    &quot;in_use&quot;: 0,
+    &quot;name&quot;: null,
+    &quot;priority&quot;: null,
+    &quot;tm_create&quot;: &quot;2017-03-05T09:40:44.52708509Z&quot;,
+    &quot;tm_delete&quot;: &quot;2017-03-05T09:40:57.912346237Z&quot;,
+    &quot;tm_update&quot;: null,
+    &quot;type&quot;: 0,
+    &quot;uuid&quot;: &quot;38dd5d48-4758-4194-9b7d-24acada05e08&quot;,
+    &quot;variables&quot;: null
+  },
+  &quot;statuscode&quot;: 200,
+  &quot;timestamp&quot;: &quot;2017-03-05T09:40:57.954045594Z&quot;
+}
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="dlmas">
+<h1>/dlmas<a class="headerlink" href="#dlmas" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id37">
+<h2>Methods<a class="headerlink" href="#id37" title="Permalink to this headline">¶</a></h2>
+<p>POST : Create new dlma.</p>
+<p>GET : Get list of all dlmas.</p>
+</div>
+<div class="section" id="id38">
+<h2>Method: POST<a class="headerlink" href="#id38" title="Permalink to this headline">¶</a></h2>
+<p>Create new dlma</p>
+<div class="section" id="id39">
+<h3>Call<a class="headerlink" href="#id39" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">POST</span> <span class="o">/</span><span class="n">dlmas</span>
+
+<span class="p">{</span>
+  <span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="s">&quot;&lt;string&gt;&quot;</span><span class="p">,</span>
+  <span class="s">&quot;detail&quot;</span><span class="p">:</span> <span class="s">&quot;&lt;string&gt;&quot;</span><span class="p">,</span>
+  <span class="s">&quot;variables&quot;</span><span class="p">:</span> <span class="s">&quot;&lt;string&gt;&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Parameters</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">name</span></tt>: Dlma name.</li>
+<li><tt class="docutils literal"><span class="pre">detail</span></tt>: Detail dlma info.</li>
+<li><tt class="docutils literal"><span class="pre">variables</span></tt>: Set(var=val). Could be more than one.</li>
+</ul>
+</div>
+<div class="section" id="id40">
+<h3>Returns<a class="headerlink" href="#id40" title="Permalink to this headline">¶</a></h3>
+<p>Return the created campaign info.</p>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr,
+  &quot;reuslt&quot;: {
+    &quot;uuid&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;name&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;detail&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;dl_table&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;variables&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;in_use&quot;: 1,
+    &quot;tm_create&quot;: &quot;&lt;timestamp&gt;&quot;,
+    &quot;tm_update&quot;: &quot;&lt;timestamp&gt;&quot;,
+    &quot;tm_delete&quot;: &quot;&lt;timestamp&gt;&quot;
+  }
+}
+</pre></div>
+</div>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">uuid</span></tt>: Created dlma uuid.</li>
+<li><tt class="docutils literal"><span class="pre">name</span></tt>: dlma name.</li>
+<li><tt class="docutils literal"><span class="pre">detail</span></tt>: dlma detail info.</li>
+<li><tt class="docutils literal"><span class="pre">dl_table</span></tt>: dlma reference table.</li>
+</ul>
+</div>
+<div class="section" id="id41">
+<h3>Example<a class="headerlink" href="#id41" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X POST 192.168.200.10:8081/dlmas -d &#39;{&quot;name&quot;: &quot;test dlma&quot;}&#39;
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;timestamp&quot;: &quot;2017-03-08T06:02:06.328854094Z&quot;,
+  &quot;statuscode&quot;: 200,
+  &quot;result&quot;: {
+    &quot;tm_delete&quot;: null,
+    &quot;uuid&quot;: &quot;cd60aff5-3355-488c-bf6a-d42f8b67a006&quot;,
+    &quot;name&quot;: &quot;test dlma&quot;,
+    &quot;tm_update&quot;: null,
+    &quot;detail&quot;: null,
+    &quot;dl_table&quot;: &quot;cd60aff5_3355_488c_bf6a_d42f8b67a006&quot;,
+    &quot;variables&quot;: null,
+    &quot;tm_create&quot;: &quot;2017-03-08T06:02:06.313020031Z&quot;,
+    &quot;in_use&quot;: 1
+  }
+}
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="id42">
+<h2>Method: GET<a class="headerlink" href="#id42" title="Permalink to this headline">¶</a></h2>
+<p>Get list of all dlmas.</p>
+<div class="section" id="id43">
+<h3>Call<a class="headerlink" href="#id43" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">GET</span> <span class="o">/</span><span class="n">dlmas</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id44">
+<h3>Returns<a class="headerlink" href="#id44" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr,
+  &quot;reuslt&quot;: {
+    &quot;list&quot;: [
+      &quot;&lt;dlma-uuid&gt;&quot;,
+      ...
+    ]
+  }
+}
+</pre></div>
+</div>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">list</span></tt> : array of dlma-uuid.</li>
+</ul>
+</div>
+<div class="section" id="id45">
+<h3>Example<a class="headerlink" href="#id45" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
+  <span class="s">&quot;api_ver&quot;</span><span class="p">:</span> <span class="s">&quot;0.1&quot;</span><span class="p">,</span>
+  <span class="s">&quot;result&quot;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="s">&quot;list&quot;</span><span class="p">:</span> <span class="p">[</span>
+      <span class="s">&quot;6526c474-280e-4652-a1bf-731089c981a2&quot;</span><span class="p">,</span>
+      <span class="s">&quot;42b72a18-a6c5-43bf-b9aa-6043ff32128d&quot;</span><span class="p">,</span>
+      <span class="s">&quot;b0d73193-2787-4341-8c32-bc051bad9f94&quot;</span><span class="p">,</span>
+      <span class="s">&quot;cd60aff5-3355-488c-bf6a-d42f8b67a006&quot;</span>
+    <span class="p">]</span>
+  <span class="p">},</span>
+  <span class="s">&quot;statuscode&quot;</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span>
+  <span class="s">&quot;timestamp&quot;</span><span class="p">:</span> <span class="s">&quot;2017-03-08T06:12:14.117712363Z&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="dlmas-uuid">
+<h1>/dlmas/&lt;uuid&gt;<a class="headerlink" href="#dlmas-uuid" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id46">
+<h2>Methods<a class="headerlink" href="#id46" title="Permalink to this headline">¶</a></h2>
+<p>GET : Get specified dlma detail info.</p>
+<p>PUT : Update specified dlma detail info.</p>
+<p>DELETE : Delete specified dlma.</p>
+</div>
+<div class="section" id="id47">
+<h2>Method: GET<a class="headerlink" href="#id47" title="Permalink to this headline">¶</a></h2>
+<p>Get specified dlma detail info.</p>
+<div class="section" id="id48">
+<h3>Call<a class="headerlink" href="#id48" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>GET /dlmas/&lt;uuid&gt;
+</pre></div>
+</div>
+<p>Parameters</p>
+<ul class="simple">
+<li>uuid : dlma uuid.</li>
+</ul>
+</div>
+<div class="section" id="id49">
+<h3>Returns<a class="headerlink" href="#id49" title="Permalink to this headline">¶</a></h3>
+<p>Get specified campaign detail info.</p>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr,
+  &quot;reuslt&quot;: {
+    &quot;uuid&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;name&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;detail&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;dl_table&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;variables&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;in_use&quot;: 1,
+    &quot;tm_create&quot;: &quot;&lt;timestamp&gt;&quot;,
+    &quot;tm_update&quot;: &quot;&lt;timestamp&gt;&quot;,
+    &quot;tm_delete&quot;: &quot;&lt;timestamp&gt;&quot;
+  }
+}
+</pre></div>
+</div>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">uuid</span></tt>: dlma uuid.</li>
+<li><tt class="docutils literal"><span class="pre">name</span></tt>: dlma name.</li>
+<li><tt class="docutils literal"><span class="pre">detail</span></tt>: dlma detail info.</li>
+<li><tt class="docutils literal"><span class="pre">dl_table</span></tt>: dlma reference table.</li>
+<li><tt class="docutils literal"><span class="pre">variables</span></tt>:</li>
+</ul>
+</div>
+<div class="section" id="id50">
+<h3>Example<a class="headerlink" href="#id50" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/dlmas/6526c474-280e-4652-a1bf-731089c981a2
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;result&quot;: {
+    &quot;detail&quot;: null,
+    &quot;dl_table&quot;: &quot;6526c474_280e_4652_a1bf_731089c981a2&quot;,
+    &quot;in_use&quot;: 1,
+    &quot;name&quot;: null,
+    &quot;tm_create&quot;: &quot;2017-02-08T00:56:35.486586398Z&quot;,
+    &quot;tm_delete&quot;: null,
+    &quot;tm_update&quot;: null,
+    &quot;uuid&quot;: &quot;6526c474-280e-4652-a1bf-731089c981a2&quot;,
+    &quot;variables&quot;: null
+  },
+  &quot;statuscode&quot;: 200,
+  &quot;timestamp&quot;: &quot;2017-03-08T07:29:53.471067319Z&quot;
+}
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="id51">
+<h2>Method: PUT<a class="headerlink" href="#id51" title="Permalink to this headline">¶</a></h2>
+<p>Update specified dlma detail info.</p>
+<div class="section" id="id52">
+<h3>Call<a class="headerlink" href="#id52" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>PUT /dlmas/&lt;uuid&gt;
+
+{
+  &quot;name&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;detail&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;variables&quot;: &quot;&lt;string&gt;&quot;
+}
+</pre></div>
+</div>
+<p>Parameters</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">uuid</span></tt> : dlma uuid.</li>
+</ul>
+<p>Data</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">name</span></tt>: Update dlma name</li>
+<li><tt class="docutils literal"><span class="pre">detail</span></tt>: Update dlma detail info.</li>
+<li><tt class="docutils literal"><span class="pre">variables</span></tt>:</li>
+</ul>
+</div>
+<div class="section" id="id53">
+<h3>Returns<a class="headerlink" href="#id53" title="Permalink to this headline">¶</a></h3>
+<p>Updated dlma info.</p>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr,
+  &quot;reuslt&quot;: {
+    &quot;uuid&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;name&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;detail&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;dl_table&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;variables&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;in_use&quot;: 1,
+    &quot;tm_create&quot;: &quot;&lt;timestamp&gt;&quot;,
+    &quot;tm_update&quot;: &quot;&lt;timestamp&gt;&quot;,
+    &quot;tm_delete&quot;: &quot;&lt;timestamp&gt;&quot;
+  }
+}
+</pre></div>
+</div>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">uuid</span></tt>: dlma uuid.</li>
+<li><tt class="docutils literal"><span class="pre">name</span></tt>: dlma name.</li>
+<li><tt class="docutils literal"><span class="pre">detail</span></tt>: dlma detail info.</li>
+<li><tt class="docutils literal"><span class="pre">dl_table</span></tt>: dlma reference table.</li>
+<li><tt class="docutils literal"><span class="pre">variables</span></tt>:</li>
+</ul>
+</div>
+<div class="section" id="id54">
+<h3>Example<a class="headerlink" href="#id54" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X PUT 192.168.200.10:8081/dlmas/6526c474-280e-4652-a1bf-731089c981a2 -d
+&#39;{&quot;detail&quot;: &quot;update dlma detail info.&quot;}&#39;
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;result&quot;: {
+    &quot;detail&quot;: &quot;update dlma detail info.&quot;,
+    &quot;dl_table&quot;: &quot;6526c474_280e_4652_a1bf_731089c981a2&quot;,
+    &quot;in_use&quot;: 1,
+    &quot;name&quot;: null,
+    &quot;tm_create&quot;: &quot;2017-02-08T00:56:35.486586398Z&quot;,
+    &quot;tm_delete&quot;: null,
+    &quot;tm_update&quot;: &quot;2017-03-08T07:38:20.478261875Z&quot;,
+    &quot;uuid&quot;: &quot;6526c474-280e-4652-a1bf-731089c981a2&quot;,
+    &quot;variables&quot;: null
+  },
+  &quot;statuscode&quot;: 200,
+  &quot;timestamp&quot;: &quot;2017-03-08T07:38:20.586105308Z&quot;
+}
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="id55">
+<h2>Method: DELETE<a class="headerlink" href="#id55" title="Permalink to this headline">¶</a></h2>
+<p>Delete specified dlma.</p>
+<div class="section" id="id56">
+<h3>Call<a class="headerlink" href="#id56" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>DELETE /dlmas/&lt;uuid&gt;
+</pre></div>
+</div>
+<p>Parameters</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">uuid</span></tt> : dlma uuid.</li>
+</ul>
+</div>
+<div class="section" id="id57">
+<h3>Returns<a class="headerlink" href="#id57" title="Permalink to this headline">¶</a></h3>
+<p>Deleted dlma info.</p>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr,
+  &quot;reuslt&quot;: {
+    &quot;uuid&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;name&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;detail&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;dl_table&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;variables&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;in_use&quot;: 0,
+    &quot;tm_create&quot;: &quot;&lt;timestamp&gt;&quot;,
+    &quot;tm_update&quot;: &quot;&lt;timestamp&gt;&quot;,
+    &quot;tm_delete&quot;: &quot;&lt;timestamp&gt;&quot;
+  }
+}
+</pre></div>
+</div>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">uuid</span></tt>: dlma uuid.</li>
+<li><tt class="docutils literal"><span class="pre">name</span></tt>: dlma name.</li>
+<li><tt class="docutils literal"><span class="pre">detail</span></tt>: dlma detail info.</li>
+<li><tt class="docutils literal"><span class="pre">dl_table</span></tt>: dlma reference table.</li>
+<li><tt class="docutils literal"><span class="pre">variables</span></tt>:</li>
+</ul>
+</div>
+<div class="section" id="id58">
+<h3>Example<a class="headerlink" href="#id58" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X DELETE 192.168.200.10:8081/dlmas/6526c474-280e-4652-a1bf-731089c981a2
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;result&quot;: {
+    &quot;detail&quot;: &quot;update dlma detail info.&quot;,
+    &quot;dl_table&quot;: &quot;6526c474_280e_4652_a1bf_731089c981a2&quot;,
+    &quot;in_use&quot;: 0,
+    &quot;name&quot;: null,
+    &quot;tm_create&quot;: &quot;2017-02-08T00:56:35.486586398Z&quot;,
+    &quot;tm_delete&quot;: &quot;2017-03-08T07:43:25.381266416Z&quot;,
+    &quot;tm_update&quot;: &quot;2017-03-08T07:38:20.478261875Z&quot;,
+    &quot;uuid&quot;: &quot;6526c474-280e-4652-a1bf-731089c981a2&quot;,
+    &quot;variables&quot;: null
+  },
+  &quot;statuscode&quot;: 200,
+  &quot;timestamp&quot;: &quot;2017-03-08T07:43:25.398930595Z&quot;
+}
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="dls">
+<h1>/dls<a class="headerlink" href="#dls" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id59">
+<h2>Methods<a class="headerlink" href="#id59" title="Permalink to this headline">¶</a></h2>
+<p>POST : Create new dial list.</p>
+<p>GET : Get list of dial list.</p>
+</div>
+<div class="section" id="id60">
+<h2>Method: POST<a class="headerlink" href="#id60" title="Permalink to this headline">¶</a></h2>
+<p>Create new dial list.</p>
+<div class="section" id="id61">
+<h3>Call<a class="headerlink" href="#id61" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>POST /dls
+
+{
+  &quot;name&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;detail&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;status&quot;: &lt;integer&gt;,
+  &quot;email&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;in_use&quot;: 1,
+  &quot;resv_target&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;number_1&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;number_2&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;number_3&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;number_4&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;number_5&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;number_6&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;number_7&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;number_8&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;trycnt_1&quot;: &lt;integer&gt;,
+  &quot;trycnt_2&quot;: &lt;integer&gt;,
+  &quot;trycnt_3&quot;: &lt;integer&gt;,
+  &quot;trycnt_4&quot;: &lt;integer&gt;,
+  &quot;trycnt_5&quot;: &lt;integer&gt;,
+  &quot;trycnt_6&quot;: &lt;integer&gt;,
+  &quot;trycnt_7&quot;: &lt;integer&gt;,
+  &quot;trycnt_8&quot;: &lt;integer&gt;,
+  &quot;ukey&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;variables&quot;: &quot;&lt;string&gt;&quot;
+}
+</pre></div>
+</div>
+<p>Data details</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">name</span></tt>: dial list name.</li>
+<li><tt class="docutils literal"><span class="pre">detail</span></tt>: dial list detail.</li>
+<li><tt class="docutils literal"><span class="pre">status</span></tt>: Dial list status. See detail <a class="reference internal" href="ob_structure.html#id17"><em>Dial list status</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">email</span></tt>: Email address</li>
+<li><tt class="docutils literal"><span class="pre">in_use</span></tt>: 1,</li>
+<li><tt class="docutils literal"><span class="pre">resv_target</span></tt>: Reserved target. Used for reserved dial.</li>
+<li><tt class="docutils literal"><span class="pre">number_1</span></tt>: The contact number 1</li>
+<li><tt class="docutils literal"><span class="pre">number_2</span></tt>: The contact number 2</li>
+<li><tt class="docutils literal"><span class="pre">number_3</span></tt>: The contact number 3</li>
+<li><tt class="docutils literal"><span class="pre">number_4</span></tt>: The contact number 4</li>
+<li><tt class="docutils literal"><span class="pre">number_5</span></tt>: The contact number 5</li>
+<li><tt class="docutils literal"><span class="pre">number_6</span></tt>: The contact number 6</li>
+<li><tt class="docutils literal"><span class="pre">number_7</span></tt>: The contact number 7</li>
+<li><tt class="docutils literal"><span class="pre">number_8</span></tt>: The contact number 8</li>
+<li><tt class="docutils literal"><span class="pre">trycnt_1</span></tt>: The dialing try count of number 1</li>
+<li><tt class="docutils literal"><span class="pre">trycnt_2</span></tt>: The dialing try count of number 2</li>
+<li><tt class="docutils literal"><span class="pre">trycnt_3</span></tt>: The dialing try count of number 3</li>
+<li><tt class="docutils literal"><span class="pre">trycnt_4</span></tt>: The dialing try count of number 4</li>
+<li><tt class="docutils literal"><span class="pre">trycnt_5</span></tt>: The dialing try count of number 5</li>
+<li><tt class="docutils literal"><span class="pre">trycnt_6</span></tt>: The dialing try count of number 6</li>
+<li><tt class="docutils literal"><span class="pre">trycnt_7</span></tt>: The dialing try count of number 7</li>
+<li><tt class="docutils literal"><span class="pre">trycnt_8</span></tt>: The dialing try count of number 8</li>
+<li><tt class="docutils literal"><span class="pre">ukey</span></tt>:</li>
+<li><tt class="docutils literal"><span class="pre">variables</span></tt>:</li>
+</ul>
+</div>
+<div class="section" id="id62">
+<h3>Returns<a class="headerlink" href="#id62" title="Permalink to this headline">¶</a></h3>
+<p>Created dial list info.</p>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr,
+  &quot;reuslt&quot;: {
+    &quot;name&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;detail&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;dialing_camp_uuid&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;dialing_plan_uuid&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;dialing_uuid&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;dlma_uuid&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;email&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;in_use&quot;: 1,
+    &quot;number_1&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;number_2&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;number_3&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;number_4&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;number_5&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;number_6&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;number_7&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;number_8&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;res_dial&quot;: &lt;integer&gt;,
+    &quot;res_dial_detail&quot;:&quot;&lt;string&gt;&quot;,
+    &quot;res_hangup&quot;: &lt;integer&gt;,
+    &quot;res_hangup_detail&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;resv_target&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;status&quot;: &lt;integer&gt;,
+    &quot;tm_create&quot;: &quot;&lt;timestamp&gt;&quot;,
+    &quot;tm_delete&quot;: &quot;&lt;timestamp&gt;&quot;,
+    &quot;tm_last_dial&quot;: &quot;&lt;timestamp&gt;&quot;,
+    &quot;tm_last_hangup&quot;: &quot;&lt;timestamp&gt;&quot;,
+    &quot;tm_update&quot;: &quot;&lt;timestamp&gt;&quot;,
+    &quot;trycnt_1&quot;: &lt;integer&gt;,
+    &quot;trycnt_2&quot;: &lt;integer&gt;,
+    &quot;trycnt_3&quot;: &lt;integer&gt;,
+    &quot;trycnt_4&quot;: &lt;integer&gt;,
+    &quot;trycnt_5&quot;: &lt;integer&gt;,
+    &quot;trycnt_6&quot;: &lt;integer&gt;,
+    &quot;trycnt_7&quot;: &lt;integer&gt;,
+    &quot;trycnt_8&quot;: &lt;integer&gt;,
+    &quot;ukey&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;uuid&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;variables&quot;: &quot;&lt;string&gt;&quot;
+  }
+}
+</pre></div>
+</div>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">uuid</span></tt>: dial list uuid.</li>
+<li><tt class="docutils literal"><span class="pre">name</span></tt>: dial list name.</li>
+<li><tt class="docutils literal"><span class="pre">detail</span></tt>: dial list detail.</li>
+<li><tt class="docutils literal"><span class="pre">status</span></tt>: Dial list status. See detail <a class="reference internal" href="ob_structure.html#id17"><em>Dial list status</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">dialing_camp_uuid</span></tt>: The campaign uuid info if this dial list is dialing.</li>
+<li><tt class="docutils literal"><span class="pre">dialing_plan_uuid</span></tt>: The plan uuid info if this dial list is dialing.</li>
+<li><tt class="docutils literal"><span class="pre">dlma_uuid</span></tt>: The dlma uuid info if this dial list is dialing.</li>
+<li><tt class="docutils literal"><span class="pre">dialing_uuid</span></tt>: The dialing uuid info if this dial list is dialing.</li>
+<li><tt class="docutils literal"><span class="pre">email</span></tt>: Email address</li>
+<li><tt class="docutils literal"><span class="pre">in_use</span></tt>: 1,</li>
+<li><tt class="docutils literal"><span class="pre">res_dial</span></tt>: The last dialing dial result. See detail <a class="reference internal" href="ob_structure.html#id18"><em>Dial list dial result</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">res_dial_detail</span></tt>: The last dialing dial result detail.</li>
+<li><tt class="docutils literal"><span class="pre">res_hangup</span></tt>: The last dialing hangup result. See detail <a class="reference internal" href="ob_structure.html#id19"><em>Dial list hangup result</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">res_hangup_detail</span></tt>: The last dialing hangup result detail.</li>
+<li><tt class="docutils literal"><span class="pre">resv_target</span></tt>: Reserved target. Used for reserved dial.</li>
+<li><tt class="docutils literal"><span class="pre">number_1</span></tt>: The contact number 1</li>
+<li><tt class="docutils literal"><span class="pre">number_2</span></tt>: The contact number 2</li>
+<li><tt class="docutils literal"><span class="pre">number_3</span></tt>: The contact number 3</li>
+<li><tt class="docutils literal"><span class="pre">number_4</span></tt>: The contact number 4</li>
+<li><tt class="docutils literal"><span class="pre">number_5</span></tt>: The contact number 5</li>
+<li><tt class="docutils literal"><span class="pre">number_6</span></tt>: The contact number 6</li>
+<li><tt class="docutils literal"><span class="pre">number_7</span></tt>: The contact number 7</li>
+<li><tt class="docutils literal"><span class="pre">number_8</span></tt>: The contact number 8</li>
+<li><tt class="docutils literal"><span class="pre">trycnt_1</span></tt>: The dialing try count of number 1</li>
+<li><tt class="docutils literal"><span class="pre">trycnt_2</span></tt>: The dialing try count of number 2</li>
+<li><tt class="docutils literal"><span class="pre">trycnt_3</span></tt>: The dialing try count of number 3</li>
+<li><tt class="docutils literal"><span class="pre">trycnt_4</span></tt>: The dialing try count of number 4</li>
+<li><tt class="docutils literal"><span class="pre">trycnt_5</span></tt>: The dialing try count of number 5</li>
+<li><tt class="docutils literal"><span class="pre">trycnt_6</span></tt>: The dialing try count of number 6</li>
+<li><tt class="docutils literal"><span class="pre">trycnt_7</span></tt>: The dialing try count of number 7</li>
+<li><tt class="docutils literal"><span class="pre">trycnt_8</span></tt>: The dialing try count of number 8</li>
+<li><tt class="docutils literal"><span class="pre">ukey</span></tt>:</li>
+<li><tt class="docutils literal"><span class="pre">variables</span></tt>:</li>
+<li><tt class="docutils literal"><span class="pre">tm_last_dial</span></tt>: Timestamp of the last dialing.</li>
+<li><tt class="docutils literal"><span class="pre">tm_last_hangup</span></tt>: Timestamp of the last hangup.</li>
+<li><tt class="docutils literal"><span class="pre">tm_create</span></tt>:</li>
+<li><tt class="docutils literal"><span class="pre">tm_delete</span></tt>:</li>
+<li><tt class="docutils literal"><span class="pre">tm_update</span></tt>:</li>
+</ul>
+</div>
+<div class="section" id="id63">
+<h3>Example<a class="headerlink" href="#id63" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X POST 192.168.200.10:8081/dls -d
+&#39;{&quot;dlma_uuid&quot;:&quot;42b72a18-a6c5-43bf-b9aa-6043ff32128d&quot;, &quot;name&quot;: &quot;sample dial list&quot;, \
+&quot;detail&quot;: &quot;dial list sample detail&quot;, &quot;number_1&quot;: &quot;300&quot;}&#39;
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;result&quot;: {
+    &quot;detail&quot;: &quot;dial list sample detail&quot;,
+    &quot;dialing_camp_uuid&quot;: null,
+    &quot;dialing_plan_uuid&quot;: null,
+    &quot;dialing_uuid&quot;: null,
+    &quot;dlma_uuid&quot;: &quot;42b72a18-a6c5-43bf-b9aa-6043ff32128d&quot;,
+    &quot;email&quot;: null,
+    &quot;in_use&quot;: 1,
+    &quot;name&quot;: &quot;sample dial list&quot;,
+    &quot;number_1&quot;: &quot;300&quot;,
+    &quot;number_2&quot;: null,
+    &quot;number_3&quot;: null,
+    &quot;number_4&quot;: null,
+    &quot;number_5&quot;: null,
+    &quot;number_6&quot;: null,
+    &quot;number_7&quot;: null,
+    &quot;number_8&quot;: null,
+    &quot;res_dial&quot;: 0,
+    &quot;res_dial_detail&quot;: null,
+    &quot;res_hangup&quot;: 0,
+    &quot;res_hangup_detail&quot;: null,
+    &quot;resv_target&quot;: null,
+    &quot;status&quot;: 0,
+    &quot;tm_create&quot;: &quot;2017-03-08T07:50:59.525293176Z&quot;,
+    &quot;tm_delete&quot;: null,
+    &quot;tm_last_dial&quot;: null,
+    &quot;tm_last_hangup&quot;: null,
+    &quot;tm_update&quot;: null,
+    &quot;trycnt_1&quot;: 0,
+    &quot;trycnt_2&quot;: 0,
+    &quot;trycnt_3&quot;: 0,
+    &quot;trycnt_4&quot;: 0,
+    &quot;trycnt_5&quot;: 0,
+    &quot;trycnt_6&quot;: 0,
+    &quot;trycnt_7&quot;: 0,
+    &quot;trycnt_8&quot;: 0,
+    &quot;ukey&quot;: null,
+    &quot;uuid&quot;: &quot;ef3281f6-b18c-4bf5-9e9d-072bb6036717&quot;,
+    &quot;variables&quot;: null
+  },
+  &quot;statuscode&quot;: 200,
+  &quot;timestamp&quot;: &quot;2017-03-08T07:50:59.604472784Z&quot;
+}
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="id64">
+<h2>Method: GET<a class="headerlink" href="#id64" title="Permalink to this headline">¶</a></h2>
+<p>Get list of dial list.</p>
+<div class="section" id="id65">
+<h3>Call<a class="headerlink" href="#id65" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>GET /dls?dlma_uuid=&lt;dlam-uuid&gt;&amp;count=&lt;request list count&gt;
+</pre></div>
+</div>
+<p>Parameter details</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">dlma_uuid</span></tt> : dial list master uuid.</li>
+<li><tt class="docutils literal"><span class="pre">count</span></tt> : Request list count. Default 100.</li>
+</ul>
+</div>
+<div class="section" id="id66">
+<h3>Returns<a class="headerlink" href="#id66" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr,
+  &quot;reuslt&quot;: {
+    &quot;list&quot;: [
+      &quot;&lt;dl-uuid&gt;&quot;,
+      ...
+    ]
+  }
+}
+</pre></div>
+</div>
+</div>
+<div class="section" id="id67">
+<h3>Example<a class="headerlink" href="#id67" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/dls?dlma_uuid=42b72a18-a6c5-43bf-b9aa-6043ff32128d
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;result&quot;: {
+    &quot;list&quot;: [
+      &quot;7d760dd1-8ba5-48d9-989d-415d610ffe57&quot;,
+      &quot;ef3281f6-b18c-4bf5-9e9d-072bb6036717&quot;
+    ]
+  },
+  &quot;statuscode&quot;: 200,
+  &quot;timestamp&quot;: &quot;2017-03-08T18:32:06.244932866Z&quot;
+}
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="dls-uuid">
+<h1>/dls/&lt;uuid&gt;<a class="headerlink" href="#dls-uuid" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id68">
+<h2>Methods<a class="headerlink" href="#id68" title="Permalink to this headline">¶</a></h2>
+<p>GET : Get specified dial list detail info.</p>
+<p>PUT : Update specified dial list detail info.</p>
+<p>DELETE : Delete specified dial list.</p>
+</div>
+<div class="section" id="id69">
+<h2>Method: GET<a class="headerlink" href="#id69" title="Permalink to this headline">¶</a></h2>
+<p>Get specified dial list detail info.</p>
+<div class="section" id="id70">
+<h3>Call<a class="headerlink" href="#id70" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>GET /dls/&lt;dl-uuid&gt;
+</pre></div>
+</div>
+</div>
+<div class="section" id="id71">
+<h3>Returns<a class="headerlink" href="#id71" title="Permalink to this headline">¶</a></h3>
+<p>Returns specified dial list detail info.</p>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr,
+  &quot;reuslt&quot;: {
+    &quot;name&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;detail&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;dialing_camp_uuid&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;dialing_plan_uuid&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;dialing_uuid&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;dlma_uuid&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;email&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;in_use&quot;: 1,
+    &quot;number_1&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;number_2&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;number_3&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;number_4&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;number_5&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;number_6&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;number_7&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;number_8&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;res_dial&quot;: &lt;integer&gt;,
+    &quot;res_dial_detail&quot;:&quot;&lt;string&gt;&quot;,
+    &quot;res_hangup&quot;: &lt;integer&gt;,
+    &quot;res_hangup_detail&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;resv_target&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;status&quot;: &lt;integer&gt;,
+    &quot;tm_create&quot;: &quot;&lt;timestamp&gt;&quot;,
+    &quot;tm_delete&quot;: &quot;&lt;timestamp&gt;&quot;,
+    &quot;tm_last_dial&quot;: &quot;&lt;timestamp&gt;&quot;,
+    &quot;tm_last_hangup&quot;: &quot;&lt;timestamp&gt;&quot;,
+    &quot;tm_update&quot;: &quot;&lt;timestamp&gt;&quot;,
+    &quot;trycnt_1&quot;: &lt;integer&gt;,
+    &quot;trycnt_2&quot;: &lt;integer&gt;,
+    &quot;trycnt_3&quot;: &lt;integer&gt;,
+    &quot;trycnt_4&quot;: &lt;integer&gt;,
+    &quot;trycnt_5&quot;: &lt;integer&gt;,
+    &quot;trycnt_6&quot;: &lt;integer&gt;,
+    &quot;trycnt_7&quot;: &lt;integer&gt;,
+    &quot;trycnt_8&quot;: &lt;integer&gt;,
+    &quot;ukey&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;uuid&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;variables&quot;: &quot;&lt;string&gt;&quot;
+  }
+}
+</pre></div>
+</div>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">uuid</span></tt>: dial list uuid.</li>
+<li><tt class="docutils literal"><span class="pre">name</span></tt>: dial list name.</li>
+<li><tt class="docutils literal"><span class="pre">detail</span></tt>: dial list detail.</li>
+<li><tt class="docutils literal"><span class="pre">status</span></tt>: Dial list status. See detail <a class="reference internal" href="ob_structure.html#id17"><em>Dial list status</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">dialing_camp_uuid</span></tt>: The campaign uuid info if this dial list is dialing.</li>
+<li><tt class="docutils literal"><span class="pre">dialing_plan_uuid</span></tt>: The plan uuid info if this dial list is dialing.</li>
+<li><tt class="docutils literal"><span class="pre">dlma_uuid</span></tt>: The dlma uuid info if this dial list is dialing.</li>
+<li><tt class="docutils literal"><span class="pre">dialing_uuid</span></tt>: The dialing uuid info if this dial list is dialing.</li>
+<li><tt class="docutils literal"><span class="pre">email</span></tt>: Email address</li>
+<li><tt class="docutils literal"><span class="pre">in_use</span></tt>: 1,</li>
+<li><tt class="docutils literal"><span class="pre">res_dial</span></tt>: The last dialing dial result. See detail <a class="reference internal" href="ob_structure.html#id18"><em>Dial list dial result</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">res_dial_detail</span></tt>: The last dialing dial result detail.</li>
+<li><tt class="docutils literal"><span class="pre">res_hangup</span></tt>: The last dialing hangup result. See detail <a class="reference internal" href="ob_structure.html#id19"><em>Dial list hangup result</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">res_hangup_detail</span></tt>: The last dialing hangup result detail.</li>
+<li><tt class="docutils literal"><span class="pre">resv_target</span></tt>: Reserved target. Used for reserved dial.</li>
+<li><tt class="docutils literal"><span class="pre">number_1</span></tt>: The contact number 1</li>
+<li><tt class="docutils literal"><span class="pre">number_2</span></tt>: The contact number 2</li>
+<li><tt class="docutils literal"><span class="pre">number_3</span></tt>: The contact number 3</li>
+<li><tt class="docutils literal"><span class="pre">number_4</span></tt>: The contact number 4</li>
+<li><tt class="docutils literal"><span class="pre">number_5</span></tt>: The contact number 5</li>
+<li><tt class="docutils literal"><span class="pre">number_6</span></tt>: The contact number 6</li>
+<li><tt class="docutils literal"><span class="pre">number_7</span></tt>: The contact number 7</li>
+<li><tt class="docutils literal"><span class="pre">number_8</span></tt>: The contact number 8</li>
+<li><tt class="docutils literal"><span class="pre">trycnt_1</span></tt>: The dialing try count of number 1</li>
+<li><tt class="docutils literal"><span class="pre">trycnt_2</span></tt>: The dialing try count of number 2</li>
+<li><tt class="docutils literal"><span class="pre">trycnt_3</span></tt>: The dialing try count of number 3</li>
+<li><tt class="docutils literal"><span class="pre">trycnt_4</span></tt>: The dialing try count of number 4</li>
+<li><tt class="docutils literal"><span class="pre">trycnt_5</span></tt>: The dialing try count of number 5</li>
+<li><tt class="docutils literal"><span class="pre">trycnt_6</span></tt>: The dialing try count of number 6</li>
+<li><tt class="docutils literal"><span class="pre">trycnt_7</span></tt>: The dialing try count of number 7</li>
+<li><tt class="docutils literal"><span class="pre">trycnt_8</span></tt>: The dialing try count of number 8</li>
+<li><tt class="docutils literal"><span class="pre">ukey</span></tt>:</li>
+<li><tt class="docutils literal"><span class="pre">variables</span></tt>:</li>
+<li><tt class="docutils literal"><span class="pre">tm_last_dial</span></tt>: Timestamp of the last dialing.</li>
+<li><tt class="docutils literal"><span class="pre">tm_last_hangup</span></tt>: Timestamp of the last hangup.</li>
+<li><tt class="docutils literal"><span class="pre">tm_create</span></tt>:</li>
+<li><tt class="docutils literal"><span class="pre">tm_delete</span></tt>:</li>
+<li><tt class="docutils literal"><span class="pre">tm_update</span></tt>:</li>
+</ul>
+</div>
+<div class="section" id="id72">
+<h3>Example<a class="headerlink" href="#id72" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/dls/7d760dd1-8ba5-48d9-989d-415d610ffe57
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;result&quot;: {
+    &quot;detail&quot;: &quot;test customer for basic tutorial&quot;,
+    &quot;dialing_camp_uuid&quot;: null,
+    &quot;dialing_plan_uuid&quot;: null,
+    &quot;dialing_uuid&quot;: null,
+    &quot;dlma_uuid&quot;: &quot;42b72a18-a6c5-43bf-b9aa-6043ff32128d&quot;,
+    &quot;email&quot;: null,
+    &quot;in_use&quot;: 1,
+    &quot;name&quot;: &quot;basic tutorial test customer 1&quot;,
+    &quot;number_1&quot;: &quot;300&quot;,
+    &quot;number_2&quot;: null,
+    &quot;number_3&quot;: null,
+    &quot;number_4&quot;: null,
+    &quot;number_5&quot;: null,
+    &quot;number_6&quot;: null,
+    &quot;number_7&quot;: null,
+    &quot;number_8&quot;: null,
+    &quot;res_dial&quot;: 4,
+    &quot;res_dial_detail&quot;: &quot;Remote end has answered&quot;,
+    &quot;res_hangup&quot;: 16,
+    &quot;res_hangup_detail&quot;: &quot;Normal Clearing&quot;,
+    &quot;resv_target&quot;: null,
+    &quot;status&quot;: 0,
+    &quot;tm_create&quot;: &quot;2017-03-08T01:55:07.911271576Z&quot;,
+    &quot;tm_delete&quot;: null,
+    &quot;tm_last_dial&quot;: &quot;2017-03-08T02:02:19.561972329Z&quot;,
+    &quot;tm_last_hangup&quot;: &quot;2017-03-08T02:02:38.294239075Z&quot;,
+    &quot;tm_update&quot;: null,
+    &quot;trycnt_1&quot;: 1,
+    &quot;trycnt_2&quot;: 0,
+    &quot;trycnt_3&quot;: 0,
+    &quot;trycnt_4&quot;: 0,
+    &quot;trycnt_5&quot;: 0,
+    &quot;trycnt_6&quot;: 0,
+    &quot;trycnt_7&quot;: 0,
+    &quot;trycnt_8&quot;: 0,
+    &quot;ukey&quot;: null,
+    &quot;uuid&quot;: &quot;7d760dd1-8ba5-48d9-989d-415d610ffe57&quot;,
+    &quot;variables&quot;: null
+  },
+  &quot;statuscode&quot;: 200,
+  &quot;timestamp&quot;: &quot;2017-03-08T18:46:54.423073902Z&quot;
+}
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="id73">
+<h2>Method: PUT<a class="headerlink" href="#id73" title="Permalink to this headline">¶</a></h2>
+<p>Update specified dial list detail info.</p>
+<div class="section" id="id74">
+<h3>Call<a class="headerlink" href="#id74" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>PUT /dls/&lt;dl-uuid&gt;
+
+{
+  &quot;name&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;detail&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;status&quot;: &lt;integer&gt;,
+  &quot;email&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;resv_target&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;number_1&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;number_2&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;number_3&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;number_4&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;number_5&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;number_6&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;number_7&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;number_8&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;trycnt_1&quot;: &lt;integer&gt;,
+  &quot;trycnt_2&quot;: &lt;integer&gt;,
+  &quot;trycnt_3&quot;: &lt;integer&gt;,
+  &quot;trycnt_4&quot;: &lt;integer&gt;,
+  &quot;trycnt_5&quot;: &lt;integer&gt;,
+  &quot;trycnt_6&quot;: &lt;integer&gt;,
+  &quot;trycnt_7&quot;: &lt;integer&gt;,
+  &quot;trycnt_8&quot;: &lt;integer&gt;,
+  &quot;ukey&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;variables&quot;: &quot;&lt;string&gt;&quot;
+}
+</pre></div>
+</div>
+<p>Data parameters</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">name</span></tt>: dial list name.</li>
+<li><tt class="docutils literal"><span class="pre">detail</span></tt>: dial list detail.</li>
+<li><tt class="docutils literal"><span class="pre">status</span></tt>: Dial list status. See detail <a class="reference internal" href="ob_structure.html#id17"><em>Dial list status</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">email</span></tt>: Email address</li>
+<li><tt class="docutils literal"><span class="pre">in_use</span></tt>: 1,</li>
+<li><tt class="docutils literal"><span class="pre">resv_target</span></tt>: Reserved target. Used for reserved dial.</li>
+<li><tt class="docutils literal"><span class="pre">number_1</span></tt>: The contact number 1</li>
+<li><tt class="docutils literal"><span class="pre">number_2</span></tt>: The contact number 2</li>
+<li><tt class="docutils literal"><span class="pre">number_3</span></tt>: The contact number 3</li>
+<li><tt class="docutils literal"><span class="pre">number_4</span></tt>: The contact number 4</li>
+<li><tt class="docutils literal"><span class="pre">number_5</span></tt>: The contact number 5</li>
+<li><tt class="docutils literal"><span class="pre">number_6</span></tt>: The contact number 6</li>
+<li><tt class="docutils literal"><span class="pre">number_7</span></tt>: The contact number 7</li>
+<li><tt class="docutils literal"><span class="pre">number_8</span></tt>: The contact number 8</li>
+<li><tt class="docutils literal"><span class="pre">trycnt_1</span></tt>: The dialing try count of number 1</li>
+<li><tt class="docutils literal"><span class="pre">trycnt_2</span></tt>: The dialing try count of number 2</li>
+<li><tt class="docutils literal"><span class="pre">trycnt_3</span></tt>: The dialing try count of number 3</li>
+<li><tt class="docutils literal"><span class="pre">trycnt_4</span></tt>: The dialing try count of number 4</li>
+<li><tt class="docutils literal"><span class="pre">trycnt_5</span></tt>: The dialing try count of number 5</li>
+<li><tt class="docutils literal"><span class="pre">trycnt_6</span></tt>: The dialing try count of number 6</li>
+<li><tt class="docutils literal"><span class="pre">trycnt_7</span></tt>: The dialing try count of number 7</li>
+<li><tt class="docutils literal"><span class="pre">trycnt_8</span></tt>: The dialing try count of number 8</li>
+<li><tt class="docutils literal"><span class="pre">ukey</span></tt>:</li>
+<li><tt class="docutils literal"><span class="pre">variables</span></tt>:</li>
+</ul>
+</div>
+<div class="section" id="id75">
+<h3>Returns<a class="headerlink" href="#id75" title="Permalink to this headline">¶</a></h3>
+<p>Returns updated dial list detail info.</p>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr,
+  &quot;reuslt&quot;: {
+    &quot;name&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;detail&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;dialing_camp_uuid&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;dialing_plan_uuid&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;dialing_uuid&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;dlma_uuid&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;email&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;in_use&quot;: 1,
+    &quot;number_1&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;number_2&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;number_3&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;number_4&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;number_5&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;number_6&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;number_7&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;number_8&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;res_dial&quot;: &lt;integer&gt;,
+    &quot;res_dial_detail&quot;:&quot;&lt;string&gt;&quot;,
+    &quot;res_hangup&quot;: &lt;integer&gt;,
+    &quot;res_hangup_detail&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;resv_target&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;status&quot;: &lt;integer&gt;,
+    &quot;tm_create&quot;: &quot;&lt;timestamp&gt;&quot;,
+    &quot;tm_delete&quot;: &quot;&lt;timestamp&gt;&quot;,
+    &quot;tm_last_dial&quot;: &quot;&lt;timestamp&gt;&quot;,
+    &quot;tm_last_hangup&quot;: &quot;&lt;timestamp&gt;&quot;,
+    &quot;tm_update&quot;: &quot;&lt;timestamp&gt;&quot;,
+    &quot;trycnt_1&quot;: &lt;integer&gt;,
+    &quot;trycnt_2&quot;: &lt;integer&gt;,
+    &quot;trycnt_3&quot;: &lt;integer&gt;,
+    &quot;trycnt_4&quot;: &lt;integer&gt;,
+    &quot;trycnt_5&quot;: &lt;integer&gt;,
+    &quot;trycnt_6&quot;: &lt;integer&gt;,
+    &quot;trycnt_7&quot;: &lt;integer&gt;,
+    &quot;trycnt_8&quot;: &lt;integer&gt;,
+    &quot;ukey&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;uuid&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;variables&quot;: &quot;&lt;string&gt;&quot;
+  }
+}
+</pre></div>
+</div>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">uuid</span></tt>: dial list uuid.</li>
+<li><tt class="docutils literal"><span class="pre">name</span></tt>: dial list name.</li>
+<li><tt class="docutils literal"><span class="pre">detail</span></tt>: dial list detail.</li>
+<li><tt class="docutils literal"><span class="pre">status</span></tt>: Dial list status. See detail <a class="reference internal" href="ob_structure.html#id17"><em>Dial list status</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">dialing_camp_uuid</span></tt>: The campaign uuid info if this dial list is dialing.</li>
+<li><tt class="docutils literal"><span class="pre">dialing_plan_uuid</span></tt>: The plan uuid info if this dial list is dialing.</li>
+<li><tt class="docutils literal"><span class="pre">dlma_uuid</span></tt>: The dlma uuid info if this dial list is dialing.</li>
+<li><tt class="docutils literal"><span class="pre">dialing_uuid</span></tt>: The dialing uuid info if this dial list is dialing.</li>
+<li><tt class="docutils literal"><span class="pre">email</span></tt>: Email address</li>
+<li><tt class="docutils literal"><span class="pre">in_use</span></tt>: 1,</li>
+<li><tt class="docutils literal"><span class="pre">res_dial</span></tt>: The last dialing dial result. See detail <a class="reference internal" href="ob_structure.html#id18"><em>Dial list dial result</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">res_dial_detail</span></tt>: The last dialing dial result detail.</li>
+<li><tt class="docutils literal"><span class="pre">res_hangup</span></tt>: The last dialing hangup result. See detail <a class="reference internal" href="ob_structure.html#id19"><em>Dial list hangup result</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">res_hangup_detail</span></tt>: The last dialing hangup result detail.</li>
+<li><tt class="docutils literal"><span class="pre">resv_target</span></tt>: Reserved target. Used for reserved dial.</li>
+<li><tt class="docutils literal"><span class="pre">number_1</span></tt>: The contact number 1</li>
+<li><tt class="docutils literal"><span class="pre">number_2</span></tt>: The contact number 2</li>
+<li><tt class="docutils literal"><span class="pre">number_3</span></tt>: The contact number 3</li>
+<li><tt class="docutils literal"><span class="pre">number_4</span></tt>: The contact number 4</li>
+<li><tt class="docutils literal"><span class="pre">number_5</span></tt>: The contact number 5</li>
+<li><tt class="docutils literal"><span class="pre">number_6</span></tt>: The contact number 6</li>
+<li><tt class="docutils literal"><span class="pre">number_7</span></tt>: The contact number 7</li>
+<li><tt class="docutils literal"><span class="pre">number_8</span></tt>: The contact number 8</li>
+<li><tt class="docutils literal"><span class="pre">trycnt_1</span></tt>: The dialing try count of number 1</li>
+<li><tt class="docutils literal"><span class="pre">trycnt_2</span></tt>: The dialing try count of number 2</li>
+<li><tt class="docutils literal"><span class="pre">trycnt_3</span></tt>: The dialing try count of number 3</li>
+<li><tt class="docutils literal"><span class="pre">trycnt_4</span></tt>: The dialing try count of number 4</li>
+<li><tt class="docutils literal"><span class="pre">trycnt_5</span></tt>: The dialing try count of number 5</li>
+<li><tt class="docutils literal"><span class="pre">trycnt_6</span></tt>: The dialing try count of number 6</li>
+<li><tt class="docutils literal"><span class="pre">trycnt_7</span></tt>: The dialing try count of number 7</li>
+<li><tt class="docutils literal"><span class="pre">trycnt_8</span></tt>: The dialing try count of number 8</li>
+<li><tt class="docutils literal"><span class="pre">ukey</span></tt>:</li>
+<li><tt class="docutils literal"><span class="pre">variables</span></tt>:</li>
+<li><tt class="docutils literal"><span class="pre">tm_last_dial</span></tt>: Timestamp of the last dialing.</li>
+<li><tt class="docutils literal"><span class="pre">tm_last_hangup</span></tt>: Timestamp of the last hangup.</li>
+<li><tt class="docutils literal"><span class="pre">tm_create</span></tt>:</li>
+<li><tt class="docutils literal"><span class="pre">tm_delete</span></tt>:</li>
+<li><tt class="docutils literal"><span class="pre">tm_update</span></tt>:</li>
+</ul>
+</div>
+<div class="section" id="id76">
+<h3>Example<a class="headerlink" href="#id76" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X PUT 192.168.200.10:8081/dls/7d760dd1-8ba5-48d9-989d-415d610ffe57 -d
+&#39;{&quot;detail&quot;: &quot;Updated test customer detail&quot;}&#39;
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;result&quot;: {
+    &quot;detail&quot;: &quot;Updated test customer detail&quot;,
+    &quot;dialing_camp_uuid&quot;: null,
+    &quot;dialing_plan_uuid&quot;: null,
+    &quot;dialing_uuid&quot;: null,
+    &quot;dlma_uuid&quot;: &quot;42b72a18-a6c5-43bf-b9aa-6043ff32128d&quot;,
+    &quot;email&quot;: null,
+    &quot;in_use&quot;: 1,
+    &quot;name&quot;: &quot;basic tutorial test customer 1&quot;,
+    &quot;number_1&quot;: &quot;300&quot;,
+    &quot;number_2&quot;: null,
+    &quot;number_3&quot;: null,
+    &quot;number_4&quot;: null,
+    &quot;number_5&quot;: null,
+    &quot;number_6&quot;: null,
+    &quot;number_7&quot;: null,
+    &quot;number_8&quot;: null,
+    &quot;res_dial&quot;: 4,
+    &quot;res_dial_detail&quot;: &quot;Remote end has answered&quot;,
+    &quot;res_hangup&quot;: 16,
+    &quot;res_hangup_detail&quot;: &quot;Normal Clearing&quot;,
+    &quot;resv_target&quot;: null,
+    &quot;status&quot;: 0,
+    &quot;tm_create&quot;: &quot;2017-03-08T01:55:07.911271576Z&quot;,
+    &quot;tm_delete&quot;: null,
+    &quot;tm_last_dial&quot;: &quot;2017-03-08T02:02:19.561972329Z&quot;,
+    &quot;tm_last_hangup&quot;: &quot;2017-03-08T02:02:38.294239075Z&quot;,
+    &quot;tm_update&quot;: null,
+    &quot;trycnt_1&quot;: 1,
+    &quot;trycnt_2&quot;: 0,
+    &quot;trycnt_3&quot;: 0,
+    &quot;trycnt_4&quot;: 0,
+    &quot;trycnt_5&quot;: 0,
+    &quot;trycnt_6&quot;: 0,
+    &quot;trycnt_7&quot;: 0,
+    &quot;trycnt_8&quot;: 0,
+    &quot;ukey&quot;: null,
+    &quot;uuid&quot;: &quot;7d760dd1-8ba5-48d9-989d-415d610ffe57&quot;,
+    &quot;variables&quot;: null
+  },
+  &quot;statuscode&quot;: 200,
+  &quot;timestamp&quot;: &quot;2017-03-08T19:18:30.669572995Z&quot;
+}
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="id77">
+<h2>Method: DELETE<a class="headerlink" href="#id77" title="Permalink to this headline">¶</a></h2>
+<p>Delete specified dial list.</p>
+<div class="section" id="id78">
+<h3>Call<a class="headerlink" href="#id78" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>DELETE /dls/&lt;dl-uuid&gt;
+</pre></div>
+</div>
+<p>Parameter details</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">uuid</span></tt> : dl uuid.</li>
+</ul>
+</div>
+<div class="section" id="id79">
+<h3>Returns<a class="headerlink" href="#id79" title="Permalink to this headline">¶</a></h3>
+<p>Returns deleted dial list info.</p>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr,
+  &quot;reuslt&quot;: {
+    &quot;name&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;detail&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;dialing_camp_uuid&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;dialing_plan_uuid&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;dialing_uuid&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;dlma_uuid&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;email&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;in_use&quot;: 0,
+    &quot;number_1&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;number_2&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;number_3&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;number_4&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;number_5&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;number_6&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;number_7&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;number_8&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;res_dial&quot;: &lt;integer&gt;,
+    &quot;res_dial_detail&quot;:&quot;&lt;string&gt;&quot;,
+    &quot;res_hangup&quot;: &lt;integer&gt;,
+    &quot;res_hangup_detail&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;resv_target&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;status&quot;: &lt;integer&gt;,
+    &quot;tm_create&quot;: &quot;&lt;timestamp&gt;&quot;,
+    &quot;tm_delete&quot;: &quot;&lt;timestamp&gt;&quot;,
+    &quot;tm_last_dial&quot;: &quot;&lt;timestamp&gt;&quot;,
+    &quot;tm_last_hangup&quot;: &quot;&lt;timestamp&gt;&quot;,
+    &quot;tm_update&quot;: &quot;&lt;timestamp&gt;&quot;,
+    &quot;trycnt_1&quot;: &lt;integer&gt;,
+    &quot;trycnt_2&quot;: &lt;integer&gt;,
+    &quot;trycnt_3&quot;: &lt;integer&gt;,
+    &quot;trycnt_4&quot;: &lt;integer&gt;,
+    &quot;trycnt_5&quot;: &lt;integer&gt;,
+    &quot;trycnt_6&quot;: &lt;integer&gt;,
+    &quot;trycnt_7&quot;: &lt;integer&gt;,
+    &quot;trycnt_8&quot;: &lt;integer&gt;,
+    &quot;ukey&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;uuid&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;variables&quot;: &quot;&lt;string&gt;&quot;
+  }
+}
+</pre></div>
+</div>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">uuid</span></tt>: dial list uuid.</li>
+<li><tt class="docutils literal"><span class="pre">name</span></tt>: dial list name.</li>
+<li><tt class="docutils literal"><span class="pre">detail</span></tt>: dial list detail.</li>
+<li><tt class="docutils literal"><span class="pre">status</span></tt>: Dial list status. See detail <a class="reference internal" href="ob_structure.html#id17"><em>Dial list status</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">dialing_camp_uuid</span></tt>: The campaign uuid info if this dial list is dialing.</li>
+<li><tt class="docutils literal"><span class="pre">dialing_plan_uuid</span></tt>: The plan uuid info if this dial list is dialing.</li>
+<li><tt class="docutils literal"><span class="pre">dlma_uuid</span></tt>: The dlma uuid info if this dial list is dialing.</li>
+<li><tt class="docutils literal"><span class="pre">dialing_uuid</span></tt>: The dialing uuid info if this dial list is dialing.</li>
+<li><tt class="docutils literal"><span class="pre">email</span></tt>: Email address</li>
+<li><tt class="docutils literal"><span class="pre">in_use</span></tt>: 1,</li>
+<li><tt class="docutils literal"><span class="pre">res_dial</span></tt>: The last dialing dial result. See detail <a class="reference internal" href="ob_structure.html#id18"><em>Dial list dial result</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">res_dial_detail</span></tt>: The last dialing dial result detail.</li>
+<li><tt class="docutils literal"><span class="pre">res_hangup</span></tt>: The last dialing hangup result. See detail <a class="reference internal" href="ob_structure.html#id19"><em>Dial list hangup result</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">res_hangup_detail</span></tt>: The last dialing hangup result detail.</li>
+<li><tt class="docutils literal"><span class="pre">resv_target</span></tt>: Reserved target. Used for reserved dial.</li>
+<li><tt class="docutils literal"><span class="pre">number_1</span></tt>: The contact number 1</li>
+<li><tt class="docutils literal"><span class="pre">number_2</span></tt>: The contact number 2</li>
+<li><tt class="docutils literal"><span class="pre">number_3</span></tt>: The contact number 3</li>
+<li><tt class="docutils literal"><span class="pre">number_4</span></tt>: The contact number 4</li>
+<li><tt class="docutils literal"><span class="pre">number_5</span></tt>: The contact number 5</li>
+<li><tt class="docutils literal"><span class="pre">number_6</span></tt>: The contact number 6</li>
+<li><tt class="docutils literal"><span class="pre">number_7</span></tt>: The contact number 7</li>
+<li><tt class="docutils literal"><span class="pre">number_8</span></tt>: The contact number 8</li>
+<li><tt class="docutils literal"><span class="pre">trycnt_1</span></tt>: The dialing try count of number 1</li>
+<li><tt class="docutils literal"><span class="pre">trycnt_2</span></tt>: The dialing try count of number 2</li>
+<li><tt class="docutils literal"><span class="pre">trycnt_3</span></tt>: The dialing try count of number 3</li>
+<li><tt class="docutils literal"><span class="pre">trycnt_4</span></tt>: The dialing try count of number 4</li>
+<li><tt class="docutils literal"><span class="pre">trycnt_5</span></tt>: The dialing try count of number 5</li>
+<li><tt class="docutils literal"><span class="pre">trycnt_6</span></tt>: The dialing try count of number 6</li>
+<li><tt class="docutils literal"><span class="pre">trycnt_7</span></tt>: The dialing try count of number 7</li>
+<li><tt class="docutils literal"><span class="pre">trycnt_8</span></tt>: The dialing try count of number 8</li>
+<li><tt class="docutils literal"><span class="pre">ukey</span></tt>:</li>
+<li><tt class="docutils literal"><span class="pre">variables</span></tt>:</li>
+<li><tt class="docutils literal"><span class="pre">tm_last_dial</span></tt>: Timestamp of the last dialing.</li>
+<li><tt class="docutils literal"><span class="pre">tm_last_hangup</span></tt>: Timestamp of the last hangup.</li>
+<li><tt class="docutils literal"><span class="pre">tm_create</span></tt>:</li>
+<li><tt class="docutils literal"><span class="pre">tm_delete</span></tt>:</li>
+<li><tt class="docutils literal"><span class="pre">tm_update</span></tt>:</li>
+</ul>
+</div>
+<div class="section" id="id80">
+<h3>Example<a class="headerlink" href="#id80" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X DELETE 192.168.200.10:8081/dls/7d760dd1-8ba5-48d9-989d-415d610ffe57
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;result&quot;: {
+    &quot;detail&quot;: &quot;Updated test customer detail&quot;,
+    &quot;dialing_camp_uuid&quot;: null,
+    &quot;dialing_plan_uuid&quot;: null,
+    &quot;dialing_uuid&quot;: null,
+    &quot;dlma_uuid&quot;: &quot;42b72a18-a6c5-43bf-b9aa-6043ff32128d&quot;,
+    &quot;email&quot;: null,
+    &quot;in_use&quot;: 0,
+    &quot;name&quot;: &quot;basic tutorial test customer 1&quot;,
+    &quot;number_1&quot;: &quot;300&quot;,
+    &quot;number_2&quot;: null,
+    &quot;number_3&quot;: null,
+    &quot;number_4&quot;: null,
+    &quot;number_5&quot;: null,
+    &quot;number_6&quot;: null,
+    &quot;number_7&quot;: null,
+    &quot;number_8&quot;: null,
+    &quot;res_dial&quot;: 4,
+    &quot;res_dial_detail&quot;: &quot;Remote end has answered&quot;,
+    &quot;res_hangup&quot;: 16,
+    &quot;res_hangup_detail&quot;: &quot;Normal Clearing&quot;,
+    &quot;resv_target&quot;: null,
+    &quot;status&quot;: 0,
+    &quot;tm_create&quot;: &quot;2017-03-08T01:55:07.911271576Z&quot;,
+    &quot;tm_delete&quot;: &quot;2017-03-08T20:46:09.359647726Z&quot;,
+    &quot;tm_last_dial&quot;: &quot;2017-03-08T02:02:19.561972329Z&quot;,
+    &quot;tm_last_hangup&quot;: &quot;2017-03-08T02:02:38.294239075Z&quot;,
+    &quot;tm_update&quot;: null,
+    &quot;trycnt_1&quot;: 1,
+    &quot;trycnt_2&quot;: 0,
+    &quot;trycnt_3&quot;: 0,
+    &quot;trycnt_4&quot;: 0,
+    &quot;trycnt_5&quot;: 0,
+    &quot;trycnt_6&quot;: 0,
+    &quot;trycnt_7&quot;: 0,
+    &quot;trycnt_8&quot;: 0,
+    &quot;ukey&quot;: null,
+    &quot;uuid&quot;: &quot;7d760dd1-8ba5-48d9-989d-415d610ffe57&quot;,
+    &quot;variables&quot;: null
+  },
+  &quot;statuscode&quot;: 200,
+  &quot;timestamp&quot;: &quot;2017-03-08T20:46:09.380969992Z&quot;
+}
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="campaigns">
+<h1>/campaigns<a class="headerlink" href="#campaigns" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id81">
+<h2>Methods<a class="headerlink" href="#id81" title="Permalink to this headline">¶</a></h2>
+<p>POST : Create new campaign.</p>
+<p>GET : Get list of all campaigns.</p>
+</div>
+<div class="section" id="id82">
+<h2>Method: POST<a class="headerlink" href="#id82" title="Permalink to this headline">¶</a></h2>
+<p>Create new campaign.</p>
+<div class="section" id="id83">
+<h3>Call<a class="headerlink" href="#id83" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>POST /campaign
+
+{
+  &quot;name&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;detail&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;status&quot;: &lt;integer&gt;,
+  &quot;plan&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;dlma&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;dest&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;in_use&quot;: 1,
+  &quot;next_campaign&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;sc_mode&quot;: &lt;integer&gt;,
+  &quot;sc_time_start&quot;: null,
+  &quot;sc_time_end&quot;: null,
+  &quot;sc_date_start&quot;: null,
+  &quot;sc_date_end&quot;: null,
+  &quot;sc_date_list&quot;: null,
+  &quot;sc_date_list_except&quot;: null,
+  &quot;sc_day_list&quot;: null
+}
+</pre></div>
+</div>
+<p>Parameters</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">name</span></tt> : Campaign name.</li>
+<li><tt class="docutils literal"><span class="pre">detail</span></tt> : Campaign detail info.</li>
+<li><tt class="docutils literal"><span class="pre">status</span></tt> : Campaign status. See detail <a class="reference internal" href="ob_structure.html#campaign-status"><em>Campaign status</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">plan</span></tt> : Registered plan uuid.</li>
+<li><tt class="docutils literal"><span class="pre">dlma</span></tt> : Registered dlma uuid.</li>
+<li><tt class="docutils literal"><span class="pre">dest</span></tt> : Registered destination uuid.</li>
+<li><tt class="docutils literal"><span class="pre">next_campaign</span></tt> :</li>
+<li><tt class="docutils literal"><span class="pre">sc_mode</span></tt> : Scheduling mode. See detail <a class="reference internal" href="ob_structure.html#scheduling-mode"><em>Scheduling mode</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">sc_time_start</span></tt> : Campaign scheduling start time. See detail <a class="reference internal" href="ob_structure.html#scheduling-time"><em>Scheduling time</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">sc_time_end</span></tt> : Campaign scheduling end time. See detail <a class="reference internal" href="ob_structure.html#scheduling-time"><em>Scheduling time</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">sc_date_start</span></tt> : Campaign scheduling start date. See detail <a class="reference internal" href="ob_structure.html#scheduling-date"><em>Scheduling date</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">sc_date_end</span></tt> : Campaign scheduling end date. See detail <a class="reference internal" href="ob_structure.html#scheduling-date"><em>Scheduling date</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">sc_date_list</span></tt> : Campaign schedling date list. See detail <a class="reference internal" href="ob_structure.html#scheduling-date-list"><em>Scheduling date list</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">sc_date_list_except</span></tt> : Campaign scheduling except date list. See detail <a class="reference internal" href="ob_structure.html#scheduling-date-list"><em>Scheduling date list</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">sc_day_list</span></tt> : Campaign scheduling day list. See detail <a class="reference internal" href="ob_structure.html#scheduling-day-list"><em>Scheduling day list</em></a>.</li>
+</ul>
+</div>
+<div class="section" id="id84">
+<h3>Returns<a class="headerlink" href="#id84" title="Permalink to this headline">¶</a></h3>
+<p>Return the created campaign info.</p>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr,
+  &quot;reuslt&quot;: {
+    &quot;uuid&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;name&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;detail&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;status&quot;: &lt;integer&gt;,
+    &quot;plan&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;dlma&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;dest&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;in_use&quot;: 1,
+    &quot;next_campaign&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;sc_mode&quot;: &lt;integer&gt;,
+    &quot;sc_time_start&quot;: null,
+    &quot;sc_time_end&quot;: null,
+    &quot;sc_date_start&quot;: null,
+    &quot;sc_date_end&quot;: null,
+    &quot;sc_date_list&quot;: null,
+    &quot;sc_date_list_except&quot;: null,
+    &quot;sc_day_list&quot;: null,
+    &quot;tm_create&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;tm_delete&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;tm_update&quot;: &quot;&lt;string&gt;&quot;
+  }
+}
+</pre></div>
+</div>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">uuid</span></tt> : Campaign uuid.</li>
+<li><tt class="docutils literal"><span class="pre">name</span></tt> : Campaign name.</li>
+<li><tt class="docutils literal"><span class="pre">detail</span></tt> : Campaign detail info.</li>
+<li><tt class="docutils literal"><span class="pre">status</span></tt> : Campaign status. See detail <a class="reference internal" href="ob_structure.html#campaign-status"><em>Campaign status</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">plan</span></tt> : Registered plan uuid.</li>
+<li><tt class="docutils literal"><span class="pre">dlma</span></tt> : Registered dlma uuid.</li>
+<li><tt class="docutils literal"><span class="pre">dest</span></tt> : Registered destination uuid.</li>
+<li><tt class="docutils literal"><span class="pre">next_campaign</span></tt> :</li>
+<li><tt class="docutils literal"><span class="pre">sc_mode</span></tt> : Scheduling mode. See detail <a class="reference internal" href="ob_structure.html#scheduling-mode"><em>Scheduling mode</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">sc_time_start</span></tt> : Campaign scheduling start time. See detail <a class="reference internal" href="ob_structure.html#scheduling-time"><em>Scheduling time</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">sc_time_end</span></tt> : Campaign scheduling end time. See detail <a class="reference internal" href="ob_structure.html#scheduling-time"><em>Scheduling time</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">sc_date_start</span></tt> : Campaign scheduling start date. See detail <a class="reference internal" href="ob_structure.html#scheduling-date"><em>Scheduling date</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">sc_date_end</span></tt> : Campaign scheduling end date. See detail <a class="reference internal" href="ob_structure.html#scheduling-date"><em>Scheduling date</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">sc_date_list</span></tt> : Campaign schedling date list. See detail <a class="reference internal" href="ob_structure.html#scheduling-date-list"><em>Scheduling date list</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">sc_date_list_except</span></tt> : Campaign scheduling except date list. See detail <a class="reference internal" href="ob_structure.html#scheduling-date-list"><em>Scheduling date list</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">sc_day_list</span></tt> : Campaign scheduling day list. See detail <a class="reference internal" href="ob_structure.html#scheduling-day-list"><em>Scheduling day list</em></a>.</li>
+</ul>
+</div>
+<div class="section" id="id85">
+<h3>Example<a class="headerlink" href="#id85" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X POST 192.168.200.10:8081/destinations -d&#39;{}&#39;
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;result&quot;: {
+    &quot;dest&quot;: null,
+    &quot;detail&quot;: null,
+    &quot;dlma&quot;: null,
+    &quot;in_use&quot;: 1,
+    &quot;name&quot;: null,
+    &quot;next_campaign&quot;: null,
+    &quot;plan&quot;: null,
+    &quot;sc_date_end&quot;: null,
+    &quot;sc_date_list&quot;: null,
+    &quot;sc_date_list_except&quot;: null,
+    &quot;sc_date_start&quot;: null,
+    &quot;sc_day_list&quot;: null,
+    &quot;sc_mode&quot;: 0,
+    &quot;sc_time_end&quot;: null,
+    &quot;sc_time_start&quot;: null,
+    &quot;status&quot;: 0,
+    &quot;tm_create&quot;: &quot;2017-03-05T15:25:09.788596601Z&quot;,
+    &quot;tm_delete&quot;: null,
+    &quot;tm_update&quot;: null,
+    &quot;uuid&quot;: &quot;305c96cb-4704-4f33-bcad-6b2e4031d7d4&quot;
+  },
+  &quot;statuscode&quot;: 200,
+  &quot;timestamp&quot;: &quot;2017-03-05T15:25:09.808247523Z&quot;
+}
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="id86">
+<h2>Method: GET<a class="headerlink" href="#id86" title="Permalink to this headline">¶</a></h2>
+<p>Get list of all campaigns.</p>
+<div class="section" id="id87">
+<h3>Call<a class="headerlink" href="#id87" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">GET</span> <span class="o">/</span><span class="n">campaigns</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id88">
+<h3>Returns<a class="headerlink" href="#id88" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr,
+  &quot;reuslt&quot;: {
+    &quot;list&quot;: [
+      &quot;&lt;campaign-uuid&gt;&quot;,
+      ...
+    ]
+  }
+}
+</pre></div>
+</div>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">list</span></tt> : array of campaign-uuid</li>
+</ul>
+</div>
+<div class="section" id="id89">
+<h3>Example<a class="headerlink" href="#id89" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>curl -X GET 192.168.200.10:8081/campaigns
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;result&quot;: {
+      &quot;list&quot;: [
+          &quot;9841bc9e-3103-4fea-ab11-54ccfcc8322f&quot;
+      ]
+  },
+  &quot;statuscode&quot;: 200,
+  &quot;timestamp&quot;: &quot;2017-03-05T09:10:23.658031316Z&quot;
+}
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="campaigns-uuid">
+<h1>/campaigns/&lt;uuid&gt;<a class="headerlink" href="#campaigns-uuid" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id90">
+<h2>Methods<a class="headerlink" href="#id90" title="Permalink to this headline">¶</a></h2>
+<p>GET : Get specified campaign detail info.</p>
+<p>PUT : Update specified campaign detail info.</p>
+<p>DELETE : Delete specified campaign.</p>
+</div>
+<div class="section" id="id91">
+<h2>Method: GET<a class="headerlink" href="#id91" title="Permalink to this headline">¶</a></h2>
+<p>Get specified campaign detail info.</p>
+<div class="section" id="id92">
+<h3>Call<a class="headerlink" href="#id92" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>GET /campaign/&lt;uuid&gt;
+</pre></div>
+</div>
+</div>
+<div class="section" id="id93">
+<h3>Returns<a class="headerlink" href="#id93" title="Permalink to this headline">¶</a></h3>
+<p>Get specified campaign detail info.</p>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr,
+  &quot;reuslt&quot;: {
+    &quot;uuid&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;name&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;detail&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;status&quot;: &lt;integer&gt;,
+    &quot;plan&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;dlma&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;dest&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;in_use&quot;: 1,
+    &quot;next_campaign&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;sc_mode&quot;: &lt;integer&gt;,
+    &quot;sc_time_start&quot;: null,
+    &quot;sc_time_end&quot;: null,
+    &quot;sc_date_start&quot;: null,
+    &quot;sc_date_end&quot;: null,
+    &quot;sc_date_list&quot;: null,
+    &quot;sc_date_list_except&quot;: null,
+    &quot;sc_day_list&quot;: null,
+    &quot;tm_create&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;tm_delete&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;tm_update&quot;: &quot;&lt;string&gt;&quot;
+  }
+}
+</pre></div>
+</div>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">uuid</span></tt> : Campaign uuid.</li>
+<li><tt class="docutils literal"><span class="pre">name</span></tt> : Campaign name.</li>
+<li><tt class="docutils literal"><span class="pre">detail</span></tt> : Campaign detail info.</li>
+<li><tt class="docutils literal"><span class="pre">status</span></tt> : Campaign status. See detail <a class="reference internal" href="ob_structure.html#campaign-status"><em>Campaign status</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">plan</span></tt> : Registered plan uuid.</li>
+<li><tt class="docutils literal"><span class="pre">dlma</span></tt> : Registered dlma uuid.</li>
+<li><tt class="docutils literal"><span class="pre">dest</span></tt> : Registered destination uuid.</li>
+<li><tt class="docutils literal"><span class="pre">next_campaign</span></tt> :</li>
+<li><tt class="docutils literal"><span class="pre">sc_mode</span></tt> : Scheduling mode. See detail <a class="reference internal" href="ob_structure.html#scheduling-mode"><em>Scheduling mode</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">sc_time_start</span></tt> : Campaign scheduling start time. See detail <a class="reference internal" href="ob_structure.html#scheduling-time"><em>Scheduling time</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">sc_time_end</span></tt> : Campaign scheduling end time. See detail <a class="reference internal" href="ob_structure.html#scheduling-time"><em>Scheduling time</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">sc_date_start</span></tt> : Campaign scheduling start date. See detail <a class="reference internal" href="ob_structure.html#scheduling-date"><em>Scheduling date</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">sc_date_end</span></tt> : Campaign scheduling end date. See detail <a class="reference internal" href="ob_structure.html#scheduling-date"><em>Scheduling date</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">sc_date_list</span></tt> : Campaign schedling date list. See detail <a class="reference internal" href="ob_structure.html#scheduling-date-list"><em>Scheduling date list</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">sc_date_list_except</span></tt> : Campaign scheduling except date list. See detail <a class="reference internal" href="ob_structure.html#scheduling-date-list"><em>Scheduling date list</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">sc_day_list</span></tt> : Campaign scheduling day list. See detail <a class="reference internal" href="ob_structure.html#scheduling-day-list"><em>Scheduling day list</em></a>.</li>
+</ul>
+</div>
+<div class="section" id="id94">
+<h3>Example<a class="headerlink" href="#id94" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/campaigns/9841bc9e-3103-4fea-ab11-54ccfcc8322f
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;result&quot;: {
+      &quot;dest&quot;: &quot;45122654-5633-4af0-a739-e32eddfbd2ae&quot;,
+      &quot;detail&quot;: null,
+      &quot;dlma&quot;: &quot;6526c474-280e-4652-a1bf-731089c981a2&quot;,
+      &quot;in_use&quot;: 1,
+      &quot;name&quot;: &quot;test campaign&quot;,
+      &quot;next_campaign&quot;: null,
+      &quot;plan&quot;: &quot;552e9808-23bc-40b1-947a-60b0b96581cb&quot;,
+      &quot;sc_date_end&quot;: null,
+      &quot;sc_date_list&quot;: null,
+      &quot;sc_date_list_except&quot;: null,
+      &quot;sc_date_start&quot;: null,
+      &quot;sc_day_list&quot;: null,
+      &quot;sc_mode&quot;: 0,
+      &quot;sc_time_end&quot;: null,
+      &quot;sc_time_start&quot;: null,
+      &quot;status&quot;: 0,
+      &quot;tm_create&quot;: &quot;2017-02-07T20:32:59.812399819Z&quot;,
+      &quot;tm_delete&quot;: null,
+      &quot;tm_update&quot;: &quot;2017-02-22T14:46:49.622227668Z&quot;,
+      &quot;uuid&quot;: &quot;9841bc9e-3103-4fea-ab11-54ccfcc8322f&quot;
+  },
+  &quot;statuscode&quot;: 200,
+  &quot;timestamp&quot;: &quot;2017-03-05T09:15:41.329887897Z&quot;
+}
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="id95">
+<h2>Method: PUT<a class="headerlink" href="#id95" title="Permalink to this headline">¶</a></h2>
+<p>Update specified campaign detail info.</p>
+<div class="section" id="id96">
+<h3>Call<a class="headerlink" href="#id96" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>PUT /campaigns/&lt;campaign-uuid&gt;
+
+{
+  &quot;name&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;detail&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;status&quot;: &lt;integer&gt;,
+  &quot;plan&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;dlma&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;dest&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;next_campaign&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;sc_mode&quot;: &lt;integer&gt;,
+  &quot;sc_time_start&quot;: null,
+  &quot;sc_time_end&quot;: null,
+  &quot;sc_date_start&quot;: null,
+  &quot;sc_date_end&quot;: null,
+  &quot;sc_date_list&quot;: null,
+  &quot;sc_date_list_except&quot;: null,
+  &quot;sc_day_list&quot;: null
+}
+</pre></div>
+</div>
+<p>Parameters
+* <tt class="docutils literal"><span class="pre">name</span></tt> : Campaign name.
+* <tt class="docutils literal"><span class="pre">detail</span></tt> : Campaign detail info.
+* <tt class="docutils literal"><span class="pre">status</span></tt> : Campaign status. See detail <a class="reference internal" href="ob_structure.html#campaign-status"><em>Campaign status</em></a>.
+* <tt class="docutils literal"><span class="pre">plan</span></tt> : Registered plan uuid.
+* <tt class="docutils literal"><span class="pre">dlma</span></tt> : Registered dlma uuid.
+* <tt class="docutils literal"><span class="pre">dest</span></tt> : Registered destination uuid.
+* <tt class="docutils literal"><span class="pre">next_campaign</span></tt> :
+* <tt class="docutils literal"><span class="pre">sc_mode</span></tt> : Scheduling mode. See detail <a class="reference internal" href="ob_structure.html#scheduling-mode"><em>Scheduling mode</em></a>.
+* <tt class="docutils literal"><span class="pre">sc_time_start</span></tt> : Campaign scheduling start time. See detail <a class="reference internal" href="ob_structure.html#scheduling-time"><em>Scheduling time</em></a>.
+* <tt class="docutils literal"><span class="pre">sc_time_end</span></tt> : Campaign scheduling end time. See detail <a class="reference internal" href="ob_structure.html#scheduling-time"><em>Scheduling time</em></a>.
+* <tt class="docutils literal"><span class="pre">sc_date_start</span></tt> : Campaign scheduling start date. See detail <a class="reference internal" href="ob_structure.html#scheduling-date"><em>Scheduling date</em></a>.
+* <tt class="docutils literal"><span class="pre">sc_date_end</span></tt> : Campaign scheduling end date. See detail <a class="reference internal" href="ob_structure.html#scheduling-date"><em>Scheduling date</em></a>.
+* <tt class="docutils literal"><span class="pre">sc_date_list</span></tt> : Campaign schedling date list. See detail <a class="reference internal" href="ob_structure.html#scheduling-date-list"><em>Scheduling date list</em></a>.
+* <tt class="docutils literal"><span class="pre">sc_date_list_except</span></tt> : Campaign scheduling except date list. See detail <a class="reference internal" href="ob_structure.html#scheduling-date-list"><em>Scheduling date list</em></a>.
+* <tt class="docutils literal"><span class="pre">sc_day_list</span></tt> : Campaign scheduling day list. See detail <a class="reference internal" href="ob_structure.html#scheduling-day-list"><em>Scheduling day list</em></a>.</p>
+</div>
+<div class="section" id="id97">
+<h3>Returns<a class="headerlink" href="#id97" title="Permalink to this headline">¶</a></h3>
+<p>Updated campaign info.</p>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr,
+  &quot;reuslt&quot;: {
+    &quot;uuid&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;name&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;detail&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;status&quot;: &lt;integer&gt;,
+    &quot;plan&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;dlma&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;dest&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;in_use&quot;: 1,
+    &quot;next_campaign&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;sc_mode&quot;: &lt;integer&gt;,
+    &quot;sc_time_start&quot;: null,
+    &quot;sc_time_end&quot;: null,
+    &quot;sc_date_start&quot;: null,
+    &quot;sc_date_end&quot;: null,
+    &quot;sc_date_list&quot;: null,
+    &quot;sc_date_list_except&quot;: null,
+    &quot;sc_day_list&quot;: null,
+    &quot;tm_create&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;tm_delete&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;tm_update&quot;: &quot;&lt;string&gt;&quot;
+  }
+}
+</pre></div>
+</div>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">uuid</span></tt> : Campaign uuid.</li>
+<li><tt class="docutils literal"><span class="pre">name</span></tt> : Campaign name.</li>
+<li><tt class="docutils literal"><span class="pre">detail</span></tt> : Campaign detail info.</li>
+<li><tt class="docutils literal"><span class="pre">status</span></tt> : Campaign status. See detail <a class="reference internal" href="ob_structure.html#campaign-status"><em>Campaign status</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">plan</span></tt> : Registered plan uuid.</li>
+<li><tt class="docutils literal"><span class="pre">dlma</span></tt> : Registered dlma uuid.</li>
+<li><tt class="docutils literal"><span class="pre">dest</span></tt> : Registered destination uuid.</li>
+<li><tt class="docutils literal"><span class="pre">next_campaign</span></tt> :</li>
+<li><tt class="docutils literal"><span class="pre">sc_mode</span></tt> : Scheduling mode. See detail <a class="reference internal" href="ob_structure.html#scheduling-mode"><em>Scheduling mode</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">sc_time_start</span></tt> : Campaign scheduling start time. See detail <a class="reference internal" href="ob_structure.html#scheduling-time"><em>Scheduling time</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">sc_time_end</span></tt> : Campaign scheduling end time. See detail <a class="reference internal" href="ob_structure.html#scheduling-time"><em>Scheduling time</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">sc_date_start</span></tt> : Campaign scheduling start date. See detail <a class="reference internal" href="ob_structure.html#scheduling-date"><em>Scheduling date</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">sc_date_end</span></tt> : Campaign scheduling end date. See detail <a class="reference internal" href="ob_structure.html#scheduling-date"><em>Scheduling date</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">sc_date_list</span></tt> : Campaign schedling date list. See detail <a class="reference internal" href="ob_structure.html#scheduling-date-list"><em>Scheduling date list</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">sc_date_list_except</span></tt> : Campaign scheduling except date list. See detail <a class="reference internal" href="ob_structure.html#scheduling-date-list"><em>Scheduling date list</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">sc_day_list</span></tt> : Campaign scheduling day list. See detail <a class="reference internal" href="ob_structure.html#scheduling-day-list"><em>Scheduling day list</em></a>.</li>
+</ul>
+</div>
+<div class="section" id="id98">
+<h3>Example<a class="headerlink" href="#id98" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X PUT 192.168.200.10:8081/campaigns/305c96cb-4704-4f33-bcad-6b2e4031d7d4
+   -d &#39;{&quot;name&quot;: &quot;Update campaign info&quot;}&#39;
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;result&quot;: {
+    &quot;dest&quot;: null,
+    &quot;detail&quot;: null,
+    &quot;dlma&quot;: null,
+    &quot;in_use&quot;: 1,
+    &quot;name&quot;: &quot;Update campaign info&quot;,
+    &quot;next_campaign&quot;: null,
+    &quot;plan&quot;: null,
+    &quot;sc_date_end&quot;: null,
+    &quot;sc_date_list&quot;: null,
+    &quot;sc_date_list_except&quot;: null,
+    &quot;sc_date_start&quot;: null,
+    &quot;sc_day_list&quot;: null,
+    &quot;sc_mode&quot;: 0,
+    &quot;sc_time_end&quot;: null,
+    &quot;sc_time_start&quot;: null,
+    &quot;status&quot;: 0,
+    &quot;tm_create&quot;: &quot;2017-03-05T15:25:09.788596601Z&quot;,
+    &quot;tm_delete&quot;: null,
+    &quot;tm_update&quot;: &quot;2017-03-05T15:44:10.295794418Z&quot;,
+    &quot;uuid&quot;: &quot;305c96cb-4704-4f33-bcad-6b2e4031d7d4&quot;
+  },
+  &quot;statuscode&quot;: 200,
+  &quot;timestamp&quot;: &quot;2017-03-05T15:44:10.338811064Z&quot;
+}
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="id99">
+<h2>Method: DELETE<a class="headerlink" href="#id99" title="Permalink to this headline">¶</a></h2>
+<p>Delete specified campaign info.</p>
+<div class="section" id="id100">
+<h3>Call<a class="headerlink" href="#id100" title="Permalink to this headline">¶</a></h3>
+<p>Delete specified campaign info.</p>
+<div class="highlight-python"><div class="highlight"><pre>DELETE /campaign/&lt;campaign-uuid&gt;
+</pre></div>
+</div>
+</div>
+<div class="section" id="id101">
+<h3>Returns<a class="headerlink" href="#id101" title="Permalink to this headline">¶</a></h3>
+<p>Deleted campaign info.</p>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr,
+  &quot;reuslt&quot;: {
+    &quot;uuid&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;name&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;detail&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;status&quot;: &lt;integer&gt;,
+    &quot;plan&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;dlma&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;dest&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;in_use&quot;: 0,
+    &quot;next_campaign&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;sc_mode&quot;: &lt;integer&gt;,
+    &quot;sc_time_start&quot;: null,
+    &quot;sc_time_end&quot;: null,
+    &quot;sc_date_start&quot;: null,
+    &quot;sc_date_end&quot;: null,
+    &quot;sc_date_list&quot;: null,
+    &quot;sc_date_list_except&quot;: null,
+    &quot;sc_day_list&quot;: null,
+    &quot;tm_create&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;tm_delete&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;tm_update&quot;: &quot;&lt;string&gt;&quot;
+  }
+}
+</pre></div>
+</div>
+</div>
+<div class="section" id="id102">
+<h3>Example<a class="headerlink" href="#id102" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X DELETE 192.168.200.10:8081/campaigns/305c96cb-4704-4f33-bcad-6b2e4031d7d4
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;timestamp&quot;: &quot;2017-03-05T15:57:05.273138955Z&quot;,
+  &quot;statuscode&quot;: 200,
+  &quot;result&quot;: {
+    &quot;tm_delete&quot;: &quot;2017-03-05T15:57:05.206650560Z&quot;,
+    &quot;sc_day_list&quot;: null,
+    &quot;sc_date_list_except&quot;: null,
+    &quot;next_campaign&quot;: null,
+    &quot;uuid&quot;: &quot;305c96cb-4704-4f33-bcad-6b2e4031d7d4&quot;,
+    &quot;detail&quot;: null,
+    &quot;dlma&quot;: null,
+    &quot;name&quot;: &quot;Update campaign info&quot;,
+    &quot;sc_time_end&quot;: null,
+    &quot;dest&quot;: null,
+    &quot;sc_time_start&quot;: null,
+    &quot;status&quot;: 0,
+    &quot;in_use&quot;: 0,
+    &quot;sc_date_end&quot;: null,
+    &quot;sc_date_start&quot;: null,
+    &quot;plan&quot;: null,
+    &quot;sc_mode&quot;: 0,
+    &quot;sc_date_list&quot;: null,
+    &quot;tm_create&quot;: &quot;2017-03-05T15:25:09.788596601Z&quot;,
+    &quot;tm_update&quot;: &quot;2017-03-05T15:44:10.295794418Z&quot;
+  }
+}
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">/plans</a><ul>
+<li><a class="reference internal" href="#methods">Methods</a></li>
+<li><a class="reference internal" href="#method-post">Method: POST</a><ul>
+<li><a class="reference internal" href="#call">Call</a></li>
+<li><a class="reference internal" href="#returns">Returns</a></li>
+<li><a class="reference internal" href="#example">Example</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#method-get">Method: GET</a><ul>
+<li><a class="reference internal" href="#id1">Call</a></li>
+<li><a class="reference internal" href="#id2">Returns</a></li>
+<li><a class="reference internal" href="#id3">Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#plans-uuid">/plans/&lt;uuid&gt;</a><ul>
+<li><a class="reference internal" href="#id4">Methods</a></li>
+<li><a class="reference internal" href="#id5">Method: GET</a><ul>
+<li><a class="reference internal" href="#id6">Call</a></li>
+<li><a class="reference internal" href="#id7">Returns</a></li>
+<li><a class="reference internal" href="#id8">Example</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#method-put">Method: PUT</a><ul>
+<li><a class="reference internal" href="#id9">Call</a></li>
+<li><a class="reference internal" href="#id10">Returns</a></li>
+<li><a class="reference internal" href="#id11">Example</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#method-delete">Method: DELETE</a><ul>
+<li><a class="reference internal" href="#id12">Call</a></li>
+<li><a class="reference internal" href="#id13">Returns</a></li>
+<li><a class="reference internal" href="#id14">Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#destinations">/destinations</a><ul>
+<li><a class="reference internal" href="#id15">Methods</a></li>
+<li><a class="reference internal" href="#id16">Method: POST</a><ul>
+<li><a class="reference internal" href="#id17">Call</a></li>
+<li><a class="reference internal" href="#id18">Returns</a></li>
+<li><a class="reference internal" href="#id19">Example</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id20">Method: GET</a><ul>
+<li><a class="reference internal" href="#id21">Call</a></li>
+<li><a class="reference internal" href="#id22">Returns</a></li>
+<li><a class="reference internal" href="#id23">Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#destinations-uuid">/destinations/&lt;uuid&gt;</a><ul>
+<li><a class="reference internal" href="#id24">Methods</a></li>
+<li><a class="reference internal" href="#id25">Method: GET</a><ul>
+<li><a class="reference internal" href="#id26">Call</a></li>
+<li><a class="reference internal" href="#id27">Returns</a></li>
+<li><a class="reference internal" href="#id28">Example</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id29">Method: PUT</a><ul>
+<li><a class="reference internal" href="#id30">Call</a></li>
+<li><a class="reference internal" href="#id31">Returns</a></li>
+<li><a class="reference internal" href="#id32">Example</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id33">Method: DELETE</a><ul>
+<li><a class="reference internal" href="#id34">Call</a></li>
+<li><a class="reference internal" href="#id35">Returns</a></li>
+<li><a class="reference internal" href="#id36">Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#dlmas">/dlmas</a><ul>
+<li><a class="reference internal" href="#id37">Methods</a></li>
+<li><a class="reference internal" href="#id38">Method: POST</a><ul>
+<li><a class="reference internal" href="#id39">Call</a></li>
+<li><a class="reference internal" href="#id40">Returns</a></li>
+<li><a class="reference internal" href="#id41">Example</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id42">Method: GET</a><ul>
+<li><a class="reference internal" href="#id43">Call</a></li>
+<li><a class="reference internal" href="#id44">Returns</a></li>
+<li><a class="reference internal" href="#id45">Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#dlmas-uuid">/dlmas/&lt;uuid&gt;</a><ul>
+<li><a class="reference internal" href="#id46">Methods</a></li>
+<li><a class="reference internal" href="#id47">Method: GET</a><ul>
+<li><a class="reference internal" href="#id48">Call</a></li>
+<li><a class="reference internal" href="#id49">Returns</a></li>
+<li><a class="reference internal" href="#id50">Example</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id51">Method: PUT</a><ul>
+<li><a class="reference internal" href="#id52">Call</a></li>
+<li><a class="reference internal" href="#id53">Returns</a></li>
+<li><a class="reference internal" href="#id54">Example</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id55">Method: DELETE</a><ul>
+<li><a class="reference internal" href="#id56">Call</a></li>
+<li><a class="reference internal" href="#id57">Returns</a></li>
+<li><a class="reference internal" href="#id58">Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#dls">/dls</a><ul>
+<li><a class="reference internal" href="#id59">Methods</a></li>
+<li><a class="reference internal" href="#id60">Method: POST</a><ul>
+<li><a class="reference internal" href="#id61">Call</a></li>
+<li><a class="reference internal" href="#id62">Returns</a></li>
+<li><a class="reference internal" href="#id63">Example</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id64">Method: GET</a><ul>
+<li><a class="reference internal" href="#id65">Call</a></li>
+<li><a class="reference internal" href="#id66">Returns</a></li>
+<li><a class="reference internal" href="#id67">Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#dls-uuid">/dls/&lt;uuid&gt;</a><ul>
+<li><a class="reference internal" href="#id68">Methods</a></li>
+<li><a class="reference internal" href="#id69">Method: GET</a><ul>
+<li><a class="reference internal" href="#id70">Call</a></li>
+<li><a class="reference internal" href="#id71">Returns</a></li>
+<li><a class="reference internal" href="#id72">Example</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id73">Method: PUT</a><ul>
+<li><a class="reference internal" href="#id74">Call</a></li>
+<li><a class="reference internal" href="#id75">Returns</a></li>
+<li><a class="reference internal" href="#id76">Example</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id77">Method: DELETE</a><ul>
+<li><a class="reference internal" href="#id78">Call</a></li>
+<li><a class="reference internal" href="#id79">Returns</a></li>
+<li><a class="reference internal" href="#id80">Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#campaigns">/campaigns</a><ul>
+<li><a class="reference internal" href="#id81">Methods</a></li>
+<li><a class="reference internal" href="#id82">Method: POST</a><ul>
+<li><a class="reference internal" href="#id83">Call</a></li>
+<li><a class="reference internal" href="#id84">Returns</a></li>
+<li><a class="reference internal" href="#id85">Example</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id86">Method: GET</a><ul>
+<li><a class="reference internal" href="#id87">Call</a></li>
+<li><a class="reference internal" href="#id88">Returns</a></li>
+<li><a class="reference internal" href="#id89">Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#campaigns-uuid">/campaigns/&lt;uuid&gt;</a><ul>
+<li><a class="reference internal" href="#id90">Methods</a></li>
+<li><a class="reference internal" href="#id91">Method: GET</a><ul>
+<li><a class="reference internal" href="#id92">Call</a></li>
+<li><a class="reference internal" href="#id93">Returns</a></li>
+<li><a class="reference internal" href="#id94">Example</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id95">Method: PUT</a><ul>
+<li><a class="reference internal" href="#id96">Call</a></li>
+<li><a class="reference internal" href="#id97">Returns</a></li>
+<li><a class="reference internal" href="#id98">Example</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id99">Method: DELETE</a><ul>
+<li><a class="reference internal" href="#id100">Call</a></li>
+<li><a class="reference internal" href="#id101">Returns</a></li>
+<li><a class="reference internal" href="#id102">Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="ob_structure.html"
+                        title="previous chapter">Outbound Structure</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="ob_tutorial.html"
+                        title="next chapter">Outbound tutorial</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/ob_api.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="ob_tutorial.html" title="Outbound tutorial"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="ob_structure.html" title="Outbound Structure"
+             >previous</a> |</li>
+        <li><a href="index.html">jade 0.0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2017, pchero.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>
