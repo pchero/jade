@@ -50,6 +50,7 @@ json_t* get_ob_dls_by_dlma_count(const char* dlma_uuid, int count);
 json_t* get_ob_dls_by_count(int count);
 json_t* create_ob_dl(json_t* j_dl);
 json_t* update_ob_dl(json_t* j_dl);
+json_t* delete_ob_dl(const char* uuid);
 bool delete_dl_list(const char* uuid);
 int get_ob_dl_list_cnt_total(json_t* j_dlma);
 int get_ob_dl_list_cnt_finshed(json_t* j_dlma, json_t* j_plan);

@@ -342,3 +342,42 @@ Dial list end handling
 Trunk name
 ----------
 Outbound trunk
+
+Dial list
+=========
+
+Dial list status
+----------------
+
+.. _dial_list_status:
+
+.. table:: Dial list status
+
+   ====== ===============
+   Status Detail
+   ====== ===============
+
+Dial list dial result
+---------------------
+
+.. _dial_list_dial_result:
+
+.. table:: Dial list dial result
+
+   ====== ==============
+   Result Detail
+   ====== ==============
+   ...    ...
+
+Dial list hangup result
+-----------------------
+
+.. _dial_list_hangup_result:
+
+.. table:: Dial list hangup result
+
+   ====== ==============
+   Result Detail
+   ====== ==============
+   ...    ...
+

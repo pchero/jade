@@ -24,6 +24,7 @@
 
 extern app* g_app;
 
+static json_t* get_deleted_ob_dl(const char* uuid);
 static char* create_chan_addr_for_dial(json_t* j_plan, json_t* j_dl_list, int dial_num_point);
 static char* get_dial_number(json_t* j_dlist, const int cnt);
 static char* create_view_name(const char* uuid);
@@ -1848,4 +1849,83 @@ bool is_exist_ob_dl(const char* uuid)
   }
 
   return true;
+}
+
+/**
+ * Delete ob_dl_list record.
+ * @param uuid
+ * @return
+ */
+json_t* delete_ob_dl(const char* uuid)
+{
+
+  json_t* j_tmp;
+  char* tmp;
+  char* sql;
+  int ret;
+
+  if(uuid == NULL) {
+    // invalid parameter.
+    slog(LOG_ERR, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired delete_ob_dl.");
+
+  j_tmp = json_object();
+  tmp = get_utc_timestamp();
+  json_object_set_new(j_tmp, "tm_delete", json_string(tmp));
+  json_object_set_new(j_tmp, "in_use", json_integer(E_DL_USE_NO));
+  sfree(tmp);
+
+  tmp = db_get_update_str(j_tmp);
+  json_decref(j_tmp);
+  asprintf(&sql, "update ob_dl_list set %s where uuid=\"%s\";", tmp, uuid);
+  sfree(tmp);
+
+  ret = db_exec(sql);
+  sfree(sql);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not delete ob_dl_list. uuid[%s]", uuid);
+    return NULL;
+  }
+
+  j_tmp = get_deleted_ob_dl(uuid);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get deleted ob_dl_list info. uuid[%s]", uuid);
+    return NULL;
+  }
+
+  return j_tmp;
+}
+
+/**
+ * Get deleted dial list.
+ * @return
+ */
+static json_t* get_deleted_ob_dl(const char* uuid)
+{
+  json_t* j_res;
+  db_res_t* db_res;
+  char* sql;
+
+  if(uuid == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_deleted_dl. uuid[%s]", uuid);
+
+  // get specified campaign
+  asprintf(&sql, "select * from ob_dl_list where uuid=\"%s\" and in_use=%d;", uuid, E_DL_USE_NO);
+
+  db_res = db_query(sql);
+  sfree(sql);
+  if(db_res == NULL) {
+    slog(LOG_WARNING, "Could not get deleted ob_dl_list info.");
+    return NULL;
+  }
+
+  j_res = db_get_record(db_res);
+  db_free(db_res);
+
+  return j_res;
 }
