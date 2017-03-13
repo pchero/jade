@@ -11,7 +11,7 @@
 #include "config.h"
 #include "ami_handler.h"
 #include "db_handler.h"
-#include "db_sql_create.h"
+//#include "db_sql_create.h"
 #include "http_handler.h"
 #include "event_handler.h"
 
@@ -22,7 +22,7 @@ app* g_app;
 struct event_base*  g_base = NULL;
 
 static bool init_event(void);
-static bool init_db(void);
+//static bool init_db(void);
 
 static bool init_event(void)
 {
@@ -34,68 +34,68 @@ static bool init_event(void)
   return true;
 }
 
-static bool init_db(void)
-{
-  int ret;
-
-  // action
-  db_exec(g_sql_drop_action);
-  ret = db_exec(g_sql_create_action);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create table. table[%s]", "action");
-    return false;
-  }
-
-  // channel
-  db_exec(g_sql_drop_channel);
-  ret = db_exec(g_sql_create_channel);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create table. table[%s]", "channel");
-    return false;
-  }
-
-  // peer
-  db_exec(g_sql_drop_peer);
-  ret = db_exec(g_sql_create_peer);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create table. table[%s]", "peer");
-    return false;
-  }
-
-  // queue_param
-  db_exec(g_sql_drop_queue_param);
-  ret = db_exec(g_sql_create_queue_param);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create table. table[%s]", "queue_param");
-    return false;
-  }
-
-  // queue_member
-  db_exec(g_sql_drop_queue_member);
-  ret = db_exec(g_sql_create_queue_member);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create table. table[%s]", "queue_member");
-    return false;
-  }
-
-  // queue_member
-  db_exec(g_sql_drop_queue_entry);
-  ret = db_exec(g_sql_create_queue_entry);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create table. table[%s]", "queue_entry");
-    return false;
-  }
-
-  // asterisk database
-  db_exec(g_sql_drop_database);
-  ret = db_exec(g_sql_create_database);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create table. table[%s]", "database");
-    return false;
-  }
-
-  return true;
-}
+//static bool init_db(void)
+//{
+//  int ret;
+//
+//  // action
+//  db_exec(g_sql_drop_action);
+//  ret = db_exec(g_sql_create_action);
+//  if(ret == false) {
+//    slog(LOG_ERR, "Could not create table. table[%s]", "action");
+//    return false;
+//  }
+//
+//  // channel
+//  db_exec(g_sql_drop_channel);
+//  ret = db_exec(g_sql_create_channel);
+//  if(ret == false) {
+//    slog(LOG_ERR, "Could not create table. table[%s]", "channel");
+//    return false;
+//  }
+//
+//  // peer
+//  db_exec(g_sql_drop_peer);
+//  ret = db_exec(g_sql_create_peer);
+//  if(ret == false) {
+//    slog(LOG_ERR, "Could not create table. table[%s]", "peer");
+//    return false;
+//  }
+//
+//  // queue_param
+//  db_exec(g_sql_drop_queue_param);
+//  ret = db_exec(g_sql_create_queue_param);
+//  if(ret == false) {
+//    slog(LOG_ERR, "Could not create table. table[%s]", "queue_param");
+//    return false;
+//  }
+//
+//  // queue_member
+//  db_exec(g_sql_drop_queue_member);
+//  ret = db_exec(g_sql_create_queue_member);
+//  if(ret == false) {
+//    slog(LOG_ERR, "Could not create table. table[%s]", "queue_member");
+//    return false;
+//  }
+//
+//  // queue_member
+//  db_exec(g_sql_drop_queue_entry);
+//  ret = db_exec(g_sql_create_queue_entry);
+//  if(ret == false) {
+//    slog(LOG_ERR, "Could not create table. table[%s]", "queue_entry");
+//    return false;
+//  }
+//
+//  // asterisk database
+//  db_exec(g_sql_drop_database);
+//  ret = db_exec(g_sql_create_database);
+//  if(ret == false) {
+//    slog(LOG_ERR, "Could not create table. table[%s]", "database");
+//    return false;
+//  }
+//
+//  return true;
+//}
 
 bool init(void)
 {
@@ -131,12 +131,12 @@ bool init(void)
   }
   slog(LOG_DEBUG, "Finished db_init.");
 
-  ret = init_db();
-  if(ret == false) {
-    slog(LOG_WARNING, "Could not initiate database.");
-    return false;
-  }
-  slog(LOG_DEBUG, "Finished init_db.");
+//  ret = init_db();
+//  if(ret == false) {
+//    slog(LOG_WARNING, "Could not initiate database.");
+//    return false;
+//  }
+//  slog(LOG_DEBUG, "Finished init_db.");
 
   ret = init_ami_handler();
   if(ret == false) {

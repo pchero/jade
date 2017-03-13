@@ -29,6 +29,7 @@
 #include "ami_handler.h"
 #include "action_handler.h"
 #include "db_handler.h"
+#include "db_sql_create.h"
 #include "ob_ami_handler.h"
 #include "ob_dialing_handler.h"
 #include "ami_event_handler.h"
@@ -44,41 +45,26 @@
 #define CMD_WINDOW_SIZE 31
 
 #define BUFLEN 20
-#define MAX_AMI_RECV_BUF_LEN  4096
+#define MAX_AMI_RECV_BUF_LEN  409600
 
 extern struct event_base* g_base;
 extern app* g_app;
 
-//static struct termios tin;
-static int ami_sock = 0;
-
+static int g_ami_sock = 0;
+static bool g_ami_connected = false;
 static char g_ami_buffer[MAX_AMI_RECV_BUF_LEN];
 
-//static void negotiate(int sock, unsigned char *buf, int len);
-//static void terminal_reset(void);
-//static void terminal_set(void);
+static bool is_ami_connected(void);
+static bool ami_connect(void);
 static bool ami_get_init_info(void);
 static bool ami_login(void);
-
+static bool init_ami_database(void);
+static bool init_ami_connect(void);
+static void update_ami_connected(bool connection);
 
 static void cb_ami_handler(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg);
+static void cb_ami_connect(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg);
 
-//static void terminal_set(void)
-//{
-//  // save terminal configuration
-//  tcgetattr(STDIN_FILENO, &tin);
-//
-//  static struct termios tlocal;
-//  memcpy(&tlocal, &tin, sizeof(tin));
-//  cfmakeraw(&tlocal);
-//  tcsetattr(STDIN_FILENO,TCSANOW,&tlocal);
-//}
-//
-//static void terminal_reset(void)
-//{
-//  // restore terminal upon exit
-//  tcsetattr(STDIN_FILENO,TCSANOW,&tin);
-//}
 
 static void cb_ami_handler(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg)
 {
@@ -87,23 +73,36 @@ static void cb_ami_handler(__attribute__((unused)) int fd, __attribute__((unused
   int ret;
   int len;
 
+  ret = is_ami_connected();
+  if(ret == false) {
+    return;
+  }
+
   // receive
   while(1) {
-    ret = recv(ami_sock, buf, 1, 0);
-    if(ret == -1) {
+    ret = recv(g_ami_sock, buf, 1, 0);
+    if(ret != 1) {
       if(errno == EAGAIN) {
         return;
       }
 
-      slog(LOG_WARNING, "Could not receive correct message from the Asterisk. err[%d:%s]",
-          errno, strerror(errno));
+      // something was wrong. update connected status
+      slog(LOG_WARNING, "Could not receive correct message from the Asterisk. err[%d:%s]", errno, strerror(errno));
+      bzero(g_ami_buffer, sizeof(g_ami_buffer));
+      update_ami_connected(false);
       return;
     }
 
     len = strlen(g_ami_buffer);
-    g_ami_buffer[len] = buf[0];
+    if(len >= sizeof(g_ami_buffer)) {
+      slog(LOG_ERR, "Too much big data. Just clean up the buffer. size[%d]", len);
+      bzero(g_ami_buffer, sizeof(g_ami_buffer));
+      continue;
+    }
 
+    g_ami_buffer[len] = buf[0];
     if(len < 4) {
+      // not ready to check the end of message.
       continue;
     }
 
@@ -125,82 +124,53 @@ static void cb_ami_handler(__attribute__((unused)) int fd, __attribute__((unused
   return;
 }
 
+static void cb_ami_connect(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg)
+{
+  int ret;
+  struct event* ev;
+
+  slog(LOG_NOTICE, "Fired cb_ami_connect.");
+
+  ret = is_ami_connected();
+  if(ret == true) {
+    return;
+  }
+  slog(LOG_NOTICE, "Fired cb_ami_connect. connected[%d]", ret);
+
+  // ami connect
+  ret = ami_connect();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not connect to asterisk ami.");
+    return;
+  }
+
+  // update ami connected
+  update_ami_connected(true);
+//  return;
+
+  // add ami event handler
+  ev = event_new(g_base, g_ami_sock, EV_READ | EV_PERSIST, cb_ami_handler, NULL);
+  event_add(ev, NULL);
+}
+
 bool init_ami_handler(void)
 {
-  struct sockaddr_in server;
+  struct timeval tm_event;
   struct event* ev;
-  const char* serv_addr;
-  const char* serv_port;
-  int port;
-  int ret;
-  int flag;
-  
-  if(g_app == NULL) {
-    return false;
-  }
-  slog(LOG_DEBUG, "Fired init_ami_handler");
-  
-  serv_addr = json_string_value(json_object_get(g_app->j_conf, "serv_addr"));
-  serv_port = json_string_value(json_object_get(g_app->j_conf, "serv_port"));
-  if((serv_addr == NULL) || (serv_port == NULL)) {
-    return false;
-  }
-  port = atoi(serv_port);
-  slog(LOG_INFO, "Connecting to the Asterisk. addr[%s], port[%d]", serv_addr, port);
 
-  if(ami_sock != 0) {
-    close(ami_sock);
-  }
-
-  // create socket
-  ami_sock = socket(AF_INET, SOCK_STREAM, 0);
-  if(ami_sock == -1) {
-    printf("Could not create socket.\n");
-    return false;
-  }
-  slog(LOG_DEBUG, "Created socket to Asterisk.");
+  tm_event.tv_sec = 1;
+  tm_event.tv_usec = 0;
   
-  // get server info
-  server.sin_addr.s_addr = inet_addr(serv_addr);
-  server.sin_family = AF_INET;
-  server.sin_port = htons(port);
+  // check start.
+  ev = event_new(g_base, -1, EV_TIMEOUT | EV_PERSIST, cb_ami_connect, NULL);
+  event_add(ev, &tm_event);
 
-  //Connect to remote server
-  bzero(g_ami_buffer, sizeof(g_ami_buffer));
-  ret = connect(ami_sock , (struct sockaddr *)&server, sizeof(server));
-  if(ret < 0) {
-    slog(LOG_WARNING, "Could not connect to the Asterisk. err[%d:%s]", errno, strerror(errno));
-    return false;
-  }
-  slog(LOG_DEBUG, "Connected to Asterisk.");
+//  // add event
+//  ev = event_new(g_base, g_ami_sock, EV_READ | EV_PERSIST, cb_ami_handler, NULL);
+//  event_add(ev, NULL);
+//
 
-  // get/set socket option
-  flag = fcntl(ami_sock, F_GETFL, 0);
-  flag = flag|O_NONBLOCK;
-  ret = fcntl(ami_sock, F_SETFL, flag);
-  slog(LOG_DEBUG, "Set the non-block option for the Asterisk socket. ret[%d]", ret);
 
-//  // set terminal
-//  terminal_set();
-//  atexit(terminal_reset);
-  
-  // login
-  ret = ami_login();
-  if(ret == false) {
-    slog(LOG_ERR, "Could not login.");
-    return false;
-  }
-  
-  ret = ami_get_init_info();
-  if(ret == false) {
-    slog(LOG_ERR, "Could not send init.");
-    return false;
-  }
-
-  // add event
-  ev = event_new(g_base, ami_sock, EV_READ | EV_PERSIST, cb_ami_handler, NULL);
-  event_add(ev, NULL);
-  
   return true;
 }
 
@@ -304,7 +274,7 @@ int send_ami_cmd_raw(const char* cmd)
     return -1;
   }
   
-  ret = send(ami_sock, cmd, strlen(cmd), 0);
+  ret = send(g_ami_sock, cmd, strlen(cmd), 0);
   
   return ret;
 }
@@ -443,6 +413,7 @@ json_t* parse_ami_msg(const char* msg)
 
 static bool ami_login(void)
 {
+  int ret;
   char* cmd;
   const char* username;
   const char* password;
@@ -450,19 +421,187 @@ static bool ami_login(void)
   if(g_app == NULL) {
     return false;
   }
-  slog(LOG_DEBUG, "ami_login");
+  slog(LOG_DEBUG, "Fired ami_login");
 
   username = json_string_value(json_object_get(g_app->j_conf, "username"));
   password = json_string_value(json_object_get(g_app->j_conf, "password"));
 
   asprintf(&cmd, "Action: Login\r\nUsername: %s\r\nSecret: %s\r\n\r\n", username, password);
 
-  send_ami_cmd_raw(cmd);
+  ret = send_ami_cmd_raw(cmd);
   sfree(cmd);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not login.");
+    return false;
+  }
+  slog(LOG_NOTICE, "The ami login result. res[%d]", ret);
 
   return true;
 }
 
+static void update_ami_connected(bool connection)
+{
+  g_ami_connected = connection;
+  slog(LOG_NOTICE, "Update ami connection. connection[%d]", g_ami_connected);
+}
 
+static bool is_ami_connected(void)
+{
+  if(g_ami_connected == true) {
+    return true;
+  }
+
+  return false;
+}
+
+static bool ami_connect(void)
+{
+  int ret;
+
+  // init ami connect
+  ret = init_ami_connect();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate ami connection.");
+    return false;
+  }
+
+  // init ami database
+  ret = init_ami_database();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate ami database.");
+    return false;
+  }
+
+  // login
+  ret = ami_login();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not login.");
+    return false;
+  }
+
+  // send get all initial ami request
+  ret = ami_get_init_info();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not send init info.");
+    return false;
+  }
+
+  return true;
+}
+
+static bool init_ami_connect(void)
+{
+  const char* serv_addr;
+  const char* serv_port;
+  int port;
+  struct sockaddr_in server;
+  int ret;
+  int flag;
+
+  serv_addr = json_string_value(json_object_get(g_app->j_conf, "serv_addr"));
+  serv_port = json_string_value(json_object_get(g_app->j_conf, "serv_port"));
+  if((serv_addr == NULL) || (serv_port == NULL)) {
+    return false;
+  }
+  port = atoi(serv_port);
+  slog(LOG_INFO, "Connecting to the Asterisk. addr[%s], port[%d]", serv_addr, port);
+
+  if(g_ami_sock != 0) {
+    close(g_ami_sock);
+  }
+
+  // create socket
+  g_ami_sock = socket(AF_INET, SOCK_STREAM, 0);
+  if(g_ami_sock == -1) {
+    printf("Could not create socket.\n");
+    return false;
+  }
+  slog(LOG_DEBUG, "Created socket to Asterisk.");
+
+  // get server info
+  server.sin_addr.s_addr = inet_addr(serv_addr);
+  server.sin_family = AF_INET;
+  server.sin_port = htons(port);
+
+  //Connect to remote server
+  bzero(g_ami_buffer, sizeof(g_ami_buffer));
+  ret = connect(g_ami_sock , (struct sockaddr *)&server, sizeof(server));
+  if(ret < 0) {
+    slog(LOG_WARNING, "Could not connect to the Asterisk. err[%d:%s]", errno, strerror(errno));
+    return false;
+  }
+  slog(LOG_DEBUG, "Connected to Asterisk.");
+
+  // get/set socket option
+  flag = fcntl(g_ami_sock, F_GETFL, 0);
+  flag = flag|O_NONBLOCK;
+  ret = fcntl(g_ami_sock, F_SETFL, flag);
+  slog(LOG_DEBUG, "Set the non-block option for the Asterisk socket. ret[%d]", ret);
+
+  return true;
+}
+
+static bool init_ami_database(void)
+{
+  int ret;
+
+  // action
+  db_exec(g_sql_drop_action);
+  ret = db_exec(g_sql_create_action);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create table. table[%s]", "action");
+    return false;
+  }
+
+  // channel
+  db_exec(g_sql_drop_channel);
+  ret = db_exec(g_sql_create_channel);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create table. table[%s]", "channel");
+    return false;
+  }
+
+  // peer
+  db_exec(g_sql_drop_peer);
+  ret = db_exec(g_sql_create_peer);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create table. table[%s]", "peer");
+    return false;
+  }
+
+  // queue_param
+  db_exec(g_sql_drop_queue_param);
+  ret = db_exec(g_sql_create_queue_param);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create table. table[%s]", "queue_param");
+    return false;
+  }
+
+  // queue_member
+  db_exec(g_sql_drop_queue_member);
+  ret = db_exec(g_sql_create_queue_member);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create table. table[%s]", "queue_member");
+    return false;
+  }
+
+  // queue_member
+  db_exec(g_sql_drop_queue_entry);
+  ret = db_exec(g_sql_create_queue_entry);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create table. table[%s]", "queue_entry");
+    return false;
+  }
+
+  // asterisk database
+  db_exec(g_sql_drop_database);
+  ret = db_exec(g_sql_create_database);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create table. table[%s]", "database");
+    return false;
+  }
+
+  return true;
+}
 
 
