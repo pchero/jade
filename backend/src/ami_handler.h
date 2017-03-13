@@ -6,6 +6,7 @@
 #include <jansson.h>
 
 bool init_ami_handler(void);
+void term_ami_handler(void);
 
 json_t* parse_ami_msg(const char* msg);
 int send_ami_cmd_raw(const char* cmd);
