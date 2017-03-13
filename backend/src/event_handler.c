@@ -17,6 +17,7 @@
 #include "common.h"
 #include "slog.h"
 #include "event_handler.h"
+#include "ami_handler.h"
 
 #define DEF_PID_FILEPATH "/var/run/jade_backend.pid"
 #define DEF_PID_TIMEOUT_SEC 5
@@ -26,6 +27,7 @@ extern struct event_base*  g_base;
 
 static void cb_signal_term(int sock, short which, void* arg);
 static void cb_signal_int(evutil_socket_t sig, short events, void *user_data);
+static void cb_signal_pipe(evutil_socket_t sig, short events, void *user_data);
 
 static void cb_pid_update(int sock, short which, void* arg);
 
@@ -61,6 +63,18 @@ bool init_event_handler(void)
   ret = event_add(ev, NULL);
   if(ret != 0) {
     slog(LOG_ERR, "Could not add the signal handler. signal[%s]", "SIGINT");
+    return false;
+  }
+
+  // sigpipe
+  ev = evsignal_new(g_base, SIGPIPE, cb_signal_pipe, NULL);
+  if(ev == NULL) {
+    slog(LOG_ERR, "Could not create event for the signal handler. signal[%s]", "SIGPIPE");
+    return false;
+  }
+  ret = event_add(ev, NULL);
+  if(ret != 0) {
+    slog(LOG_ERR, "Could not add the signal handler. signal[%s]", "SIGPIPE");
     return false;
   }
 
@@ -103,6 +117,24 @@ static void cb_signal_int(evutil_socket_t sig, short events, void *user_data)
 
   return;
 }
+
+/**
+ * Signal handler.
+ * signal: sig_pipe
+ * @param sock
+ * @param which
+ * @param arg
+ */
+static void cb_signal_pipe(evutil_socket_t sig, short events, void *user_data)
+{
+  slog(LOG_INFO, "Fired cb_signal_pipe.");
+
+  // terminate ami handler.
+  term_ami_handler();
+
+  return;
+}
+
 
 static void cb_pid_update(int sock, short which, void* arg)
 {

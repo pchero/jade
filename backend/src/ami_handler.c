@@ -51,16 +51,19 @@ extern struct event_base* g_base;
 extern app* g_app;
 
 static int g_ami_sock = 0;
-static bool g_ami_connected = false;
 static char g_ami_buffer[MAX_AMI_RECV_BUF_LEN];
+struct event* g_ev_ami_handler = NULL;
 
-static bool is_ami_connected(void);
+static bool is_ev_ami_handler_running(void);
+static void free_ev_ami_handler(void);
+static void update_ev_ami_handler(struct event* ev);
+static void release_ami_connection(void);
+
 static bool ami_connect(void);
 static bool ami_get_init_info(void);
 static bool ami_login(void);
 static bool init_ami_database(void);
 static bool init_ami_connect(void);
-static void update_ami_connected(bool connection);
 
 static void cb_ami_handler(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg);
 static void cb_ami_connect(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg);
@@ -73,7 +76,7 @@ static void cb_ami_handler(__attribute__((unused)) int fd, __attribute__((unused
   int ret;
   int len;
 
-  ret = is_ami_connected();
+  ret = is_ev_ami_handler_running();
   if(ret == false) {
     return;
   }
@@ -89,7 +92,7 @@ static void cb_ami_handler(__attribute__((unused)) int fd, __attribute__((unused
       // something was wrong. update connected status
       slog(LOG_WARNING, "Could not receive correct message from the Asterisk. err[%d:%s]", errno, strerror(errno));
       bzero(g_ami_buffer, sizeof(g_ami_buffer));
-      update_ami_connected(false);
+      release_ami_connection();
       return;
     }
 
@@ -124,14 +127,37 @@ static void cb_ami_handler(__attribute__((unused)) int fd, __attribute__((unused
   return;
 }
 
+/**
+ * Check the ami connection info.
+ * @param fd
+ * @param event
+ * @param arg
+ */
+static void cb_ami_connection_check(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg)
+{
+  char* cmd;
+
+  slog(LOG_DEBUG, "Fired cb_ami_connection_check.");
+
+  asprintf(&cmd, "Action: Ping\r\n\r\n");
+  send_ami_cmd_raw(cmd);
+  free(cmd);
+
+  return;
+}
+
+/**
+ * Connect to ami.
+ * @param fd
+ * @param event
+ * @param arg
+ */
 static void cb_ami_connect(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg)
 {
   int ret;
   struct event* ev;
 
-  slog(LOG_NOTICE, "Fired cb_ami_connect.");
-
-  ret = is_ami_connected();
+  ret = is_ev_ami_handler_running();
   if(ret == true) {
     return;
   }
@@ -144,15 +170,19 @@ static void cb_ami_connect(__attribute__((unused)) int fd, __attribute__((unused
     return;
   }
 
-  // update ami connected
-  update_ami_connected(true);
-//  return;
-
   // add ami event handler
   ev = event_new(g_base, g_ami_sock, EV_READ | EV_PERSIST, cb_ami_handler, NULL);
   event_add(ev, NULL);
+
+  // update event ami handler
+  update_ev_ami_handler(ev);
+
 }
 
+/**
+ * Initiate ami_handler.
+ * @return
+ */
 bool init_ami_handler(void)
 {
   struct timeval tm_event;
@@ -161,17 +191,26 @@ bool init_ami_handler(void)
   tm_event.tv_sec = 1;
   tm_event.tv_usec = 0;
   
-  // check start.
+  // ami connect
   ev = event_new(g_base, -1, EV_TIMEOUT | EV_PERSIST, cb_ami_connect, NULL);
   event_add(ev, &tm_event);
 
-//  // add event
-//  ev = event_new(g_base, g_ami_sock, EV_READ | EV_PERSIST, cb_ami_handler, NULL);
-//  event_add(ev, NULL);
-//
-
+  // check ami connection
+  ev = event_new(g_base, -1, EV_TIMEOUT | EV_PERSIST, cb_ami_connection_check, NULL);
+  event_add(ev, &tm_event);
 
   return true;
+}
+
+/**
+ * Terminate ami handler.
+ * @return
+ */
+void term_ami_handler(void)
+{
+  slog(LOG_DEBUG, "Fired term_ami_handler.");
+  release_ami_connection();
+  return;
 }
 
 /**
@@ -275,6 +314,9 @@ int send_ami_cmd_raw(const char* cmd)
   }
   
   ret = send(g_ami_sock, cmd, strlen(cmd), 0);
+  if(ret < 0) {
+    release_ami_connection();
+  }
   
   return ret;
 }
@@ -325,6 +367,73 @@ static bool ami_get_init_info(void)
 
   return true;
 }
+
+/**
+ * Return the event ami handler is running.
+ * @return
+ */
+static bool is_ev_ami_handler_running(void)
+{
+  if(g_ev_ami_handler == NULL) {
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Release ami connection info.
+ */
+static void release_ami_connection(void)
+{
+  slog(LOG_NOTICE, "Fired release_ami_connection.");
+
+  free_ev_ami_handler();
+  if(g_ami_sock != -1) {
+    close(g_ami_sock);
+  }
+  g_ami_sock = -1;
+  return;
+}
+
+/**
+ * Free the event ami handler.
+ */
+static void free_ev_ami_handler(void)
+{
+  int ret;
+
+  slog(LOG_NOTICE, "Fired free_ev_ami_handler.");
+
+  ret = is_ev_ami_handler_running();
+  if(ret == false) {
+    return;
+  }
+
+  // free
+  event_free(g_ev_ami_handler);
+  g_ev_ami_handler = NULL;
+
+  return;
+}
+
+/**
+ * update ev_ami_handler.
+ * @param ev
+ */
+static void update_ev_ami_handler(struct event* ev)
+{
+  if(ev == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired update_ev_ami_handler.");
+
+  free_ev_ami_handler();
+
+  g_ev_ami_handler = ev;
+}
+
 
 /**
  *
@@ -439,21 +548,6 @@ static bool ami_login(void)
   return true;
 }
 
-static void update_ami_connected(bool connection)
-{
-  g_ami_connected = connection;
-  slog(LOG_NOTICE, "Update ami connection. connection[%d]", g_ami_connected);
-}
-
-static bool is_ami_connected(void)
-{
-  if(g_ami_connected == true) {
-    return true;
-  }
-
-  return false;
-}
-
 static bool ami_connect(void)
 {
   int ret;
@@ -506,7 +600,7 @@ static bool init_ami_connect(void)
   port = atoi(serv_port);
   slog(LOG_INFO, "Connecting to the Asterisk. addr[%s], port[%d]", serv_addr, port);
 
-  if(g_ami_sock != 0) {
+  if(g_ami_sock != -1) {
     close(g_ami_sock);
   }
 
