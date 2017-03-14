@@ -234,6 +234,139 @@ sessions and are temporary.</p>
 </div>
 </div>
 </div>
+<div class="section" id="registries">
+<h2>/registries<a class="headerlink" href="#registries" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id11">
+<h3>Methods<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
+<p>GET : Get list of all registry accounts info.</p>
+</div>
+<div class="section" id="id12">
+<h3>Method: GET<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
+<p>Get list of all registry accounts info.</p>
+<div class="section" id="id13">
+<h4>Call<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">GET</span> <span class="o">/</span><span class="n">registries</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id14">
+<h4>Returns<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr,
+  &quot;reuslt&quot;: {
+    &quot;list&quot;: [
+      &quot;&lt;database-key&gt;&quot;,
+      ...
+    ]
+  }
+}
+</pre></div>
+</div>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">list</span></tt> : array of registry account.</li>
+</ul>
+</div>
+<div class="section" id="id15">
+<h4>Example<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/registries
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;result&quot;: {
+    &quot;list&quot;: [
+      &quot;2345@sip_proxy&quot;,
+      &quot;1234@mysipprovider.com&quot;
+    ]
+  },
+  &quot;statuscode&quot;: 200,
+  &quot;timestamp&quot;: &quot;2017-03-09T09:12:34.105520775Z&quot;
+}
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="id16">
+<h2>/registries/<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id17">
+<h3>Methods<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h3>
+<p>GET : Get registry detail info of given account info.</p>
+</div>
+<div class="section" id="id18">
+<h3>Method: GET<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h3>
+<p>Get registry detail info of given account info.</p>
+<div class="section" id="id19">
+<h4>Call<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-python"><div class="highlight"><pre>GET /registries/
+
+{
+  &quot;account&quot;: &quot;&lt;string&gt;&quot;
+}
+</pre></div>
+</div>
+<p>Data parameters</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">account</span></tt>: account info.</li>
+</ul>
+</div>
+<div class="section" id="id20">
+<h4>Returns<a class="headerlink" href="#id20" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr,
+  &quot;reuslt&quot;: {
+    &quot;account&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;domain&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;domain_port&quot;: &lt;integer&gt;,
+    &quot;host&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;port&quot;: &lt;integer&gt;,
+    &quot;refresh&quot;: &lt;integer&gt;,
+    &quot;registration_time&quot;: &lt;integer&gt;,
+    &quot;state&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;tm_update&quot;: &quot;&lt;timestamp&gt;&quot;,
+    &quot;username&quot;: &quot;&lt;string&gt;&quot;
+  }
+}
+</pre></div>
+</div>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">account</span></tt>: Registry&#8217;s account info.</li>
+<li><tt class="docutils literal"><span class="pre">domain</span></tt>: Registry&#8217;s domain info.</li>
+<li><tt class="docutils literal"><span class="pre">domain_port</span></tt>: Registry&#8217;s domain port.</li>
+<li><tt class="docutils literal"><span class="pre">host</span></tt>: Registry&#8217;s host info.</li>
+<li><tt class="docutils literal"><span class="pre">port</span></tt>: Registry&#8217;s port info.</li>
+<li><tt class="docutils literal"><span class="pre">refresh</span></tt>: Refresh.</li>
+<li><tt class="docutils literal"><span class="pre">registration_time</span></tt>: registration time.</li>
+<li><tt class="docutils literal"><span class="pre">state</span></tt>: state info.</li>
+<li><tt class="docutils literal"><span class="pre">username</span></tt>: Registry&#8217;s username.</li>
+<li><tt class="docutils literal"><span class="pre">tm_update</span></tt>: Updated timestamp.</li>
+</ul>
+</div>
+<div class="section" id="id21">
+<h4>Example<a class="headerlink" href="#id21" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/registries/ -d &#39;{&quot;account&quot;: &quot;2345@sip_proxy&quot;}&#39;
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;result&quot;: {
+    &quot;account&quot;: &quot;2345@sip_proxy&quot;,
+    &quot;domain&quot;: &quot;sip_proxy&quot;,
+    &quot;domain_port&quot;: 5060,
+    &quot;host&quot;: &quot;sip_proxy&quot;,
+    &quot;port&quot;: 5060,
+    &quot;refresh&quot;: 120,
+    &quot;registration_time&quot;: &quot;0&quot;,
+    &quot;state&quot;: &quot;Request Sent&quot;,
+    &quot;tm_update&quot;: &quot;2017-03-09T09:12:06.652539075Z&quot;,
+    &quot;username&quot;: &quot;2345&quot;
+  },
+  &quot;statuscode&quot;: 200,
+  &quot;timestamp&quot;: &quot;2017-03-09T09:13:00.969355467Z&quot;
+}
+</pre></div>
+</div>
+</div>
+</div>
+</div>
 </div>
 
 
@@ -276,6 +409,26 @@ sessions and are temporary.</p>
 <li><a class="reference internal" href="#id8">Call</a></li>
 <li><a class="reference internal" href="#id9">Returns</a></li>
 <li><a class="reference internal" href="#id10">Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#registries">/registries</a><ul>
+<li><a class="reference internal" href="#id11">Methods</a></li>
+<li><a class="reference internal" href="#id12">Method: GET</a><ul>
+<li><a class="reference internal" href="#id13">Call</a></li>
+<li><a class="reference internal" href="#id14">Returns</a></li>
+<li><a class="reference internal" href="#id15">Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id16">/registries/</a><ul>
+<li><a class="reference internal" href="#id17">Methods</a></li>
+<li><a class="reference internal" href="#id18">Method: GET</a><ul>
+<li><a class="reference internal" href="#id19">Call</a></li>
+<li><a class="reference internal" href="#id20">Returns</a></li>
+<li><a class="reference internal" href="#id21">Example</a></li>
 </ul>
 </li>
 </ul>
