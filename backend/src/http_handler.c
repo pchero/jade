@@ -52,51 +52,51 @@ static void cb_htp_registries_account(evhtp_request_t *req, void *data);
 
 ///// outbound modules
 
-static void cb_htp_plans(evhtp_request_t *req, void *data);
-static void cb_htp_plans_uuid(evhtp_request_t *req, void *data);
-static void cb_htp_campaigns(evhtp_request_t *req, void *data);
-static void cb_htp_campaigns_uuid(evhtp_request_t *req, void *data);
-static void cb_htp_dlmas(evhtp_request_t *req, void *data);
-static void cb_htp_dlmas_uuid(evhtp_request_t *req, void *data);
-static void cb_htp_dls(evhtp_request_t *req, void *data);
-static void cb_htp_dls_uuid(evhtp_request_t *req, void *data);
+static void cb_htp_ob_plans(evhtp_request_t *req, void *data);
+static void cb_htp_ob_plans_uuid(evhtp_request_t *req, void *data);
+static void cb_htp_ob_campaigns(evhtp_request_t *req, void *data);
+static void cb_htp_ob_campaigns_uuid(evhtp_request_t *req, void *data);
+static void cb_htp_ob_dlmas(evhtp_request_t *req, void *data);
+static void cb_htp_ob_dlmas_uuid(evhtp_request_t *req, void *data);
+static void cb_htp_ob_dls(evhtp_request_t *req, void *data);
+static void cb_htp_ob_dls_uuid(evhtp_request_t *req, void *data);
 
 // destinations
-static void cb_htp_destinations(evhtp_request_t *req, void *data);
-static void cb_htp_destinations_uuid(evhtp_request_t *req, void *data);
-static void htp_get_destinations(evhtp_request_t *req, void *data);
-static void htp_post_destinations(evhtp_request_t *req, void *data);
-static void htp_get_destinations_uuid(evhtp_request_t *req, void *data);
-static void htp_put_destinations_uuid(evhtp_request_t *req, void *data);
-static void htp_delete_destinations_uuid(evhtp_request_t *req, void *data);
+static void cb_htp_ob_destinations(evhtp_request_t *req, void *data);
+static void cb_htp_ob_destinations_uuid(evhtp_request_t *req, void *data);
+static void htp_get_ob_destinations(evhtp_request_t *req, void *data);
+static void htp_post_ob_destinations(evhtp_request_t *req, void *data);
+static void htp_get_ob_destinations_uuid(evhtp_request_t *req, void *data);
+static void htp_put_ob_destinations_uuid(evhtp_request_t *req, void *data);
+static void htp_delete_ob_destinations_uuid(evhtp_request_t *req, void *data);
 
 // plans
-static void htp_get_plans(evhtp_request_t *req, void *data);
-static void htp_post_plans(evhtp_request_t *req, void *data);
-static void htp_get_plans_uuid(evhtp_request_t *req, void *data);
-static void htp_put_plans_uuid(evhtp_request_t *req, void *data);
-static void htp_delete_plans_uuid(evhtp_request_t *req, void *data);
+static void htp_get_ob_plans(evhtp_request_t *req, void *data);
+static void htp_post_ob_plans(evhtp_request_t *req, void *data);
+static void htp_get_ob_plans_uuid(evhtp_request_t *req, void *data);
+static void htp_put_ob_plans_uuid(evhtp_request_t *req, void *data);
+static void htp_delete_ob_plans_uuid(evhtp_request_t *req, void *data);
 
 // campaigns
-static void htp_get_campaigns(evhtp_request_t *req, void *data);
-static void htp_post_campaigns(evhtp_request_t *req, void *data);
-static void htp_get_campaigns_uuid(evhtp_request_t *req, void *data);
-static void htp_put_campaigns_uuid(evhtp_request_t *req, void *data);
-static void htp_delete_campaigns_uuid(evhtp_request_t *req, void *data);
+static void htp_get_ob_campaigns(evhtp_request_t *req, void *data);
+static void htp_post_ob_campaigns(evhtp_request_t *req, void *data);
+static void htp_get_ob_campaigns_uuid(evhtp_request_t *req, void *data);
+static void htp_put_ob_campaigns_uuid(evhtp_request_t *req, void *data);
+static void htp_delete_ob_campaigns_uuid(evhtp_request_t *req, void *data);
 
 // dlmas
-static void htp_get_dlmas(evhtp_request_t *req, void *data);
-static void htp_post_dlmas(evhtp_request_t *req, void *data);
-static void htp_get_dlmas_uuid(evhtp_request_t *req, void *data);
-static void htp_put_dlmas_uuid(evhtp_request_t *req, void *data);
-static void htp_delete_dlmas_uuid(evhtp_request_t *req, void *data);
+static void htp_get_ob_dlmas(evhtp_request_t *req, void *data);
+static void htp_post_ob_dlmas(evhtp_request_t *req, void *data);
+static void htp_get_ob_dlmas_uuid(evhtp_request_t *req, void *data);
+static void htp_put_ob_dlmas_uuid(evhtp_request_t *req, void *data);
+static void htp_delete_ob_dlmas_uuid(evhtp_request_t *req, void *data);
 
 // dls
-static void htp_get_dls(evhtp_request_t *req, void *data);
-static void htp_post_dls(evhtp_request_t *req, void *data);
-static void htp_get_dls_uuid(evhtp_request_t *req, void *data);
-static void htp_put_dls_uuid(evhtp_request_t *req, void *data);
-static void htp_delete_dls_uuid(evhtp_request_t *req, void *data);
+static void htp_get_ob_dls(evhtp_request_t *req, void *data);
+static void htp_post_ob_dls(evhtp_request_t *req, void *data);
+static void htp_get_ob_dls_uuid(evhtp_request_t *req, void *data);
+static void htp_put_ob_dls_uuid(evhtp_request_t *req, void *data);
+static void htp_delete_ob_dls_uuid(evhtp_request_t *req, void *data);
 
 bool init_http_handler(void)
 {
@@ -120,24 +120,24 @@ bool init_http_handler(void)
 
   ////// outbound modules
   // destinations
-  evhtp_set_regex_cb(g_htp, "/destinations/("DEF_REG_UUID")", cb_htp_destinations_uuid, NULL);
-  evhtp_set_regex_cb(g_htp, "/destinations", cb_htp_destinations, NULL);
+  evhtp_set_regex_cb(g_htp, "/ob/destinations/("DEF_REG_UUID")", cb_htp_ob_destinations_uuid, NULL);
+  evhtp_set_regex_cb(g_htp, "/ob/destinations", cb_htp_ob_destinations, NULL);
 
   // plans
-  evhtp_set_regex_cb(g_htp, "/plans/("DEF_REG_UUID")", cb_htp_plans_uuid, NULL);
-  evhtp_set_regex_cb(g_htp, "/plans", cb_htp_plans, NULL);
+  evhtp_set_regex_cb(g_htp, "/ob/plans/("DEF_REG_UUID")", cb_htp_ob_plans_uuid, NULL);
+  evhtp_set_regex_cb(g_htp, "/ob/plans", cb_htp_ob_plans, NULL);
 
   // campaigns
-  evhtp_set_regex_cb(g_htp, "/campaigns/("DEF_REG_UUID")", cb_htp_campaigns_uuid, NULL);
-  evhtp_set_regex_cb(g_htp, "/campaigns", cb_htp_campaigns, NULL);
+  evhtp_set_regex_cb(g_htp, "/ob/campaigns/("DEF_REG_UUID")", cb_htp_ob_campaigns_uuid, NULL);
+  evhtp_set_regex_cb(g_htp, "/ob/campaigns", cb_htp_ob_campaigns, NULL);
 
   // dlmas
-  evhtp_set_regex_cb(g_htp, "/dlmas/("DEF_REG_UUID")", cb_htp_dlmas_uuid, NULL);
-  evhtp_set_regex_cb(g_htp, "/dlmas", cb_htp_dlmas, NULL);
+  evhtp_set_regex_cb(g_htp, "/ob/dlmas/("DEF_REG_UUID")", cb_htp_ob_dlmas_uuid, NULL);
+  evhtp_set_regex_cb(g_htp, "/ob/dlmas", cb_htp_ob_dlmas, NULL);
 
   // dls
-  evhtp_set_regex_cb(g_htp, "/dls/("DEF_REG_UUID")", cb_htp_dls_uuid, NULL);
-  evhtp_set_regex_cb(g_htp, "/dls", cb_htp_dls, NULL);
+  evhtp_set_regex_cb(g_htp, "/ob/dls/("DEF_REG_UUID")", cb_htp_ob_dls_uuid, NULL);
+  evhtp_set_regex_cb(g_htp, "/ob/dls", cb_htp_ob_dls, NULL);
 
   return true;
 }
@@ -400,11 +400,11 @@ static void cb_htp_databases_key(evhtp_request_t *req, void *data)
 
 /**
  * http request handler.
- * request : ^/destinations
+ * request : ^/ob/destinations
  * @param req
  * @param data
  */
-static void cb_htp_destinations(evhtp_request_t *req, void *data)
+static void cb_htp_ob_destinations(evhtp_request_t *req, void *data)
 {
   int method;
 
@@ -412,7 +412,7 @@ static void cb_htp_destinations(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired cb_htp_destinations.");
+  slog(LOG_DEBUG, "Fired cb_htp_ob_destinations.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -422,11 +422,11 @@ static void cb_htp_destinations(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    htp_get_destinations(req, data);
+    htp_get_ob_destinations(req, data);
     return;
   }
   else if(method == htp_method_POST) {
-    htp_post_destinations(req, data);
+    htp_post_ob_destinations(req, data);
     return;
   }
   else {
@@ -442,11 +442,11 @@ static void cb_htp_destinations(evhtp_request_t *req, void *data)
 
 /**
  * http request handler.
- * request : ^/destinations/<uuid>
+ * request : ^/ob/destinations/<uuid>
  * @param req
  * @param data
  */
-static void cb_htp_destinations_uuid(evhtp_request_t *req, void *data)
+static void cb_htp_ob_destinations_uuid(evhtp_request_t *req, void *data)
 {
   int method;
 
@@ -454,7 +454,7 @@ static void cb_htp_destinations_uuid(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired cb_htp_destinations_uuid.");
+  slog(LOG_DEBUG, "Fired cb_htp_ob_destinations_uuid.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -464,15 +464,15 @@ static void cb_htp_destinations_uuid(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    htp_get_destinations_uuid(req, data);
+    htp_get_ob_destinations_uuid(req, data);
     return;
   }
   else if(method == htp_method_PUT) {
-    htp_put_destinations_uuid(req, data);
+    htp_put_ob_destinations_uuid(req, data);
     return;
   }
   else if(method == htp_method_DELETE) {
-    htp_delete_destinations_uuid(req, data);
+    htp_delete_ob_destinations_uuid(req, data);
     return;
   }
   else {
@@ -489,11 +489,11 @@ static void cb_htp_destinations_uuid(evhtp_request_t *req, void *data)
 
 /**
  * http request handler.
- * request : ^/plans
+ * request : ^/ob/plans
  * @param req
  * @param data
  */
-static void cb_htp_plans(evhtp_request_t *req, void *data)
+static void cb_htp_ob_plans(evhtp_request_t *req, void *data)
 {
   int method;
 
@@ -501,7 +501,7 @@ static void cb_htp_plans(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired cb_htp_plans.");
+  slog(LOG_DEBUG, "Fired cb_htp_ob_plans.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -511,11 +511,11 @@ static void cb_htp_plans(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    htp_get_plans(req, data);
+    htp_get_ob_plans(req, data);
     return;
   }
   else if(method == htp_method_POST) {
-    htp_post_plans(req, data);
+    htp_post_ob_plans(req, data);
     return;
   }
   else {
@@ -531,11 +531,11 @@ static void cb_htp_plans(evhtp_request_t *req, void *data)
 
 /**
  * http request handler.
- * request : ^/plans/<uuid>
+ * request : ^/ob/plans/<uuid>
  * @param req
  * @param data
  */
-static void cb_htp_plans_uuid(evhtp_request_t *req, void *data)
+static void cb_htp_ob_plans_uuid(evhtp_request_t *req, void *data)
 {
   int method;
 
@@ -543,7 +543,7 @@ static void cb_htp_plans_uuid(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired cb_htp_plans_uuid.");
+  slog(LOG_DEBUG, "Fired cb_htp_ob_plans_uuid.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -554,15 +554,15 @@ static void cb_htp_plans_uuid(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    htp_get_plans_uuid(req, data);
+    htp_get_ob_plans_uuid(req, data);
     return;
   }
   else if(method == htp_method_PUT) {
-    htp_put_plans_uuid(req, data);
+    htp_put_ob_plans_uuid(req, data);
     return;
   }
   else if(method == htp_method_DELETE) {
-    htp_delete_plans_uuid(req, data);
+    htp_delete_ob_plans_uuid(req, data);
     return;
   }
   else {
@@ -579,11 +579,11 @@ static void cb_htp_plans_uuid(evhtp_request_t *req, void *data)
 
 /**
  * http request handler.
- * ^/campaigns
+ * request : ^/ob/campaigns
  * @param req
  * @param data
  */
-static void cb_htp_campaigns(evhtp_request_t *req, void *data)
+static void cb_htp_ob_campaigns(evhtp_request_t *req, void *data)
 {
   int method;
 
@@ -591,7 +591,7 @@ static void cb_htp_campaigns(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired cb_htp_campaigns.");
+  slog(LOG_DEBUG, "Fired cb_htp_ob_campaigns.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -601,11 +601,11 @@ static void cb_htp_campaigns(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    htp_get_campaigns(req, data);
+    htp_get_ob_campaigns(req, data);
     return;
   }
   else if(method == htp_method_POST) {
-    htp_post_campaigns(req, data);
+    htp_post_ob_campaigns(req, data);
     return;
   }
   else {
@@ -621,11 +621,11 @@ static void cb_htp_campaigns(evhtp_request_t *req, void *data)
 
 /**
  * http request handler.
- * ^/campaigns/<uuid>
+ * request : ^/ob/campaigns/<uuid>
  * @param req
  * @param data
  */
-static void cb_htp_campaigns_uuid(evhtp_request_t *req, void *data)
+static void cb_htp_ob_campaigns_uuid(evhtp_request_t *req, void *data)
 {
   int method;
   const char* uuid;
@@ -634,7 +634,7 @@ static void cb_htp_campaigns_uuid(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired cb_htp_campaigns_uuid.");
+  slog(LOG_DEBUG, "Fired cb_htp_ob_campaigns_uuid.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -651,15 +651,15 @@ static void cb_htp_campaigns_uuid(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    htp_get_campaigns_uuid(req, data);
+    htp_get_ob_campaigns_uuid(req, data);
     return;
   }
   else if(method == htp_method_PUT) {
-    htp_put_campaigns_uuid(req, data);
+    htp_put_ob_campaigns_uuid(req, data);
     return;
   }
   else if(method == htp_method_DELETE) {
-    htp_delete_campaigns_uuid(req, data);
+    htp_delete_ob_campaigns_uuid(req, data);
     return;
   }
   else {
@@ -676,11 +676,11 @@ static void cb_htp_campaigns_uuid(evhtp_request_t *req, void *data)
 
 /**
  * http request handler.
- * ^/dlmas
+ * request : ^/ob/dlmas
  * @param req
  * @param data
  */
-static void cb_htp_dlmas(evhtp_request_t *req, void *data)
+static void cb_htp_ob_dlmas(evhtp_request_t *req, void *data)
 {
   int method;
 
@@ -688,7 +688,7 @@ static void cb_htp_dlmas(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired cb_htp_dlmas.");
+  slog(LOG_DEBUG, "Fired cb_htp_ob_dlmas.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -698,11 +698,11 @@ static void cb_htp_dlmas(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    htp_get_dlmas(req, data);
+    htp_get_ob_dlmas(req, data);
     return;
   }
   else if(method == htp_method_POST) {
-    htp_post_dlmas(req, data);
+    htp_post_ob_dlmas(req, data);
     return;
   }
   else {
@@ -718,11 +718,11 @@ static void cb_htp_dlmas(evhtp_request_t *req, void *data)
 
 /**
  * http request handler.
- * ^/dlmas/<uuid>
+ * request : ^/ob/dlmas/<uuid>
  * @param req
  * @param data
  */
-static void cb_htp_dlmas_uuid(evhtp_request_t *req, void *data)
+static void cb_htp_ob_dlmas_uuid(evhtp_request_t *req, void *data)
 {
   int method;
   const char* uuid;
@@ -731,7 +731,7 @@ static void cb_htp_dlmas_uuid(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired cb_htp_dlmas_uuid.");
+  slog(LOG_DEBUG, "Fired cb_htp_ob_dlmas_uuid.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -748,15 +748,15 @@ static void cb_htp_dlmas_uuid(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    htp_get_dlmas_uuid(req, data);
+    htp_get_ob_dlmas_uuid(req, data);
     return;
   }
   else if(method == htp_method_PUT) {
-    htp_put_dlmas_uuid(req, data);
+    htp_put_ob_dlmas_uuid(req, data);
     return;
   }
   else if(method == htp_method_DELETE) {
-    htp_delete_dlmas_uuid(req, data);
+    htp_delete_ob_dlmas_uuid(req, data);
     return;
   }
   else {
@@ -773,11 +773,11 @@ static void cb_htp_dlmas_uuid(evhtp_request_t *req, void *data)
 
 /**
  * http request handler.
- * ^/dls
+ * request : ^/ob/dls
  * @param req
  * @param data
  */
-static void cb_htp_dls(evhtp_request_t *req, void *data)
+static void cb_htp_ob_dls(evhtp_request_t *req, void *data)
 {
   int method;
 
@@ -785,7 +785,7 @@ static void cb_htp_dls(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired cb_htp_dls.");
+  slog(LOG_DEBUG, "Fired cb_htp_ob_dls.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -795,11 +795,11 @@ static void cb_htp_dls(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    htp_get_dls(req, data);
+    htp_get_ob_dls(req, data);
     return;
   }
   else if(method == htp_method_POST) {
-    htp_post_dls(req, data);
+    htp_post_ob_dls(req, data);
     return;
   }
   else {
@@ -815,11 +815,11 @@ static void cb_htp_dls(evhtp_request_t *req, void *data)
 
 /**
  * http request handler.
- * ^/dls/<uuid>
+ * request : ^/ob/dls/<uuid>
  * @param req
  * @param data
  */
-static void cb_htp_dls_uuid(evhtp_request_t *req, void *data)
+static void cb_htp_ob_dls_uuid(evhtp_request_t *req, void *data)
 {
   int method;
   const char* uuid;
@@ -828,7 +828,7 @@ static void cb_htp_dls_uuid(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired cb_htp_dls_uuid.");
+  slog(LOG_DEBUG, "Fired cb_htp_ob_dls_uuid.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -845,15 +845,15 @@ static void cb_htp_dls_uuid(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    htp_get_dls_uuid(req, data);
+    htp_get_ob_dls_uuid(req, data);
     return;
   }
   else if(method == htp_method_PUT) {
-    htp_put_dls_uuid(req, data);
+    htp_put_ob_dls_uuid(req, data);
     return;
   }
   else if(method == htp_method_DELETE) {
-    htp_delete_dls_uuid(req, data);
+    htp_delete_ob_dls_uuid(req, data);
     return;
   }
   else {
@@ -870,11 +870,11 @@ static void cb_htp_dls_uuid(evhtp_request_t *req, void *data)
 
 /**
  * htp request handler.
- * request: GET /destinations
+ * request: GET ^/ob/destinations
  * @param req
  * @param data
  */
-static void htp_get_destinations(evhtp_request_t *req, void *data)
+static void htp_get_ob_destinations(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
@@ -883,7 +883,7 @@ static void htp_get_destinations(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired htp_get_destinations.");
+  slog(LOG_DEBUG, "Fired htp_get_ob_destinations.");
 
   // get info
   j_tmp = get_ob_destinations_all_uuid();
@@ -905,11 +905,11 @@ static void htp_get_destinations(evhtp_request_t *req, void *data)
 
 /**
  * htp request handler.
- * request: POST /destinations
+ * request: POST ^/ob/destinations
  * @param req
  * @param data
  */
-static void htp_post_destinations(evhtp_request_t *req, void *data)
+static void htp_post_ob_destinations(evhtp_request_t *req, void *data)
 {
   const char* uuid;
   const char* tmp_const;
@@ -922,7 +922,7 @@ static void htp_post_destinations(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired htp_post_destinations.");
+  slog(LOG_DEBUG, "Fired htp_post_ob_destinations.");
 
   // get uuid
   uuid = req->uri->path->file;
@@ -975,7 +975,7 @@ static void htp_post_destinations(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-static void htp_get_destinations_uuid(evhtp_request_t *req, void *data)
+static void htp_get_ob_destinations_uuid(evhtp_request_t *req, void *data)
 {
   const char* uuid;
   json_t* j_tmp;
@@ -1021,11 +1021,11 @@ static void htp_get_destinations_uuid(evhtp_request_t *req, void *data)
 
 /**
  * htp request handler.
- * request: PUT /destinations/<uuid>
+ * request: PUT ^/ob/destinations/<uuid>
  * @param req
  * @param data
  */
-static void htp_put_destinations_uuid(evhtp_request_t *req, void *data)
+static void htp_put_ob_destinations_uuid(evhtp_request_t *req, void *data)
 {
   const char* uuid;
   const char* tmp_const;
@@ -1039,7 +1039,7 @@ static void htp_put_destinations_uuid(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired htp_put_destinations_uuid");
+  slog(LOG_DEBUG, "Fired htp_put_ob_destinations_uuid");
 
   // get uuid
   uuid = req->uri->path->file;
@@ -1094,11 +1094,11 @@ static void htp_put_destinations_uuid(evhtp_request_t *req, void *data)
 
 /**
  * htp request handler.
- * request: DELETE /destinations/<uuid>
+ * request: DELETE ^/ob/destinations/<uuid>
  * @param req
  * @param data
  */
-static void htp_delete_destinations_uuid(evhtp_request_t *req, void *data)
+static void htp_delete_ob_destinations_uuid(evhtp_request_t *req, void *data)
 {
   const char* uuid;
   json_t* j_tmp;
@@ -1109,7 +1109,7 @@ static void htp_delete_destinations_uuid(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired htp_delete_destinations_uuid.");
+  slog(LOG_DEBUG, "Fired htp_delete_ob_destinations_uuid.");
 
   // get uuid
   uuid = req->uri->path->file;
@@ -1146,11 +1146,11 @@ static void htp_delete_destinations_uuid(evhtp_request_t *req, void *data)
 
 /**
  * htp request handler.
- * request: GET /plans
+ * request: GET ^/ob/plans
  * @param req
  * @param data
  */
-static void htp_get_plans(evhtp_request_t *req, void *data)
+static void htp_get_ob_plans(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
@@ -1159,7 +1159,7 @@ static void htp_get_plans(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired htp_get_plans.");
+  slog(LOG_DEBUG, "Fired htp_get_ob_plans.");
 
   // get info
   j_tmp = get_ob_plans_all_uuid();
@@ -1181,11 +1181,11 @@ static void htp_get_plans(evhtp_request_t *req, void *data)
 
 /**
  * htp request handler.
- * request: POST /plans
+ * request: POST ^/ob/plans
  * @param req
  * @param data
  */
-static void htp_post_plans(evhtp_request_t *req, void *data)
+static void htp_post_ob_plans(evhtp_request_t *req, void *data)
 {
   int ret;
   const char* uuid;
@@ -1199,7 +1199,7 @@ static void htp_post_plans(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired htp_post_plans.");
+  slog(LOG_DEBUG, "Fired htp_post_ob_plans.");
 
   // get uuid
   uuid = req->uri->path->file;
@@ -1256,11 +1256,11 @@ static void htp_post_plans(evhtp_request_t *req, void *data)
 
 /**
  * htp request handler.
- * request: GET /plans/<uuid>
+ * request: GET ^/ob/plans/<uuid>
  * @param req
  * @param data
  */
-static void htp_get_plans_uuid(evhtp_request_t *req, void *data)
+static void htp_get_ob_plans_uuid(evhtp_request_t *req, void *data)
 {
   const char* uuid;
   json_t* j_tmp;
@@ -1271,7 +1271,7 @@ static void htp_get_plans_uuid(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired htp_get_plans_uuid.");
+  slog(LOG_DEBUG, "Fired htp_get_ob_plans_uuid.");
 
   // get uuid
   uuid = req->uri->path->file;
@@ -1307,11 +1307,11 @@ static void htp_get_plans_uuid(evhtp_request_t *req, void *data)
 
 /**
  * htp request handler.
- * request: PUT /plans/<uuid>
+ * request: PUT ^/ob/plans/<uuid>
  * @param req
  * @param data
  */
-static void htp_put_plans_uuid(evhtp_request_t *req, void *data)
+static void htp_put_ob_plans_uuid(evhtp_request_t *req, void *data)
 {
   const char* uuid;
   const char* tmp_const;
@@ -1325,7 +1325,7 @@ static void htp_put_plans_uuid(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired htp_put_plans_uuid.");
+  slog(LOG_DEBUG, "Fired htp_put_ob_plans_uuid.");
 
   // get uuid
   uuid = req->uri->path->file;
@@ -1381,11 +1381,11 @@ static void htp_put_plans_uuid(evhtp_request_t *req, void *data)
 
 /**
  * htp request handler.
- * request: DELETE /plans/<uuid>
+ * request: DELETE ^/ob/plans/<uuid>
  * @param req
  * @param data
  */
-static void htp_delete_plans_uuid(evhtp_request_t *req, void *data)
+static void htp_delete_ob_plans_uuid(evhtp_request_t *req, void *data)
 {
   const char* uuid;
   json_t* j_tmp;
@@ -1396,7 +1396,7 @@ static void htp_delete_plans_uuid(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired htp_delete_plans_uuid.");
+  slog(LOG_DEBUG, "Fired htp_delete_ob_plans_uuid.");
 
   // get uuid
   uuid = req->uri->path->file;
@@ -1433,11 +1433,11 @@ static void htp_delete_plans_uuid(evhtp_request_t *req, void *data)
 
 /**
  * htp request handler.
- * request: GET /campaignns
+ * request: GET ^/ob/campaignns
  * @param req
  * @param data
  */
-static void htp_get_campaigns(evhtp_request_t *req, void *data)
+static void htp_get_ob_campaigns(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
@@ -1446,7 +1446,7 @@ static void htp_get_campaigns(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired htp_get_campaigns.");
+  slog(LOG_DEBUG, "Fired htp_get_ob_campaigns.");
 
   // get info
   j_tmp = get_ob_campaigns_all_uuid();
@@ -1468,11 +1468,11 @@ static void htp_get_campaigns(evhtp_request_t *req, void *data)
 
 /**
  * htp request handler.
- * request: POST /campaigns
+ * request: POST ^/ob/campaigns
  * @param req
  * @param data
  */
-static void htp_post_campaigns(evhtp_request_t *req, void *data)
+static void htp_post_ob_campaigns(evhtp_request_t *req, void *data)
 {
   const char* uuid;
   const char* tmp_const;
@@ -1485,7 +1485,7 @@ static void htp_post_campaigns(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired htp_post_campaigns.");
+  slog(LOG_DEBUG, "Fired htp_post_ob_campaigns.");
 
   // get uuid
   uuid = req->uri->path->file;
@@ -1533,11 +1533,11 @@ static void htp_post_campaigns(evhtp_request_t *req, void *data)
 
 /**
  * htp request handler.
- * request: GET /campaigns/<uuid>
+ * request: GET ^/ob/campaigns/<uuid>
  * @param req
  * @param data
  */
-static void htp_get_campaigns_uuid(evhtp_request_t *req, void *data)
+static void htp_get_ob_campaigns_uuid(evhtp_request_t *req, void *data)
 {
   const char* uuid;
   json_t* j_tmp;
@@ -1548,7 +1548,7 @@ static void htp_get_campaigns_uuid(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired htp_get_campaigns_uuid.");
+  slog(LOG_DEBUG, "Fired htp_get_ob_campaigns_uuid.");
 
   // get uuid
   uuid = req->uri->path->file;
@@ -1584,11 +1584,11 @@ static void htp_get_campaigns_uuid(evhtp_request_t *req, void *data)
 
 /**
  * htp request handler.
- * request: PUT /campaigns/<uuid>
+ * request: PUT ^/ob/campaigns/<uuid>
  * @param req
  * @param data
  */
-static void htp_put_campaigns_uuid(evhtp_request_t *req, void *data)
+static void htp_put_ob_campaigns_uuid(evhtp_request_t *req, void *data)
 {
   const char* uuid;
   const char* tmp_const;
@@ -1602,7 +1602,7 @@ static void htp_put_campaigns_uuid(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired htp_put_campaigns_uuid.");
+  slog(LOG_DEBUG, "Fired htp_put_ob_campaigns_uuid.");
 
   // get uuid
   uuid = req->uri->path->file;
@@ -1658,11 +1658,11 @@ static void htp_put_campaigns_uuid(evhtp_request_t *req, void *data)
 
 /**
  * htp request handler.
- * request: DELETE /campaigns/<uuid>
+ * request: DELETE ^/ob/campaigns/<uuid>
  * @param req
  * @param data
  */
-static void htp_delete_campaigns_uuid(evhtp_request_t *req, void *data)
+static void htp_delete_ob_campaigns_uuid(evhtp_request_t *req, void *data)
 {
   const char* uuid;
   json_t* j_tmp;
@@ -1673,7 +1673,7 @@ static void htp_delete_campaigns_uuid(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired htp_delete_campaigns_uuid.");
+  slog(LOG_DEBUG, "Fired htp_delete_ob_campaigns_uuid.");
 
   // get uuid
   uuid = req->uri->path->file;
@@ -1711,11 +1711,11 @@ static void htp_delete_campaigns_uuid(evhtp_request_t *req, void *data)
 
 /**
  * htp request handler.
- * request: GET /dlmas
+ * request: GET ^/ob/dlmas
  * @param req
  * @param data
  */
-static void htp_get_dlmas(evhtp_request_t *req, void *data)
+static void htp_get_ob_dlmas(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
@@ -1724,7 +1724,7 @@ static void htp_get_dlmas(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired htp_get_dlmas.");
+  slog(LOG_DEBUG, "Fired htp_get_ob_dlmas.");
 
   // get info
   j_tmp = get_ob_dlmas_all_uuid();
@@ -1746,11 +1746,11 @@ static void htp_get_dlmas(evhtp_request_t *req, void *data)
 
 /**
  * htp request handler.
- * request: POST /dlmas
+ * request: POST ^/ob/dlmas
  * @param req
  * @param data
  */
-static void htp_post_dlmas(evhtp_request_t *req, void *data)
+static void htp_post_ob_dlmas(evhtp_request_t *req, void *data)
 {
   const char* uuid;
   const char* tmp_const;
@@ -1763,7 +1763,7 @@ static void htp_post_dlmas(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired htp_post_dlmas.");
+  slog(LOG_DEBUG, "Fired htp_post_ob_dlmas.");
 
   // get uuid
   uuid = req->uri->path->file;
@@ -1811,11 +1811,11 @@ static void htp_post_dlmas(evhtp_request_t *req, void *data)
 
 /**
  * htp request handler.
- * request: GET /dlmas/<uuid>
+ * request: GET ^/ob/dlmas/<uuid>
  * @param req
  * @param data
  */
-static void htp_get_dlmas_uuid(evhtp_request_t *req, void *data)
+static void htp_get_ob_dlmas_uuid(evhtp_request_t *req, void *data)
 {
   const char* uuid;
   json_t* j_tmp;
@@ -1826,7 +1826,7 @@ static void htp_get_dlmas_uuid(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired htp_get_dlmas_uuid.");
+  slog(LOG_DEBUG, "Fired htp_get_ob_dlmas_uuid.");
 
   // get uuid
   uuid = req->uri->path->file;
@@ -1862,11 +1862,11 @@ static void htp_get_dlmas_uuid(evhtp_request_t *req, void *data)
 
 /**
  * htp request handler.
- * request: PUT /dlmas/<uuid>
+ * request: PUT ^/ob/dlmas/<uuid>
  * @param req
  * @param data
  */
-static void htp_put_dlmas_uuid(evhtp_request_t *req, void *data)
+static void htp_put_ob_dlmas_uuid(evhtp_request_t *req, void *data)
 {
   const char* uuid;
   const char* tmp_const;
@@ -1880,7 +1880,7 @@ static void htp_put_dlmas_uuid(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired htp_put_dlmas_uuid.");
+  slog(LOG_DEBUG, "Fired htp_put_ob_dlmas_uuid.");
 
   // get uuid
   uuid = req->uri->path->file;
@@ -1936,11 +1936,11 @@ static void htp_put_dlmas_uuid(evhtp_request_t *req, void *data)
 
 /**
  * htp request handler.
- * request: DELETE /dlmas/<uuid>
+ * request: DELETE ^/ob/dlmas/<uuid>
  * @param req
  * @param data
  */
-static void htp_delete_dlmas_uuid(evhtp_request_t *req, void *data)
+static void htp_delete_ob_dlmas_uuid(evhtp_request_t *req, void *data)
 {
   const char* uuid;
   json_t* j_tmp;
@@ -1951,7 +1951,7 @@ static void htp_delete_dlmas_uuid(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired htp_delete_dlmas_uuid.");
+  slog(LOG_DEBUG, "Fired htp_delete_ob_dlmas_uuid.");
 
   // get uuid
   uuid = req->uri->path->file;
@@ -1988,11 +1988,11 @@ static void htp_delete_dlmas_uuid(evhtp_request_t *req, void *data)
 
 /**
  * htp request handler.
- * request: GET /dls
+ * request: GET ^/ob/dls
  * @param req
  * @param data
  */
-static void htp_get_dls(evhtp_request_t *req, void *data)
+static void htp_get_ob_dls(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
@@ -2004,7 +2004,7 @@ static void htp_get_dls(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired htp_get_dls.");
+  slog(LOG_DEBUG, "Fired htp_get_ob_dls.");
 
   // get params
   dlma_uuid = evhtp_kv_find(req->uri->query, "dlma_uuid");
@@ -2040,11 +2040,11 @@ static void htp_get_dls(evhtp_request_t *req, void *data)
 
 /**
  * htp request handler.
- * request: POST /dls
+ * request: POST ^/ob/dls
  * @param req
  * @param data
  */
-static void htp_post_dls(evhtp_request_t *req, void *data)
+static void htp_post_ob_dls(evhtp_request_t *req, void *data)
 {
   const char* uuid;
   const char* tmp_const;
@@ -2057,7 +2057,7 @@ static void htp_post_dls(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired htp_post_dls.");
+  slog(LOG_DEBUG, "Fired htp_post_ob_dls.");
 
   // get uuid
   uuid = req->uri->path->file;
@@ -2105,11 +2105,11 @@ static void htp_post_dls(evhtp_request_t *req, void *data)
 
 /**
  * htp request handler.
- * request: GET /dls/<uuid>
+ * request: GET ^/ob/dls/<uuid>
  * @param req
  * @param data
  */
-static void htp_get_dls_uuid(evhtp_request_t *req, void *data)
+static void htp_get_ob_dls_uuid(evhtp_request_t *req, void *data)
 {
   const char* uuid;
   json_t* j_tmp;
@@ -2120,7 +2120,7 @@ static void htp_get_dls_uuid(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired htp_get_dls_uuid.");
+  slog(LOG_DEBUG, "Fired htp_get_ob_dls_uuid.");
 
   // get uuid
   uuid = req->uri->path->file;
@@ -2156,11 +2156,11 @@ static void htp_get_dls_uuid(evhtp_request_t *req, void *data)
 
 /**
  * htp request handler.
- * request: PUT /dls/<uuid>
+ * request: PUT ^/ob/dls/<uuid>
  * @param req
  * @param data
  */
-static void htp_put_dls_uuid(evhtp_request_t *req, void *data)
+static void htp_put_ob_dls_uuid(evhtp_request_t *req, void *data)
 {
   const char* uuid;
   const char* tmp_const;
@@ -2174,7 +2174,7 @@ static void htp_put_dls_uuid(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired htp_put_dls_uuid.");
+  slog(LOG_DEBUG, "Fired htp_put_ob_dls_uuid.");
 
   // get uuid
   uuid = req->uri->path->file;
@@ -2230,11 +2230,11 @@ static void htp_put_dls_uuid(evhtp_request_t *req, void *data)
 
 /**
  * htp request handler.
- * request: DELETE /dls/<uuid>
+ * request: DELETE ^/ob/dls/<uuid>
  * @param req
  * @param data
  */
-static void htp_delete_dls_uuid(evhtp_request_t *req, void *data)
+static void htp_delete_ob_dls_uuid(evhtp_request_t *req, void *data)
 {
   const char* uuid;
   json_t* j_tmp;
@@ -2245,7 +2245,7 @@ static void htp_delete_dls_uuid(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired htp_delete_dls_uuid.");
+  slog(LOG_DEBUG, "Fired htp_delete_ob_dls_uuid.");
 
   // get uuid
   uuid = req->uri->path->file;

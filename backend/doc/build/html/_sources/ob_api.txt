@@ -1,7 +1,7 @@
 .. _ob_api:
 
-/plans
-======
+/ob/plans
+=========
 
 Methods
 -------
@@ -17,7 +17,7 @@ Call
 ++++
 ::
 
-  POST /plans
+  POST /ob/plans
   
   {
     "name": "<string>",
@@ -129,7 +129,7 @@ Example
 +++++++
 ::
 
-  $ curl -X POST 192.168.200.10:8081/plans -d '{"name": "Test plan create"}'
+  $ curl -X POST 192.168.200.10:8081/ob/plans -d '{"name": "Test plan create"}'
 
   {
     "api_ver": "0.1",
@@ -174,7 +174,7 @@ Call
 ++++
 ::
 
-  GET /plans
+  GET /ob/plans
   
 Returns
 +++++++
@@ -196,7 +196,7 @@ Example
 +++++++
 ::
 
-  curl -X GET 192.168.200.10:8081/plans
+  curl -X GET 192.168.200.10:8081/ob/plans
   
   {
     "api_ver": "0.1",
@@ -209,8 +209,8 @@ Example
     "timestamp": "2017-02-22T16:48:04.890697147Z"
   }
   
-/plans/<uuid>
-=============
+/ob/plans/<uuid>
+================
 
 Methods
 -------
@@ -228,7 +228,7 @@ Call
 ++++
 ::
 
-   GET /plans/<plan-uuid>
+   GET /ob/plans/<plan-uuid>
 
 Returns
 +++++++
@@ -293,7 +293,7 @@ Example
 +++++++
 ::
 
-  $ curl -X GET 192.168.200.10:8081/plans/552e9808-23bc-40b1-947a-60b0b96581cb
+  $ curl -X GET 192.168.200.10:8081/ob/plans/552e9808-23bc-40b1-947a-60b0b96581cb
 
   {
     "api_ver": "0.1",
@@ -339,7 +339,7 @@ Update specified plan info.
 
 ::
 
-  PUT /plans/<plan-uuid>
+  PUT /ob/plans/<plan-uuid>
   
   {
     "name": "<string>",
@@ -430,7 +430,7 @@ Example
 +++++++
 ::
 
-   $ curl -X PUT 192.168.200.10:8081/plans/c8b521ab-8114-4a62-b4e9-488d770d4ee8 \
+   $ curl -X PUT 192.168.200.10:8081/ob/plans/c8b521ab-8114-4a62-b4e9-488d770d4ee8 \
     -d '{"name": "Updated plan name"}'
    
    {
@@ -477,7 +477,7 @@ Delete specified plan info.
 
 ::
 
-   DELETE /plans/<plan-uuid>
+   DELETE /ob/plans/<plan-uuid>
 
 Returns
 +++++++
@@ -522,7 +522,7 @@ Example
 +++++++
 ::
 
-   curl -X DELETE 192.168.200.10:8081/plans/c8b521ab-8114-4a62-b4e9-488d770d4ee8
+   curl -X DELETE 192.168.200.10:8081/ob/plans/c8b521ab-8114-4a62-b4e9-488d770d4ee8
    
    {
      "api_ver": "0.1",
@@ -558,8 +558,8 @@ Example
      }
    }
 
-/destinations
-=============
+/ob/destinations
+================
 
 Methods
 -------
@@ -575,7 +575,7 @@ Call
 ++++
 ::
 
-   POST /destinations
+   POST /ob/destinations
    
    {
      "name": "<string>",
@@ -641,7 +641,7 @@ Example
 +++++++
 ::
 
-   $ curl -X POST 192.168.200.10:8081/destinations -d'{}'
+   $ curl -X POST 192.168.200.10:8081/ob/destinations -d'{}'
  
    {
      "api_ver": "0.1",
@@ -673,7 +673,7 @@ Call
 ++++
 ::
 
-  GET /destinations
+  GET /ob/destinations
   
 Returns
 +++++++
@@ -695,7 +695,7 @@ Example
 +++++++
 ::
 
-  curl -X GET 192.168.200.10:8081/destinations
+  curl -X GET 192.168.200.10:8081/ob/destinations
   
   {
     "api_ver": "0.1",
@@ -709,8 +709,8 @@ Example
     "timestamp": "2017-03-05T08:58:09.460418643Z"
   }
 
-/destinations/<uuid>
-====================
+/ob/destinations/<uuid>
+=======================
 
 Methods
 -------
@@ -728,7 +728,7 @@ Call
 ++++
 ::
 
-  GET /destinations/<uuid>
+  GET /ob/destinations/<uuid>
 
 Returns
 +++++++
@@ -771,7 +771,7 @@ Example
 +++++++
 ::
 
-  $ curl -X GET 192.168.200.10:8081/destinations/5ff9611c-136b-47d7-b8d4-0bd6f0d5b037
+  $ curl -X GET 192.168.200.10:8081/ob/destinations/5ff9611c-136b-47d7-b8d4-0bd6f0d5b037
 
   {
     "api_ver": "0.1",
@@ -803,7 +803,7 @@ Call
 ++++
 ::
    
-   PUT /destinations/<uuid>
+   PUT /ob/destinations/<uuid>
    
    {
      "name": "<string>",
@@ -870,7 +870,7 @@ Example
 +++++++
 ::
   
-   $ curl -X PUT 192.168.200.10:8081/destinations/5ff9611c-136b-47d7-b8d4-0bd6f0d5b037 \
+   $ curl -X PUT 192.168.200.10:8081/ob/destinations/5ff9611c-136b-47d7-b8d4-0bd6f0d5b037 \
      -d '{"name":"new updated name"}'
 
    {
@@ -903,7 +903,7 @@ Call
 ++++
 ::
 
-  DELETE /destinations/<uuid>  
+  DELETE /ob/destinations/<uuid>  
 
 Returns
 +++++++
@@ -947,7 +947,7 @@ Example
 +++++++
 ::
 
-  $ curl -X DELETE 192.168.200.10:8081/destinations/38dd5d48-4758-4194-9b7d-24acada05e08
+  $ curl -X DELETE 192.168.200.10:8081/ob/destinations/38dd5d48-4758-4194-9b7d-24acada05e08
 
   {
     "api_ver": "0.1",
@@ -971,8 +971,8 @@ Example
     "timestamp": "2017-03-05T09:40:57.954045594Z"
   }
 
-/dlmas
-======
+/ob/dlmas
+=========
 
 Methods
 -------
@@ -988,7 +988,7 @@ Call
 ++++
 ::
 
-   POST /dlmas
+   POST /ob/dlmas
    
    {
      "name": "<string>",
@@ -1032,7 +1032,7 @@ Example
 +++++++
 ::
 
-   $ curl -X POST 192.168.200.10:8081/dlmas -d '{"name": "test dlma"}'
+   $ curl -X POST 192.168.200.10:8081/ob/dlmas -d '{"name": "test dlma"}'
    
    {
      "api_ver": "0.1",
@@ -1059,7 +1059,7 @@ Call
 ++++
 ::
 
-   GET /dlmas
+   GET /ob/dlmas
    
 Returns
 +++++++
@@ -1081,6 +1081,8 @@ Example
 +++++++
 ::
 
+   $ curl -X GET 192.168.200.10:8081/ob/dlmas
+
    {
      "api_ver": "0.1",
      "result": {
@@ -1094,9 +1096,9 @@ Example
      "statuscode": 200,
      "timestamp": "2017-03-08T06:12:14.117712363Z"
    }
-   
-/dlmas/<uuid>
-=============
+
+/ob/dlmas/<uuid>
+================
 
 Methods
 -------
@@ -1114,7 +1116,7 @@ Call
 ++++
 ::
 
-   GET /dlmas/<uuid>
+   GET /ob/dlmas/<uuid>
 
 Parameters
 
@@ -1151,7 +1153,7 @@ Example
 +++++++
 ::
 
-   $ curl -X GET 192.168.200.10:8081/dlmas/6526c474-280e-4652-a1bf-731089c981a2
+   $ curl -X GET 192.168.200.10:8081/ob/dlmas/6526c474-280e-4652-a1bf-731089c981a2
 
    {
      "api_ver": "0.1",
@@ -1178,7 +1180,7 @@ Call
 ++++
 ::
 
-   PUT /dlmas/<uuid>
+   PUT /ob/dlmas/<uuid>
    
    {
      "name": "<string>",
@@ -1227,7 +1229,7 @@ Example
 +++++++
 ::
 
-   $ curl -X PUT 192.168.200.10:8081/dlmas/6526c474-280e-4652-a1bf-731089c981a2 -d 
+   $ curl -X PUT 192.168.200.10:8081/ob/dlmas/6526c474-280e-4652-a1bf-731089c981a2 -d 
    '{"detail": "update dlma detail info."}'
    
    {
@@ -1255,7 +1257,7 @@ Call
 ++++
 ::
 
-   DELETE /dlmas/<uuid>
+   DELETE /ob/dlmas/<uuid>
 
 Parameters
 
@@ -1292,7 +1294,7 @@ Example
 +++++++
 ::
 
-   $ curl -X DELETE 192.168.200.10:8081/dlmas/6526c474-280e-4652-a1bf-731089c981a2
+   $ curl -X DELETE 192.168.200.10:8081/ob/dlmas/6526c474-280e-4652-a1bf-731089c981a2
    
    {
      "api_ver": "0.1",
@@ -1310,9 +1312,9 @@ Example
      "statuscode": 200,
      "timestamp": "2017-03-08T07:43:25.398930595Z"
    }
-   
-/dls
-====
+
+/ob/dls
+=======
 
 Methods
 -------
@@ -1328,7 +1330,7 @@ Call
 ++++
 ::
 
-   POST /dls
+   POST /ob/dls
    
    {
      "name": "<string>",
@@ -1477,7 +1479,7 @@ Example
 +++++++
 ::
 
-   $ curl -X POST 192.168.200.10:8081/dls -d 
+   $ curl -X POST 192.168.200.10:8081/ob/dls -d 
    '{"dlma_uuid":"42b72a18-a6c5-43bf-b9aa-6043ff32128d", "name": "sample dial list", \
    "detail": "dial list sample detail", "number_1": "300"}'
    
@@ -1535,7 +1537,7 @@ Call
 ++++
 ::
 
-   GET /dls?dlma_uuid=<dlam-uuid>&count=<request list count>
+   GET /ob/dls?dlma_uuid=<dlam-uuid>&count=<request list count>
 
 Parameter details
 
@@ -1560,7 +1562,7 @@ Example
 +++++++
 ::
 
-   $ curl -X GET 192.168.200.10:8081/dls?dlma_uuid=42b72a18-a6c5-43bf-b9aa-6043ff32128d
+   $ curl -X GET 192.168.200.10:8081/ob/dls?dlma_uuid=42b72a18-a6c5-43bf-b9aa-6043ff32128d
    
    {
      "api_ver": "0.1",
@@ -1573,9 +1575,9 @@ Example
      "statuscode": 200,
      "timestamp": "2017-03-08T18:32:06.244932866Z"
    }
-   
-/dls/<uuid>
-===========
+
+/ob/dls/<uuid>
+==============
 
 Methods
 -------
@@ -1593,7 +1595,7 @@ Call
 ++++
 ::
 
-   GET /dls/<dl-uuid>
+   GET /ob/dls/<dl-uuid>
    
 Returns
 +++++++
@@ -1688,7 +1690,7 @@ Example
 +++++++
 ::
 
-   $ curl -X GET 192.168.200.10:8081/dls/7d760dd1-8ba5-48d9-989d-415d610ffe57
+   $ curl -X GET 192.168.200.10:8081/ob/dls/7d760dd1-8ba5-48d9-989d-415d610ffe57
    
    {
      "api_ver": "0.1",
@@ -1745,7 +1747,7 @@ Call
 ++++
 ::
 
-   PUT /dls/<dl-uuid>
+   PUT /ob/dls/<dl-uuid>
    
    {
      "name": "<string>",
@@ -1894,7 +1896,7 @@ Example
 
 ::
 
-   $ curl -X PUT 192.168.200.10:8081/dls/7d760dd1-8ba5-48d9-989d-415d610ffe57 -d 
+   $ curl -X PUT 192.168.200.10:8081/ob/dls/7d760dd1-8ba5-48d9-989d-415d610ffe57 -d 
    '{"detail": "Updated test customer detail"}'
    
    {
@@ -1951,7 +1953,7 @@ Call
 ++++
 ::
 
-   DELETE /dls/<dl-uuid>
+   DELETE /ob/dls/<dl-uuid>
 
 Parameter details
 
@@ -2051,7 +2053,7 @@ Example
 
 ::
 
-   $ curl -X DELETE 192.168.200.10:8081/dls/7d760dd1-8ba5-48d9-989d-415d610ffe57
+   $ curl -X DELETE 192.168.200.10:8081/ob/dls/7d760dd1-8ba5-48d9-989d-415d610ffe57
    
    {
      "api_ver": "0.1",
@@ -2099,8 +2101,8 @@ Example
      "timestamp": "2017-03-08T20:46:09.380969992Z"
    }
 
-/campaigns
-==========
+/ob/campaigns
+=============
 
 Methods
 -------
@@ -2116,7 +2118,7 @@ Call
 ++++
 ::
 
-   POST /campaign
+   POST /ob/campaign
    
    {
      "name": "<string>",
@@ -2208,7 +2210,7 @@ Example
 +++++++
 ::
 
-   $ curl -X POST 192.168.200.10:8081/destinations -d'{}'
+   $ curl -X POST 192.168.200.10:8081/ob/destinations -d'{}'
 
    {
      "api_ver": "0.1",
@@ -2247,7 +2249,7 @@ Call
 ++++
 ::
 
-  GET /campaigns
+  GET /ob/campaigns
   
 Returns
 +++++++
@@ -2269,7 +2271,7 @@ Example
 +++++++
 ::
 
-  curl -X GET 192.168.200.10:8081/campaigns
+  $ curl -X GET 192.168.200.10:8081/ob/campaigns
   
   {
     "api_ver": "0.1",
@@ -2282,8 +2284,8 @@ Example
     "timestamp": "2017-03-05T09:10:23.658031316Z"
   }
 
-/campaigns/<uuid>
-=================
+/ob/campaigns/<uuid>
+====================
 
 Methods
 -------
@@ -2301,7 +2303,7 @@ Call
 ++++
 ::
 
-  GET /campaign/<uuid>
+  GET /ob/campaign/<uuid>
   
 Returns
 +++++++
@@ -2356,7 +2358,7 @@ Example
 +++++++
 ::
 
-  $ curl -X GET 192.168.200.10:8081/campaigns/9841bc9e-3103-4fea-ab11-54ccfcc8322f
+  $ curl -X GET 192.168.200.10:8081/ob/campaigns/9841bc9e-3103-4fea-ab11-54ccfcc8322f
 
   {
     "api_ver": "0.1",
@@ -2394,7 +2396,7 @@ Call
 ++++
 ::
 
-   PUT /campaigns/<campaign-uuid>
+   PUT /ob/campaigns/<campaign-uuid>
 
    {   
      "name": "<string>",
@@ -2484,7 +2486,7 @@ Example
 +++++++
 ::
 
-   $ curl -X PUT 192.168.200.10:8081/campaigns/305c96cb-4704-4f33-bcad-6b2e4031d7d4 
+   $ curl -X PUT 192.168.200.10:8081/ob/campaigns/305c96cb-4704-4f33-bcad-6b2e4031d7d4 
       -d '{"name": "Update campaign info"}'
   
    {
@@ -2525,7 +2527,7 @@ Delete specified campaign info.
 
 ::
 
-   DELETE /campaign/<campaign-uuid>
+   DELETE /ob/campaign/<campaign-uuid>
 
 Returns
 +++++++
@@ -2563,7 +2565,7 @@ Example
 +++++++
 ::
 
-   $ curl -X DELETE 192.168.200.10:8081/campaigns/305c96cb-4704-4f33-bcad-6b2e4031d7d4
+   $ curl -X DELETE 192.168.200.10:8081/ob/campaigns/305c96cb-4704-4f33-bcad-6b2e4031d7d4
    
    {
      "api_ver": "0.1",

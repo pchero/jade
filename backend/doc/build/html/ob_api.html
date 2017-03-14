@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>/plans &mdash; jade 0.0.1 documentation</title>
+    <title>/ob/plans &mdash; jade 0.0.1 documentation</title>
     
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -49,8 +49,8 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="plans">
-<span id="ob-api"></span><h1>/plans<a class="headerlink" href="#plans" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="ob-plans">
+<span id="ob-api"></span><h1>/ob/plans<a class="headerlink" href="#ob-plans" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="methods">
 <h2>Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h2>
 <p>POST : Create new plan.</p>
@@ -61,7 +61,7 @@
 <p>Create new plan.</p>
 <div class="section" id="call">
 <h3>Call<a class="headerlink" href="#call" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre>POST /plans
+<div class="highlight-python"><div class="highlight"><pre>POST /ob/plans
 
 {
   &quot;name&quot;: &quot;&lt;string&gt;&quot;,
@@ -174,7 +174,7 @@
 </div>
 <div class="section" id="example">
 <h3>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre>$ curl -X POST 192.168.200.10:8081/plans -d &#39;{&quot;name&quot;: &quot;Test plan create&quot;}&#39;
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X POST 192.168.200.10:8081/ob/plans -d &#39;{&quot;name&quot;: &quot;Test plan create&quot;}&#39;
 
 {
   &quot;api_ver&quot;: &quot;0.1&quot;,
@@ -218,7 +218,7 @@
 <p>Get list of all plans.</p>
 <div class="section" id="id1">
 <h3>Call<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">GET</span> <span class="o">/</span><span class="n">plans</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">GET</span> <span class="o">/</span><span class="n">ob</span><span class="o">/</span><span class="n">plans</span>
 </pre></div>
 </div>
 </div>
@@ -241,7 +241,7 @@
 </div>
 <div class="section" id="id3">
 <h3>Example<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre>curl -X GET 192.168.200.10:8081/plans
+<div class="highlight-python"><div class="highlight"><pre>curl -X GET 192.168.200.10:8081/ob/plans
 
 {
   &quot;api_ver&quot;: &quot;0.1&quot;,
@@ -258,8 +258,8 @@
 </div>
 </div>
 </div>
-<div class="section" id="plans-uuid">
-<h1>/plans/&lt;uuid&gt;<a class="headerlink" href="#plans-uuid" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="ob-plans-uuid">
+<h1>/ob/plans/&lt;uuid&gt;<a class="headerlink" href="#ob-plans-uuid" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="id4">
 <h2>Methods<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
 <p>GET : Get specified plan detail info.</p>
@@ -271,7 +271,7 @@
 <p>Get plan detail info.</p>
 <div class="section" id="id6">
 <h3>Call<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre>GET /plans/&lt;plan-uuid&gt;
+<div class="highlight-python"><div class="highlight"><pre>GET /ob/plans/&lt;plan-uuid&gt;
 </pre></div>
 </div>
 </div>
@@ -337,7 +337,7 @@
 </div>
 <div class="section" id="id8">
 <h3>Example<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/plans/552e9808-23bc-40b1-947a-60b0b96581cb
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/ob/plans/552e9808-23bc-40b1-947a-60b0b96581cb
 
 {
   &quot;api_ver&quot;: &quot;0.1&quot;,
@@ -382,7 +382,7 @@
 <div class="section" id="id9">
 <h3>Call<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
 <p>Update specified plan info.</p>
-<div class="highlight-python"><div class="highlight"><pre>PUT /plans/&lt;plan-uuid&gt;
+<div class="highlight-python"><div class="highlight"><pre>PUT /ob/plans/&lt;plan-uuid&gt;
 
 {
   &quot;name&quot;: &quot;&lt;string&gt;&quot;,
@@ -473,7 +473,7 @@
 </div>
 <div class="section" id="id11">
 <h3>Example<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre>$ curl -X PUT 192.168.200.10:8081/plans/c8b521ab-8114-4a62-b4e9-488d770d4ee8 \
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X PUT 192.168.200.10:8081/ob/plans/c8b521ab-8114-4a62-b4e9-488d770d4ee8 \
  -d &#39;{&quot;name&quot;: &quot;Updated plan name&quot;}&#39;
 
 {
@@ -519,7 +519,7 @@
 <div class="section" id="id12">
 <h3>Call<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
 <p>Delete specified plan info.</p>
-<div class="highlight-python"><div class="highlight"><pre>DELETE /plans/&lt;plan-uuid&gt;
+<div class="highlight-python"><div class="highlight"><pre>DELETE /ob/plans/&lt;plan-uuid&gt;
 </pre></div>
 </div>
 </div>
@@ -562,7 +562,7 @@
 </div>
 <div class="section" id="id14">
 <h3>Example<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre>curl -X DELETE 192.168.200.10:8081/plans/c8b521ab-8114-4a62-b4e9-488d770d4ee8
+<div class="highlight-python"><div class="highlight"><pre>curl -X DELETE 192.168.200.10:8081/ob/plans/c8b521ab-8114-4a62-b4e9-488d770d4ee8
 
 {
   &quot;api_ver&quot;: &quot;0.1&quot;,
@@ -602,8 +602,8 @@
 </div>
 </div>
 </div>
-<div class="section" id="destinations">
-<h1>/destinations<a class="headerlink" href="#destinations" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="ob-destinations">
+<h1>/ob/destinations<a class="headerlink" href="#ob-destinations" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="id15">
 <h2>Methods<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h2>
 <p>POST : Create new destination.</p>
@@ -614,7 +614,7 @@
 <p>Create new destination.</p>
 <div class="section" id="id17">
 <h3>Call<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre>POST /destinations
+<div class="highlight-python"><div class="highlight"><pre>POST /ob/destinations
 
 {
   &quot;name&quot;: &quot;&lt;string&gt;&quot;,
@@ -679,7 +679,7 @@
 </div>
 <div class="section" id="id19">
 <h3>Example<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre>$ curl -X POST 192.168.200.10:8081/destinations -d&#39;{}&#39;
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X POST 192.168.200.10:8081/ob/destinations -d&#39;{}&#39;
 
 {
   &quot;api_ver&quot;: &quot;0.1&quot;,
@@ -711,7 +711,7 @@
 <p>Get list of all destinations.</p>
 <div class="section" id="id21">
 <h3>Call<a class="headerlink" href="#id21" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">GET</span> <span class="o">/</span><span class="n">destinations</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">GET</span> <span class="o">/</span><span class="n">ob</span><span class="o">/</span><span class="n">destinations</span>
 </pre></div>
 </div>
 </div>
@@ -734,7 +734,7 @@
 </div>
 <div class="section" id="id23">
 <h3>Example<a class="headerlink" href="#id23" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre>curl -X GET 192.168.200.10:8081/destinations
+<div class="highlight-python"><div class="highlight"><pre>curl -X GET 192.168.200.10:8081/ob/destinations
 
 {
   &quot;api_ver&quot;: &quot;0.1&quot;,
@@ -752,8 +752,8 @@
 </div>
 </div>
 </div>
-<div class="section" id="destinations-uuid">
-<h1>/destinations/&lt;uuid&gt;<a class="headerlink" href="#destinations-uuid" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="ob-destinations-uuid">
+<h1>/ob/destinations/&lt;uuid&gt;<a class="headerlink" href="#ob-destinations-uuid" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="id24">
 <h2>Methods<a class="headerlink" href="#id24" title="Permalink to this headline">¶</a></h2>
 <p>GET : Get specified destination detail info.</p>
@@ -765,7 +765,7 @@
 <p>Get specified destination detail info.</p>
 <div class="section" id="id26">
 <h3>Call<a class="headerlink" href="#id26" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre>GET /destinations/&lt;uuid&gt;
+<div class="highlight-python"><div class="highlight"><pre>GET /ob/destinations/&lt;uuid&gt;
 </pre></div>
 </div>
 </div>
@@ -808,7 +808,7 @@
 </div>
 <div class="section" id="id28">
 <h3>Example<a class="headerlink" href="#id28" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/destinations/5ff9611c-136b-47d7-b8d4-0bd6f0d5b037
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/ob/destinations/5ff9611c-136b-47d7-b8d4-0bd6f0d5b037
 
 {
   &quot;api_ver&quot;: &quot;0.1&quot;,
@@ -840,7 +840,7 @@
 <p>Update specified destination detail info.</p>
 <div class="section" id="id30">
 <h3>Call<a class="headerlink" href="#id30" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre>PUT /destinations/&lt;uuid&gt;
+<div class="highlight-python"><div class="highlight"><pre>PUT /ob/destinations/&lt;uuid&gt;
 
 {
   &quot;name&quot;: &quot;&lt;string&gt;&quot;,
@@ -905,7 +905,7 @@
 </div>
 <div class="section" id="id32">
 <h3>Example<a class="headerlink" href="#id32" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre>$ curl -X PUT 192.168.200.10:8081/destinations/5ff9611c-136b-47d7-b8d4-0bd6f0d5b037 \
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X PUT 192.168.200.10:8081/ob/destinations/5ff9611c-136b-47d7-b8d4-0bd6f0d5b037 \
   -d &#39;{&quot;name&quot;:&quot;new updated name&quot;}&#39;
 
 {
@@ -938,7 +938,7 @@
 <p>Delete specified destination info.</p>
 <div class="section" id="id34">
 <h3>Call<a class="headerlink" href="#id34" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre>DELETE /destinations/&lt;uuid&gt;
+<div class="highlight-python"><div class="highlight"><pre>DELETE /ob/destinations/&lt;uuid&gt;
 </pre></div>
 </div>
 </div>
@@ -981,7 +981,7 @@
 </div>
 <div class="section" id="id36">
 <h3>Example<a class="headerlink" href="#id36" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre>$ curl -X DELETE 192.168.200.10:8081/destinations/38dd5d48-4758-4194-9b7d-24acada05e08
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X DELETE 192.168.200.10:8081/ob/destinations/38dd5d48-4758-4194-9b7d-24acada05e08
 
 {
   &quot;api_ver&quot;: &quot;0.1&quot;,
@@ -1009,8 +1009,8 @@
 </div>
 </div>
 </div>
-<div class="section" id="dlmas">
-<h1>/dlmas<a class="headerlink" href="#dlmas" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="ob-dlmas">
+<h1>/ob/dlmas<a class="headerlink" href="#ob-dlmas" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="id37">
 <h2>Methods<a class="headerlink" href="#id37" title="Permalink to this headline">¶</a></h2>
 <p>POST : Create new dlma.</p>
@@ -1021,7 +1021,7 @@
 <p>Create new dlma</p>
 <div class="section" id="id39">
 <h3>Call<a class="headerlink" href="#id39" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">POST</span> <span class="o">/</span><span class="n">dlmas</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">POST</span> <span class="o">/</span><span class="n">ob</span><span class="o">/</span><span class="n">dlmas</span>
 
 <span class="p">{</span>
   <span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="s">&quot;&lt;string&gt;&quot;</span><span class="p">,</span>
@@ -1065,7 +1065,7 @@
 </div>
 <div class="section" id="id41">
 <h3>Example<a class="headerlink" href="#id41" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre>$ curl -X POST 192.168.200.10:8081/dlmas -d &#39;{&quot;name&quot;: &quot;test dlma&quot;}&#39;
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X POST 192.168.200.10:8081/ob/dlmas -d &#39;{&quot;name&quot;: &quot;test dlma&quot;}&#39;
 
 {
   &quot;api_ver&quot;: &quot;0.1&quot;,
@@ -1092,7 +1092,7 @@
 <p>Get list of all dlmas.</p>
 <div class="section" id="id43">
 <h3>Call<a class="headerlink" href="#id43" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">GET</span> <span class="o">/</span><span class="n">dlmas</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">GET</span> <span class="o">/</span><span class="n">ob</span><span class="o">/</span><span class="n">dlmas</span>
 </pre></div>
 </div>
 </div>
@@ -1115,26 +1115,28 @@
 </div>
 <div class="section" id="id45">
 <h3>Example<a class="headerlink" href="#id45" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
-  <span class="s">&quot;api_ver&quot;</span><span class="p">:</span> <span class="s">&quot;0.1&quot;</span><span class="p">,</span>
-  <span class="s">&quot;result&quot;</span><span class="p">:</span> <span class="p">{</span>
-    <span class="s">&quot;list&quot;</span><span class="p">:</span> <span class="p">[</span>
-      <span class="s">&quot;6526c474-280e-4652-a1bf-731089c981a2&quot;</span><span class="p">,</span>
-      <span class="s">&quot;42b72a18-a6c5-43bf-b9aa-6043ff32128d&quot;</span><span class="p">,</span>
-      <span class="s">&quot;b0d73193-2787-4341-8c32-bc051bad9f94&quot;</span><span class="p">,</span>
-      <span class="s">&quot;cd60aff5-3355-488c-bf6a-d42f8b67a006&quot;</span>
-    <span class="p">]</span>
-  <span class="p">},</span>
-  <span class="s">&quot;statuscode&quot;</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span>
-  <span class="s">&quot;timestamp&quot;</span><span class="p">:</span> <span class="s">&quot;2017-03-08T06:12:14.117712363Z&quot;</span>
-<span class="p">}</span>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/ob/dlmas
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;result&quot;: {
+    &quot;list&quot;: [
+      &quot;6526c474-280e-4652-a1bf-731089c981a2&quot;,
+      &quot;42b72a18-a6c5-43bf-b9aa-6043ff32128d&quot;,
+      &quot;b0d73193-2787-4341-8c32-bc051bad9f94&quot;,
+      &quot;cd60aff5-3355-488c-bf6a-d42f8b67a006&quot;
+    ]
+  },
+  &quot;statuscode&quot;: 200,
+  &quot;timestamp&quot;: &quot;2017-03-08T06:12:14.117712363Z&quot;
+}
 </pre></div>
 </div>
 </div>
 </div>
 </div>
-<div class="section" id="dlmas-uuid">
-<h1>/dlmas/&lt;uuid&gt;<a class="headerlink" href="#dlmas-uuid" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="ob-dlmas-uuid">
+<h1>/ob/dlmas/&lt;uuid&gt;<a class="headerlink" href="#ob-dlmas-uuid" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="id46">
 <h2>Methods<a class="headerlink" href="#id46" title="Permalink to this headline">¶</a></h2>
 <p>GET : Get specified dlma detail info.</p>
@@ -1146,7 +1148,7 @@
 <p>Get specified dlma detail info.</p>
 <div class="section" id="id48">
 <h3>Call<a class="headerlink" href="#id48" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre>GET /dlmas/&lt;uuid&gt;
+<div class="highlight-python"><div class="highlight"><pre>GET /ob/dlmas/&lt;uuid&gt;
 </pre></div>
 </div>
 <p>Parameters</p>
@@ -1183,7 +1185,7 @@
 </div>
 <div class="section" id="id50">
 <h3>Example<a class="headerlink" href="#id50" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/dlmas/6526c474-280e-4652-a1bf-731089c981a2
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/ob/dlmas/6526c474-280e-4652-a1bf-731089c981a2
 
 {
   &quot;api_ver&quot;: &quot;0.1&quot;,
@@ -1210,7 +1212,7 @@
 <p>Update specified dlma detail info.</p>
 <div class="section" id="id52">
 <h3>Call<a class="headerlink" href="#id52" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre>PUT /dlmas/&lt;uuid&gt;
+<div class="highlight-python"><div class="highlight"><pre>PUT /ob/dlmas/&lt;uuid&gt;
 
 {
   &quot;name&quot;: &quot;&lt;string&gt;&quot;,
@@ -1259,7 +1261,7 @@
 </div>
 <div class="section" id="id54">
 <h3>Example<a class="headerlink" href="#id54" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre>$ curl -X PUT 192.168.200.10:8081/dlmas/6526c474-280e-4652-a1bf-731089c981a2 -d
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X PUT 192.168.200.10:8081/ob/dlmas/6526c474-280e-4652-a1bf-731089c981a2 -d
 &#39;{&quot;detail&quot;: &quot;update dlma detail info.&quot;}&#39;
 
 {
@@ -1287,7 +1289,7 @@
 <p>Delete specified dlma.</p>
 <div class="section" id="id56">
 <h3>Call<a class="headerlink" href="#id56" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre>DELETE /dlmas/&lt;uuid&gt;
+<div class="highlight-python"><div class="highlight"><pre>DELETE /ob/dlmas/&lt;uuid&gt;
 </pre></div>
 </div>
 <p>Parameters</p>
@@ -1324,7 +1326,7 @@
 </div>
 <div class="section" id="id58">
 <h3>Example<a class="headerlink" href="#id58" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre>$ curl -X DELETE 192.168.200.10:8081/dlmas/6526c474-280e-4652-a1bf-731089c981a2
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X DELETE 192.168.200.10:8081/ob/dlmas/6526c474-280e-4652-a1bf-731089c981a2
 
 {
   &quot;api_ver&quot;: &quot;0.1&quot;,
@@ -1347,8 +1349,8 @@
 </div>
 </div>
 </div>
-<div class="section" id="dls">
-<h1>/dls<a class="headerlink" href="#dls" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="ob-dls">
+<h1>/ob/dls<a class="headerlink" href="#ob-dls" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="id59">
 <h2>Methods<a class="headerlink" href="#id59" title="Permalink to this headline">¶</a></h2>
 <p>POST : Create new dial list.</p>
@@ -1359,7 +1361,7 @@
 <p>Create new dial list.</p>
 <div class="section" id="id61">
 <h3>Call<a class="headerlink" href="#id61" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre>POST /dls
+<div class="highlight-python"><div class="highlight"><pre>POST /ob/dls
 
 {
   &quot;name&quot;: &quot;&lt;string&gt;&quot;,
@@ -1508,7 +1510,7 @@
 </div>
 <div class="section" id="id63">
 <h3>Example<a class="headerlink" href="#id63" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre>$ curl -X POST 192.168.200.10:8081/dls -d
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X POST 192.168.200.10:8081/ob/dls -d
 &#39;{&quot;dlma_uuid&quot;:&quot;42b72a18-a6c5-43bf-b9aa-6043ff32128d&quot;, &quot;name&quot;: &quot;sample dial list&quot;, \
 &quot;detail&quot;: &quot;dial list sample detail&quot;, &quot;number_1&quot;: &quot;300&quot;}&#39;
 
@@ -1566,7 +1568,7 @@
 <p>Get list of dial list.</p>
 <div class="section" id="id65">
 <h3>Call<a class="headerlink" href="#id65" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre>GET /dls?dlma_uuid=&lt;dlam-uuid&gt;&amp;count=&lt;request list count&gt;
+<div class="highlight-python"><div class="highlight"><pre>GET /ob/dls?dlma_uuid=&lt;dlam-uuid&gt;&amp;count=&lt;request list count&gt;
 </pre></div>
 </div>
 <p>Parameter details</p>
@@ -1591,7 +1593,7 @@
 </div>
 <div class="section" id="id67">
 <h3>Example<a class="headerlink" href="#id67" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/dls?dlma_uuid=42b72a18-a6c5-43bf-b9aa-6043ff32128d
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/ob/dls?dlma_uuid=42b72a18-a6c5-43bf-b9aa-6043ff32128d
 
 {
   &quot;api_ver&quot;: &quot;0.1&quot;,
@@ -1609,8 +1611,8 @@
 </div>
 </div>
 </div>
-<div class="section" id="dls-uuid">
-<h1>/dls/&lt;uuid&gt;<a class="headerlink" href="#dls-uuid" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="ob-dls-uuid">
+<h1>/ob/dls/&lt;uuid&gt;<a class="headerlink" href="#ob-dls-uuid" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="id68">
 <h2>Methods<a class="headerlink" href="#id68" title="Permalink to this headline">¶</a></h2>
 <p>GET : Get specified dial list detail info.</p>
@@ -1622,7 +1624,7 @@
 <p>Get specified dial list detail info.</p>
 <div class="section" id="id70">
 <h3>Call<a class="headerlink" href="#id70" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre>GET /dls/&lt;dl-uuid&gt;
+<div class="highlight-python"><div class="highlight"><pre>GET /ob/dls/&lt;dl-uuid&gt;
 </pre></div>
 </div>
 </div>
@@ -1717,7 +1719,7 @@
 </div>
 <div class="section" id="id72">
 <h3>Example<a class="headerlink" href="#id72" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/dls/7d760dd1-8ba5-48d9-989d-415d610ffe57
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/ob/dls/7d760dd1-8ba5-48d9-989d-415d610ffe57
 
 {
   &quot;api_ver&quot;: &quot;0.1&quot;,
@@ -1773,7 +1775,7 @@
 <p>Update specified dial list detail info.</p>
 <div class="section" id="id74">
 <h3>Call<a class="headerlink" href="#id74" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre>PUT /dls/&lt;dl-uuid&gt;
+<div class="highlight-python"><div class="highlight"><pre>PUT /ob/dls/&lt;dl-uuid&gt;
 
 {
   &quot;name&quot;: &quot;&lt;string&gt;&quot;,
@@ -1921,7 +1923,7 @@
 </div>
 <div class="section" id="id76">
 <h3>Example<a class="headerlink" href="#id76" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre>$ curl -X PUT 192.168.200.10:8081/dls/7d760dd1-8ba5-48d9-989d-415d610ffe57 -d
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X PUT 192.168.200.10:8081/ob/dls/7d760dd1-8ba5-48d9-989d-415d610ffe57 -d
 &#39;{&quot;detail&quot;: &quot;Updated test customer detail&quot;}&#39;
 
 {
@@ -1978,7 +1980,7 @@
 <p>Delete specified dial list.</p>
 <div class="section" id="id78">
 <h3>Call<a class="headerlink" href="#id78" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre>DELETE /dls/&lt;dl-uuid&gt;
+<div class="highlight-python"><div class="highlight"><pre>DELETE /ob/dls/&lt;dl-uuid&gt;
 </pre></div>
 </div>
 <p>Parameter details</p>
@@ -2077,7 +2079,7 @@
 </div>
 <div class="section" id="id80">
 <h3>Example<a class="headerlink" href="#id80" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre>$ curl -X DELETE 192.168.200.10:8081/dls/7d760dd1-8ba5-48d9-989d-415d610ffe57
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X DELETE 192.168.200.10:8081/ob/dls/7d760dd1-8ba5-48d9-989d-415d610ffe57
 
 {
   &quot;api_ver&quot;: &quot;0.1&quot;,
@@ -2129,8 +2131,8 @@
 </div>
 </div>
 </div>
-<div class="section" id="campaigns">
-<h1>/campaigns<a class="headerlink" href="#campaigns" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="ob-campaigns">
+<h1>/ob/campaigns<a class="headerlink" href="#ob-campaigns" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="id81">
 <h2>Methods<a class="headerlink" href="#id81" title="Permalink to this headline">¶</a></h2>
 <p>POST : Create new campaign.</p>
@@ -2141,7 +2143,7 @@
 <p>Create new campaign.</p>
 <div class="section" id="id83">
 <h3>Call<a class="headerlink" href="#id83" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre>POST /campaign
+<div class="highlight-python"><div class="highlight"><pre>POST /ob/campaign
 
 {
   &quot;name&quot;: &quot;&lt;string&gt;&quot;,
@@ -2233,7 +2235,7 @@
 </div>
 <div class="section" id="id85">
 <h3>Example<a class="headerlink" href="#id85" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre>$ curl -X POST 192.168.200.10:8081/destinations -d&#39;{}&#39;
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X POST 192.168.200.10:8081/ob/destinations -d&#39;{}&#39;
 
 {
   &quot;api_ver&quot;: &quot;0.1&quot;,
@@ -2271,7 +2273,7 @@
 <p>Get list of all campaigns.</p>
 <div class="section" id="id87">
 <h3>Call<a class="headerlink" href="#id87" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">GET</span> <span class="o">/</span><span class="n">campaigns</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">GET</span> <span class="o">/</span><span class="n">ob</span><span class="o">/</span><span class="n">campaigns</span>
 </pre></div>
 </div>
 </div>
@@ -2294,7 +2296,7 @@
 </div>
 <div class="section" id="id89">
 <h3>Example<a class="headerlink" href="#id89" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre>curl -X GET 192.168.200.10:8081/campaigns
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/ob/campaigns
 
 {
   &quot;api_ver&quot;: &quot;0.1&quot;,
@@ -2311,8 +2313,8 @@
 </div>
 </div>
 </div>
-<div class="section" id="campaigns-uuid">
-<h1>/campaigns/&lt;uuid&gt;<a class="headerlink" href="#campaigns-uuid" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="ob-campaigns-uuid">
+<h1>/ob/campaigns/&lt;uuid&gt;<a class="headerlink" href="#ob-campaigns-uuid" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="id90">
 <h2>Methods<a class="headerlink" href="#id90" title="Permalink to this headline">¶</a></h2>
 <p>GET : Get specified campaign detail info.</p>
@@ -2324,7 +2326,7 @@
 <p>Get specified campaign detail info.</p>
 <div class="section" id="id92">
 <h3>Call<a class="headerlink" href="#id92" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre>GET /campaign/&lt;uuid&gt;
+<div class="highlight-python"><div class="highlight"><pre>GET /ob/campaign/&lt;uuid&gt;
 </pre></div>
 </div>
 </div>
@@ -2379,7 +2381,7 @@
 </div>
 <div class="section" id="id94">
 <h3>Example<a class="headerlink" href="#id94" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/campaigns/9841bc9e-3103-4fea-ab11-54ccfcc8322f
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/ob/campaigns/9841bc9e-3103-4fea-ab11-54ccfcc8322f
 
 {
   &quot;api_ver&quot;: &quot;0.1&quot;,
@@ -2417,7 +2419,7 @@
 <p>Update specified campaign detail info.</p>
 <div class="section" id="id96">
 <h3>Call<a class="headerlink" href="#id96" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre>PUT /campaigns/&lt;campaign-uuid&gt;
+<div class="highlight-python"><div class="highlight"><pre>PUT /ob/campaigns/&lt;campaign-uuid&gt;
 
 {
   &quot;name&quot;: &quot;&lt;string&gt;&quot;,
@@ -2506,7 +2508,7 @@
 </div>
 <div class="section" id="id98">
 <h3>Example<a class="headerlink" href="#id98" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre>$ curl -X PUT 192.168.200.10:8081/campaigns/305c96cb-4704-4f33-bcad-6b2e4031d7d4
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X PUT 192.168.200.10:8081/ob/campaigns/305c96cb-4704-4f33-bcad-6b2e4031d7d4
    -d &#39;{&quot;name&quot;: &quot;Update campaign info&quot;}&#39;
 
 {
@@ -2546,7 +2548,7 @@
 <div class="section" id="id100">
 <h3>Call<a class="headerlink" href="#id100" title="Permalink to this headline">¶</a></h3>
 <p>Delete specified campaign info.</p>
-<div class="highlight-python"><div class="highlight"><pre>DELETE /campaign/&lt;campaign-uuid&gt;
+<div class="highlight-python"><div class="highlight"><pre>DELETE /ob/campaign/&lt;campaign-uuid&gt;
 </pre></div>
 </div>
 </div>
@@ -2583,7 +2585,7 @@
 </div>
 <div class="section" id="id102">
 <h3>Example<a class="headerlink" href="#id102" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre>$ curl -X DELETE 192.168.200.10:8081/campaigns/305c96cb-4704-4f33-bcad-6b2e4031d7d4
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X DELETE 192.168.200.10:8081/ob/campaigns/305c96cb-4704-4f33-bcad-6b2e4031d7d4
 
 {
   &quot;api_ver&quot;: &quot;0.1&quot;,
@@ -2626,7 +2628,7 @@
         <div class="sphinxsidebarwrapper">
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">/plans</a><ul>
+<li><a class="reference internal" href="#">/ob/plans</a><ul>
 <li><a class="reference internal" href="#methods">Methods</a></li>
 <li><a class="reference internal" href="#method-post">Method: POST</a><ul>
 <li><a class="reference internal" href="#call">Call</a></li>
@@ -2642,7 +2644,7 @@
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#plans-uuid">/plans/&lt;uuid&gt;</a><ul>
+<li><a class="reference internal" href="#ob-plans-uuid">/ob/plans/&lt;uuid&gt;</a><ul>
 <li><a class="reference internal" href="#id4">Methods</a></li>
 <li><a class="reference internal" href="#id5">Method: GET</a><ul>
 <li><a class="reference internal" href="#id6">Call</a></li>
@@ -2664,7 +2666,7 @@
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#destinations">/destinations</a><ul>
+<li><a class="reference internal" href="#ob-destinations">/ob/destinations</a><ul>
 <li><a class="reference internal" href="#id15">Methods</a></li>
 <li><a class="reference internal" href="#id16">Method: POST</a><ul>
 <li><a class="reference internal" href="#id17">Call</a></li>
@@ -2680,7 +2682,7 @@
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#destinations-uuid">/destinations/&lt;uuid&gt;</a><ul>
+<li><a class="reference internal" href="#ob-destinations-uuid">/ob/destinations/&lt;uuid&gt;</a><ul>
 <li><a class="reference internal" href="#id24">Methods</a></li>
 <li><a class="reference internal" href="#id25">Method: GET</a><ul>
 <li><a class="reference internal" href="#id26">Call</a></li>
@@ -2702,7 +2704,7 @@
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#dlmas">/dlmas</a><ul>
+<li><a class="reference internal" href="#ob-dlmas">/ob/dlmas</a><ul>
 <li><a class="reference internal" href="#id37">Methods</a></li>
 <li><a class="reference internal" href="#id38">Method: POST</a><ul>
 <li><a class="reference internal" href="#id39">Call</a></li>
@@ -2718,7 +2720,7 @@
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#dlmas-uuid">/dlmas/&lt;uuid&gt;</a><ul>
+<li><a class="reference internal" href="#ob-dlmas-uuid">/ob/dlmas/&lt;uuid&gt;</a><ul>
 <li><a class="reference internal" href="#id46">Methods</a></li>
 <li><a class="reference internal" href="#id47">Method: GET</a><ul>
 <li><a class="reference internal" href="#id48">Call</a></li>
@@ -2740,7 +2742,7 @@
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#dls">/dls</a><ul>
+<li><a class="reference internal" href="#ob-dls">/ob/dls</a><ul>
 <li><a class="reference internal" href="#id59">Methods</a></li>
 <li><a class="reference internal" href="#id60">Method: POST</a><ul>
 <li><a class="reference internal" href="#id61">Call</a></li>
@@ -2756,7 +2758,7 @@
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#dls-uuid">/dls/&lt;uuid&gt;</a><ul>
+<li><a class="reference internal" href="#ob-dls-uuid">/ob/dls/&lt;uuid&gt;</a><ul>
 <li><a class="reference internal" href="#id68">Methods</a></li>
 <li><a class="reference internal" href="#id69">Method: GET</a><ul>
 <li><a class="reference internal" href="#id70">Call</a></li>
@@ -2778,7 +2780,7 @@
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#campaigns">/campaigns</a><ul>
+<li><a class="reference internal" href="#ob-campaigns">/ob/campaigns</a><ul>
 <li><a class="reference internal" href="#id81">Methods</a></li>
 <li><a class="reference internal" href="#id82">Method: POST</a><ul>
 <li><a class="reference internal" href="#id83">Call</a></li>
@@ -2794,7 +2796,7 @@
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#campaigns-uuid">/campaigns/&lt;uuid&gt;</a><ul>
+<li><a class="reference internal" href="#ob-campaigns-uuid">/ob/campaigns/&lt;uuid&gt;</a><ul>
 <li><a class="reference internal" href="#id90">Methods</a></li>
 <li><a class="reference internal" href="#id91">Method: GET</a><ul>
 <li><a class="reference internal" href="#id92">Call</a></li>
