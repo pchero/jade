@@ -193,3 +193,135 @@ Example
     "statuscode": 200,
     "timestamp": "2017-03-05T07:52:18.392313868Z"
   }
+
+/registries
+===========
+
+Methods
+-------
+GET : Get list of all registry accounts info.
+
+Method: GET
+-----------
+Get list of all registry accounts info.
+
+Call
+++++
+::
+
+   GET /registries
+
+Returns
++++++++
+::
+
+   {
+     $defhdr,
+     "reuslt": {
+       "list": [
+         "<database-key>",
+         ...
+       ]
+     }
+   }
+  
+* ``list`` : array of registry account.
+
+Example
++++++++
+::
+
+   $ curl -X GET 192.168.200.10:8081/registries
+  
+   {
+     "api_ver": "0.1",
+     "result": {
+       "list": [
+         "2345@sip_proxy",
+         "1234@mysipprovider.com"
+       ]
+     },
+     "statuscode": 200,
+     "timestamp": "2017-03-09T09:12:34.105520775Z"
+   }
+
+/registries/
+============
+
+Methods
+-------
+GET : Get registry detail info of given account info.
+
+Method: GET
+-----------
+Get registry detail info of given account info.
+
+Call
+++++
+::
+
+   GET /registries/
+  
+   {
+     "account": "<string>"  
+   }
+   
+Data parameters
+
+* ``account``: account info.
+
+Returns
++++++++
+::
+
+   {
+     $defhdr,
+     "reuslt": {
+       "account": "<string>",
+       "domain": "<string>",
+       "domain_port": <integer>,
+       "host": "<string>",
+       "port": <integer>,
+       "refresh": <integer>,
+       "registration_time": <integer>,
+       "state": "<string>",
+       "tm_update": "<timestamp>",
+       "username": "<string>"
+     }
+   }
+
+* ``account``: Registry's account info.
+* ``domain``: Registry's domain info.
+* ``domain_port``: Registry's domain port.
+* ``host``: Registry's host info.
+* ``port``: Registry's port info.
+* ``refresh``: Refresh.
+* ``registration_time``: registration time.
+* ``state``: state info.
+* ``username``: Registry's username.
+* ``tm_update``: Updated timestamp.
+
+Example
++++++++
+::
+
+   $ curl -X GET 192.168.200.10:8081/registries/ -d '{"account": "2345@sip_proxy"}'
+  
+   {
+     "api_ver": "0.1",
+     "result": {
+       "account": "2345@sip_proxy",
+       "domain": "sip_proxy",
+       "domain_port": 5060,
+       "host": "sip_proxy",
+       "port": 5060,
+       "refresh": 120,
+       "registration_time": "0",
+       "state": "Request Sent",
+       "tm_update": "2017-03-09T09:12:06.652539075Z",
+       "username": "2345"
+     },
+     "statuscode": 200,
+     "timestamp": "2017-03-09T09:13:00.969355467Z"
+   }
+ 

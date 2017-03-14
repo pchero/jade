@@ -200,5 +200,31 @@ static const char* g_sql_create_database =
 
 ");";
 
+// registry
+static const char* g_sql_drop_registry = "drop table if exists registry;";
+static const char* g_sql_create_registry =
+"create table registry("
+
+// identity
+"   account     varchar(255),"
+"   username    varchar(255),"
+"   host        varchar(255),"
+"   port        int,"
+
+// info
+"   domain            varchar(255),"
+"   domain_port       int,"
+"   refresh           int,"
+"   state             text,"
+"   registration_time int,"
+
+// timestamp. UTC."
+"   tm_update         datetime(6),"   // update time."
+
+"   primary key(account)"
+
+");";
+
+
 
 #endif /* SRC_DB_SQL_CREATE_H_ */
