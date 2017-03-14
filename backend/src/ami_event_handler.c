@@ -34,7 +34,7 @@ static void ami_event_queuemember(json_t* j_msg);
 static void ami_event_queueentry(json_t* j_msg);
 static void ami_event_queuecallerjoin(json_t* j_msg);
 static void ami_event_queuecallerleave(json_t* j_msg);
-
+static void ami_event_registryentry(json_t* j_msg);
 
 static void ami_event_outdestinationentry(json_t* j_msg);
 static void ami_event_outdestinationcreate(json_t* j_msg);
@@ -130,6 +130,9 @@ void ami_message_handler(const char* msg)
   }
   else if(strcasecmp(event, "QueueCallerLeave") == 0) {
     ami_event_queuecallerleave(j_msg);
+  }
+  else if(strcasecmp(event, "RegistryEntry") == 0) {
+    ami_event_registryentry(j_msg);
   }
 
   else if(strcmp(event, "OutDestinationEntry") == 0) {
@@ -1835,8 +1838,6 @@ static void ami_event_originateresponse(json_t* j_msg)
   return;
 }
 
-
-
 /**
  * AMI event handler.
  * Event: Hangup
@@ -1953,3 +1954,63 @@ static void ami_event_newchannel(json_t* j_msg)
 
   return;
 }
+
+/**
+ * AMI event handler.
+ * Event: RegistryEntry
+ * @param j_msg
+ */
+static void ami_event_registryentry(json_t* j_msg)
+{
+  json_t* j_tmp;
+  int ret;
+  char* timestamp;
+  char* account;
+
+  if(j_msg == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired ami_event_registryentry.");
+
+  // create db data
+  asprintf(&account, "%s@%s",
+      json_string_value(json_object_get(j_msg, "Username"))? : "",
+      json_string_value(json_object_get(j_msg, "Host"))? : ""
+      );
+  timestamp = get_utc_timestamp();
+  j_tmp = json_pack("{"
+      "s:s, s:s, s:i, s:s,"
+      "s:s, s:i, s:i, s:s, s:i"
+      "s:s"
+      "}",
+      "account",  account,
+      "host",     json_string_value(json_object_get(j_msg, "Host"))? : "",
+      "port",     json_string_value(json_object_get(j_msg, "Port"))? atoi(json_string_value(json_object_get(j_msg, "Port"))): 0,
+      "username", json_string_value(json_object_get(j_msg, "Username"))? : "",
+
+      "domain",             json_string_value(json_object_get(j_msg, "Domain")),
+      "domain_port",        json_string_value(json_object_get(j_msg, "DomainPort"))? atoi(json_string_value(json_object_get(j_msg, "DomainPort"))): 0,
+      "refresh",            json_string_value(json_object_get(j_msg, "Refresh"))? atoi(json_string_value(json_object_get(j_msg, "Refresh"))): 0,
+      "state",              json_string_value(json_object_get(j_msg, "State")),
+      "registration_time",  json_string_value(json_object_get(j_msg, "RegistrationTime"))? atoi(json_string_value(json_object_get(j_msg, "RegistrationTime"))): 0,
+
+      "tm_update",  timestamp
+      );
+  sfree(account);
+  sfree(timestamp);
+  if(j_tmp == NULL) {
+    slog(LOG_DEBUG, "Could not create message.");
+    return;
+  }
+
+  ret = db_insert_or_replace("registry", j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert to registry.");
+    return;
+  }
+
+  return;
+}
+

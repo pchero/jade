@@ -365,6 +365,17 @@ static bool ami_get_init_info(void)
   insert_action(json_string_value(json_object_get(j_tmp, "ActionID")), "command.databaseshowall");
   json_decref(j_tmp);
 
+  // registry
+  j_tmp = json_pack("{s:s}",
+      "Action", "SIPshowregistry"
+      );
+  ret = send_ami_cmd(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not send ami action. action[%s]", "SIPshowregistry");
+    return false;
+  }
+  json_decref(j_tmp);
+
   return true;
 }
 
@@ -692,6 +703,13 @@ static bool init_ami_database(void)
   ret = db_exec(g_sql_create_database);
   if(ret == false) {
     slog(LOG_ERR, "Could not create table. table[%s]", "database");
+    return false;
+  }
+
+  db_exec(g_sql_drop_registry);
+  ret = db_exec(g_sql_create_registry);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create table. table[%s]", "registry");
     return false;
   }
 
