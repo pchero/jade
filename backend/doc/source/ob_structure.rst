@@ -431,6 +431,7 @@ Hangup result
     ======  ====================================
     Result  Detail
     ======  ====================================
+    0       No hangup event received.
     1       Unallocated.
     2       No route trasit network.
     3       No route destination.
