@@ -28,6 +28,7 @@
 #include "ob_dl_handler.h"
 #include "ob_plan_handler.h"
 #include "ob_destination_handler.h"
+#include "ob_http_handler.h"
 
 #define TEMP_FILENAME "/tmp/asterisk_outbound_tmp.txt"
 #define DEF_EVENT_TIME_FAST "100000"
@@ -38,8 +39,8 @@
 extern struct event_base*  g_base;
 extern app* g_app;
 
-static bool init_outbound(void);
-static bool init_outbound_db(void);
+static bool init_ob_event_handler(void);
+static bool init_ob_database_handler(void);
 
 static void cb_campaign_start(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg);
 static void cb_campaign_starting(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg);
@@ -69,9 +70,8 @@ static bool write_result_json(json_t* j_res);
 // todo
 static int check_dial_avaiable_predictive(json_t* j_camp, json_t* j_plan, json_t* j_dlma, json_t* j_dest);
 
-int run_outbound(void)
+static bool init_ob_event_handler(void)
 {
-  int ret;
   int event_delay;
   const char* tmp_const;
   struct event* ev;
@@ -101,13 +101,6 @@ int run_outbound(void)
   event_delay = atoi(tmp_const);
   tm_slow.tv_sec = event_delay / DEF_ONE_SEC_IN_MICRO_SEC;
   tm_slow.tv_usec = event_delay % DEF_ONE_SEC_IN_MICRO_SEC;
-
-  // init libevent
-  ret = init_outbound();
-  if(ret == false) {
-    slog(LOG_ERR, "Could not initiate outbound.");
-    return false;
-  }
 
   // check start.
   ev = event_new(g_base, -1, EV_TIMEOUT | EV_PERSIST, cb_campaign_start, NULL);
@@ -158,7 +151,7 @@ int run_outbound(void)
   return true;
 }
 
-static bool init_outbound_db(void)
+static bool init_ob_database_handler(void)
 {
   int ret;
 
@@ -208,7 +201,7 @@ static bool init_outbound_db(void)
   return true;
 }
 
-static bool init_outbound(void)
+bool init_outbound(void)
 {
   int ret;
 
@@ -217,9 +210,24 @@ static bool init_outbound(void)
     return false;
   }
 
-  ret = init_outbound_db();
+  // init database
+  ret = init_ob_database_handler();
   if(ret == false) {
-    slog(LOG_ERR, "Could not initiate outbound.");
+    slog(LOG_ERR, "Could not initiate outbound database.");
+    return false;
+  }
+
+  // init event
+  ret = init_ob_event_handler();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate outbound event.");
+    return false;
+  }
+
+  // init http
+  ret = init_ob_http_handler();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate ob http handler.");
     return false;
   }
 

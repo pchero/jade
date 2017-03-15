@@ -159,7 +159,7 @@ bool init(void)
   }
   slog(LOG_DEBUG, "Finished init_event_handler.");
 
-  ret = run_outbound();
+  ret = init_outbound();
   if(ret == false) {
     slog(LOG_WARNING, "Could not initiate ob_handler.");
     return false;
