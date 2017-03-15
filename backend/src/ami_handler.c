@@ -332,22 +332,22 @@ static bool ami_get_init_info(void)
       "Action", "SipPeers"
       );
   ret = send_ami_cmd(j_tmp);
+  json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not send ami action. action[%s]", "SipPeers");
     return false;
   }
-  json_decref(j_tmp);
 
   // queue status
   j_tmp = json_pack("{s:s}",
       "Action", "QueueStatus"
       );
   ret = send_ami_cmd(j_tmp);
+  json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not send ami action. action[%s]", "QueueStatus");
     return false;
   }
-  json_decref(j_tmp);
 
   // database
   action_id = gen_uuid();
@@ -359,6 +359,7 @@ static bool ami_get_init_info(void)
   sfree(action_id);
   ret = send_ami_cmd(j_tmp);
   if(ret == false) {
+    json_decref(j_tmp);
     slog(LOG_ERR, "Could not send ami action. action[%s]", "Command");
     return false;
   }
@@ -370,11 +371,11 @@ static bool ami_get_init_info(void)
       "Action", "SIPshowregistry"
       );
   ret = send_ami_cmd(j_tmp);
+  json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not send ami action. action[%s]", "SIPshowregistry");
     return false;
   }
-  json_decref(j_tmp);
 
   return true;
 }

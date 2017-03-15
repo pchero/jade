@@ -187,6 +187,10 @@ static json_t* get_deleted_ob_destination(const char* uuid)
   return j_res;
 }
 
+/**
+ * Returns list of all destination uuid.
+ * @return
+ */
 json_t* get_ob_destinations_all_uuid(void)
 {
   char* sql;

@@ -17,6 +17,7 @@
 #include "utils.h"
 #include "db_handler.h"
 #include "ast_header.h"
+#include "ami_handler.h"
 
 #include "ob_dialing_handler.h"
 #include "ob_event_handler.h"
@@ -171,9 +172,17 @@ json_t* create_ob_dialing(
   ret = json_integer_value(json_object_get(j_dial, "dial_type"));
   json_object_set_new(j_dialing, "dial_type", json_integer(ret));
 
+  // dial_context
+  tmp_const = json_string_value(json_object_get(j_dial, "dial_context"));
+  json_object_set_new(j_dialing, "dial_context", json_string(tmp_const));
+
   // dial_exten
   tmp_const = json_string_value(json_object_get(j_dial, "dial_exten"));
   json_object_set_new(j_dialing, "dial_exten", json_string(tmp_const));
+
+  // dial_priority
+  tmp_const = json_string_value(json_object_get(j_dial, "dial_priority"));
+  json_object_set_new(j_dialing, "dial_priority", json_string(tmp_const));
 
   // dial_application
   tmp_const = json_string_value(json_object_get(j_dial, "dial_application"));
@@ -593,7 +602,7 @@ bool update_ob_dialing_hangup(const char* uuid, int hangup, const char* hangup_d
   return true;
 }
 
-bool update_ob_dialing_res_dial(const char* uuid, bool success, int res_dial)
+bool update_ob_dialing_res_dial(const char* uuid, bool success, int res_dial, const char* channel)
 {
   char* timestamp;
   char* sql;
@@ -619,9 +628,10 @@ bool update_ob_dialing_res_dial(const char* uuid, bool success, int res_dial)
   // create update info
   timestamp = get_utc_timestamp();
   res_dial_detail = get_res_dial_detail_string(res_dial);
-  j_tmp = json_pack("{s:i, s:s, s:s}",
+  j_tmp = json_pack("{s:i, s:s, s:s, s:s}",
       "res_dial",         res_dial,
       "res_dial_detail",  res_dial_detail? : "",
+      "channel",          channel? : "",
       "tm_update",        timestamp
       );
   sfree(timestamp);
@@ -844,6 +854,42 @@ json_t* get_ob_dialing_by_action_id(const char* action_id)
 }
 
 /**
+ * Get dialing info using uuid.
+ * @param action_id
+ * @return
+ */
+json_t* get_ob_dialing(const char* uuid)
+{
+  char* sql;
+  db_res_t* db_res;
+  json_t* j_res;
+
+  if(uuid == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_ob_dialing. uuid[%s]", uuid);
+
+  asprintf(&sql, "select * from ob_dialing where uuid=\"%s\";", uuid);
+
+  db_res = db_query(sql);
+  sfree(sql);
+  if(db_res == NULL) {
+    slog(LOG_ERR, "Could not get correct ob_dialing record info.");
+    return NULL;
+  }
+
+  j_res = db_get_record(db_res);
+  db_free(db_res);
+  if(j_res == NULL) {
+    slog(LOG_ERR, "Could not get correct dialing info by uuid. uuid[%s]", uuid);
+    return NULL;
+  }
+
+  return j_res;
+}
+
+/**
  * Return existence of given ob_dialing uuid.
  * @param uuid
  * @return
@@ -903,4 +949,98 @@ static const char* get_res_dial_detail_string(int res_dial)
   }
 
   return NULL;
+}
+
+
+/**
+ * Returns list of all dialing uuid.
+ * @return
+ */
+json_t* get_ob_dialings_all_uuid(void)
+{
+  char* sql;
+  const char* tmp_const;
+  db_res_t* db_res;
+  json_t* j_res;
+  json_t* j_res_tmp;
+  json_t* j_tmp;
+
+  asprintf(&sql, "select * from ob_dialing;");
+  db_res = db_query(sql);
+  sfree(sql);
+  if(db_res == NULL) {
+    slog(LOG_WARNING, "Could not get correct ob_dialing.");
+    return NULL;
+  }
+
+  j_res_tmp = json_array();
+  while(1) {
+    j_tmp = db_get_record(db_res);
+    if(j_tmp == NULL) {
+      break;
+    }
+
+    tmp_const = json_string_value(json_object_get(j_tmp, "uuid"));
+    if(tmp_const == NULL) {
+      json_decref(j_tmp);
+      continue;
+    }
+
+    json_array_append_new(j_res_tmp, json_string(tmp_const));
+    json_decref(j_tmp);
+  }
+  db_free(db_res);
+
+  j_res = json_object();
+  json_object_set_new(j_res, "list", j_res_tmp);
+
+  return j_res;
+}
+
+/**
+ * Send hangup request of ob dialing.
+ * @param uuid
+ * @return
+ */
+bool send_ob_dialing_hangup_request(const char* uuid)
+{
+  json_t* j_tmp;
+  json_t* j_dialing;
+  int ret;
+
+  if(uuid == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  // check dialing existence
+  ret = is_exist_ob_dialing(uuid);
+  if(ret == false) {
+    slog(LOG_ERR, "The given dialing uuid for hangup is not exist. uuid[%s]", uuid);
+    return false;
+  }
+
+  // get ob dialing
+  j_dialing = get_ob_dialing(uuid);
+  if(j_dialing == NULL) {
+    slog(LOG_ERR, "Could not get dialing info for hangup. uuid[%s]", uuid);
+    return false;
+  }
+
+  // create hangup request
+  j_tmp = json_pack("{s:s, s:s}",
+      "Action",   "Hangup",
+      "Channel",  json_string_value(json_object_get(j_dialing, "channel"))? : ""
+      );
+  json_decref(j_dialing);
+
+  // send hangup request
+  ret = send_ami_cmd(j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not send ami action for dialing hangup. action[%s]", "Hangup");
+    return false;
+  }
+
+  return true;
 }

@@ -157,16 +157,17 @@ static const char* g_sql_ob_destination =
 // information
 " type          int default 0,"         // 0:extension, 1:application
 
-// extension
-" exten         varchar(255),"
+// context
 " context       varchar(255),"
+" exten         varchar(255),"
 " priority      varchar(255),"
-" variables     text,"                  // string of json object. "{"var1":"value1", "var2":"value2", ... }"
-
 
 // application
 " application   varchar(255),"  // application name
 " data          text,"  // application arguments
+
+// variables
+" variables     text,"                  // string of json object. "{"var1":"value1", "var2":"value2", ... }"
 
 // timestamp. UTC
 " tm_create     datetime(6),"
@@ -284,14 +285,15 @@ static const char* g_sql_ob_dl_result =
 
 
 // ob_dialing
+static const char* g_sql_drop_ob_dialing = "drop table if exists ob_dialing;";
 static const char* g_sql_ob_dialing =
 "create table if not exists ob_dialing("
 
 // identity
 "   uuid        varchar(255)  not null,"
-"   name        varchar(255),"
 "   status      int,"
 "   action_id   varchar(255),"  // action id
+"   channel     varchar(255),"  // channel
 
 // result
 "   res_dial          int default 0,"
@@ -321,7 +323,9 @@ static const char* g_sql_ob_dialing =
 "   dial_trycnt         int,"
 "   dial_timeout        int,"
 "   dial_type           int,"
+"   dial_context        varchar(255),"
 "   dial_exten          varchar(255),"
+"   dial_priority       varchar(255),"
 "   dial_application    varchar(255),"
 "   dial_data           varchar(255),"
 
