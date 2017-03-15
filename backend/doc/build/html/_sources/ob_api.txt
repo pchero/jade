@@ -1,5 +1,9 @@
 .. _ob_api:
 
+*************
+Outbound APIs
+*************
+
 /ob/plans
 =========
 
@@ -45,11 +49,11 @@ Call
 
 * ``name``: Plan name.
 * ``detail``: Detail info.
-* ``tech_name``: Tech name for outbound dialing. See detail :ref:`tech_name`.
+* ``ob_tech_name``: Tech name for outbound dialing. See detail :ref:`ob_tech_name`.
 * ``trunk_name``: Trunkname for outbound dialing. See detail :ref:`trunk_name`.
-* ``dl_end_handle``: Determine behavior of when the dial list end. See detail :ref:`dial_list_end_handling`.
+* ``dl_end_handle``: Determine behavior of when the dial list end. See detail :ref:`ob_dial_list_end_handling`.
 * ``caller_id``: Caller's id.
-* ``dial_mode``: Dialling mode. See detail :ref:`dial_mode`.
+* ``ob_dial_mode``: Dialling mode. See detail :ref:`ob_dial_mode`.
 * ``dial_timeout``: Ringing timeout(ms).
 * ``retry_delay``: Delay time for next try(sec).
 * ``service_level``: Determine service level.
@@ -105,11 +109,11 @@ Returns
 * ``uuid`` : Created plan uuid.
 * ``name``: Plan name.
 * ``detail``: Detail info.
-* ``tech_name``: Tech name for outbound dialing. See detail :ref:`tech_name`.
+* ``ob_tech_name``: Tech name for outbound dialing. See detail :ref:`ob_tech_name`.
 * ``trunk_name``: Trunkname for outbound dialing. See detail :ref:`trunk_name`.
-* ``dl_end_handle``: Determine behavior of when the dial list end. See detail :ref:`dial_list_end_handling`.
+* ``dl_end_handle``: Determine behavior of when the dial list end. See detail :ref:`ob_dial_list_end_handling`.
 * ``caller_id``: Caller's id.
-* ``dial_mode``: Dialling mode. See detail :ref:`dial_mode`.
+* ``ob_dial_mode``: Dialling mode. See detail :ref:`ob_dial_mode`.
 * ``dial_timeout``: Ringing timeout(ms).
 * ``retry_delay``: Delay time for next try(sec).
 * ``service_level``: Determine service level.
@@ -269,11 +273,11 @@ Returns
 * ``uuid`` : Plan uuid.
 * ``name``: Plan name.
 * ``detail``: Detail info.
-* ``tech_name``: Tech name for outbound dialing. See detail :ref:`tech_name`.
+* ``ob_tech_name``: Tech name for outbound dialing. See detail :ref:`ob_tech_name`.
 * ``trunk_name``: Trunkname for outbound dialing. See detail :ref:`trunk_name`.
-* ``dl_end_handle``: Determine behavior of when the dial list end. See detail :ref:`dial_list_end_handling`.
+* ``dl_end_handle``: Determine behavior of when the dial list end. See detail :ref:`ob_dial_list_end_handling`.
 * ``caller_id``: Caller's id.
-* ``dial_mode``: Dialling mode. See detail :ref:`dial_mode`.
+* ``ob_dial_mode``: Dialling mode. See detail :ref:`ob_dial_mode`.
 * ``dial_timeout``: Ringing timeout(ms).
 * ``retry_delay``: Delay time for next try(sec).
 * ``service_level``: Determine service level.
@@ -406,11 +410,11 @@ Updated plan info.
 * ``uuid`` : plan uuid.
 * ``name`` : Plan name. Default null.
 * ``detail`` : Detail info. Default null.
-* ``tech_name`` : Tech name for outbound dialing. Default null. See detail :ref:`tech_name`.
+* ``ob_tech_name`` : Tech name for outbound dialing. Default null. See detail :ref:`ob_tech_name`.
 * ``trunk_name`` : Trunkname for outbound dialing. Default null.
-* ``dl_end_handle``: Determine behavior of when the dial list end. See detail :ref:`dial_list_end_handling`.
+* ``dl_end_handle``: Determine behavior of when the dial list end. See detail :ref:`ob_dial_list_end_handling`.
 * ``caller_id``: Caller’s id.
-* ``dial_mode``: Dialling mode. See detail Dial mode. See detail :ref:`dial_mode`.
+* ``ob_dial_mode``: Dialling mode. See detail Dial mode. See detail :ref:`ob_dial_mode`.
 * ``dial_timeout``: Ringing timeout(ms).
 * ``retry_delay``: Delay time for next try(sec). 
 * ``service_level``: Determine service level.
@@ -592,7 +596,7 @@ Call
 Parameters
 * ``name``: Destination name.
 * ``detail``: Detail info.
-* ``type``: Destination type. See detail :ref:`destination_type`.
+* ``type``: Destination type. See detail :ref:`ob_destination_type`.
 * ``application``: Application name. Type: 1(application) only
 * ``data``: Application data. Type: 1(application) only
 * ``context``: Conetxt. Type: 0(exten) only
@@ -629,7 +633,7 @@ Created destination info.
 * ``uuid``: Created destination uuid.
 * ``name``: Destination name.
 * ``detail``: Detail info.
-* ``type``: Destination type. See detail :ref:`destination_type`.
+* ``type``: Destination type. See detail :ref:`ob_destination_type`.
 * ``application``: Application name. Type: 1(application) only
 * ``data``: Application data. Type: 1(application) only
 * ``context``: Conetxt. Type: 0(exten) only
@@ -759,7 +763,7 @@ Specified destination detail info.
 * ``uuid``: Destination uuid.
 * ``name``: Destination name.
 * ``detail``: Detail info.
-* ``type``: Destination type. See detail :ref:`destination_type`.
+* ``type``: Destination type. See detail :ref:`ob_destination_type`.
 * ``application``: Application name. Type: 1(application) only
 * ``data``: Application data. Type: 1(application) only
 * ``context``: Conetxt. Type: 0(exten) only
@@ -820,7 +824,7 @@ Call
 Parameters
 * ``name``: Destination name.
 * ``detail``: Detail info.
-* ``type``: Destination type. See detail :ref:`destination_type`.
+* ``type``: Destination type. See detail :ref:`ob_destination_type`.
 * ``application``: Application name. Type: 1(application) only
 * ``data``: Application data. Type: 1(application) only
 * ``context``: Conetxt. Type: 0(exten) only
@@ -857,7 +861,7 @@ Return the updated destination detail info.
 * ``uuid``: Destination uuid.
 * ``name``: Destination name.
 * ``detail``: Detail info.
-* ``type``: Destination type. See detail :ref:`destination_type`.
+* ``type``: Destination type. See detail :ref:`ob_destination_type`.
 * ``application``: Application name. Type: 1(application) only
 * ``data``: Application data. Type: 1(application) only
 * ``context``: Conetxt. Type: 0(exten) only
@@ -934,7 +938,7 @@ Return the deleted destination detail info.
 * ``uuid``: Destination uuid.
 * ``name``: Destination name.
 * ``detail``: Detail info.
-* ``type``: Destination type. See detail :ref:`destination_type`.
+* ``type``: Destination type. See detail :ref:`ob_destination_type`.
 * ``application``: Application name. Type: 1(application) only
 * ``data``: Application data. Type: 1(application) only
 * ``context``: Conetxt. Type: 0(exten) only
@@ -2101,6 +2105,243 @@ Example
      "timestamp": "2017-03-08T20:46:09.380969992Z"
    }
 
+/ob/dialings
+============
+
+Methods
+-------
+GET : Get list of all dialings.
+
+Method: GET
+-----------
+Get list of all dialings.
+
+Call
+++++
+::
+
+   GET /ob/dialings
+
+Returns
++++++++
+::
+
+   {
+     $defhdr,
+     "reuslt": {
+       "list": [
+         "<dialing-uuid>",
+         ...
+       ]
+     }
+   }
+  
+* ``list`` : array of dialing uuid
+
+Example
++++++++
+::
+
+   $ curl -X GET 192.168.200.10:8081/ob/dialings
+   
+   {
+     "api_ver": "0.1",
+     "result": {
+       "list": [
+         "ba77e20a-42c7-4299-a743-a784e6b78d58"
+       ]
+     },
+     "statuscode": 200,
+     "timestamp": "2017-03-09T12:16:47.620456114Z"
+   }
+
+/ob/dialings/<uuid>
+===================
+
+Methods
+-------
+GET : Get specified dialing detail info.
+
+DELETE : Send hangup request of specified dialing.
+
+Method: GET
+-----------
+Get specified dialing detail info.
+
+Call
+++++
+::
+
+   GET /ob/dialings/<uuid>
+
+Returns
++++++++
+::
+
+   {
+     $defhdr,
+     "reuslt": {
+       "uuid": "<string>",
+       "action_id": "<string>",
+       "channel": "<string>",
+       "status": <integer>,
+
+       "res_dial": <integer>,
+       "res_dial_detail": "<string>",
+       "res_hangup": <integer>,
+       "res_hangup_detail": "<string>",
+       
+       "dial_channel": "<string>",
+       "dial_addr": "<string>",
+       
+       "dial_application": "<string>",
+       "dial_data": "<string>",
+       
+       "dial_context": "<string>",
+       "dial_exten": "<string>",
+       "dial_priority": "<string>",
+       
+       "dial_type": <integer>,
+       "dial_timeout": <integer>,
+       "dial_index": <integer>,
+       "dial_trycnt": <integer>,
+
+       "uuid_camp": "<string>",
+       "uuid_dest": "<string>",
+       "uuid_dl_list": "<string>",
+       "uuid_dlma": "<string>",
+       "uuid_plan": "<string>",
+       
+       "info_camp": "<string>",
+       "info_dest": "<string>",
+       "info_dial": "<string>",
+       "info_dl_list": "<string>",
+       "info_dlma": "<string>",
+       "info_plan": "<string>",
+       
+       "tm_create": "<timestamp>",
+       "tm_update": "<timestamp>",
+       "tm_delete": "<timestamp>"
+     }
+   }
+
+* ``uuid`` : Dialing uuid.
+* ``action_id``: Requested originate action id.
+* ``channel``: Channel name.
+* ``status``: Dialing status. See detail :ref:`ob_dialing_status`.
+
+* ``res_dial``: Result of dial. See detail :ref:`ob_dial_result`.
+* ``res_dial_detail``: Detail string of res_dial.
+* ``res_hangup``: Result of hangup. See detail :ref:`ob_hangup_result`.
+* ``res_hangup_detail``: Detail string of res_hangup.
+
+* ``dial_channel``: Dialed channel. Combination of tech name and dialed number.
+* ``dial_addr``: Dialed address(number).
+* ``dial_application``: Destination application name.
+* ``dial_data``: Destination application data.
+
+* ``dial_context``: Destination context name.
+* ``dial_exten``: Destination context extension. 
+* ``dial_priority``: Destination context extension's prioirty.
+
+* ``dial_type``: Destination type, See detail :ref:`ob_destination_type`.
+* ``dial_timeout``: Dialing timeout.
+* ``dial_index``: The index number of customer numbers.
+* ``dial_trycnt``: Try count number of current dialing.
+
+* ``uuid_camp``: Dialing campign uuid.
+* ``uuid_dest``: Dialing destination uuid.
+* ``uuid_dl_list``: Dialing dial list uuid.
+* ``uuid_dlma``: Dialing dlma uuid.
+* ``uuid_plan``: Dialing plan uuid.
+
+* ``info_camp``: The json string dump of campaign info when the dialing has created.
+* ``info_dest``: The json string dump of destination info when the dialing has created.
+* ``info_dial``: The json string dump of dial info when the dialing has created.
+* ``info_dl_list``: The json string dump of dial list info when the dialing has created.
+* ``info_dlma``: The json string dump of dlma info when the dialing has created.
+* ``info_plan``: The json string dump of plan info when the dialing has created.
+
+Example
++++++++
+::
+
+   $ curl -X GET 192.168.200.10:8081/ob/dialings/16c680fe-0ac7-472f-9e6f-c979db05cac0
+   
+   {
+     "api_ver": "0.1",
+     "result": {
+       "action_id": "e6e78192-e271-4ac4-afb0-739bc3abf91f",
+       "channel": "SIP/300-00000022",
+       "dial_addr": "300",
+       "dial_application": "queue",
+       "dial_channel": "SIP/300",
+       "dial_context": null,
+       "dial_data": "sales_1",
+       "dial_exten": null,
+       "dial_index": 1,
+       "dial_priority": null,
+       "dial_timeout": 30000,
+       "dial_trycnt": 1,
+       "dial_type": 1,
+       "info_camp": "{\"dlma\": \"42b72a18-a6c5-43bf-b9aa-6043ff32128d\", \"status\": 1, \"uuid\": \"9841bc9e-3103-4fea-ab11-54ccfcc8322f\", \"detail\": null, \"sc_date_start\": null, \"plan\": \"552e9808-23bc-40b1-947a-60b0b96581cb\", \"name\": \"test campaign\", \"tm_update\": \"2017-03-09T11:51:46.23019402Z\", \"in_use\": 1, \"sc_date_list_except\": null, \"sc_day_list\": null, \"next_campaign\": null, \"dest\": \"45122654-5633-4af0-a739-e32eddfbd2ae\", \"sc_mode\": 0, \"sc_date_end\": null, \"sc_date_list\": null, \"sc_time_end\": null, \"sc_time_start\": null, \"tm_create\": \"2017-02-07T20:32:59.812399819Z\", \"tm_delete\": null}",
+       "info_dest": "{\"uuid\": \"45122654-5633-4af0-a739-e32eddfbd2ae\", \"priority\": \"<unknown>\", \"application\": \"queue\", \"context\": \"<unknown>\", \"name\": \"tttt\", \"type\": 1, \"detail\": \"test destination\", \"tm_update\": \"2017-02-07T19:41:06.608256973Z\", \"in_use\": 1, \"tm_delete\": \"\", \"exten\": \"<unknown>\", \"variables\": \"\", \"data\": \"sales_1\", \"tm_create\": \"2016-11-15T03:17:11.997148863Z\"}",
+       "info_dial": "{\"channelid\": \"16c680fe-0ac7-472f-9e6f-c979db05cac0\", \"dial_application\": \"queue\", \"otherchannelid\": \"27c49a4b-522d-48b7-90ba-e1fd84ac9f28\", \"dial_data\": \"sales_1\", \"dest_variables\": \"\", \"dial_timeout\": 30000, \"dl_variables\": \"\", \"dial_channel\": \"SIP/300\", \"dial_type\": 1, \"uuid\": \"11294c33-b1ea-4bc8-a182-9fca3c87d98d\", \"variables\": \"{}\", \"plan_variables\": \"\", \"dial_addr\": \"300\", \"dial_index\": 1, \"dial_trycnt\": 1}",
+       "info_dl_list": "{\"number_1\": \"300\", \"dialing_plan_uuid\": null, \"uuid\": \"11294c33-b1ea-4bc8-a182-9fca3c87d98d\", \"trycnt_5\": 0, \"status\": 0, \"dlma_uuid\": \"42b72a18-a6c5-43bf-b9aa-6043ff32128d\", \"in_use\": 1, \"trycnt_2\": 0, \"tm_update\": null, \"ukey\": null, \"name\": \"normal call distribute test customer 3\", \"number_2\": null, \"detail\": \"test customer for normal call distribute\", \"resv_target\": null, \"dialing_camp_uuid\": null, \"variables\": null, \"email\": null, \"number_4\": null, \"tm_last_dial\": null, \"dialing_uuid\": null, \"number_3\": null, \"number_6\": null, \"number_8\": null, \"number_7\": null, \"number_5\": null, \"trycnt_8\": 0, \"trycnt_1\": 0, \"trycnt_3\": 0, \"trycnt_4\": 0, \"res_dial\": 0, \"tm_last_hangup\": null, \"trycnt_6\": 0, \"trycnt_7\": 0, \"res_dial_detail\": null, \"res_hangup\": 0, \"res_hangup_detail\": null, \"tm_create\": \"2017-03-09T13:11:46.442498464Z\", \"tm_delete\": null, \"trycnt\": 0}",
+       "info_dlma": "{\"uuid\": \"42b72a18-a6c5-43bf-b9aa-6043ff32128d\", \"dl_table\": \"42b72a18_a6c5_43bf_b9aa_6043ff32128d\", \"variables\": null, \"name\": \"basic tutorial dlma\", \"detail\": \"test dlma for basic tutorial\", \"tm_update\": null, \"in_use\": 1, \"tm_create\": \"2017-03-08T01:51:40.978836362Z\", \"tm_delete\": null}",
+       "info_plan": "{\"service_level\": 0, \"uuid\": \"552e9808-23bc-40b1-947a-60b0b96581cb\", \"max_retry_cnt_6\": 5, \"early_media\": null, \"dial_mode\": 1, \"name\": null, \"variables\": null, \"detail\": null, \"tm_update\": \"2017-03-09T11:47:30.977866923Z\", \"in_use\": 1, \"tech_name\": \"SIP\", \"max_retry_cnt_4\": 5, \"max_retry_cnt_3\": 5, \"dl_end_handle\": 0, \"dial_timeout\": 30000, \"caller_id\": null, \"tm_create\": \"2017-02-21T13:53:16.684583113Z\", \"retry_delay\": 60, \"codecs\": null, \"trunk_name\": null, \"max_retry_cnt_1\": 1000, \"max_retry_cnt_2\": 5, \"max_retry_cnt_5\": 5, \"max_retry_cnt_7\": 5, \"max_retry_cnt_8\": 5, \"tm_delete\": null}",
+       "res_dial": 4,
+       "res_dial_detail": "Remote end has answered",
+       "res_hangup": 0,
+       "res_hangup_detail": null,
+       "status": 6,
+       "tm_create": "2017-03-09T13:11:46.548039078Z",
+       "tm_delete": null,
+       "tm_update": "2017-03-09T13:11:50.448264338Z",
+       "uuid": "16c680fe-0ac7-472f-9e6f-c979db05cac0",
+       "uuid_camp": "9841bc9e-3103-4fea-ab11-54ccfcc8322f",
+       "uuid_dest": "45122654-5633-4af0-a739-e32eddfbd2ae",
+       "uuid_dl_list": "11294c33-b1ea-4bc8-a182-9fca3c87d98d",
+       "uuid_dlma": "42b72a18-a6c5-43bf-b9aa-6043ff32128d",
+       "uuid_plan": "552e9808-23bc-40b1-947a-60b0b96581cb"
+     },
+     "statuscode": 200,
+     "timestamp": "2017-03-09T13:12:02.250011714Z"
+   }
+
+Method: DELETE
+--------------
+Send hangup request of specified dialing.
+
+If the request is success, the dialing call will be removed after received hangup event from the Asterisk.
+
+Call
+++++
+::
+
+   DELETE /ob/dialings/<uuid>
+
+Returns
++++++++
+::
+
+   {
+     $defhdr
+   }
+   
+Example
++++++++
+::
+
+   $ curl -X DELETE 192.168.200.10:8081/ob/dialings/16c680fe-0ac7-472f-9e6f-c979db05cac0
+   
+   {
+     "api_ver": "0.1",
+     "statuscode": 200,
+     "timestamp": "2017-03-09T13:12:18.911505281Z"
+   }
+   
+
 /ob/campaigns
 =============
 
@@ -2118,7 +2359,7 @@ Call
 ++++
 ::
 
-   POST /ob/campaign
+   POST /ob/campaigns
    
    {
      "name": "<string>",
@@ -2210,7 +2451,7 @@ Example
 +++++++
 ::
 
-   $ curl -X POST 192.168.200.10:8081/ob/destinations -d'{}'
+   $ curl -X POST 192.168.200.10:8081/ob/campaigns -d'{}'
 
    {
      "api_ver": "0.1",

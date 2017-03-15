@@ -137,7 +137,7 @@ Determine how/when to make a call(How/When).
 
 Dial mode
 ---------
-The user can sets the dial mode. See detail :ref:`dial_mode`.
+The user can sets the dial mode. See detail :ref:`ob_dial_mode`.
 
 Predictive
 ++++++++++
