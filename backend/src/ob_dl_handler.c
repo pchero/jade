@@ -34,6 +34,7 @@ static bool check_more_dl_list(json_t* j_dlma, json_t* j_plan);
 static bool is_over_retry_delay(json_t* j_dlma, json_t* j_dl, json_t* j_plan);
 static json_t* get_dl_available(json_t* j_dlma, json_t* j_plan);
 
+
 /*!
  * \brief Internal control frame subtype field values.
  *
@@ -1347,6 +1348,36 @@ static char* create_view_name(const char* uuid)
 }
 
 /**
+ * Validate given dial list.
+ * @param j_dl
+ * @return
+ */
+bool validate_ob_dl(json_t* j_dl)
+{
+  int ret;
+  const char* tmp_const;
+
+  if(j_dl == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  // dlma_uuid
+  tmp_const = json_string_value(json_object_get(j_dl, "dlma_uuid"));
+  if(tmp_const == NULL) {
+    slog(LOG_DEBUG, "The dlma_uuid is set.");
+    return false;
+  }
+  ret = is_exist_ob_dlma(tmp_const);
+  if(ret == false) {
+    slog(LOG_DEBUG, "The dlma_uuid is not valid.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
  * Create dl_list
  * @param j_dl
  * @return
@@ -1365,6 +1396,13 @@ json_t* create_ob_dl(json_t* j_dl)
   slog(LOG_DEBUG, "Fired create_ob_dl.");
 
   j_tmp = json_deep_copy(j_dl);
+
+  // validate
+  ret = validate_ob_dl(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not pass the validate test.");
+    return NULL;
+  }
 
   // uuid
   uuid = gen_uuid();
