@@ -273,6 +273,7 @@ void ami_response_handler_databaseshowall(json_t* j_msg)
   // delete all database info.
   asprintf(&sql, "delete from database;");
   ret = db_exec(sql);
+  sfree(sql);
   if(ret == false) {
     slog(LOG_ERR, "Could not clean up the database.");
     return;
@@ -1795,6 +1796,7 @@ static void ami_event_originateresponse(json_t* j_msg)
 {
   char* tmp;
   const char* uuid;
+  const char* channel;
   const char* tmp_const;
   int res_dial;
   int success;
@@ -1810,8 +1812,11 @@ static void ami_event_originateresponse(json_t* j_msg)
   slog(LOG_DEBUG, "Event message. msg[%s]", tmp);
   sfree(tmp);
 
-  // get uuid/res_dial/response
+  // get uuid
   uuid = json_string_value(json_object_get(j_msg, "Uniqueid"));
+
+  // get channel
+  channel = json_string_value(json_object_get(j_msg, "Channel"));
 
   // get res_dial
   tmp_const = json_string_value(json_object_get(j_msg, "Response"));
@@ -1833,7 +1838,7 @@ static void ami_event_originateresponse(json_t* j_msg)
   res_dial = atoi(tmp_const);
 
   // update ob_dialing
-  update_ob_dialing_res_dial(uuid, success, res_dial);
+  update_ob_dialing_res_dial(uuid, success, res_dial, channel);
 
   return;
 }

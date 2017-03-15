@@ -186,6 +186,7 @@ static bool init_outbound_db(void)
     return false;
   }
 
+  ret = db_exec(g_sql_drop_ob_dialing);
   ret = db_exec(g_sql_ob_dialing);
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate outbound database. table[dialing]");

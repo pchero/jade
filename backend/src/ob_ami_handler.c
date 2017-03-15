@@ -172,6 +172,7 @@ bool originate_to_exten(json_t* j_dialing)
   sfree(tmp);
 
   ret = send_ami_cmd(j_cmd);
+  json_decref(j_cmd);
   if(ret == false) {
     slog(LOG_ERR, "Could not send originate extension request.");
     return false;

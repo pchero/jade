@@ -60,8 +60,10 @@ static void cb_htp_ob_dlmas(evhtp_request_t *req, void *data);
 static void cb_htp_ob_dlmas_uuid(evhtp_request_t *req, void *data);
 static void cb_htp_ob_dls(evhtp_request_t *req, void *data);
 static void cb_htp_ob_dls_uuid(evhtp_request_t *req, void *data);
+static void cb_htp_ob_dialings(evhtp_request_t *req, void *data);
+static void cb_htp_ob_dialings_uuid(evhtp_request_t *req, void *data);
 
-// destinations
+// ob/destinations
 static void cb_htp_ob_destinations(evhtp_request_t *req, void *data);
 static void cb_htp_ob_destinations_uuid(evhtp_request_t *req, void *data);
 static void htp_get_ob_destinations(evhtp_request_t *req, void *data);
@@ -70,33 +72,38 @@ static void htp_get_ob_destinations_uuid(evhtp_request_t *req, void *data);
 static void htp_put_ob_destinations_uuid(evhtp_request_t *req, void *data);
 static void htp_delete_ob_destinations_uuid(evhtp_request_t *req, void *data);
 
-// plans
+// ob/plans
 static void htp_get_ob_plans(evhtp_request_t *req, void *data);
 static void htp_post_ob_plans(evhtp_request_t *req, void *data);
 static void htp_get_ob_plans_uuid(evhtp_request_t *req, void *data);
 static void htp_put_ob_plans_uuid(evhtp_request_t *req, void *data);
 static void htp_delete_ob_plans_uuid(evhtp_request_t *req, void *data);
 
-// campaigns
+// ob/campaigns
 static void htp_get_ob_campaigns(evhtp_request_t *req, void *data);
 static void htp_post_ob_campaigns(evhtp_request_t *req, void *data);
 static void htp_get_ob_campaigns_uuid(evhtp_request_t *req, void *data);
 static void htp_put_ob_campaigns_uuid(evhtp_request_t *req, void *data);
 static void htp_delete_ob_campaigns_uuid(evhtp_request_t *req, void *data);
 
-// dlmas
+// ob/dlmas
 static void htp_get_ob_dlmas(evhtp_request_t *req, void *data);
 static void htp_post_ob_dlmas(evhtp_request_t *req, void *data);
 static void htp_get_ob_dlmas_uuid(evhtp_request_t *req, void *data);
 static void htp_put_ob_dlmas_uuid(evhtp_request_t *req, void *data);
 static void htp_delete_ob_dlmas_uuid(evhtp_request_t *req, void *data);
 
-// dls
+// ob/dls
 static void htp_get_ob_dls(evhtp_request_t *req, void *data);
 static void htp_post_ob_dls(evhtp_request_t *req, void *data);
 static void htp_get_ob_dls_uuid(evhtp_request_t *req, void *data);
 static void htp_put_ob_dls_uuid(evhtp_request_t *req, void *data);
 static void htp_delete_ob_dls_uuid(evhtp_request_t *req, void *data);
+
+// ob/dialings
+static void htp_get_ob_dialings(evhtp_request_t *req, void *data);
+static void htp_get_ob_dialings_uuid(evhtp_request_t *req, void *data);
+static void htp_delete_ob_dialings_uuid(evhtp_request_t *req, void *data);
 
 bool init_http_handler(void)
 {
@@ -138,6 +145,10 @@ bool init_http_handler(void)
   // dls
   evhtp_set_regex_cb(g_htp, "/ob/dls/("DEF_REG_UUID")", cb_htp_ob_dls_uuid, NULL);
   evhtp_set_regex_cb(g_htp, "/ob/dls", cb_htp_ob_dls, NULL);
+
+  // dialings
+  evhtp_set_regex_cb(g_htp, "/ob/dialings/("DEF_REG_UUID")", cb_htp_ob_dialings_uuid, NULL);
+  evhtp_set_regex_cb(g_htp, "/ob/dialings", cb_htp_ob_dialings, NULL);
 
   return true;
 }
@@ -2380,6 +2391,230 @@ static void cb_htp_registries_account(evhtp_request_t *req, void *data)
     // should not reach to here.
     simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   }
+
+  return;
+}
+
+/**
+ * http request handler.
+ * request : ^/ob/dialings
+ * @param req
+ * @param data
+ */
+static void cb_htp_ob_dialings(evhtp_request_t *req, void *data)
+{
+  int method;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired cb_htp_ob_dialings.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if((method != htp_method_GET) ) {
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  if(method == htp_method_GET) {
+    htp_get_ob_dialings(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  }
+
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+
+  return;
+}
+
+/**
+ * htp request handler.
+ * request: GET ^/ob/dialings
+ * @param req
+ * @param data
+ */
+static void htp_get_ob_dialings(evhtp_request_t *req, void *data)
+{
+  json_t* j_tmp;
+  json_t* j_res;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired htp_get_ob_dialings.");
+
+  // get info
+  j_tmp = get_ob_dialings_all_uuid();
+  if(j_tmp == NULL) {
+    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", j_tmp);
+
+  // response
+  simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * http request handler.
+ * request : ^/ob/dialings/<uuid>
+ * @param req
+ * @param data
+ */
+static void cb_htp_ob_dialings_uuid(evhtp_request_t *req, void *data)
+{
+  int method;
+  const char* uuid;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired cb_htp_ob_dialings_uuid.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if((method != htp_method_GET) && (method != htp_method_DELETE)) {
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // get uuid
+  uuid = req->uri->path->match_start;
+  if(uuid == NULL) {
+    simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  if(method == htp_method_GET) {
+    htp_get_ob_dialings_uuid(req, data);
+    return;
+  }
+  else if(method == htp_method_DELETE) {
+    htp_delete_ob_dialings_uuid(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+
+  return;
+}
+
+/**
+ * htp request handler.
+ * request: GET /ob/dialings/<uuid>
+ * @param req
+ * @param data
+ */
+static void htp_get_ob_dialings_uuid(evhtp_request_t *req, void *data)
+{
+  const char* uuid;
+  json_t* j_tmp;
+  json_t* j_res;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+
+  // get uuid
+  uuid = req->uri->path->file;
+  if(uuid == NULL) {
+    simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // check existence
+  ret = is_exist_ob_dialing(uuid);
+  if(ret == false) {
+    simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // get destination info
+  j_tmp = get_ob_dialing(uuid);
+  if(j_tmp == NULL) {
+    simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", j_tmp);
+
+  // response
+  simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * htp request handler.
+ * request: DELETE ^/ob/dialings/<uuid>
+ * @param req
+ * @param data
+ */
+static void htp_delete_ob_dialings_uuid(evhtp_request_t *req, void *data)
+{
+  const char* uuid;
+  json_t* j_res;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired htp_delete_ob_dialings_uuid.");
+
+  // get uuid
+  uuid = req->uri->path->file;
+  if(uuid == NULL) {
+    simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // check existence
+  ret = is_exist_ob_dialing(uuid);
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not find correct ob_dlma info. uuid[%s]", uuid);
+    simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // send hangup request of ob_dialing
+  ret = send_ob_dialing_hangup_request(uuid);
+  if(ret == false) {
+    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = create_default_result(EVHTP_RES_OK);
+
+  // response
+  simple_response_normal(req, j_res);
+  json_decref(j_res);
 
   return;
 }
