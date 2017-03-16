@@ -1,0 +1,24 @@
+.. configuration
+
+*************
+Configuration
+*************
+
+::
+
+   {
+     "serv_addr": "127.0.0.1",
+     "serv_port": "5038",
+     "username": "",
+     "password": "",
+     "loglevel": "7",
+
+     "general" : {
+       "result_filename" : "./outbound_result.json"
+     },
+
+     "database" : {
+       "name": "./database.db"
+     }
+   }
+

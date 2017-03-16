@@ -13,6 +13,8 @@ Contents:
 
    glossary
    intro
+   installation
+   configuration
    api
    ob_basic
    ob_structure
