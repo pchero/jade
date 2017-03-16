@@ -1808,7 +1808,7 @@ static void htp_post_ob_dls(evhtp_request_t *req, void *data)
   ret = validate_ob_dl(j_data);
   if(ret == false) {
     json_decref(j_data);
-    slog(LOG_INFO, "Could not pass the ob_dl validate.");
+    slog(LOG_ERR, "Could not pass the ob_dl validate.");
     simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
@@ -1934,6 +1934,15 @@ static void htp_put_ob_dls_uuid(evhtp_request_t *req, void *data)
   j_data = json_loads(tmp, JSON_DECODE_ANY, NULL);
   sfree(tmp);
   if(j_data == NULL) {
+    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // validate data
+  ret = validate_ob_dl(j_data);
+  if(ret == false) {
+    json_decref(j_data);
+    slog(LOG_ERR, "Could not pass the ob_dl validate.");
     simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
