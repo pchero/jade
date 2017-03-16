@@ -53,12 +53,36 @@
 <h1>Outbound Structure<a class="headerlink" href="#outbound-structure" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="basic-structures">
 <h2>Basic structures<a class="headerlink" href="#basic-structures" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="use-flag">
+<span id="ob-use-flag"></span><h3>Use flag<a class="headerlink" href="#use-flag" title="Permalink to this headline">¶</a></h3>
+<p>Represent usable item.</p>
+<table border="1" class="docutils">
+<caption>Use flag</caption>
+<colgroup>
+<col width="14%" />
+<col width="86%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">flag</th>
+<th class="head">Detail</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>0</td>
+<td>Not in use(Deleted item)</td>
+</tr>
+<tr class="row-odd"><td>1</td>
+<td>In use.</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 <div class="section" id="destination">
 <h2>Destination<a class="headerlink" href="#destination" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="destination-type">
-<h3>Destination type<a class="headerlink" href="#destination-type" title="Permalink to this headline">¶</a></h3>
-<table border="1" class="docutils" id="ob-destination-type">
+<span id="ob-destination-type"></span><h3>Destination type<a class="headerlink" href="#destination-type" title="Permalink to this headline">¶</a></h3>
+<table border="1" class="docutils">
 <caption>Destination type</caption>
 <colgroup>
 <col width="18%" />
@@ -315,7 +339,7 @@
 <h2>Dial list<a class="headerlink" href="#dial-list" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="dial-list-status">
 <h3>Dial list status<a class="headerlink" href="#dial-list-status" title="Permalink to this headline">¶</a></h3>
-<table border="1" class="docutils" id="id10">
+<table border="1" class="docutils" id="ob-dial-list-status">
 <caption>Dial list status</caption>
 <colgroup>
 <col width="17%" />
@@ -335,319 +359,6 @@
 </tr>
 <tr class="row-even"><td>2</td>
 <td>Reserved for preview dialing.</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="section" id="dial-list-dial-result">
-<h3>Dial list dial result<a class="headerlink" href="#dial-list-dial-result" title="Permalink to this headline">¶</a></h3>
-<table border="1" class="docutils" id="id11">
-<caption>Dial list dial result</caption>
-<colgroup>
-<col width="6%" />
-<col width="94%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">Result</th>
-<th class="head">Detail</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td>1</td>
-<td>Other end has hungup.</td>
-</tr>
-<tr class="row-odd"><td>2</td>
-<td>Local ring.</td>
-</tr>
-<tr class="row-even"><td>3</td>
-<td>Remote end is ringing.</td>
-</tr>
-<tr class="row-odd"><td>4</td>
-<td>Remote end has answered.</td>
-</tr>
-<tr class="row-even"><td>5</td>
-<td>Remote end is busy.</td>
-</tr>
-<tr class="row-odd"><td>6</td>
-<td>Make it go off hook.</td>
-</tr>
-<tr class="row-even"><td>7</td>
-<td>Line is off hook.</td>
-</tr>
-<tr class="row-odd"><td>8</td>
-<td>Congestion (circuits busy).</td>
-</tr>
-<tr class="row-even"><td>9</td>
-<td>Flash hook.</td>
-</tr>
-<tr class="row-odd"><td>10</td>
-<td>Wink.</td>
-</tr>
-<tr class="row-even"><td>11</td>
-<td>Set a low-level option.</td>
-</tr>
-<tr class="row-odd"><td>12</td>
-<td>Key Radio.</td>
-</tr>
-<tr class="row-even"><td>13</td>
-<td>Un-Key Radio.</td>
-</tr>
-<tr class="row-odd"><td>14</td>
-<td>Indicate PROGRESS.</td>
-</tr>
-<tr class="row-even"><td>15</td>
-<td>Indicate CALL PROCEEDING.</td>
-</tr>
-<tr class="row-odd"><td>16</td>
-<td>Indicate call is placed on hold.</td>
-</tr>
-<tr class="row-even"><td>17</td>
-<td>Indicate call is left from hold.</td>
-</tr>
-<tr class="row-odd"><td>18</td>
-<td>Indicate video frame update.</td>
-</tr>
-<tr class="row-even"><td>19</td>
-<td>T38 state change request. This is no longer supported.</td>
-</tr>
-<tr class="row-odd"><td>20</td>
-<td>Indicate source of media has changed.</td>
-</tr>
-<tr class="row-even"><td>21</td>
-<td>Indicate status of a transfer request.</td>
-</tr>
-<tr class="row-odd"><td>22</td>
-<td>Indicate connected line has changed.</td>
-</tr>
-<tr class="row-even"><td>23</td>
-<td>Indicate redirecting id has changed.</td>
-</tr>
-<tr class="row-odd"><td>24</td>
-<td>T38 state change request/notification with parameters.</td>
-</tr>
-<tr class="row-even"><td>25</td>
-<td>Indication that Call completion service is possible.</td>
-</tr>
-<tr class="row-odd"><td>26</td>
-<td>Media source has changed and requires a new RTP SSRC.</td>
-</tr>
-<tr class="row-even"><td>27</td>
-<td>Tell ast_read to take a specific action.</td>
-</tr>
-<tr class="row-odd"><td>28</td>
-<td>Advice of Charge with encoded generic AOC payload.</td>
-</tr>
-<tr class="row-even"><td>29</td>
-<td>Indicate that this position was the end of the channel queue for a softhangup.</td>
-</tr>
-<tr class="row-odd"><td>30</td>
-<td>Indication that the extension dialed is incomplete.</td>
-</tr>
-<tr class="row-even"><td>31</td>
-<td>Indicate that the caller is being malicious.</td>
-</tr>
-<tr class="row-odd"><td>32</td>
-<td>Interrupt the bridge and have it update the peer.</td>
-</tr>
-<tr class="row-even"><td>33</td>
-<td>Contains an update to the protocol-specific cause-code stored for branching dials.</td>
-</tr>
-<tr class="row-odd"><td>34</td>
-<td>A masquerade is about to begin/end. (Never sent as a frame but directly with ast_indicate_data().)</td>
-</tr>
-<tr class="row-even"><td>1000</td>
-<td>Indicate to a channel in playback to stop the stream.</td>
-</tr>
-<tr class="row-odd"><td>1001</td>
-<td>Indicate to a channel in playback to suspend the stream.</td>
-</tr>
-<tr class="row-even"><td>1002</td>
-<td>Indicate to a channel in playback to restart the stream.</td>
-</tr>
-<tr class="row-odd"><td>1003</td>
-<td>Indicate to a channel in playback to rewind.</td>
-</tr>
-<tr class="row-even"><td>1004</td>
-<td>Indicate to a channel in playback to fast forward.</td>
-</tr>
-<tr class="row-odd"><td>1100</td>
-<td>Indicated to a channel in record to stop recording and discard the file.</td>
-</tr>
-<tr class="row-even"><td>1101</td>
-<td>Indicated to a channel in record to stop recording.</td>
-</tr>
-<tr class="row-odd"><td>1102</td>
-<td>Indicated to a channel in record to suspend/unsuspend recording.</td>
-</tr>
-<tr class="row-even"><td>1103</td>
-<td>Indicated to a channel in record to mute/unmute (i.e. write silence) recording.</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="section" id="dial-list-hangup-result">
-<h3>Dial list hangup result<a class="headerlink" href="#dial-list-hangup-result" title="Permalink to this headline">¶</a></h3>
-<table border="1" class="docutils" id="id12">
-<caption>Dial list hangup result</caption>
-<colgroup>
-<col width="17%" />
-<col width="83%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">Result</th>
-<th class="head">Detail</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td>0</td>
-<td>Not defined.</td>
-</tr>
-<tr class="row-odd"><td>1</td>
-<td>Unallocated.</td>
-</tr>
-<tr class="row-even"><td>2</td>
-<td>No route trasit net.</td>
-</tr>
-<tr class="row-odd"><td>3</td>
-<td>No route destination.</td>
-</tr>
-<tr class="row-even"><td>5</td>
-<td>Misdialled trunk prefix.</td>
-</tr>
-<tr class="row-odd"><td>6</td>
-<td>Channel unaaceptable.</td>
-</tr>
-<tr class="row-even"><td>7</td>
-<td>Call awarded delivered.</td>
-</tr>
-<tr class="row-odd"><td>8</td>
-<td>Pre empted.</td>
-</tr>
-<tr class="row-even"><td>14</td>
-<td>Number ported not here.</td>
-</tr>
-<tr class="row-odd"><td>16</td>
-<td>Normal clearing.</td>
-</tr>
-<tr class="row-even"><td>17</td>
-<td>User busy.</td>
-</tr>
-<tr class="row-odd"><td>18</td>
-<td>No user response.</td>
-</tr>
-<tr class="row-even"><td>19</td>
-<td>No answer.</td>
-</tr>
-<tr class="row-odd"><td>20</td>
-<td>Subscriber absent.</td>
-</tr>
-<tr class="row-even"><td>21</td>
-<td>Call rejected.</td>
-</tr>
-<tr class="row-odd"><td>22</td>
-<td>Number changed.</td>
-</tr>
-<tr class="row-even"><td>23</td>
-<td>Redirected to new destination.</td>
-</tr>
-<tr class="row-odd"><td>26</td>
-<td>Answered elsewhere.</td>
-</tr>
-<tr class="row-even"><td>27</td>
-<td>Destination out of order.</td>
-</tr>
-<tr class="row-odd"><td>28</td>
-<td>Invalid number format.</td>
-</tr>
-<tr class="row-even"><td>29</td>
-<td>Facility rejected.</td>
-</tr>
-<tr class="row-odd"><td>30</td>
-<td>Response to status enquiry.</td>
-</tr>
-<tr class="row-even"><td>31</td>
-<td>Normal unspecified.</td>
-</tr>
-<tr class="row-odd"><td>34</td>
-<td>Normal circuit congestion.</td>
-</tr>
-<tr class="row-even"><td>38</td>
-<td>Network out of order.</td>
-</tr>
-<tr class="row-odd"><td>41</td>
-<td>Normal temporary failure.</td>
-</tr>
-<tr class="row-even"><td>42</td>
-<td>Switch congestion.</td>
-</tr>
-<tr class="row-odd"><td>43</td>
-<td>Access info discarded.</td>
-</tr>
-<tr class="row-even"><td>44</td>
-<td>Requested chan unavail.</td>
-</tr>
-<tr class="row-odd"><td>50</td>
-<td>Facility not subscribed.</td>
-</tr>
-<tr class="row-even"><td>52</td>
-<td>Outgoing call barred.</td>
-</tr>
-<tr class="row-odd"><td>54</td>
-<td>Incoming call barred.</td>
-</tr>
-<tr class="row-even"><td>57</td>
-<td>Bearercapability notauth.</td>
-</tr>
-<tr class="row-odd"><td>58</td>
-<td>Bearercapability notavail.</td>
-</tr>
-<tr class="row-even"><td>65</td>
-<td>Bearercapability notimpl.</td>
-</tr>
-<tr class="row-odd"><td>66</td>
-<td>Chan not implemented.</td>
-</tr>
-<tr class="row-even"><td>69</td>
-<td>Facility not implemented.</td>
-</tr>
-<tr class="row-odd"><td>81</td>
-<td>Invalid call reference.</td>
-</tr>
-<tr class="row-even"><td>88</td>
-<td>Incompatible destination.</td>
-</tr>
-<tr class="row-odd"><td>95</td>
-<td>Invalid msg unspecified.</td>
-</tr>
-<tr class="row-even"><td>96</td>
-<td>Mandatory ie missing.</td>
-</tr>
-<tr class="row-odd"><td>97</td>
-<td>Message type nonexist.</td>
-</tr>
-<tr class="row-even"><td>98</td>
-<td>Wrong message.</td>
-</tr>
-<tr class="row-odd"><td>99</td>
-<td>Ie nonexist.</td>
-</tr>
-<tr class="row-even"><td>100</td>
-<td>Invalid ie contents.</td>
-</tr>
-<tr class="row-odd"><td>101</td>
-<td>Wrong call state.</td>
-</tr>
-<tr class="row-even"><td>102</td>
-<td>Recovery on timer expire.</td>
-</tr>
-<tr class="row-odd"><td>103</td>
-<td>Mandatory ie length error.</td>
-</tr>
-<tr class="row-even"><td>111</td>
-<td>Protocol error.</td>
-</tr>
-<tr class="row-odd"><td>127</td>
-<td>Interworking.</td>
 </tr>
 </tbody>
 </table>
@@ -723,7 +434,7 @@
 </thead>
 <tbody valign="top">
 <tr class="row-even"><td>0</td>
-<td>Dialing failed</td>
+<td>No dail result event received yet.</td>
 </tr>
 <tr class="row-odd"><td>1</td>
 <td>Other end has hungup</td>
@@ -827,6 +538,33 @@
 <tr class="row-even"><td>34</td>
 <td>A masquerade is about to begin/end. (Never sent as a frame but directly with ast_indicate_data().)</td>
 </tr>
+<tr class="row-odd"><td>1000</td>
+<td>Indicate to a channel in playback to stop the stream.</td>
+</tr>
+<tr class="row-even"><td>1001</td>
+<td>Indicate to a channel in playback to suspend the stream.</td>
+</tr>
+<tr class="row-odd"><td>1002</td>
+<td>Indicate to a channel in playback to restart the stream.</td>
+</tr>
+<tr class="row-even"><td>1003</td>
+<td>Indicate to a channel in playback to rewind.</td>
+</tr>
+<tr class="row-odd"><td>1004</td>
+<td>Indicate to a channel in playback to fast forward.</td>
+</tr>
+<tr class="row-even"><td>1100</td>
+<td>Indicated to a channel in record to stop recording and discard the file.</td>
+</tr>
+<tr class="row-odd"><td>1101</td>
+<td>Indicated to a channel in record to stop recording.</td>
+</tr>
+<tr class="row-even"><td>1102</td>
+<td>Indicated to a channel in record to suspend/unsuspend recording.</td>
+</tr>
+<tr class="row-odd"><td>1103</td>
+<td>Indicated to a channel in record to mute/unmute (i.e. write silence) recording.</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -844,151 +582,154 @@
 </tr>
 </thead>
 <tbody valign="top">
-<tr class="row-even"><td>1</td>
+<tr class="row-even"><td>0</td>
+<td>No hangup event received yet.</td>
+</tr>
+<tr class="row-odd"><td>1</td>
 <td>Unallocated.</td>
 </tr>
-<tr class="row-odd"><td>2</td>
+<tr class="row-even"><td>2</td>
 <td>No route trasit network.</td>
 </tr>
-<tr class="row-even"><td>3</td>
+<tr class="row-odd"><td>3</td>
 <td>No route destination.</td>
 </tr>
-<tr class="row-odd"><td>5</td>
+<tr class="row-even"><td>5</td>
 <td>Mis dialled trunk prefix.</td>
 </tr>
-<tr class="row-even"><td>6</td>
+<tr class="row-odd"><td>6</td>
 <td>Channel unacceptable.</td>
 </tr>
-<tr class="row-odd"><td>7</td>
+<tr class="row-even"><td>7</td>
 <td>Call awarded delivered.</td>
 </tr>
-<tr class="row-even"><td>8</td>
+<tr class="row-odd"><td>8</td>
 <td>Pre empted.</td>
 </tr>
-<tr class="row-odd"><td>14</td>
+<tr class="row-even"><td>14</td>
 <td>Number ported not here.</td>
 </tr>
-<tr class="row-even"><td>16</td>
+<tr class="row-odd"><td>16</td>
 <td>Normal clearing.</td>
 </tr>
-<tr class="row-odd"><td>17</td>
+<tr class="row-even"><td>17</td>
 <td>User busy.</td>
 </tr>
-<tr class="row-even"><td>18</td>
+<tr class="row-odd"><td>18</td>
 <td>No user response.</td>
 </tr>
-<tr class="row-odd"><td>19</td>
+<tr class="row-even"><td>19</td>
 <td>No answer.</td>
 </tr>
-<tr class="row-even"><td>20</td>
+<tr class="row-odd"><td>20</td>
 <td>Subscriber absent.</td>
 </tr>
-<tr class="row-odd"><td>21</td>
+<tr class="row-even"><td>21</td>
 <td>Call rejected.</td>
 </tr>
-<tr class="row-even"><td>22</td>
+<tr class="row-odd"><td>22</td>
 <td>Number changed.</td>
 </tr>
-<tr class="row-odd"><td>23</td>
+<tr class="row-even"><td>23</td>
 <td>Redirected to new destination.</td>
 </tr>
-<tr class="row-even"><td>26</td>
+<tr class="row-odd"><td>26</td>
 <td>Answered eleswhere.</td>
 </tr>
-<tr class="row-odd"><td>27</td>
+<tr class="row-even"><td>27</td>
 <td>Destination out of order.</td>
 </tr>
-<tr class="row-even"><td>28</td>
+<tr class="row-odd"><td>28</td>
 <td>Invalid number format.</td>
 </tr>
-<tr class="row-odd"><td>29</td>
+<tr class="row-even"><td>29</td>
 <td>Facility rejected.</td>
 </tr>
-<tr class="row-even"><td>30</td>
+<tr class="row-odd"><td>30</td>
 <td>Response to status enquiry.</td>
 </tr>
-<tr class="row-odd"><td>31</td>
+<tr class="row-even"><td>31</td>
 <td>Normal unspecified.</td>
 </tr>
-<tr class="row-even"><td>34</td>
+<tr class="row-odd"><td>34</td>
 <td>Normal circuit congestion.</td>
 </tr>
-<tr class="row-odd"><td>38</td>
+<tr class="row-even"><td>38</td>
 <td>Network out of order.</td>
 </tr>
-<tr class="row-even"><td>41</td>
+<tr class="row-odd"><td>41</td>
 <td>Normal temporary failure.</td>
 </tr>
-<tr class="row-odd"><td>42</td>
+<tr class="row-even"><td>42</td>
 <td>Switch congestion.</td>
 </tr>
-<tr class="row-even"><td>43</td>
+<tr class="row-odd"><td>43</td>
 <td>Access info discarded.</td>
 </tr>
-<tr class="row-odd"><td>44</td>
+<tr class="row-even"><td>44</td>
 <td>Requested chan unavail.</td>
 </tr>
-<tr class="row-even"><td>50</td>
+<tr class="row-odd"><td>50</td>
 <td>Facility not subscribed.</td>
 </tr>
-<tr class="row-odd"><td>52</td>
+<tr class="row-even"><td>52</td>
 <td>Outgoing call barred.</td>
 </tr>
-<tr class="row-even"><td>54</td>
+<tr class="row-odd"><td>54</td>
 <td>Incoming call barred.</td>
 </tr>
-<tr class="row-odd"><td>57</td>
+<tr class="row-even"><td>57</td>
 <td>Bearer capability not auth.</td>
 </tr>
-<tr class="row-even"><td>58</td>
+<tr class="row-odd"><td>58</td>
 <td>Bearer capability not available.</td>
 </tr>
-<tr class="row-odd"><td>65</td>
+<tr class="row-even"><td>65</td>
 <td>Bearer capability not implemented.</td>
 </tr>
-<tr class="row-even"><td>66</td>
+<tr class="row-odd"><td>66</td>
 <td>Channel not implemented.</td>
 </tr>
-<tr class="row-odd"><td>69</td>
+<tr class="row-even"><td>69</td>
 <td>Facility not implemented.</td>
 </tr>
-<tr class="row-even"><td>81</td>
+<tr class="row-odd"><td>81</td>
 <td>Invalid call reference.</td>
 </tr>
-<tr class="row-odd"><td>88</td>
+<tr class="row-even"><td>88</td>
 <td>Incompatible destination.</td>
 </tr>
-<tr class="row-even"><td>95</td>
+<tr class="row-odd"><td>95</td>
 <td>Invalid message unspecified.</td>
 </tr>
-<tr class="row-odd"><td>96</td>
+<tr class="row-even"><td>96</td>
 <td>Madatory item missing.</td>
 </tr>
-<tr class="row-even"><td>97</td>
+<tr class="row-odd"><td>97</td>
 <td>Message type nonexist.</td>
 </tr>
-<tr class="row-odd"><td>98</td>
+<tr class="row-even"><td>98</td>
 <td>Wrong message.</td>
 </tr>
-<tr class="row-even"><td>99</td>
+<tr class="row-odd"><td>99</td>
 <td>Item nonexist.</td>
 </tr>
-<tr class="row-odd"><td>100</td>
+<tr class="row-even"><td>100</td>
 <td>Invalid item contents.</td>
 </tr>
-<tr class="row-even"><td>101</td>
+<tr class="row-odd"><td>101</td>
 <td>Wrong call state.</td>
 </tr>
-<tr class="row-odd"><td>102</td>
+<tr class="row-even"><td>102</td>
 <td>Recovery on timer expire.</td>
 </tr>
-<tr class="row-even"><td>103</td>
+<tr class="row-odd"><td>103</td>
 <td>Mandatory item length error.</td>
 </tr>
-<tr class="row-odd"><td>111</td>
+<tr class="row-even"><td>111</td>
 <td>Protocol error.</td>
 </tr>
-<tr class="row-even"><td>127</td>
+<tr class="row-odd"><td>127</td>
 <td>Internetwroking.</td>
 </tr>
 </tbody>
@@ -1006,7 +747,10 @@
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">Outbound Structure</a><ul>
-<li><a class="reference internal" href="#basic-structures">Basic structures</a></li>
+<li><a class="reference internal" href="#basic-structures">Basic structures</a><ul>
+<li><a class="reference internal" href="#use-flag">Use flag</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#destination">Destination</a><ul>
 <li><a class="reference internal" href="#destination-type">Destination type</a></li>
 <li><a class="reference internal" href="#application-availability">Application availability</a></li>
@@ -1033,8 +777,6 @@
 </li>
 <li><a class="reference internal" href="#dial-list">Dial list</a><ul>
 <li><a class="reference internal" href="#dial-list-status">Dial list status</a></li>
-<li><a class="reference internal" href="#dial-list-dial-result">Dial list dial result</a></li>
-<li><a class="reference internal" href="#dial-list-hangup-result">Dial list hangup result</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#dialing">Dialing</a><ul>
