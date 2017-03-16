@@ -1340,9 +1340,10 @@ Call
      "name": "<string>",
      "detail": "<string>",
      "status": <integer>,
+     "dlma_uuid": "<string>",
+
      "email": "<string>",
-     "in_use": 1,
-     "resv_target": "<string>",
+
      "number_1": "<string>",
      "number_2": "<string>",
      "number_3": "<string>",
@@ -1351,14 +1352,8 @@ Call
      "number_6": "<string>",
      "number_7": "<string>",
      "number_8": "<string>",
-     "trycnt_1": <integer>,
-     "trycnt_2": <integer>,
-     "trycnt_3": <integer>,
-     "trycnt_4": <integer>,
-     "trycnt_5": <integer>,
-     "trycnt_6": <integer>,
-     "trycnt_7": <integer>,
-     "trycnt_8": <integer>,
+     
+     "resv_target": "<string>",
      "ukey": "<string>",
      "variables": "<string>"
    }
@@ -1367,10 +1362,11 @@ Data details
 
 * ``name``: dial list name.
 * ``detail``: dial list detail.
-* ``status``: Dial list status. See detail :ref:`dial_list_status`.
+* ``status``: Dial list status. See detail :ref:`ob_dial_list_status`.
+* ``dlma_uuid``: dlma uuid.
+
 * ``email``: Email address
-* ``in_use``: 1,
-* ``resv_target``: Reserved target. Used for reserved dial.
+
 * ``number_1``: The contact number 1
 * ``number_2``: The contact number 2
 * ``number_3``: The contact number 3
@@ -1379,34 +1375,28 @@ Data details
 * ``number_6``: The contact number 6
 * ``number_7``: The contact number 7
 * ``number_8``: The contact number 8
-* ``trycnt_1``: The dialing try count of number 1
-* ``trycnt_2``: The dialing try count of number 2
-* ``trycnt_3``: The dialing try count of number 3
-* ``trycnt_4``: The dialing try count of number 4
-* ``trycnt_5``: The dialing try count of number 5
-* ``trycnt_6``: The dialing try count of number 6
-* ``trycnt_7``: The dialing try count of number 7
-* ``trycnt_8``: The dialing try count of number 8
-* ``ukey``: 
+
+* ``resv_target``: Reserved target. Used for reserved dial.
+* ``ukey``: User defined key.
 * ``variables``: 
 
 Returns
 +++++++
-Created dial list info.
+Returns created dial list info.
 
 ::
 
    {
      $defhdr,
      "reuslt": {
+       "uuid": "<string>",
        "name": "<string>",
        "detail": "<string>",
-       "dialing_camp_uuid": "<string>",
-       "dialing_plan_uuid": "<string>",
-       "dialing_uuid": "<string>",
+       "status": <integer>,
        "dlma_uuid": "<string>",
+       
        "email": "<string>",
-       "in_use": 1,
+
        "number_1": "<string>",
        "number_2": "<string>",
        "number_3": "<string>",
@@ -1415,17 +1405,7 @@ Created dial list info.
        "number_6": "<string>",
        "number_7": "<string>",
        "number_8": "<string>",
-       "res_dial": <integer>,
-       "res_dial_detail":"<string>",
-       "res_hangup": <integer>,
-       "res_hangup_detail": "<string>",
-       "resv_target": "<string>",
-       "status": <integer>,
-       "tm_create": "<timestamp>",
-       "tm_delete": "<timestamp>",
-       "tm_last_dial": "<timestamp>",
-       "tm_last_hangup": "<timestamp>",
-       "tm_update": "<timestamp>",
+
        "trycnt_1": <integer>,
        "trycnt_2": <integer>,
        "trycnt_3": <integer>,
@@ -1434,27 +1414,40 @@ Created dial list info.
        "trycnt_6": <integer>,
        "trycnt_7": <integer>,
        "trycnt_8": <integer>,
+
+       "dialing_camp_uuid": "<string>",
+       "dialing_plan_uuid": "<string>",
+       "dialing_uuid": "<string>",
+       
+       "res_dial": <integer>,
+       "res_dial_detail":"<string>",
+       "res_hangup": <integer>,
+       "res_hangup_detail": "<string>",
+
+       "tm_last_dial": "<timestamp>",
+       "tm_last_hangup": "<timestamp>",
+
+       "resv_target": "<string>",
+       
        "ukey": "<string>",
-       "uuid": "<string>",
-       "variables": "<string>"
+       "variables": "<string>",
+
+       "in_use": 1,
+
+       "tm_create": "<timestamp>",
+       "tm_update": "<timestamp>",
+       "tm_delete": "<timestamp>"
      }
    }
 
 * ``uuid``: dial list uuid.
 * ``name``: dial list name.
 * ``detail``: dial list detail.
-* ``status``: Dial list status. See detail :ref:`dial_list_status`.
-* ``dialing_camp_uuid``: The campaign uuid info if this dial list is dialing.
-* ``dialing_plan_uuid``: The plan uuid info if this dial list is dialing.
-* ``dlma_uuid``: The dlma uuid info if this dial list is dialing.
-* ``dialing_uuid``: The dialing uuid info if this dial list is dialing.
+* ``status``: Dial list status. See detail :ref:`ob_dial_list_status`.
+* ``dlma_uuid``: <required> The dlma uuid info if this dial list is dialing.
+
 * ``email``: Email address
-* ``in_use``: 1,
-* ``res_dial``: The last dialing dial result. See detail :ref:`dial_list_dial_result`.
-* ``res_dial_detail``: The last dialing dial result detail.
-* ``res_hangup``: The last dialing hangup result. See detail :ref:`dial_list_hangup_result`.
-* ``res_hangup_detail``: The last dialing hangup result detail.
-* ``resv_target``: Reserved target. Used for reserved dial.
+
 * ``number_1``: The contact number 1
 * ``number_2``: The contact number 2
 * ``number_3``: The contact number 3
@@ -1463,6 +1456,7 @@ Created dial list info.
 * ``number_6``: The contact number 6
 * ``number_7``: The contact number 7
 * ``number_8``: The contact number 8
+
 * ``trycnt_1``: The dialing try count of number 1
 * ``trycnt_2``: The dialing try count of number 2
 * ``trycnt_3``: The dialing try count of number 3
@@ -1471,10 +1465,24 @@ Created dial list info.
 * ``trycnt_6``: The dialing try count of number 6
 * ``trycnt_7``: The dialing try count of number 7
 * ``trycnt_8``: The dialing try count of number 8
-* ``ukey``: 
-* ``variables``: 
+
+* ``dialing_camp_uuid``: The campaign uuid info if this dial list is dialing.
+* ``dialing_plan_uuid``: The plan uuid info if this dial list is dialing.
+* ``dialing_uuid``: The dialing uuid info if this dial list is dialing.
+
+* ``res_dial``: The last dialing dial result. See detail :ref:`ob_dial_result`.
+* ``res_dial_detail``: The last dialing dial result detail.
+* ``res_hangup``: The last dialing hangup result. See detail :ref:`ob_hangup_result`.
+* ``res_hangup_detail``: The last dialing hangup result detail.
+
 * ``tm_last_dial``: Timestamp of the last dialing.
 * ``tm_last_hangup``: Timestamp of the last hangup.
+
+* ``in_use``: Use flag. See detail :ref:`ob_use_flag`.
+* ``resv_target``: Reserved target. Used for reserved dial.
+* ``ukey``: 
+* ``variables``: 
+
 * ``tm_create``: 
 * ``tm_delete``: 
 * ``tm_update``: 
@@ -1610,14 +1618,14 @@ Returns specified dial list detail info.
    {
      $defhdr,
      "reuslt": {
+       "uuid": "<string>",
        "name": "<string>",
        "detail": "<string>",
-       "dialing_camp_uuid": "<string>",
-       "dialing_plan_uuid": "<string>",
-       "dialing_uuid": "<string>",
+       "status": <integer>,
        "dlma_uuid": "<string>",
+       
        "email": "<string>",
-       "in_use": 1,
+
        "number_1": "<string>",
        "number_2": "<string>",
        "number_3": "<string>",
@@ -1626,17 +1634,7 @@ Returns specified dial list detail info.
        "number_6": "<string>",
        "number_7": "<string>",
        "number_8": "<string>",
-       "res_dial": <integer>,
-       "res_dial_detail":"<string>",
-       "res_hangup": <integer>,
-       "res_hangup_detail": "<string>",
-       "resv_target": "<string>",
-       "status": <integer>,
-       "tm_create": "<timestamp>",
-       "tm_delete": "<timestamp>",
-       "tm_last_dial": "<timestamp>",
-       "tm_last_hangup": "<timestamp>",
-       "tm_update": "<timestamp>",
+
        "trycnt_1": <integer>,
        "trycnt_2": <integer>,
        "trycnt_3": <integer>,
@@ -1645,27 +1643,40 @@ Returns specified dial list detail info.
        "trycnt_6": <integer>,
        "trycnt_7": <integer>,
        "trycnt_8": <integer>,
+
+       "dialing_camp_uuid": "<string>",
+       "dialing_plan_uuid": "<string>",
+       "dialing_uuid": "<string>",
+       
+       "res_dial": <integer>,
+       "res_dial_detail":"<string>",
+       "res_hangup": <integer>,
+       "res_hangup_detail": "<string>",
+
+       "tm_last_dial": "<timestamp>",
+       "tm_last_hangup": "<timestamp>",
+
+       "resv_target": "<string>",
+       
        "ukey": "<string>",
-       "uuid": "<string>",
-       "variables": "<string>"
+       "variables": "<string>",
+
+       "in_use": 1,
+
+       "tm_create": "<timestamp>",
+       "tm_update": "<timestamp>",
+       "tm_delete": "<timestamp>"
      }
    }
 
 * ``uuid``: dial list uuid.
 * ``name``: dial list name.
 * ``detail``: dial list detail.
-* ``status``: Dial list status. See detail :ref:`dial_list_status`.
-* ``dialing_camp_uuid``: The campaign uuid info if this dial list is dialing.
-* ``dialing_plan_uuid``: The plan uuid info if this dial list is dialing.
+* ``status``: Dial list status. See detail :ref:`ob_dial_list_status`.
 * ``dlma_uuid``: The dlma uuid info if this dial list is dialing.
-* ``dialing_uuid``: The dialing uuid info if this dial list is dialing.
+
 * ``email``: Email address
-* ``in_use``: 1,
-* ``res_dial``: The last dialing dial result. See detail :ref:`dial_list_dial_result`.
-* ``res_dial_detail``: The last dialing dial result detail.
-* ``res_hangup``: The last dialing hangup result. See detail :ref:`dial_list_hangup_result`.
-* ``res_hangup_detail``: The last dialing hangup result detail.
-* ``resv_target``: Reserved target. Used for reserved dial.
+
 * ``number_1``: The contact number 1
 * ``number_2``: The contact number 2
 * ``number_3``: The contact number 3
@@ -1674,6 +1685,7 @@ Returns specified dial list detail info.
 * ``number_6``: The contact number 6
 * ``number_7``: The contact number 7
 * ``number_8``: The contact number 8
+
 * ``trycnt_1``: The dialing try count of number 1
 * ``trycnt_2``: The dialing try count of number 2
 * ``trycnt_3``: The dialing try count of number 3
@@ -1682,10 +1694,24 @@ Returns specified dial list detail info.
 * ``trycnt_6``: The dialing try count of number 6
 * ``trycnt_7``: The dialing try count of number 7
 * ``trycnt_8``: The dialing try count of number 8
-* ``ukey``: 
-* ``variables``: 
+
+* ``dialing_camp_uuid``: The campaign uuid info if this dial list is dialing.
+* ``dialing_plan_uuid``: The plan uuid info if this dial list is dialing.
+* ``dialing_uuid``: The dialing uuid info if this dial list is dialing.
+
+* ``res_dial``: The last dialing dial result. See detail :ref:`ob_dial_result`.
+* ``res_dial_detail``: The last dialing dial result detail.
+* ``res_hangup``: The last dialing hangup result. See detail :ref:`ob_hangup_result`.
+* ``res_hangup_detail``: The last dialing hangup result detail.
+
 * ``tm_last_dial``: Timestamp of the last dialing.
 * ``tm_last_hangup``: Timestamp of the last hangup.
+
+* ``in_use``: Use flag. See detail :ref:`ob_use_flag`.
+* ``resv_target``: Reserved target. Used for reserved dial.
+* ``ukey``: 
+* ``variables``: 
+
 * ``tm_create``: 
 * ``tm_delete``: 
 * ``tm_update``: 
@@ -1757,8 +1783,10 @@ Call
      "name": "<string>",
      "detail": "<string>",
      "status": <integer>,
+     "dlma_uuid": "<string>",
+     
      "email": "<string>",
-     "resv_target": "<string>",
+
      "number_1": "<string>",
      "number_2": "<string>",
      "number_3": "<string>",
@@ -1767,6 +1795,7 @@ Call
      "number_6": "<string>",
      "number_7": "<string>",
      "number_8": "<string>",
+
      "trycnt_1": <integer>,
      "trycnt_2": <integer>,
      "trycnt_3": <integer>,
@@ -1775,6 +1804,17 @@ Call
      "trycnt_6": <integer>,
      "trycnt_7": <integer>,
      "trycnt_8": <integer>,
+     
+     "res_dial": <integer>,
+     "res_dial_detail":"<string>",
+     "res_hangup": <integer>,
+     "res_hangup_detail": "<string>",
+
+     "tm_last_dial": "<timestamp>",
+     "tm_last_hangup": "<timestamp>",
+
+     "resv_target": "<string>",
+     
      "ukey": "<string>",
      "variables": "<string>"
    }
@@ -1783,10 +1823,11 @@ Data parameters
 
 * ``name``: dial list name.
 * ``detail``: dial list detail.
-* ``status``: Dial list status. See detail :ref:`dial_list_status`.
+* ``status``: Dial list status. See detail :ref:`ob_dial_list_status`.
+* ``dlma_uuid``: The dlma uuid info if this dial list is dialing.
+
 * ``email``: Email address
-* ``in_use``: 1,
-* ``resv_target``: Reserved target. Used for reserved dial.
+
 * ``number_1``: The contact number 1
 * ``number_2``: The contact number 2
 * ``number_3``: The contact number 3
@@ -1795,6 +1836,7 @@ Data parameters
 * ``number_6``: The contact number 6
 * ``number_7``: The contact number 7
 * ``number_8``: The contact number 8
+
 * ``trycnt_1``: The dialing try count of number 1
 * ``trycnt_2``: The dialing try count of number 2
 * ``trycnt_3``: The dialing try count of number 3
@@ -1803,6 +1845,21 @@ Data parameters
 * ``trycnt_6``: The dialing try count of number 6
 * ``trycnt_7``: The dialing try count of number 7
 * ``trycnt_8``: The dialing try count of number 8
+
+* ``dialing_camp_uuid``: The campaign uuid info if this dial list is dialing.
+* ``dialing_plan_uuid``: The plan uuid info if this dial list is dialing.
+* ``dialing_uuid``: The dialing uuid info if this dial list is dialing.
+
+* ``res_dial``: The last dialing dial result. See detail :ref:`ob_dial_result`.
+* ``res_dial_detail``: The last dialing dial result detail.
+* ``res_hangup``: The last dialing hangup result. See detail :ref:`ob_hangup_result`.
+* ``res_hangup_detail``: The last dialing hangup result detail.
+
+* ``tm_last_dial``: Timestamp of the last dialing.
+* ``tm_last_hangup``: Timestamp of the last hangup.
+
+* ``in_use``: Use flag. See detail :ref:`ob_use_flag`.
+* ``resv_target``: Reserved target. Used for reserved dial.
 * ``ukey``: 
 * ``variables``: 
 
@@ -1815,14 +1872,14 @@ Returns updated dial list detail info.
    {
      $defhdr,
      "reuslt": {
+       "uuid": "<string>",
        "name": "<string>",
        "detail": "<string>",
-       "dialing_camp_uuid": "<string>",
-       "dialing_plan_uuid": "<string>",
-       "dialing_uuid": "<string>",
+       "status": <integer>,
        "dlma_uuid": "<string>",
+       
        "email": "<string>",
-       "in_use": 1,
+
        "number_1": "<string>",
        "number_2": "<string>",
        "number_3": "<string>",
@@ -1831,17 +1888,7 @@ Returns updated dial list detail info.
        "number_6": "<string>",
        "number_7": "<string>",
        "number_8": "<string>",
-       "res_dial": <integer>,
-       "res_dial_detail":"<string>",
-       "res_hangup": <integer>,
-       "res_hangup_detail": "<string>",
-       "resv_target": "<string>",
-       "status": <integer>,
-       "tm_create": "<timestamp>",
-       "tm_delete": "<timestamp>",
-       "tm_last_dial": "<timestamp>",
-       "tm_last_hangup": "<timestamp>",
-       "tm_update": "<timestamp>",
+
        "trycnt_1": <integer>,
        "trycnt_2": <integer>,
        "trycnt_3": <integer>,
@@ -1850,27 +1897,40 @@ Returns updated dial list detail info.
        "trycnt_6": <integer>,
        "trycnt_7": <integer>,
        "trycnt_8": <integer>,
+
+       "dialing_camp_uuid": "<string>",
+       "dialing_plan_uuid": "<string>",
+       "dialing_uuid": "<string>",
+       
+       "res_dial": <integer>,
+       "res_dial_detail":"<string>",
+       "res_hangup": <integer>,
+       "res_hangup_detail": "<string>",
+
+       "tm_last_dial": "<timestamp>",
+       "tm_last_hangup": "<timestamp>",
+
+       "resv_target": "<string>",
+       
        "ukey": "<string>",
-       "uuid": "<string>",
-       "variables": "<string>"
+       "variables": "<string>",
+
+       "in_use": 1,
+
+       "tm_create": "<timestamp>",
+       "tm_update": "<timestamp>",
+       "tm_delete": "<timestamp>"
      }
    }
 
 * ``uuid``: dial list uuid.
 * ``name``: dial list name.
 * ``detail``: dial list detail.
-* ``status``: Dial list status. See detail :ref:`dial_list_status`.
-* ``dialing_camp_uuid``: The campaign uuid info if this dial list is dialing.
-* ``dialing_plan_uuid``: The plan uuid info if this dial list is dialing.
+* ``status``: Dial list status. See detail :ref:`ob_dial_list_status`.
 * ``dlma_uuid``: The dlma uuid info if this dial list is dialing.
-* ``dialing_uuid``: The dialing uuid info if this dial list is dialing.
+
 * ``email``: Email address
-* ``in_use``: 1,
-* ``res_dial``: The last dialing dial result. See detail :ref:`dial_list_dial_result`.
-* ``res_dial_detail``: The last dialing dial result detail.
-* ``res_hangup``: The last dialing hangup result. See detail :ref:`dial_list_hangup_result`.
-* ``res_hangup_detail``: The last dialing hangup result detail.
-* ``resv_target``: Reserved target. Used for reserved dial.
+
 * ``number_1``: The contact number 1
 * ``number_2``: The contact number 2
 * ``number_3``: The contact number 3
@@ -1879,6 +1939,7 @@ Returns updated dial list detail info.
 * ``number_6``: The contact number 6
 * ``number_7``: The contact number 7
 * ``number_8``: The contact number 8
+
 * ``trycnt_1``: The dialing try count of number 1
 * ``trycnt_2``: The dialing try count of number 2
 * ``trycnt_3``: The dialing try count of number 3
@@ -1887,10 +1948,24 @@ Returns updated dial list detail info.
 * ``trycnt_6``: The dialing try count of number 6
 * ``trycnt_7``: The dialing try count of number 7
 * ``trycnt_8``: The dialing try count of number 8
-* ``ukey``: 
-* ``variables``: 
+
+* ``dialing_camp_uuid``: The campaign uuid info if this dial list is dialing.
+* ``dialing_plan_uuid``: The plan uuid info if this dial list is dialing.
+* ``dialing_uuid``: The dialing uuid info if this dial list is dialing.
+
+* ``res_dial``: The last dialing dial result. See detail :ref:`ob_dial_result`.
+* ``res_dial_detail``: The last dialing dial result detail.
+* ``res_hangup``: The last dialing hangup result. See detail :ref:`ob_hangup_result`.
+* ``res_hangup_detail``: The last dialing hangup result detail.
+
 * ``tm_last_dial``: Timestamp of the last dialing.
 * ``tm_last_hangup``: Timestamp of the last hangup.
+
+* ``in_use``: Use flag. See detail :ref:`ob_use_flag`.
+* ``resv_target``: Reserved target. Used for reserved dial.
+* ``ukey``: 
+* ``variables``: 
+
 * ``tm_create``: 
 * ``tm_delete``: 
 * ``tm_update``: 
@@ -1972,14 +2047,14 @@ Returns deleted dial list info.
    {
      $defhdr,
      "reuslt": {
+       "uuid": "<string>",
        "name": "<string>",
        "detail": "<string>",
-       "dialing_camp_uuid": "<string>",
-       "dialing_plan_uuid": "<string>",
-       "dialing_uuid": "<string>",
+       "status": <integer>,
        "dlma_uuid": "<string>",
+       
        "email": "<string>",
-       "in_use": 0,
+
        "number_1": "<string>",
        "number_2": "<string>",
        "number_3": "<string>",
@@ -1988,17 +2063,7 @@ Returns deleted dial list info.
        "number_6": "<string>",
        "number_7": "<string>",
        "number_8": "<string>",
-       "res_dial": <integer>,
-       "res_dial_detail":"<string>",
-       "res_hangup": <integer>,
-       "res_hangup_detail": "<string>",
-       "resv_target": "<string>",
-       "status": <integer>,
-       "tm_create": "<timestamp>",
-       "tm_delete": "<timestamp>",
-       "tm_last_dial": "<timestamp>",
-       "tm_last_hangup": "<timestamp>",
-       "tm_update": "<timestamp>",
+
        "trycnt_1": <integer>,
        "trycnt_2": <integer>,
        "trycnt_3": <integer>,
@@ -2007,27 +2072,40 @@ Returns deleted dial list info.
        "trycnt_6": <integer>,
        "trycnt_7": <integer>,
        "trycnt_8": <integer>,
+
+       "dialing_camp_uuid": "<string>",
+       "dialing_plan_uuid": "<string>",
+       "dialing_uuid": "<string>",
+       
+       "res_dial": <integer>,
+       "res_dial_detail":"<string>",
+       "res_hangup": <integer>,
+       "res_hangup_detail": "<string>",
+
+       "tm_last_dial": "<timestamp>",
+       "tm_last_hangup": "<timestamp>",
+
+       "resv_target": "<string>",
+       
        "ukey": "<string>",
-       "uuid": "<string>",
-       "variables": "<string>"
+       "variables": "<string>",
+
+       "in_use": 1,
+
+       "tm_create": "<timestamp>",
+       "tm_update": "<timestamp>",
+       "tm_delete": "<timestamp>"
      }
    }
 
 * ``uuid``: dial list uuid.
 * ``name``: dial list name.
 * ``detail``: dial list detail.
-* ``status``: Dial list status. See detail :ref:`dial_list_status`.
-* ``dialing_camp_uuid``: The campaign uuid info if this dial list is dialing.
-* ``dialing_plan_uuid``: The plan uuid info if this dial list is dialing.
+* ``status``: Dial list status. See detail :ref:`ob_dial_list_status`.
 * ``dlma_uuid``: The dlma uuid info if this dial list is dialing.
-* ``dialing_uuid``: The dialing uuid info if this dial list is dialing.
+
 * ``email``: Email address
-* ``in_use``: 1,
-* ``res_dial``: The last dialing dial result. See detail :ref:`dial_list_dial_result`.
-* ``res_dial_detail``: The last dialing dial result detail.
-* ``res_hangup``: The last dialing hangup result. See detail :ref:`dial_list_hangup_result`.
-* ``res_hangup_detail``: The last dialing hangup result detail.
-* ``resv_target``: Reserved target. Used for reserved dial.
+
 * ``number_1``: The contact number 1
 * ``number_2``: The contact number 2
 * ``number_3``: The contact number 3
@@ -2036,6 +2114,7 @@ Returns deleted dial list info.
 * ``number_6``: The contact number 6
 * ``number_7``: The contact number 7
 * ``number_8``: The contact number 8
+
 * ``trycnt_1``: The dialing try count of number 1
 * ``trycnt_2``: The dialing try count of number 2
 * ``trycnt_3``: The dialing try count of number 3
@@ -2044,10 +2123,24 @@ Returns deleted dial list info.
 * ``trycnt_6``: The dialing try count of number 6
 * ``trycnt_7``: The dialing try count of number 7
 * ``trycnt_8``: The dialing try count of number 8
-* ``ukey``: 
-* ``variables``: 
+
+* ``dialing_camp_uuid``: The campaign uuid info if this dial list is dialing.
+* ``dialing_plan_uuid``: The plan uuid info if this dial list is dialing.
+* ``dialing_uuid``: The dialing uuid info if this dial list is dialing.
+
+* ``res_dial``: The last dialing dial result. See detail :ref:`ob_dial_result`.
+* ``res_dial_detail``: The last dialing dial result detail.
+* ``res_hangup``: The last dialing hangup result. See detail :ref:`ob_hangup_result`.
+* ``res_hangup_detail``: The last dialing hangup result detail.
+
 * ``tm_last_dial``: Timestamp of the last dialing.
 * ``tm_last_hangup``: Timestamp of the last hangup.
+
+* ``in_use``: Use flag. See detail :ref:`ob_use_flag`.
+* ``resv_target``: Reserved target. Used for reserved dial.
+* ``ukey``: 
+* ``variables``: 
+
 * ``tm_create``: 
 * ``tm_delete``: 
 * ``tm_update``: 
