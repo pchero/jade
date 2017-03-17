@@ -16,9 +16,6 @@
 #include "db_handler.h"
 #include "action_handler.h"
 
-static bool delete_action(const char* id);
-static json_t* get_action(const char* id);
-
 bool insert_action(const char* id, const char* type)
 {
   int ret;
@@ -48,7 +45,7 @@ bool insert_action(const char* id, const char* type)
   return true;
 }
 
-static json_t* get_action(const char* id)
+json_t* get_action(const char* id)
 {
   char* sql;
   db_res_t* db_res;
@@ -78,7 +75,7 @@ static json_t* get_action(const char* id)
   return j_res;
 }
 
-static bool delete_action(const char* id)
+bool delete_action(const char* id)
 {
   char* sql;
   int ret;

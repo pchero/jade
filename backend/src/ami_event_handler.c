@@ -58,8 +58,7 @@ static void ami_event_outdllistupdate(json_t* j_msg);
 static void ami_event_outdllistdelete(json_t* j_msg);
 
 // action response handlers
-
-void ami_response_handler_databaseshowall(json_t* j_msg);
+static ACTION_RES ami_response_handler_databaseshowall(json_t* j_action, json_t* j_msg);
 
 /**
  * Event message handler
@@ -70,6 +69,7 @@ void ami_message_handler(const char* msg)
   json_t* j_msg;
   char* tmp;
   const char* event;
+  const char* action_id;
 
   if(msg == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -84,12 +84,19 @@ void ami_message_handler(const char* msg)
     return;
   }
 
-  // get event
-  // if there's no Event,
+  // get action id
+  // if there's action id,
   // consider the response of action request.
+  action_id = json_string_value(json_object_get(j_msg, "ActionID"));
+  if(action_id != NULL) {
+    ami_response_handler(j_msg);
+    json_decref(j_msg);
+    return;
+  }
+
   event = json_string_value(json_object_get(j_msg, "Event"));
   if(event == NULL) {
-    ami_response_handler(j_msg);
+    slog(LOG_ERR, "Could not get event info,");
     json_decref(j_msg);
     return;
   }
@@ -209,9 +216,10 @@ void ami_message_handler(const char* msg)
 
 static void ami_response_handler(json_t* j_msg)
 {
-  const char* id;
+  const char* action_id;
   const char* type;
   json_t* j_action;
+  ACTION_RES res_action;
 
   if(j_msg == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -219,39 +227,55 @@ static void ami_response_handler(json_t* j_msg)
   }
   slog(LOG_DEBUG, "Fired ami_response_handler.");
 
-  id = json_string_value(json_object_get(j_msg, "ActionID"));
-  if(id == NULL) {
+  action_id = json_string_value(json_object_get(j_msg, "ActionID"));
+  if(action_id == NULL) {
     slog(LOG_NOTICE, "Could not get ActionID.");
     return;
   }
 
   // get action
-  j_action = get_action_and_delete(id);
+  j_action = get_action(action_id);
   if(j_action == NULL) {
-    slog(LOG_NOTICE, "Could not get action info. id[%s]", id);
+    slog(LOG_NOTICE, "Could not get action info. id[%s]", action_id);
     return;
   }
 
   type = json_string_value(json_object_get(j_action, "type"));
   if(type == NULL) {
-    slog(LOG_ERR, "Could not get action type info. id[%s]", id);
+    slog(LOG_ERR, "Could not get action type info. id[%s]", action_id);
     json_decref(j_action);
     return;
   }
 
+  // action response parse
   if(strcasecmp(type, "command.databaseshowall") == 0) {
-    ami_response_handler_databaseshowall(j_msg);
+    res_action = ami_response_handler_databaseshowall(j_action, j_msg);
   }
   else if(strcasecmp(type, "ob.originate") == 0) {
-    ob_ami_response_handler_originate(j_msg);
+    res_action = ob_ami_response_handler_originate(j_action, j_msg);
   }
-
+  else if(strcasecmp(type, "ob.status") == 0) {
+    res_action = ob_ami_response_handler_status(j_action, j_msg);
+  }
+  else {
+    slog(LOG_ERR, "Could not find correct action response handler. action_id[%s], type[%s]", action_id, type);
+    res_action = ACTION_RES_ERROR;
+  }
   json_decref(j_action);
 
+  if(res_action == ACTION_RES_CONTINUE) {
+    slog(LOG_DEBUG, "The action response is not finished. Waiting for next event. action_id[%s]", action_id);
+    // continue
+    return;
+  }
+  slog(LOG_DEBUG, "The action response if finished. action_id[%s], res[%d]", action_id, res_action);
+
+  // delete action
+  delete_action(action_id);
   return;
 }
 
-void ami_response_handler_databaseshowall(json_t* j_msg)
+static ACTION_RES ami_response_handler_databaseshowall(json_t* j_action, json_t* j_msg)
 {
   char* tmp;
   const char* tmp_const;
@@ -266,7 +290,7 @@ void ami_response_handler_databaseshowall(json_t* j_msg)
 
   if(j_msg == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
-    return;
+    return ACTION_RES_ERROR;
   }
   slog(LOG_DEBUG, "Fired ami_response_handler_databaseshow.");
 
@@ -276,7 +300,7 @@ void ami_response_handler_databaseshowall(json_t* j_msg)
   sfree(sql);
   if(ret == false) {
     slog(LOG_ERR, "Could not clean up the database.");
-    return;
+    return ACTION_RES_ERROR;
   }
 
   tmp = json_dumps(j_msg, JSON_ENCODE_ANY);
@@ -312,6 +336,8 @@ void ami_response_handler_databaseshowall(json_t* j_msg)
 
     sfree(dump);
   }
+
+  return ACTION_RES_COMPLETE;
 }
 
 /**
@@ -1795,11 +1821,6 @@ static void ami_event_dialend(json_t* j_msg)
 static void ami_event_originateresponse(json_t* j_msg)
 {
   char* tmp;
-  const char* uuid;
-  const char* channel;
-  const char* tmp_const;
-  int res_dial;
-  int success;
 
   if(j_msg == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -1811,34 +1832,6 @@ static void ami_event_originateresponse(json_t* j_msg)
   tmp = json_dumps(j_msg, JSON_ENCODE_ANY);
   slog(LOG_DEBUG, "Event message. msg[%s]", tmp);
   sfree(tmp);
-
-  // get uuid
-  uuid = json_string_value(json_object_get(j_msg, "Uniqueid"));
-
-  // get channel
-  channel = json_string_value(json_object_get(j_msg, "Channel"));
-
-  // get res_dial
-  tmp_const = json_string_value(json_object_get(j_msg, "Response"));
-  if(tmp_const == NULL) {
-    slog(LOG_ERR, "Could not get originate response.");
-    return;
-  }
-  success = true;
-  if(strcasecmp(tmp_const, "Failure") == 0) {
-    success = false;
-  }
-
-  // get reason
-  tmp_const = json_string_value(json_object_get(j_msg, "Reason"));
-  if(tmp_const == NULL) {
-    slog(LOG_ERR, "Could not get originate response reason code.");
-    return;
-  }
-  res_dial = atoi(tmp_const);
-
-  // update ob_dialing
-  update_ob_dialing_res_dial(uuid, success, res_dial, channel);
 
   return;
 }

@@ -52,18 +52,13 @@ static void cb_check_dialing_originateresponsefailed(__attribute__((unused)) int
 static void cb_check_campaign_end(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg);
 static void cb_check_campaign_schedule_start(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg);
 static void cb_check_campaign_schedule_end(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg);
-//static void cb_campaign_schedule_stopping(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg);
-
-//static json_t* get_queue_info(const char* uuid);
+static void cb_check_dialing_refresh(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg);
 
 static void dial_desktop(const json_t* j_camp, const json_t* j_plan, const json_t* j_dlma);
 static void dial_power(const json_t* j_camp, const json_t* j_plan, const json_t* j_dlma);
 static void dial_predictive(json_t* j_camp, json_t* j_plan, json_t* j_dlma, json_t* j_dest);
 static void dial_robo(const json_t* j_camp, const json_t* j_plan, const json_t* j_dlma);
 static void dial_redirect(const json_t* j_camp, const json_t* j_plan, const json_t* j_dlma);
-
-//json_t* get_queue_summary(const char* name);
-//json_t* get_queue_param(const char* name);
 
 static bool write_result_json(json_t* j_res);
 
@@ -142,11 +137,9 @@ static bool init_ob_event_handler(void)
   ev = event_new(g_base, -1, EV_TIMEOUT | EV_PERSIST, cb_check_campaign_schedule_end, NULL);
   event_add(ev, &tm_slow);
 
-//  // check campaign scheduling for stop
-//  ev = event_new(g_base, -1, EV_TIMEOUT | EV_PERSIST, cb_campaign_schedule_stopping, NULL);
-//  event_add(ev, &tm_slow);
-
-//  event_base_loop(g_base, 0);
+  // refresh dialing
+  ev = event_new(g_base, -1, EV_TIMEOUT | EV_PERSIST, cb_check_dialing_refresh, NULL);
+  event_add(ev, &tm_slow);
 
   return true;
 }
@@ -1060,7 +1053,62 @@ static void cb_check_campaign_schedule_end(__attribute__((unused)) int fd, __att
   json_decref(j_camps);
 }
 
+/**
+ * Check invalid dialing.
+ * \param fd
+ * \param event
+ * \param arg
+ */
+static void cb_check_dialing_refresh(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg)
+{
+  unsigned int idx;
+  json_t* j_dialings;
+  json_t* j_dialing;
+  json_t* j_action;
+  char* action_id;
+  int ret;
 
+  // get all dialings
+  j_dialings = get_ob_dialings_all();
+  if(j_dialings == NULL) {
+    return;
+  }
+  slog(LOG_DEBUG, "Fired cb_check_dialing_refresh.");
+
+  json_array_foreach(j_dialings, idx, j_dialing) {
+
+    // create action
+    action_id = gen_uuid();
+    j_action = json_pack("{s:s, s:s, s:s}",
+        "Action",   "Status",
+        "Channel",  json_string_value(json_object_get(j_dialing, "channel")),
+        "ActionID", action_id
+        );
+
+    char* tmp = json_dumps(j_action, JSON_ENCODE_ANY);
+    slog(LOG_DEBUG, "Check value. tmp[%s]", tmp);
+    sfree(tmp);
+
+    ret = send_ami_cmd(j_action);
+    json_decref(j_action);
+    if(ret == false) {
+      sfree(action_id);
+      slog(LOG_ERR, "Could not send dialing status request. uuid[%s], channel[%s]",
+          json_string_value(json_object_get(j_dialing, "uuid")),
+          json_string_value(json_object_get(j_dialing, "channel"))
+          );
+      continue;
+    }
+
+    insert_action(action_id, "ob.status");
+    sfree(action_id);
+  }
+
+  json_decref(j_dialings);
+
+  return;
+
+}
 
 /**
  *
@@ -1155,16 +1203,6 @@ static void dial_predictive(json_t* j_camp, json_t* j_plan, json_t* j_dlma, json
     return;
   }
 
-  // update dl list using dialing info
-  ret = update_dl_list_after_create_dialing_info(j_dialing);
-  if(ret == false) {
-    json_decref(j_dialing);
-    clear_dl_list_dialing(json_string_value(json_object_get(j_dialing, "uuid_dl_list")));
-    slog(LOG_ERR, "Could not update dial list info.");
-    return;
-  }
-  slog(LOG_DEBUG, "Updated ob_dl after creating dialing info.");
-
   // dial to customer
   dial_type = json_integer_value(json_object_get(j_dialing, "dial_type"));
   switch(dial_type) {
@@ -1184,12 +1222,26 @@ static void dial_predictive(json_t* j_camp, json_t* j_plan, json_t* j_dlma, json
     }
     break;
   }
-  slog(LOG_DEBUG, "Break point.");
-
+  slog(LOG_DEBUG, "Originated to client. ret[%d", ret);
   if(ret == false) {
     slog(LOG_WARNING, "Originating has been failed.");
+    json_decref(j_dialing);
+    return;
+  }
+
+  // update dl list using dialing info
+  ret = update_dl_list_after_create_dialing_info(j_dialing);
+  if(ret == false) {
+    json_decref(j_dialing);
     clear_dl_list_dialing(json_string_value(json_object_get(j_dialing, "uuid_dl_list")));
-    update_ob_dialing_status(json_string_value(json_object_get(j_dialing, "uuid")), E_DIALING_ORIGINATE_REQUEST_FAILED);
+    slog(LOG_ERR, "Could not update dial list info.");
+    return;
+  }
+  slog(LOG_DEBUG, "Updated ob_dl after creating dialing info.");
+
+  ret = insert_ob_dialing(j_dialing);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert dialing info.");
     json_decref(j_dialing);
     return;
   }

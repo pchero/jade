@@ -487,17 +487,17 @@ static int get_avail_cnt_app_queue_service_perf(const char* name)
   }
 
   j_res = db_get_record(db_res);
+  db_free(db_res);
   if(j_res == NULL) {
     slog(LOG_ERR, "Could not get correct queue performance info. queue_name[%s]", name);
     return 0;
   }
-  db_free(db_res);
 
   // get service level performance
   service_perf = json_real_value(json_object_get(j_res, "service_level_perf"));
   json_decref(j_res);
   if(service_perf == 0) {
-    service_perf = 100.0;
+    service_perf = 1;
   }
 
   // convert type. we need only the integer here.
@@ -524,8 +524,10 @@ static int get_avail_cnt_app_queue(const char* name)
   // get available
   avail = get_avail_cnt_app_queue_available_member(name);
 
-  ret = avail * perf / 100;
-  slog(LOG_DEBUG, "Application queue available count. name[%s], available[%d], performance[%d]", name, avail, perf);
+  ret = avail + (avail * perf / 100);
+  slog(LOG_DEBUG, "Application queue available count. name[%s], available[%d], performance[%d], ret[%d]",
+      name, avail, perf, ret
+      );
 
   return ret;
 }

@@ -240,14 +240,6 @@ json_t* update_ob_dl(json_t* j_dl)
     return NULL;
   }
 
-  // validate data
-  ret = validate_ob_dl(j_dl);
-  if(ret == false) {
-    json_decref(j_tmp);
-    slog(LOG_WARNING, "Could not pass the ob_dl validate.");
-    return NULL;
-  }
-
   tmp_const = json_string_value(json_object_get(j_tmp, "uuid"));
   if(tmp_const == NULL) {
     slog(LOG_WARNING, "Could not get uuid info.");
