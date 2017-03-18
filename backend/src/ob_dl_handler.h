@@ -69,7 +69,14 @@ void clear_dl_list_dialing(const char* uuid);
 json_t* create_dial_info(json_t* j_plan, json_t* j_dl_list, json_t* j_dest);
 json_t* create_json_for_dl_result(json_t* j_dialing);
 
-bool update_dl_list_after_create_dialing_info(json_t* dialing);
+bool update_ob_dl_after_create_dialing_info(json_t* dialing);
+bool update_ob_dl_hangup(
+    const char* uuid,
+    int res_dial,
+    const char* res_dial_detail,
+    int res_hangup,
+    const char* res_hangup_detail
+    );
 
 bool is_exist_ob_dlma(const char* uuid);
 bool is_exist_ob_dl(const char* uuid);

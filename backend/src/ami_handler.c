@@ -232,14 +232,14 @@ bool send_ami_cmd(json_t* j_cmd)
 
   // just for log
   if(j_cmd == NULL) {
-    return NULL;
+    return false;
   }
 
   // Get action
   j_val = json_object_get(j_cmd, "Action");
   if(j_val == NULL) {
     slog(LOG_ERR, " not get the action.");
-    return NULL;
+    return false;
   }
 
   asprintf(&cmd, "Action: %s\r\n", json_string_value(j_val));
@@ -584,6 +584,10 @@ static bool ami_connect(void)
     slog(LOG_ERR, "Could not login.");
     return false;
   }
+
+  // bad idea
+  // but after login to asterisk, we need to wait for second before sending a command.
+  sleep(1);
 
   // send get all initial ami request
   ret = ami_get_init_info();

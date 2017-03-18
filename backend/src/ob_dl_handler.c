@@ -198,20 +198,24 @@ static bool check_more_dl_list(json_t* j_dlma, json_t* j_plan)
 void clear_dl_list_dialing(const char* uuid)
 {
   json_t* j_tmp;
+  json_t* j_res;
 
   if(uuid == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
+  slog(LOG_DEBUG, "Fired clear_dl_list_dialing. uuid[%s]", uuid);
 
-  j_tmp = json_pack("{s:i, s:s, s:O, s:O, s:O}",
+  j_tmp = json_pack("{s:i, s:s, s:o, s:o, s:o}",
       "status",             E_DL_IDLE,
       "uuid",               uuid,
       "dialing_uuid",       json_null(),
       "dialing_camp_uuid",  json_null(),
       "dialing_plan_uuid",  json_null()
       );
-  update_ob_dl(j_tmp);
+  j_res = update_ob_dl(j_tmp);
   json_decref(j_tmp);
+  json_decref(j_res);
 
   return;
 }
@@ -237,14 +241,6 @@ json_t* update_ob_dl(json_t* j_dl)
 
   j_tmp = json_deep_copy(j_dl);
   if(j_tmp == NULL) {
-    return NULL;
-  }
-
-  // validate data
-  ret = validate_ob_dl(j_dl);
-  if(ret == false) {
-    json_decref(j_tmp);
-    slog(LOG_WARNING, "Could not pass the ob_dl validate.");
     return NULL;
   }
 
@@ -659,7 +655,6 @@ json_t* get_ob_dlma(const char* uuid)
     slog(LOG_WARNING, "Invalid input parameters.");
     return NULL;
   }
-  slog(LOG_DEBUG, "Fired get_ob_dlma.");
 
   asprintf(&sql, "select * from ob_dl_list_ma where uuid=\"%s\" and in_use=%d;", uuid, E_DL_USE_OK);
 
@@ -1285,6 +1280,10 @@ json_t* create_json_for_dl_result(json_t* j_dialing)
   json_t* j_res;
   const char* tmp_const;
 
+  if(j_dialing == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
 
   j_res = json_deep_copy(j_dialing);
 
@@ -1710,7 +1709,7 @@ static json_t* get_dl_available(json_t* j_dlma, json_t* j_plan)
   return j_res;
 }
 
-bool update_dl_list_after_create_dialing_info(json_t* j_dialing)
+bool update_ob_dl_after_create_dialing_info(json_t* j_dialing)
 {
   char* timestamp;
   const char* tmp_const;
@@ -1976,3 +1975,60 @@ static json_t* get_deleted_ob_dl(const char* uuid)
 
   return j_res;
 }
+
+bool update_ob_dl_hangup(
+    const char* uuid,
+    int res_dial,
+    const char* res_dial_detail,
+    int res_hangup,
+    const char* res_hangup_detail
+    )
+{
+  char* timestamp;
+  json_t* j_update;
+  json_t* j_res;
+
+  if(uuid == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired update_ob_dl_hangup. uuid[%s], res_dial[%d], res_dial_detail[%s], res_hangup[%d], res_hangup_detail[%s]",
+      uuid, res_dial, res_dial_detail? : "", res_hangup, res_hangup_detail? : ""
+      );
+
+  // create dl_list for update
+  timestamp = get_utc_timestamp();
+  j_update = json_pack("{"
+      "s:s, s:i, "
+      "s:o, s:o, s:o, "
+      "s:i, s:s, s:i, s:s, "
+      "s:s"
+      "}",
+      "uuid",               uuid,
+      "status",             E_DL_IDLE,
+
+      "dialing_uuid",       json_null(),
+      "dialing_camp_uuid",  json_null(),
+      "dialing_plan_uuid",  json_null(),
+
+      "res_dial",           res_dial,
+      "res_dial_detail",    res_dial_detail? : "",
+      "res_hangup",         res_hangup,
+      "res_hangup_detail",  res_hangup_detail? : "",
+
+      "tm_last_hangup",     timestamp
+      );
+  sfree(timestamp);
+  if(j_update == NULL) {
+    slog(LOG_ERR, "Could not create update dl_list.");
+    return false;
+  }
+
+  j_res = update_ob_dl(j_update);
+  json_decref(j_update);
+  json_decref(j_res);
+
+  return true;
+}
+
+

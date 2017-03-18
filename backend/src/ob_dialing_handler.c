@@ -23,6 +23,10 @@
 #include "ob_event_handler.h"
 #include "ob_dl_handler.h"
 
+extern app* g_app;
+
+
+#define DEF_MIN_DIALING_UPDATE_TIMEOUT  20  // minimum dialing tm_update timeout
 
 typedef struct _map_res_dial {
   int res_dial;
@@ -132,6 +136,7 @@ json_t* create_ob_dialing(
     slog(LOG_WARNING, "Wrong input parameter.");
     return NULL;
   }
+  slog(LOG_DEBUG, "Fired create_ob_dialing. uuid[%s]", dialing_uuid);
 
   j_dialing = json_object();
 
@@ -253,7 +258,6 @@ json_t* create_ob_dialing(
   json_object_set_new(j_dialing, "tm_create", json_string(tmp));
   sfree(tmp);
 
-  // insert data
   slog(LOG_DEBUG, "Check value. dial_channel[%s], dial_addr[%s], dial_index[%lld], dial_trycnt[%lld], dial_timeout[%lld], dial_type[%lld], dial_exten[%s], dial_application[%s]",
       json_string_value(json_object_get(j_dial, "dial_channel"))? : "",
       json_string_value(json_object_get(j_dial, "dial_addr"))? : "",
@@ -264,14 +268,53 @@ json_t* create_ob_dialing(
       json_string_value(json_object_get(j_dial, "dial_exten"))? : "",
       json_string_value(json_object_get(j_dial, "dial_application"))? : ""
       );
-  ret = db_insert("ob_dialing", j_dialing);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create ob_dialing info.");
-    json_decref(j_dialing);
-    return NULL;
-  }
 
   return j_dialing;
+}
+
+bool update_ob_dialing_timestamp(const char* uuid)
+{
+  int ret;
+  json_t* j_tmp;
+  char* timestamp;
+  char* tmp;
+  char* sql;
+
+  if(uuid == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  ret = is_exist_ob_dialing(uuid);
+  if(ret == false) {
+    // non exist
+    // already deleted dialing or wrong dialing uuid
+    return false;
+  }
+
+  timestamp = get_utc_timestamp();
+  j_tmp = json_pack("{s:s}",
+      "tm_update",  timestamp
+      );
+  sfree(timestamp);
+
+  tmp = db_get_update_str(j_tmp);
+  json_decref(j_tmp);
+  if(tmp == NULL) {
+    slog(LOG_ERR, "Could not create update sql.");
+    return false;
+  }
+  asprintf(&sql, "update ob_dialing set %s where uuid=\"%s\";", tmp, uuid);
+  sfree(tmp);
+
+  ret = db_exec(sql);
+  sfree(sql);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update ob_dialing status. uuid[%s]", uuid);
+    return false;
+  }
+
+  return true;
 }
 
 /**
@@ -298,7 +341,25 @@ bool delete_ob_dialing(const char* uuid)
   }
 
   return true;
+}
 
+bool insert_ob_dialing(json_t* j_dialing)
+{
+  int ret;
+
+  if(j_dialing == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  // insert data
+  ret = db_insert("ob_dialing", j_dialing);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create ob_dialing info.");
+    return false;
+  }
+
+  return true;
 }
 
 void rb_dialing_destory(rb_dialing* dialing)
@@ -663,7 +724,7 @@ bool update_ob_dialing_res_dial(const char* uuid, bool success, int res_dial, co
     ret = update_ob_dialing_status(uuid, E_DIALING_ORIGINATE_RESPONSED);
   }
   else {
-    ret = update_ob_dialing_status(uuid, E_DIALING_ORIGINATE_RESPONSE_FAILED);
+    ret = update_ob_dialing_status(uuid, E_DIALING_ERROR_ORIGINATE_RESPONSE_FAILED);
   }
   if(ret == false) {
     slog(LOG_ERR, "Could not update ob_dialing status info.");
@@ -888,6 +949,154 @@ json_t* get_ob_dialing(const char* uuid)
 
   return j_res;
 }
+
+/**
+ * Get timeout dialings info.
+ * @param action_id
+ * @return
+ */
+json_t* get_ob_dialings_timeout(void)
+{
+  char* sql;
+  db_res_t* db_res;
+  json_t* j_res;
+  json_t* j_tmp;
+  int timeout;
+
+  timeout = json_integer_value(json_object_get(json_object_get(g_app->j_conf, "ob"), "dialing_timeout"));
+  if(timeout < DEF_MIN_DIALING_UPDATE_TIMEOUT) {
+    timeout = DEF_MIN_DIALING_UPDATE_TIMEOUT;
+  }
+
+  asprintf(&sql, "select * from ob_dialing where"
+      " (strftime('%%s', tm_update) + 0) < (strftime('%%s', 'now') - %d);",
+      timeout
+      );
+
+  db_res = db_query(sql);
+  sfree(sql);
+  if(db_res == NULL) {
+    slog(LOG_ERR, "Could not get correct ob_dialing record info.");
+    return NULL;
+  }
+
+  j_res = json_array();
+  while(1) {
+    j_tmp = db_get_record(db_res);
+    if(j_tmp == NULL) {
+      break;
+    }
+    json_array_append_new(j_res, j_tmp);
+  }
+  db_free(db_res);
+
+  return j_res;
+}
+
+/**
+ * Get timeout dialings info.
+ * @param action_id
+ * @return
+ */
+json_t* get_ob_dialings_error(void)
+{
+  char* sql;
+  db_res_t* db_res;
+  json_t* j_res;
+  json_t* j_tmp;
+
+  asprintf(&sql, "select * from ob_dialing where status > %d;", E_DIALING_ERROR_UNKNOWN);
+
+  db_res = db_query(sql);
+  sfree(sql);
+  if(db_res == NULL) {
+    slog(LOG_ERR, "Could not get correct ob_dialing record info.");
+    return NULL;
+  }
+
+  j_res = json_array();
+  while(1) {
+    j_tmp = db_get_record(db_res);
+    if(j_tmp == NULL) {
+      break;
+    }
+    json_array_append_new(j_res, j_tmp);
+  }
+  db_free(db_res);
+
+  return j_res;
+}
+
+/**
+ * Get hungup dialings info.
+ * @param action_id
+ * @return
+ */
+json_t* get_ob_dialings_hangup(void)
+{
+  char* sql;
+  db_res_t* db_res;
+  json_t* j_res;
+  json_t* j_tmp;
+
+  asprintf(&sql, "select * from ob_dialing where status=%d;", E_DIALING_HANGUP);
+
+  db_res = db_query(sql);
+  sfree(sql);
+  if(db_res == NULL) {
+    slog(LOG_ERR, "Could not get correct ob_dialing record info.");
+    return NULL;
+  }
+
+  j_res = json_array();
+  while(1) {
+    j_tmp = db_get_record(db_res);
+    if(j_tmp == NULL) {
+      break;
+    }
+    json_array_append_new(j_res, j_tmp);
+  }
+  db_free(db_res);
+
+  return j_res;
+}
+
+/**
+ * Get all dialings info.
+ * @param action_id
+ * @return
+ */
+json_t* get_ob_dialings_all(void)
+{
+  char* sql;
+  db_res_t* db_res;
+  json_t* j_res;
+  json_t* j_tmp;
+
+  slog(LOG_DEBUG, "Fired get_ob_dialings_all.");
+
+  asprintf(&sql, "select * from ob_dialing;");
+
+  db_res = db_query(sql);
+  sfree(sql);
+  if(db_res == NULL) {
+    slog(LOG_ERR, "Could not get correct ob_dialing record info.");
+    return NULL;
+  }
+
+  j_res = json_array();
+  while(1) {
+    j_tmp = db_get_record(db_res);
+    if(j_tmp == NULL) {
+      break;
+    }
+    json_array_append_new(j_res, j_tmp);
+  }
+  db_free(db_res);
+
+  return j_res;
+}
+
 
 /**
  * Return existence of given ob_dialing uuid.
