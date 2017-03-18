@@ -23,6 +23,10 @@
 #include "ob_event_handler.h"
 #include "ob_dl_handler.h"
 
+extern app* g_app;
+
+
+#define DEF_MIN_DIALING_UPDATE_TIMEOUT  20  // minimum dialing tm_update timeout
 
 typedef struct _map_res_dial {
   int res_dial;
@@ -720,7 +724,7 @@ bool update_ob_dialing_res_dial(const char* uuid, bool success, int res_dial, co
     ret = update_ob_dialing_status(uuid, E_DIALING_ORIGINATE_RESPONSED);
   }
   else {
-    ret = update_ob_dialing_status(uuid, E_DIALING_ORIGINATE_RESPONSE_FAILED);
+    ret = update_ob_dialing_status(uuid, E_DIALING_ERROR_ORIGINATE_RESPONSE_FAILED);
   }
   if(ret == false) {
     slog(LOG_ERR, "Could not update ob_dialing status info.");
@@ -942,6 +946,117 @@ json_t* get_ob_dialing(const char* uuid)
     slog(LOG_ERR, "Could not get correct dialing info by uuid. uuid[%s]", uuid);
     return NULL;
   }
+
+  return j_res;
+}
+
+/**
+ * Get timeout dialings info.
+ * @param action_id
+ * @return
+ */
+json_t* get_ob_dialings_timeout(void)
+{
+  char* sql;
+  db_res_t* db_res;
+  json_t* j_res;
+  json_t* j_tmp;
+  int timeout;
+
+  timeout = json_integer_value(json_object_get(json_object_get(g_app->j_conf, "ob"), "dialing_timeout"));
+  if(timeout < DEF_MIN_DIALING_UPDATE_TIMEOUT) {
+    timeout = DEF_MIN_DIALING_UPDATE_TIMEOUT;
+  }
+
+  asprintf(&sql, "select * from ob_dialing where"
+      " (strftime('%%s', tm_update) + 0) < (strftime('%%s', 'now') - %d);",
+      timeout
+      );
+
+  db_res = db_query(sql);
+  sfree(sql);
+  if(db_res == NULL) {
+    slog(LOG_ERR, "Could not get correct ob_dialing record info.");
+    return NULL;
+  }
+
+  j_res = json_array();
+  while(1) {
+    j_tmp = db_get_record(db_res);
+    if(j_tmp == NULL) {
+      break;
+    }
+    json_array_append_new(j_res, j_tmp);
+  }
+  db_free(db_res);
+
+  return j_res;
+}
+
+/**
+ * Get timeout dialings info.
+ * @param action_id
+ * @return
+ */
+json_t* get_ob_dialings_error(void)
+{
+  char* sql;
+  db_res_t* db_res;
+  json_t* j_res;
+  json_t* j_tmp;
+
+  asprintf(&sql, "select * from ob_dialing where status > %d;", E_DIALING_ERROR_UNKNOWN);
+
+  db_res = db_query(sql);
+  sfree(sql);
+  if(db_res == NULL) {
+    slog(LOG_ERR, "Could not get correct ob_dialing record info.");
+    return NULL;
+  }
+
+  j_res = json_array();
+  while(1) {
+    j_tmp = db_get_record(db_res);
+    if(j_tmp == NULL) {
+      break;
+    }
+    json_array_append_new(j_res, j_tmp);
+  }
+  db_free(db_res);
+
+  return j_res;
+}
+
+/**
+ * Get hungup dialings info.
+ * @param action_id
+ * @return
+ */
+json_t* get_ob_dialings_hangup(void)
+{
+  char* sql;
+  db_res_t* db_res;
+  json_t* j_res;
+  json_t* j_tmp;
+
+  asprintf(&sql, "select * from ob_dialing where status=%d;", E_DIALING_HANGUP);
+
+  db_res = db_query(sql);
+  sfree(sql);
+  if(db_res == NULL) {
+    slog(LOG_ERR, "Could not get correct ob_dialing record info.");
+    return NULL;
+  }
+
+  j_res = json_array();
+  while(1) {
+    j_tmp = db_get_record(db_res);
+    if(j_tmp == NULL) {
+      break;
+    }
+    json_array_append_new(j_res, j_tmp);
+  }
+  db_free(db_res);
 
   return j_res;
 }

@@ -80,7 +80,7 @@ ACTION_RES ob_ami_response_handler_originate(json_t* j_action, json_t* j_msg)
       slog(LOG_INFO, "Could not success ob dialing. message[%s]",
           json_string_value(json_object_get(j_msg, "Message"))
           );
-      update_ob_dialing_status(json_string_value(json_object_get(j_dialing, "uuid")), E_DIALING_ORIGINATE_QUEUED_FAILED);
+      update_ob_dialing_status(json_string_value(json_object_get(j_dialing, "uuid")), E_DIALING_ERROR_ORIGINATE_QUEUED_FAILED);
       json_decref(j_dialing);
       return ACTION_RES_COMPLETE;
     }

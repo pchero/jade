@@ -137,7 +137,6 @@ json_t* get_ob_destination(const char* uuid)
     slog(LOG_ERR, "Wrong input parameter.");
     return NULL;
   }
-  slog(LOG_DEBUG, "Get ob_destination info. uuid[%s]", uuid);
 
   // get specified destination
   asprintf(&sql, "select * from ob_destination where uuid=\"%s\" and in_use=%d;", uuid, E_DL_USE_OK);
