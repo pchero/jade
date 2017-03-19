@@ -11,23 +11,18 @@
 
 #include "common.h"
 
+#define PROGNAME "jade"
+#define DEF_LOGLEVEL 3
+
 extern app* g_app;
 
-#define PROGNAME "jade"
+bool g_log_initiated = false;
+
 
 bool init_log(void)
 {
-  const char* tmp_const;
-  int level;
-
-  tmp_const = json_string_value(json_object_get(g_app->j_conf, "loglevel"));
-  if(tmp_const == NULL) {
-    return false;
-  }
-
   // set max loglevel
-  level = atoi(tmp_const);
-  setlogmask(LOG_UPTO(level));
+  setlogmask(LOG_UPTO(DEF_LOGLEVEL));
 
   // set log
   openlog (PROGNAME, LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
@@ -35,3 +30,11 @@ bool init_log(void)
 
   return true;
 }
+
+bool update_log_level(int level)
+{
+  setlogmask(LOG_UPTO(level));
+
+  return true;
+}
+

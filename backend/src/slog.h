@@ -22,6 +22,7 @@
 #define LOG_VERBOSE 8
 
 bool init_log(void);
+bool update_log_level(int level);
 
 #define slog(...) syslog(__VA_ARGS__)
 

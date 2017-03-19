@@ -42,20 +42,10 @@ static int db_sqlite3_busy_handler(void *data, int retry);
 bool db_init(void)
 {
 	int ret;
-	json_t* j_db;
-//	json_t* j_res;
-//	char* sql;
-//	db_res_t* db_res;
 	const char* name;
 
-	// get [database]
-	j_db = json_object_get(g_app->j_conf, "database");
-	if(j_db == NULL) {
-		slog(LOG_ERR, "Could not get database configuration.");
-		return false;
-	}
-
-	name = json_string_value(json_object_get(j_db, "name"));
+	// get database name
+	name = json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "database_name"));
 	if(name == NULL) {
 	  slog(LOG_ERR, "Could not get database name.");
 	  return false;

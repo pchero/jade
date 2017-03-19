@@ -41,8 +41,17 @@ static void cb_htp_registries_account(evhtp_request_t *req, void *data);
 
 bool init_http_handler(void)
 {
+  const char* tmp_const;
+  const char* http_addr;
+  int http_port;
+
   g_htp = evhtp_new(g_base, NULL);
-  evhtp_bind_socket(g_htp, "0.0.0.0", 8081, 1024);
+
+  http_addr = json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "http_addr"));
+  tmp_const = json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "http_port"));
+  http_port = atoi(tmp_const);
+
+  evhtp_bind_socket(g_htp, http_addr, http_port, 1024);
 
   // register callback
   evhtp_set_regex_cb(g_htp, "/ping", cb_htp_ping, NULL);

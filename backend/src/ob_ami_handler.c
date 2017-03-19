@@ -57,20 +57,22 @@ ACTION_RES ob_ami_response_handler_originate(json_t* j_action, json_t* j_msg)
     return ACTION_RES_ERROR;
   }
 
-  // get dialing info using action id.
-  j_dialing = get_ob_dialing_by_action_id(action_id);
-  if(j_dialing == NULL) {
-    slog(LOG_ERR, "Could not get ob_dialing info. action_id[%s]", action_id);
-    return ACTION_RES_ERROR;
-  }
-
   // get event
   // if there's no event, consider response message
   event = json_string_value(json_object_get(j_msg, "Event"));
   if(event == NULL) {
+
+    // get dialing info using action id.
+    j_dialing = get_ob_dialing_by_action_id(action_id);
+    if(j_dialing == NULL) {
+      slog(LOG_ERR, "Could not get ob_dialing info. action_id[%s]", action_id);
+      return ACTION_RES_ERROR;
+    }
+
     // get response
     response = json_string_value(json_object_get(j_msg, "Response"));
     if(response == NULL) {
+      json_decref(j_dialing);
       return ACTION_RES_ERROR;
     }
 
@@ -127,29 +129,6 @@ ACTION_RES ob_ami_response_handler_originate(json_t* j_action, json_t* j_msg)
   // should not reach to here.
   slog(LOG_ERR, "Something was wrong. Should not reach to here.");
   return ACTION_RES_ERROR;
-
-
-//  // get dialing info using action id.
-//  j_dialing = get_ob_dialing_by_action_id(action_id);
-//  if(j_dialing == NULL) {
-//    slog(LOG_ERR, "Could not get ob_dialing info. action_id[%s]", action_id);
-//    return ACTION_RES_ERROR;
-//  }
-//
-//  if(strcmp(response, "Success") == 0) {
-//    // update dialing status to dialing ok
-//    update_ob_dialing_status(json_string_value(json_object_get(j_dialing, "uuid")), E_DIALING_ORIGINATE_QUEUED);
-//  }
-//  else {
-//    // update dialing status to dialing failed
-//    update_ob_dialing_status(json_string_value(json_object_get(j_dialing, "uuid")), E_DIALING_ORIGINATE_QUEUED_FAILED);
-//    slog(LOG_INFO, "Could not outbound dialing. message[%s]",
-//        json_string_value(json_object_get(j_msg, "Message"))
-//        );
-//  }
-//  json_decref(j_dialing);
-//
-//  return ACTION_RES_COMPLETE;
 }
 
 /**

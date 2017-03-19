@@ -1130,7 +1130,6 @@ static int check_dial_avaiable_predictive(
 static bool write_result_json(json_t* j_res)
 {
   FILE* fp;
-  json_t* j_general;
   const char* filename;
   char* tmp;
 
@@ -1140,8 +1139,7 @@ static bool write_result_json(json_t* j_res)
   }
 
   // open json file
-  j_general = json_object_get(g_app->j_conf, "general");
-  filename = json_string_value(json_object_get(j_general, "result_filename"));
+  filename = json_string_value(json_object_get(json_object_get(g_app->j_conf, "ob"), "dialing_result_filename"));
   if(filename == NULL) {
     slog(LOG_ERR, "Could not get option value. option[%s]", "result_filename");
     return false;
