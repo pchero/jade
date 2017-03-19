@@ -1972,9 +1972,10 @@ static void ami_event_registryentry(json_t* j_msg)
   slog(LOG_DEBUG, "Fired ami_event_registryentry.");
 
   // create db data
-  asprintf(&account, "%s@%s",
+  asprintf(&account, "%s@%s:%d",
       json_string_value(json_object_get(j_msg, "Username"))? : "",
-      json_string_value(json_object_get(j_msg, "Host"))? : ""
+      json_string_value(json_object_get(j_msg, "Host"))? : "",
+      json_string_value(json_object_get(j_msg, "Port"))? atoi(json_string_value(json_object_get(j_msg, "Port"))) : 0
       );
   timestamp = get_utc_timestamp();
   j_tmp = json_pack("{"
