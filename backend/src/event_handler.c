@@ -18,6 +18,7 @@
 #include "slog.h"
 #include "event_handler.h"
 #include "ami_handler.h"
+#include "config.h"
 
 #define DEF_PID_FILEPATH "/var/run/jade_backend.pid"
 #define DEF_PID_TIMEOUT_SEC 5
@@ -28,6 +29,7 @@ extern struct event_base*  g_base;
 static void cb_signal_term(int sock, short which, void* arg);
 static void cb_signal_int(evutil_socket_t sig, short events, void *user_data);
 static void cb_signal_pipe(evutil_socket_t sig, short events, void *user_data);
+static void cb_signal_hup(evutil_socket_t sig, short events, void *user_data);
 
 static void cb_pid_update(int sock, short which, void* arg);
 
@@ -40,8 +42,7 @@ bool init_event_handler(void)
   struct timeval tv;
   int ret;
 
-  // add signal handler
-
+  //// add signal handler
   // sigterm
   ev = evsignal_new(g_base, SIGTERM, cb_signal_term, NULL);
   if(ev == NULL) {
@@ -75,6 +76,18 @@ bool init_event_handler(void)
   ret = event_add(ev, NULL);
   if(ret != 0) {
     slog(LOG_ERR, "Could not add the signal handler. signal[%s]", "SIGPIPE");
+    return false;
+  }
+
+  // sighup
+  ev = evsignal_new(g_base, SIGHUP, cb_signal_hup, NULL);
+  if(ev == NULL) {
+    slog(LOG_ERR, "Could not create event for the signal handler. signal[%s]", "SIGHUP");
+    return false;
+  }
+  ret = event_add(ev, NULL);
+  if(ret != 0) {
+    slog(LOG_ERR, "Could not add the signal handler. signal[%s]", "SIGHUP");
     return false;
   }
 
@@ -134,6 +147,28 @@ static void cb_signal_pipe(evutil_socket_t sig, short events, void *user_data)
 
   return;
 }
+
+/**
+ * Signal handler.
+ * signal: sig_hup
+ * @param sock
+ * @param which
+ * @param arg
+ */
+static void cb_signal_hup(evutil_socket_t sig, short events, void *user_data)
+{
+  int ret;
+
+  slog(LOG_INFO, "Fired cb_signal_hup.");
+
+  ret = init_config();
+  if(ret == false) {
+    slog(LOG_DEBUG, "Could not update configration file.");
+  }
+
+  return;
+}
+
 
 
 static void cb_pid_update(int sock, short which, void* arg)
