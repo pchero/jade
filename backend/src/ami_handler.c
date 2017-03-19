@@ -544,8 +544,8 @@ static bool ami_login(void)
   }
   slog(LOG_DEBUG, "Fired ami_login");
 
-  username = json_string_value(json_object_get(g_app->j_conf, "username"));
-  password = json_string_value(json_object_get(g_app->j_conf, "password"));
+  username = json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "ami_username"));
+  password = json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "ami_password"));
 
   asprintf(&cmd, "Action: Login\r\nUsername: %s\r\nSecret: %s\r\n\r\n", username, password);
 
@@ -608,8 +608,8 @@ static bool init_ami_connect(void)
   int ret;
   int flag;
 
-  serv_addr = json_string_value(json_object_get(g_app->j_conf, "serv_addr"));
-  serv_port = json_string_value(json_object_get(g_app->j_conf, "serv_port"));
+  serv_addr = json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "ami_serv_addr"));
+  serv_port = json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "ami_serv_port"));
   if((serv_addr == NULL) || (serv_port == NULL)) {
     return false;
   }
