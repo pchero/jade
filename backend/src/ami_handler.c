@@ -325,7 +325,6 @@ static bool ami_get_init_info(void)
 {
   json_t* j_tmp;
   int ret;
-  char* action_id;
 
   // sip peers
   j_tmp = json_pack("{s:s}",
@@ -349,22 +348,22 @@ static bool ami_get_init_info(void)
     return false;
   }
 
-  // database
-  action_id = gen_uuid();
-  j_tmp = json_pack("{s:s, s:s, s:s}",
-      "Action",   "Command",
-      "Command",  "database show",
-      "ActionID", action_id
-      );
-  sfree(action_id);
-  ret = send_ami_cmd(j_tmp);
-  if(ret == false) {
-    json_decref(j_tmp);
-    slog(LOG_ERR, "Could not send ami action. action[%s]", "Command");
-    return false;
-  }
-  insert_action(json_string_value(json_object_get(j_tmp, "ActionID")), "command.databaseshowall");
-  json_decref(j_tmp);
+//  // database
+//  action_id = gen_uuid();
+//  j_tmp = json_pack("{s:s, s:s, s:s}",
+//      "Action",   "Command",
+//      "Command",  "database show",
+//      "ActionID", action_id
+//      );
+//  sfree(action_id);
+//  ret = send_ami_cmd(j_tmp);
+//  if(ret == false) {
+//    json_decref(j_tmp);
+//    slog(LOG_ERR, "Could not send ami action. action[%s]", "Command");
+//    return false;
+//  }
+//  insert_action(json_string_value(json_object_get(j_tmp, "ActionID")), "command.databaseshowall");
+//  json_decref(j_tmp);
 
   // registry
   j_tmp = json_pack("{s:s}",

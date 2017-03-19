@@ -95,6 +95,8 @@ Method: GET
 -----------
 Get list of all database keys.
 
+.. deprecated:: 
+
 Call
 ++++
 ::
@@ -154,6 +156,8 @@ GET : Get value of input key.
 Method: GET
 -----------
 GET : Get value of input key.
+
+.. deprecated:: 
 
 Call
 ++++

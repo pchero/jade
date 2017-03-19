@@ -58,7 +58,7 @@ static void ami_event_outdllistupdate(json_t* j_msg);
 static void ami_event_outdllistdelete(json_t* j_msg);
 
 // action response handlers
-static ACTION_RES ami_response_handler_databaseshowall(json_t* j_action, json_t* j_msg);
+//static ACTION_RES ami_response_handler_databaseshowall(json_t* j_action, json_t* j_msg);
 
 /**
  * Event message handler
@@ -247,11 +247,11 @@ static void ami_response_handler(json_t* j_msg)
     return;
   }
 
-  // action response parse
-  if(strcasecmp(type, "command.databaseshowall") == 0) {
-    res_action = ami_response_handler_databaseshowall(j_action, j_msg);
-  }
-  else if(strcasecmp(type, "ob.originate") == 0) {
+//  // action response parse
+//  if(strcasecmp(type, "command.databaseshowall") == 0) {
+//    res_action = ami_response_handler_databaseshowall(j_action, j_msg);
+//  }
+  if(strcasecmp(type, "ob.originate") == 0) {
     res_action = ob_ami_response_handler_originate(j_action, j_msg);
   }
   else if(strcasecmp(type, "ob.status") == 0) {
@@ -275,70 +275,70 @@ static void ami_response_handler(json_t* j_msg)
   return;
 }
 
-static ACTION_RES ami_response_handler_databaseshowall(json_t* j_action, json_t* j_msg)
-{
-  char* tmp;
-  const char* tmp_const;
-  int idx;
-  json_t* j_val;
-  json_t* j_tmp;
-  char* value;
-  char* dump;
-  char* key;
-  int ret;
-  char* sql;
-
-  if(j_msg == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return ACTION_RES_ERROR;
-  }
-  slog(LOG_DEBUG, "Fired ami_response_handler_databaseshow.");
-
-  // delete all database info.
-  asprintf(&sql, "delete from database;");
-  ret = db_exec(sql);
-  sfree(sql);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not clean up the database.");
-    return ACTION_RES_ERROR;
-  }
-
-  tmp = json_dumps(j_msg, JSON_ENCODE_ANY);
-  slog(LOG_DEBUG, "received message. msg[%s]", tmp);
-  sfree(tmp);
-
-  // need to parse
-  json_array_foreach(json_object_get(j_msg, "Output"), idx, j_val) {
-    tmp_const = json_string_value(j_val);
-
-    // get key/value
-    value = strdup(tmp_const);
-    dump = value;
-    key = strsep(&value, ":");
-    if((key == NULL) || (value == NULL)) {
-      sfree(dump);
-      continue;
-    }
-    trim(key);
-    trim(value);
-
-    slog(LOG_DEBUG, "Check database key/value. key[%s], value[%s]", key, value);
-    j_tmp = json_pack("{s:s, s:s}",
-        "key",    key,
-        "value",  value
-        );
-
-    ret = db_insert_or_replace("database", j_tmp);
-    json_decref(j_tmp);
-    if(ret == false) {
-      slog(LOG_ERR, "Could not insert/replace the database data. key[%s], value[%s]", key, value);
-    }
-
-    sfree(dump);
-  }
-
-  return ACTION_RES_COMPLETE;
-}
+//static ACTION_RES ami_response_handler_databaseshowall(json_t* j_action, json_t* j_msg)
+//{
+//  char* tmp;
+//  const char* tmp_const;
+//  int idx;
+//  json_t* j_val;
+//  json_t* j_tmp;
+//  char* value;
+//  char* dump;
+//  char* key;
+//  int ret;
+//  char* sql;
+//
+//  if(j_msg == NULL) {
+//    slog(LOG_WARNING, "Wrong input parameter.");
+//    return ACTION_RES_ERROR;
+//  }
+//  slog(LOG_DEBUG, "Fired ami_response_handler_databaseshow.");
+//
+//  // delete all database info.
+//  asprintf(&sql, "delete from database;");
+//  ret = db_exec(sql);
+//  sfree(sql);
+//  if(ret == false) {
+//    slog(LOG_ERR, "Could not clean up the database.");
+//    return ACTION_RES_ERROR;
+//  }
+//
+//  tmp = json_dumps(j_msg, JSON_ENCODE_ANY);
+//  slog(LOG_DEBUG, "received message. msg[%s]", tmp);
+//  sfree(tmp);
+//
+//  // need to parse
+//  json_array_foreach(json_object_get(j_msg, "Output"), idx, j_val) {
+//    tmp_const = json_string_value(j_val);
+//
+//    // get key/value
+//    value = strdup(tmp_const);
+//    dump = value;
+//    key = strsep(&value, ":");
+//    if((key == NULL) || (value == NULL)) {
+//      sfree(dump);
+//      continue;
+//    }
+//    trim(key);
+//    trim(value);
+//
+//    slog(LOG_DEBUG, "Check database key/value. key[%s], value[%s]", key, value);
+//    j_tmp = json_pack("{s:s, s:s}",
+//        "key",    key,
+//        "value",  value
+//        );
+//
+//    ret = db_insert_or_replace("database", j_tmp);
+//    json_decref(j_tmp);
+//    if(ret == false) {
+//      slog(LOG_ERR, "Could not insert/replace the database data. key[%s], value[%s]", key, value);
+//    }
+//
+//    sfree(dump);
+//  }
+//
+//  return ACTION_RES_COMPLETE;
+//}
 
 /**
  * AMI event handler.

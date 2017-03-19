@@ -227,6 +227,9 @@ static void cb_htp_databases(evhtp_request_t *req, void *data)
   json_t* j_res;
   json_t* j_tmp;
 
+  slog(LOG_WARNING, "Deprecated api.");
+  simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
@@ -270,6 +273,9 @@ static void cb_htp_databases_key(evhtp_request_t *req, void *data)
   json_t* j_tmp;
   const char* tmp_const;
   char* tmp;
+
+  slog(LOG_WARNING, "Deprecated api.");
+  simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
