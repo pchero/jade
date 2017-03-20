@@ -24,6 +24,14 @@
 
 extern app* g_app;
 
+#define DEF_DL_STATUS   E_DL_IDLE
+
+static json_t* get_ob_dlma_use(const char* uuid, E_DL_USE use);
+static json_t* get_ob_dl_use(const char* uuid, E_DL_USE use);
+static json_t* get_dls_uuid_available(json_t* j_dlma, json_t* j_plan, int count);
+static json_t* create_ob_dl_default(void);
+static json_t* get_ob_dls_uuid_count(int count);
+
 static json_t* get_deleted_ob_dl(const char* uuid);
 static char* create_chan_addr_for_dial(json_t* j_plan, json_t* j_dl_list, int dial_num_point);
 static char* get_dial_number(json_t* j_dlist, const int cnt);
@@ -32,7 +40,8 @@ static bool create_dlma_view(const char* uuid, const char* view_name);
 static json_t* create_dial_dl_info(json_t* j_dl_list, json_t* j_plan);
 static bool check_more_dl_list(json_t* j_dlma, json_t* j_plan);
 static bool is_over_retry_delay(json_t* j_dlma, json_t* j_dl, json_t* j_plan);
-static json_t* get_dl_available(json_t* j_dlma, json_t* j_plan);
+static json_t* get_ob_dl_available(json_t* j_dlma, json_t* j_plan);
+static json_t* create_ob_dlma_default(void);
 
 
 /*!
@@ -129,7 +138,7 @@ json_t* get_dl_available_predictive(json_t* j_dlma, json_t* j_plan)
   }
 
   // get available dl.
-  j_dl = get_dl_available(j_dlma, j_plan);
+  j_dl = get_ob_dl_available(j_dlma, j_plan);
   if(j_dl == NULL) {
     return NULL;
   }
@@ -150,7 +159,7 @@ static bool check_more_dl_list(json_t* j_dlma, json_t* j_plan)
   db_res_t* db_res;
   char* sql;
 
-  asprintf(&sql, "select * from `%s` where ("
+  asprintf(&sql, "select uuid from `%s` where ("
       "(number_1 is not null and trycnt_1 < %lld)"
       " or (number_2 is not null and trycnt_2 < %lld)"
       " or (number_3 is not null and trycnt_3 < %lld)"
@@ -400,29 +409,30 @@ int get_dial_try_cnt(json_t* j_dl_list, int dial_num_point)
  */
 json_t* get_ob_dlmas_all(void)
 {
-  char* sql;
+  json_t* j_uuids;
+  json_t* j_val;
   json_t* j_res;
   json_t* j_tmp;
-  db_res_t* db_res;
+  unsigned int idx;
+  const char* uuid;
 
-  asprintf(&sql, "select * from ob_dl_list_ma where in_use=%d;", E_DL_USE_OK);
-
-  db_res = db_query(sql);
-  sfree(sql);
-  if(db_res == NULL) {
-    slog(LOG_ERR, "Could not get dl_list_ma info.");
-    return NULL;
-  }
+  j_uuids = get_ob_dlmas_all_uuid();
 
   j_res = json_array();
-  while(1) {
-    j_tmp = db_get_record(db_res);
-    if(j_tmp == NULL) {
-      break;
+  json_array_foreach(j_uuids, idx, j_val) {
+    uuid = json_string_value(j_val);
+    if(uuid == NULL) {
+      continue;
     }
+
+    j_tmp = get_ob_dlma(uuid);
+    if(j_tmp == NULL) {
+      continue;
+    }
+
     json_array_append_new(j_res, j_tmp);
   }
-  db_free(db_res);
+  json_decref(j_uuids);
 
   return j_res;
 }
@@ -440,7 +450,7 @@ json_t* get_ob_dlmas_all_uuid(void)
   json_t* j_res_tmp;
   json_t* j_tmp;
 
-  asprintf(&sql, "select * from ob_dl_list_ma where in_use=%d;", E_DL_USE_OK);
+  asprintf(&sql, "select uuid from ob_dl_list_ma where in_use=%d;", E_DL_USE_OK);
   db_res = db_query(sql);
   sfree(sql);
   if(db_res == NULL) {
@@ -478,7 +488,7 @@ json_t* get_ob_dlmas_all_uuid(void)
  * @param j_dlma
  * @return
  */
-json_t* create_ob_dlma(const json_t* j_dlma)
+json_t* create_ob_dlma(json_t* j_dlma)
 {
   int ret;
   char* uuid;
@@ -490,7 +500,9 @@ json_t* create_ob_dlma(const json_t* j_dlma)
     return NULL;
   }
 
-  j_tmp = json_deep_copy(j_dlma);
+  // create default dlma and update
+  j_tmp = create_ob_dlma_default();
+  json_object_update_existing(j_tmp, j_dlma);
 
   // uuid
   uuid = gen_uuid();
@@ -639,6 +651,39 @@ json_t* delete_ob_dlma(const char* uuid)
   return j_tmp;
 }
 
+static json_t* get_ob_dlma_use(const char* uuid, E_DL_USE use)
+{
+  char* sql;
+  json_t* j_res;
+  json_t* j_variables;
+  db_res_t* db_res;
+  const char* tmp_const;
+
+  if(uuid == NULL) {
+    slog(LOG_WARNING, "Invalid input parameters.");
+    return NULL;
+  }
+
+  asprintf(&sql, "select * from ob_dl_list_ma where uuid=\"%s\" and in_use=%d;", uuid, use);
+
+  db_res = db_query(sql);
+  sfree(sql);
+  if(db_res == NULL) {
+    slog(LOG_ERR, "Could not get ob_dl_list_ma info. uuid[%s], use[%d]", uuid, use);
+    return NULL;
+  }
+
+  j_res = db_get_record(db_res);
+  db_free(db_res);
+
+  // parsing variables
+  tmp_const = json_string_value(json_object_get(j_res, "variables"));
+  j_variables = json_loads(tmp_const, JSON_DECODE_ANY, NULL);
+  json_object_set_new(j_res, "variables", j_variables);
+
+  return j_res;
+}
+
 
 /**
  *
@@ -647,27 +692,18 @@ json_t* delete_ob_dlma(const char* uuid)
  */
 json_t* get_ob_dlma(const char* uuid)
 {
-  char* sql;
   json_t* j_res;
-  db_res_t* db_res;
 
   if(uuid == NULL) {
     slog(LOG_WARNING, "Invalid input parameters.");
     return NULL;
   }
 
-  asprintf(&sql, "select * from ob_dl_list_ma where uuid=\"%s\" and in_use=%d;", uuid, E_DL_USE_OK);
-
-  db_res = db_query(sql);
-  sfree(sql);
-  if(db_res == NULL) {
+  j_res = get_ob_dlma_use(uuid, E_DL_USE_OK);
+  if(j_res == NULL) {
     slog(LOG_ERR, "Could not get ob_dl_list_ma info. uuid[%s]", uuid);
     return NULL;
   }
-
-  j_res = db_get_record(db_res);
-  db_free(db_res);
-
   return j_res;
 }
 
@@ -678,46 +714,34 @@ json_t* get_ob_dlma(const char* uuid)
  */
 json_t* get_deleted_ob_dlma(const char* uuid)
 {
-  char* sql;
   json_t* j_res;
-  db_res_t* db_res;
 
   if(uuid == NULL) {
     slog(LOG_WARNING, "Invalid input parameters.");
     return NULL;
   }
-  slog(LOG_DEBUG, "Fired get_deleted_ob_dlma.");
+  slog(LOG_DEBUG, "Fired get_deleted_ob_dlma. uuid[%s]", uuid);
 
-  asprintf(&sql, "select * from ob_dl_list_ma where uuid=\"%s\" and in_use=%d;", uuid, E_DL_USE_NO);
-
-  db_res = db_query(sql);
-  sfree(sql);
-  if(db_res == NULL) {
+  j_res = get_ob_dlma_use(uuid, E_DL_USE_NO);
+  if(j_res == NULL) {
     slog(LOG_ERR, "Could not get ob_dl_list_ma info. uuid[%s]", uuid);
     return NULL;
   }
 
-  j_res = db_get_record(db_res);
-  db_free(db_res);
-
   return j_res;
 }
 
-/**
- * Get dl_list from database.
- * @param j_dlma
- * @param j_plan
- * @return
- */
-json_t* get_ob_dls_by_dlma_count(const char* dlma_uuid, int count)
+json_t* get_ob_dls_uuid_by_dlma_count(const char* dlma_uuid, int count)
 {
   char* sql;
   db_res_t* db_res;
   json_t* j_res;
   json_t* j_tmp;
   json_t* j_dlma;
+  const char* uuid;
 
   if((dlma_uuid == NULL) || (count <= 0)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
     return NULL;
   }
 
@@ -727,7 +751,7 @@ json_t* get_ob_dls_by_dlma_count(const char* dlma_uuid, int count)
     return NULL;
   }
 
-  asprintf(&sql, "select * from `%s` where in_use=%d limit %d;",
+  asprintf(&sql, "select uuid from `%s` where in_use=%d limit %d;",
       json_string_value(json_object_get(j_dlma, "dl_table")),
       E_DL_USE_OK,
       count
@@ -748,68 +772,19 @@ json_t* get_ob_dls_by_dlma_count(const char* dlma_uuid, int count)
       break;
     }
 
-    json_array_append_new(j_res, j_tmp);
-  }
-  db_free(db_res);
-
-  return j_res;
-}
-
-/**
- * Get all dl's uuid array
- * @return
- */
-json_t* get_ob_dls_all_uuid_by_dlma_count(const char* dlma_uuid, int count)
-{
-  char* sql;
-  const char* tmp_const;
-  db_res_t* db_res;
-  json_t* j_res;
-  json_t* j_res_tmp;
-  json_t* j_tmp;
-
-  if(dlma_uuid == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return NULL;
-  }
-  slog(LOG_DEBUG, "Fired get_ob_dls_all_uuid_by_dlma_count.");
-
-  asprintf(&sql, "select * from ob_dl_list where in_use=%d and dlma_uuid = \"%s\" limit %d;",
-      E_DL_USE_OK,
-      dlma_uuid,
-      count
-      );
-  db_res = db_query(sql);
-  sfree(sql);
-  if(db_res == NULL) {
-    slog(LOG_WARNING, "Could not get correct ob_dl info.");
-    return NULL;
-  }
-
-  j_res_tmp = json_array();
-  while(1) {
-    j_tmp = db_get_record(db_res);
-    if(j_tmp == NULL) {
-      break;
-    }
-
-    tmp_const = json_string_value(json_object_get(j_tmp, "uuid"));
-    if(tmp_const == NULL) {
+    uuid = json_string_value(json_object_get(j_tmp, "uuid"));
+    if(uuid == NULL) {
       json_decref(j_tmp);
       continue;
     }
 
-    json_array_append_new(j_res_tmp, json_string(tmp_const));
+    json_array_append_new(j_res, json_string(uuid));
     json_decref(j_tmp);
   }
   db_free(db_res);
 
-  j_res = json_object();
-  json_object_set_new(j_res, "list", j_res_tmp);
-
   return j_res;
 }
-
 
 /**
  * Get dl_list from database.
@@ -817,19 +792,54 @@ json_t* get_ob_dls_all_uuid_by_dlma_count(const char* dlma_uuid, int count)
  * @param j_plan
  * @return
  */
-json_t* get_ob_dls_by_count(int count)
+json_t* get_ob_dls_by_dlma_count(const char* dlma_uuid, int count)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+  json_t* j_uuids;
+  json_t* j_val;
+  unsigned int idx;
+  const char* uuid;
+
+  if((dlma_uuid == NULL) || (count <= 0)) {
+    return NULL;
+  }
+
+  j_uuids = get_ob_dls_uuid_by_dlma_count(dlma_uuid, count);
+
+  j_res = json_array();
+  json_array_foreach(j_uuids, idx, j_val) {
+    uuid = json_string_value(j_val);
+    if(uuid == NULL) {
+      continue;
+    }
+
+    j_tmp = get_ob_dl(uuid);
+    if(j_tmp == NULL) {
+      continue;
+    }
+
+    json_array_append_new(j_res, j_tmp);
+  }
+  json_decref(j_uuids);
+
+  return j_res;
+}
+
+static json_t* get_ob_dls_uuid_count(int count)
 {
   char* sql;
   db_res_t* db_res;
   json_t* j_res;
   json_t* j_tmp;
+  const char* uuid;
 
   if(count <= 0) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return NULL;
   }
 
-  asprintf(&sql, "select * from ob_dl_list where in_use=%d limit %d;",
+  asprintf(&sql, "select uuid from ob_dl_list where in_use=%d limit %d;",
       E_DL_USE_OK,
       count
       );
@@ -848,31 +858,104 @@ json_t* get_ob_dls_by_count(int count)
       break;
     }
 
-    json_array_append_new(j_res, j_tmp);
+    uuid = json_string_value(json_object_get(j_tmp, "uuid"));
+    if(uuid == NULL) {
+      json_decref(j_tmp);
+      continue;
+    }
+
+    json_array_append_new(j_res, json_string(uuid));
+    json_decref(j_tmp);
   }
   db_free(db_res);
 
   return j_res;
 }
 
-json_t* get_ob_dl(const char* uuid)
+/**
+ * Get dl_list from database.
+ * @param j_dlma
+ * @param j_plan
+ * @return
+ */
+json_t* get_ob_dls_by_count(int count)
+{
+  json_t* j_uuids;
+  json_t* j_val;
+  json_t* j_res;
+  json_t* j_tmp;
+  unsigned int idx;
+  const char* uuid;
+
+  j_uuids = get_ob_dls_uuid_count(count);
+
+  j_res = json_array();
+  json_array_foreach(j_uuids, idx, j_val) {
+    uuid = json_string_value(j_val);
+    if(uuid == NULL) {
+      continue;
+    }
+
+    j_tmp = get_ob_dl(uuid);
+    if(j_tmp == NULL) {
+      continue;
+    }
+
+    json_array_append_new(j_res, j_tmp);
+  }
+  json_decref(j_uuids);
+
+  return j_res;
+}
+
+static json_t* get_ob_dl_use(const char* uuid, E_DL_USE use)
 {
   char* sql;
-  db_res_t* db_res;
   json_t* j_res;
+  json_t* j_variables;
+  db_res_t* db_res;
+  const char* tmp_const;
 
   if(uuid == NULL) {
-    slog(LOG_WARNING, "Fired get_ob_dl.");
+    slog(LOG_WARNING, "Invalid input parameters.");
     return NULL;
   }
-  slog(LOG_DEBUG, "Fired get_ob_dl.");
+  slog(LOG_DEBUG, "Fired get_ob_dl_use. uuid[%s], use[%d]", uuid, use);
 
-  asprintf(&sql, "select * from ob_dl_list where in_use=%d and uuid=\"%s\"", E_DL_USE_OK, uuid);
+  asprintf(&sql, "select * from ob_dl_list where uuid=\"%s\" and in_use=%d;", uuid, use);
+
   db_res = db_query(sql);
   sfree(sql);
+  if(db_res == NULL) {
+    slog(LOG_ERR, "Could not get ob_dl_list info. uuid[%s], use[%d]", uuid, use);
+    return NULL;
+  }
 
   j_res = db_get_record(db_res);
   db_free(db_res);
+
+  // parsing variables
+  tmp_const = json_string_value(json_object_get(j_res, "variables"));
+  j_variables = json_loads(tmp_const, JSON_DECODE_ANY, NULL);
+  json_object_set_new(j_res, "variables", j_variables);
+
+  return j_res;
+}
+
+json_t* get_ob_dl(const char* uuid)
+{
+  json_t* j_res;
+
+  if(uuid == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_ob_dl. uuid[%s]", uuid);
+
+  j_res = get_ob_dl_use(uuid, E_DL_USE_OK);
+  if(j_res == NULL) {
+    slog(LOG_DEBUG, "Could not find dl info. uuid[%s]", uuid);
+  }
 
   return j_res;
 }
@@ -1359,18 +1442,28 @@ static char* create_view_name(const char* uuid)
  * @param j_dl
  * @return
  */
-bool validate_ob_dl(json_t* j_dl)
+bool validate_ob_dl(json_t* j_data)
 {
   int ret;
   const char* tmp_const;
+  json_t* j_tmp;
 
-  if(j_dl == NULL) {
+  if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
 
+  // variables
+  j_tmp = json_object_get(j_data, "variables");
+  if(j_tmp != NULL) {
+    if(json_is_object(j_tmp) != true) {
+      slog(LOG_NOTICE, "Wrong input type for variable. It should be json_object type.");
+      return false;
+    }
+  }
+
   // dlma_uuid
-  tmp_const = json_string_value(json_object_get(j_dl, "dlma_uuid"));
+  tmp_const = json_string_value(json_object_get(j_data, "dlma_uuid"));
   if(tmp_const == NULL) {
     slog(LOG_DEBUG, "The dlma_uuid is set.");
     return false;
@@ -1402,15 +1495,9 @@ json_t* create_ob_dl(json_t* j_dl)
   }
   slog(LOG_DEBUG, "Fired create_ob_dl.");
 
-  j_tmp = json_deep_copy(j_dl);
-
-  // validate
-  ret = validate_ob_dl(j_tmp);
-  if(ret == false) {
-    json_decref(j_tmp);
-    slog(LOG_ERR, "Could not pass the validate test.");
-    return NULL;
-  }
+  // create default and update
+  j_tmp = create_ob_dl_default();
+  json_object_update_existing(j_tmp, j_dl);
 
   // uuid
   uuid = gen_uuid();
@@ -1628,7 +1715,7 @@ static bool is_over_retry_delay(json_t* j_dlma, json_t* j_dl, json_t* j_plan)
 
   retry_delay = json_integer_value(json_object_get(j_plan, "retry_delay"));
 
-  asprintf(&sql, "select * from '%s' where uuid = '%s' and ((strftime('%%s', 'now') - strftime('%%s', tm_last_hangup)) > %d);",
+  asprintf(&sql, "select uuid from '%s' where uuid = '%s' and ((strftime('%%s', 'now') - strftime('%%s', tm_last_hangup)) > %d);",
       json_string_value(json_object_get(j_dlma, "dl_table")),
       json_string_value(json_object_get(j_dl, "uuid")),
       retry_delay
@@ -1651,19 +1738,15 @@ static bool is_over_retry_delay(json_t* j_dlma, json_t* j_dl, json_t* j_plan)
   return true;
 }
 
-/**
- * Get available dl_list from database.
- * @param j_dlma
- * @param j_plan
- * @return
- */
-static json_t* get_dl_available(json_t* j_dlma, json_t* j_plan)
+static json_t* get_dls_uuid_available(json_t* j_dlma, json_t* j_plan, int count)
 {
   char* sql;
+  const char* uuid;
   db_res_t* db_res;
   json_t* j_res;
+  json_t* j_tmp;
 
-  asprintf(&sql, "select *, "
+  asprintf(&sql, "select uuid, "
       "(trycnt_1 + trycnt_2 + trycnt_3 + trycnt_4 + trycnt_5 + trycnt_6 + trycnt_7 + trycnt_8) as trycnt"
       " from `%s` where ("
       "(number_1 is not null and trycnt_1 < %lld)"
@@ -1678,7 +1761,7 @@ static json_t* get_dl_available(json_t* j_dlma, json_t* j_plan)
       " and res_dial != %d"
       " and status = %d"
       " order by trycnt asc"
-      " limit 1"
+      " limit %d"
       ";",
       json_string_value(json_object_get(j_dlma, "dl_table")),
       json_integer_value(json_object_get(j_plan, "max_retry_cnt_1")),
@@ -1690,7 +1773,8 @@ static json_t* get_dl_available(json_t* j_dlma, json_t* j_plan)
       json_integer_value(json_object_get(j_plan, "max_retry_cnt_7")),
       json_integer_value(json_object_get(j_plan, "max_retry_cnt_8")),
       AST_CONTROL_ANSWER,
-      E_DL_IDLE
+      E_DL_IDLE,
+      count
       );
 
   db_res = db_query(sql);
@@ -1700,11 +1784,65 @@ static json_t* get_dl_available(json_t* j_dlma, json_t* j_plan)
     return NULL;
   }
 
-  j_res = db_get_record(db_res);
+  j_res = json_array();
+  while(1) {
+    j_tmp = db_get_record(db_res);
+    if(j_tmp == NULL) {
+      break;
+    }
+
+    uuid = json_string_value(json_object_get(j_tmp, "uuid"));
+    if(uuid == NULL) {
+      json_decref(j_tmp);
+      continue;
+    }
+
+    json_array_append_new(j_res, json_string(uuid));
+    json_decref(j_tmp);
+  }
   db_free(db_res);
-  if(j_res == NULL) {
+
+  return j_res;
+}
+
+
+/**
+ * Get available dl_list from database.
+ * @param j_dlma
+ * @param j_plan
+ * @return
+ */
+static json_t* get_ob_dl_available(json_t* j_dlma, json_t* j_plan)
+{
+  json_t* j_uuids;
+  json_t* j_res;
+  json_t* j_tmp;
+  const char* uuid;
+
+  if((j_dlma == NULL) || (j_plan == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
     return NULL;
   }
+
+  j_uuids = get_dls_uuid_available(j_dlma, j_plan, 1);
+  if(j_uuids == NULL) {
+    return NULL;
+  }
+
+  j_tmp = json_array_get(j_uuids, 0);
+  if(j_tmp == NULL) {
+    json_decref(j_uuids);
+    return NULL;
+  }
+
+  uuid = json_string_value(j_tmp);
+  if(uuid == NULL) {
+    json_decref(j_uuids);
+    return NULL;
+  }
+
+  j_res = get_ob_dl(uuid);
+  json_decref(j_uuids);
 
   return j_res;
 }
@@ -1951,27 +2089,18 @@ json_t* delete_ob_dl(const char* uuid)
 static json_t* get_deleted_ob_dl(const char* uuid)
 {
   json_t* j_res;
-  db_res_t* db_res;
-  char* sql;
 
   if(uuid == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return NULL;
-  }
+      slog(LOG_WARNING, "Wrong input parameter.");
+      return NULL;
+    }
   slog(LOG_DEBUG, "Fired get_deleted_dl. uuid[%s]", uuid);
 
-  // get specified campaign
-  asprintf(&sql, "select * from ob_dl_list where uuid=\"%s\" and in_use=%d;", uuid, E_DL_USE_NO);
-
-  db_res = db_query(sql);
-  sfree(sql);
-  if(db_res == NULL) {
+  j_res = get_ob_dl_use(uuid, E_DL_USE_NO);
+  if(j_res == NULL) {
     slog(LOG_WARNING, "Could not get deleted ob_dl_list info.");
     return NULL;
   }
-
-  j_res = db_get_record(db_res);
-  db_free(db_res);
 
   return j_res;
 }
@@ -2031,4 +2160,92 @@ bool update_ob_dl_hangup(
   return true;
 }
 
+static json_t* create_ob_dlma_default(void)
+{
+  json_t* j_res;
+
+  slog(LOG_DEBUG, "Fired create_ob_dlma_default.");
+
+  j_res = json_pack("{"
+      "s:o, s:o, "
+      "s:s, "
+      "s:o"
+      "}",
+
+      "name",     json_null(),
+      "detail",   json_null(),
+
+      "dl_table",   "",
+
+      "variables",  json_object()
+      );
+
+  return j_res;
+}
+
+/**
+ * Validate dlma
+ * @param j_plan
+ * @return
+ */
+bool validate_ob_dlma(json_t* j_data)
+{
+  json_t* j_tmp;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired validate_ob_dlma.");
+
+  // variables
+  j_tmp = json_object_get(j_data, "variables");
+  if(j_tmp != NULL) {
+    if(json_is_object(j_tmp) != true) {
+      slog(LOG_NOTICE, "Wrong input type for variable. It should be json_object type.");
+      return false;
+    }
+  }
+
+  return true;
+}
+
+static json_t* create_ob_dl_default(void)
+{
+  json_t* j_res;
+
+  j_res = json_pack("{"
+      "s:o,"
+      "s:o, s:o, s:i,"
+      "s:o,"
+      "s:o,"
+      "s:o, s:o, s:o, s:o, s:o, s:o, s:o, s:o, s:o, "
+      "s:o"
+      "}",
+
+      "dlma_uuid",    json_null(),
+
+      "name",     json_null(),
+      "detail",   json_null(),
+      "status",   DEF_DL_STATUS,
+
+      "resv_target",  json_null(),
+
+      "ukey", json_null(),
+
+      "email",    json_null(),
+      "number_1", json_null(),
+      "number_2", json_null(),
+      "number_3", json_null(),
+      "number_4", json_null(),
+      "number_5", json_null(),
+      "number_6", json_null(),
+      "number_7", json_null(),
+      "number_8", json_null(),
+
+      "variables",  json_object()
+      );
+
+  return j_res;
+}
 

@@ -328,6 +328,7 @@ static const char* g_sql_ob_dialing =
 "   dial_priority       varchar(255),"
 "   dial_application    varchar(255),"
 "   dial_data           varchar(255),"
+"   dial_variables      text,"
 
 // timestamp. UTC."
 "    tm_create           datetime(6),"   // create time."

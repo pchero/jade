@@ -56,6 +56,7 @@ bool update_ob_dialing_res_dial(const char* uuid, bool success, int res_dial, co
 bool update_ob_dialing_status(const char* uuid, E_DIALING_STATUS_T status);
 bool update_ob_dialing_timestamp(const char* uuid);
 
+json_t* get_ob_dialings_uuid_all(void);
 json_t* get_ob_dialings_all_uuid(void);
 json_t* get_ob_dialings_all(void);
 json_t* get_ob_dialing_by_action_id(const char* action_id);

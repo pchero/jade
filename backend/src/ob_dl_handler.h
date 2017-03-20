@@ -36,7 +36,8 @@ int get_current_dialing_dl_cnt(const char* camp_uuid, const char* dl_table);
 int get_dial_num_point(json_t* j_dl_list, json_t* j_plan);
 int get_dial_try_cnt(json_t* j_dl_list, int dial_num_point);
 
-json_t* create_ob_dlma(const json_t* j_dlma);
+bool validate_ob_dlma(json_t* j_data);
+json_t* create_ob_dlma(json_t* j_dlma);
 json_t* update_ob_dlma(const json_t* j_dlma);
 json_t* delete_ob_dlma(const char* uuid);
 json_t* get_ob_dlmas_all(void);
@@ -45,7 +46,7 @@ json_t* get_ob_dlma(const char* uuid);
 json_t* get_deleted_ob_dlma(const char* uuid);
 
 json_t* get_ob_dl(const char* uuid);
-json_t* get_ob_dls_all_uuid_by_dlma_count(const char* dlma_uuid, int count);
+json_t* get_ob_dls_uuid_by_dlma_count(const char* dlma_uuid, int count);
 json_t* get_ob_dls_by_dlma_count(const char* dlma_uuid, int count);
 json_t* get_ob_dls_by_count(int count);
 

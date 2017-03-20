@@ -21,7 +21,13 @@
 #include "ob_dl_handler.h"
 #include "ob_plan_handler.h"
 
-static json_t* get_deleted_campaign(const char* uuid);
+#define DEF_CAMPAIGN_SCHEDULE_MODE  E_CAMP_SCHEDULE_OFF
+#define DEF_CAMPAIGN_STATUS E_CAMP_STOP
+
+static json_t* get_deleted_ob_campaign(const char* uuid);
+static json_t* create_ob_campaign_default(void);
+static json_t* get_campaigns_uuid_by_status_schedule(E_CAMP_STATUS_T status, E_CAMP_SCHEDULE_MODE mode);
+static json_t* get_ob_campaigns_uuid_by_status(E_CAMP_STATUS_T status);
 
 static bool is_startable_campaign_schedule(json_t* j_camp);
 static bool is_startable_campaign_schedule_day(json_t* j_camp, int day);
@@ -30,12 +36,50 @@ static bool is_stopable_campaign_schedule_day_date_list(json_t* j_camp);
 static bool is_stoppable_campaign_schedule_check(json_t* j_camp, const char* cur_date, const char* cur_time, int cur_day);
 
 
+static json_t* create_ob_campaign_default(void)
+{
+  json_t* j_res;
+
+  j_res = json_pack("{"
+      "s:o, s:o, s:i, "
+      "s:o, s:o, s:o, "
+      "s:o, "
+      "s:i, s:o, s:o, s:o, s:o, s:o, s:o, s:o, "
+      "s:o"
+      "}",
+
+      "name",   json_null(),
+      "detail", json_null(),
+      "status", DEF_CAMPAIGN_STATUS,
+
+      "plan", json_null(),
+      "dlma", json_null(),
+      "dest", json_null(),
+
+      "next_campaign",  json_null(),
+
+      // schedule
+      "sc_mode",              DEF_CAMPAIGN_SCHEDULE_MODE,
+      "sc_date_start",        json_null(),
+      "sc_date_end",          json_null(),
+      "sc_date_list",         json_null(),
+      "sc_date_list_except",  json_null(),
+      "sc_time_start",        json_null(),
+      "sc_time_end",          json_null(),
+      "sc_day_list",          json_null(),
+
+      "variables",  json_object()
+      );
+
+  return j_res;
+}
+
 /**
  * Create ob campaign.
  * @param j_camp
  * @return
  */
-json_t* create_ob_campaign(const json_t* j_camp)
+json_t* create_ob_campaign(json_t* j_camp)
 {
   int ret;
   char* uuid;
@@ -43,9 +87,13 @@ json_t* create_ob_campaign(const json_t* j_camp)
   json_t* j_tmp;
 
   if(j_camp == NULL) {
+    slog(LOG_DEBUG, "Wrong input parameter.");
     return NULL;
   }
-  j_tmp = json_deep_copy(j_camp);
+  slog(LOG_DEBUG, "Fired create_ob_campaign.");
+
+  j_tmp = create_ob_campaign_default();
+  json_object_update_existing(j_tmp, j_camp);
 
   uuid = gen_uuid();
   json_object_set_new(j_tmp, "uuid", json_string(uuid));
@@ -115,7 +163,7 @@ json_t* delete_ob_campaign(const char* uuid)
     return NULL;
   }
 
-  j_res = get_deleted_campaign(uuid);
+  j_res = get_deleted_ob_campaign(uuid);
   if(j_res == NULL) {
     slog(LOG_ERR, "Could not get deleted campaign info. uuid[%s]", uuid);
     return NULL;
@@ -124,6 +172,41 @@ json_t* delete_ob_campaign(const char* uuid)
   return j_res;
 }
 
+static json_t* get_ob_campaign_use(const char* uuid, E_DL_USE use)
+{
+  char* sql;
+  json_t* j_res;
+  json_t* j_variables;
+  db_res_t* db_res;
+  const char* tmp_const;
+
+  if(uuid == NULL) {
+    slog(LOG_WARNING, "Invalid input parameters.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_ob_campaign_use. uuid[%s], use[%d]", uuid, use);
+
+  asprintf(&sql, "select * from ob_campaign where uuid=\"%s\" and in_use=%d;", uuid, use);
+
+  db_res = db_query(sql);
+  sfree(sql);
+  if(db_res == NULL) {
+    slog(LOG_ERR, "Could not get ob_campaign info. uuid[%s], use[%d]", uuid, use);
+    return NULL;
+  }
+
+  j_res = db_get_record(db_res);
+  db_free(db_res);
+
+  // parsing variables
+  tmp_const = json_string_value(json_object_get(j_res, "variables"));
+  j_variables = json_loads(tmp_const, JSON_DECODE_ANY, NULL);
+  json_object_set_new(j_res, "variables", j_variables);
+
+  return j_res;
+}
+
+
 /**
  * Get specified campaign
  * @return
@@ -131,26 +214,17 @@ json_t* delete_ob_campaign(const char* uuid)
 json_t* get_ob_campaign(const char* uuid)
 {
   json_t* j_res;
-  db_res_t* db_res;
-  char* sql;
 
   if(uuid == NULL) {
     return NULL;
   }
-  slog(LOG_DEBUG, "Get ob_campaign info. uuid[%s]", uuid);
+  slog(LOG_DEBUG, "Fired get_ob_campaign. uuid[%s]", uuid);
 
-  // get specified campaign
-  asprintf(&sql, "select * from ob_campaign where uuid=\"%s\" and in_use=%d;", uuid, E_DL_USE_OK);
-
-  db_res = db_query(sql);
-  sfree(sql);
-  if(db_res == NULL) {
+  j_res = get_ob_campaign_use(uuid, E_DL_USE_OK);
+  if(j_res == NULL) {
     slog(LOG_WARNING, "Could not get ob_campaign info.");
     return NULL;
   }
-
-  j_res = db_get_record(db_res);
-  db_free(db_res);
 
   return j_res;
 }
@@ -159,29 +233,20 @@ json_t* get_ob_campaign(const char* uuid)
  * Get deleted campaign.
  * @return
  */
-static json_t* get_deleted_campaign(const char* uuid)
+static json_t* get_deleted_ob_campaign(const char* uuid)
 {
   json_t* j_res;
-  db_res_t* db_res;
-  char* sql;
 
   if(uuid == NULL) {
     return NULL;
   }
-  slog(LOG_DEBUG, "Get deleted campaign info. uuid[%s]", uuid);
+  slog(LOG_DEBUG, "Fired get_deleted_ob_campaign info. uuid[%s]", uuid);
 
-  // get specified campaign
-  asprintf(&sql, "select * from ob_campaign where uuid=\"%s\" and in_use=%d;", uuid, E_DL_USE_NO);
-
-  db_res = db_query(sql);
-  sfree(sql);
-  if(db_res == NULL) {
+  j_res = get_ob_campaign_use(uuid, E_DL_USE_NO);
+  if(j_res == NULL) {
     slog(LOG_WARNING, "Could not get deleted ob_campaign info.");
     return NULL;
   }
-
-  j_res = db_get_record(db_res);
-  db_free(db_res);
 
   return j_res;
 }
@@ -192,31 +257,30 @@ static json_t* get_deleted_campaign(const char* uuid)
  */
 json_t* get_ob_campaigns_all(void)
 {
+  json_t* j_uuids;
+  json_t* j_val;
+  unsigned int idx;
+  const char* uuid;
   json_t* j_res;
   json_t* j_tmp;
-  db_res_t* db_res;
-  char* sql;
 
-  // get all campaigns
-  asprintf(&sql, "select * from ob_campaign where in_use=%d", E_DL_USE_OK);
-
-  db_res = db_query(sql);
-  sfree(sql);
-  if(db_res == NULL) {
-    slog(LOG_WARNING, "Could not get ob_campaign info.");
-    return NULL;
-  }
+  j_uuids = get_ob_campaigns_all_uuid();
 
   j_res = json_array();
-  while(1) {
-    j_tmp = db_get_record(db_res);
+  json_array_foreach(j_uuids, idx, j_val) {
+    uuid = json_string_value(j_val);
+    if(uuid == NULL) {
+      continue;
+    }
+
+    j_tmp = get_ob_campaign(uuid);
     if(j_tmp == NULL) {
-      break;
+      continue;
     }
 
     json_array_append_new(j_res, j_tmp);
   }
-  db_free(db_res);
+  json_decref(j_uuids);
 
   return j_res;
 }
@@ -235,7 +299,7 @@ json_t* get_ob_campaigns_all_uuid(void)
   json_t* j_res_tmp;
   json_t* j_tmp;
 
-  asprintf(&sql, "select * from ob_campaign where in_use=%d;", E_DL_USE_OK);
+  asprintf(&sql, "select uuid from ob_campaign where in_use=%d;", E_DL_USE_OK);
   db_res = db_query(sql);
   sfree(sql);
   if(db_res == NULL) {
@@ -267,21 +331,17 @@ json_t* get_ob_campaigns_all_uuid(void)
   return j_res;
 }
 
-/**
- * Get all start-able campaigns by schedule.
- * \return
- */
-json_t* get_campaigns_schedule_start(void)
+static json_t* get_campaigns_uuid_by_status_schedule(E_CAMP_STATUS_T status, E_CAMP_SCHEDULE_MODE mode)
 {
-  char* sql;
+  db_res_t* db_res;
   json_t* j_res;
   json_t* j_tmp;
-  db_res_t* db_res;
-  int ret;
+  char* sql;
+  const char* uuid;
 
-  asprintf(&sql, "select * from ob_campaign where status == %d and sc_mode == %d;",
-      E_CAMP_STOP,
-      E_CAMP_SCHEDULE_ON
+  asprintf(&sql, "select uuid from ob_campaign where status == %d and sc_mode == %d;",
+      status,
+      mode
       );
 
   db_res = db_query(sql);
@@ -292,9 +352,54 @@ json_t* get_campaigns_schedule_start(void)
 
   j_res = json_array();
   while(1) {
+
     j_tmp = db_get_record(db_res);
     if(j_tmp == NULL) {
       break;
+    }
+
+    uuid = json_string_value(json_object_get(j_tmp, "uuid"));
+    if(uuid == NULL) {
+      json_decref(j_tmp);
+      continue;
+    }
+
+    json_array_append_new(j_res, json_string(uuid));
+    json_decref(j_tmp);
+  }
+  db_free(db_res);
+
+  return j_res;
+}
+
+/**
+ * Get all start-able campaigns by schedule.
+ * \return
+ */
+json_t* get_campaigns_schedule_start(void)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+  json_t* j_uuids;
+  int ret;
+  unsigned int idx;
+  json_t* j_val;
+  const char* uuid;
+
+  // get scheduled campaigns uuid
+  j_uuids = get_campaigns_uuid_by_status_schedule(E_CAMP_STOP, E_CAMP_SCHEDULE_ON);
+
+  j_res = json_array();
+  json_array_foreach(j_uuids, idx, j_val) {
+
+    uuid = json_string_value(j_val);
+    if(uuid == NULL) {
+      continue;
+    }
+
+    j_tmp = get_ob_campaign(uuid);
+    if(j_tmp == NULL) {
+      continue;
     }
 
     ret = is_startable_campaign_schedule(j_tmp);
@@ -305,7 +410,7 @@ json_t* get_campaigns_schedule_start(void)
 
     json_array_append_new(j_res, j_tmp);
   }
-  db_free(db_res);
+  json_decref(j_uuids);
 
   return j_res;
 }
@@ -316,28 +421,28 @@ json_t* get_campaigns_schedule_start(void)
  */
 json_t* get_campaigns_schedule_end(void)
 {
-  char* sql;
   json_t* j_res;
   json_t* j_tmp;
-  db_res_t* db_res;
+  json_t* j_uuids;
   int ret;
+  unsigned int idx;
+  json_t* j_val;
+  const char* uuid;
 
-  asprintf(&sql, "select * from ob_campaign where status == %d and sc_mode == %d;",
-      E_CAMP_START,
-      E_CAMP_SCHEDULE_ON
-      );
-
-  db_res = db_query(sql);
-  sfree(sql);
-  if(db_res == NULL) {
-    return NULL;
-  }
+  // get scheduled campaigns uuid
+  j_uuids = get_campaigns_uuid_by_status_schedule(E_CAMP_START, E_CAMP_SCHEDULE_ON);
 
   j_res = json_array();
-  while(1) {
-    j_tmp = db_get_record(db_res);
+  json_array_foreach(j_uuids, idx, j_val) {
+
+    uuid = json_string_value(j_val);
+    if(uuid == NULL) {
+      continue;
+    }
+
+    j_tmp = get_ob_campaign(uuid);
     if(j_tmp == NULL) {
-      break;
+      continue;
     }
 
     ret = is_stopable_campaign_schedule_day_date_list(j_tmp);
@@ -348,12 +453,10 @@ json_t* get_campaigns_schedule_end(void)
 
     json_array_append_new(j_res, j_tmp);
   }
-  db_free(db_res);
+  json_decref(j_uuids);
 
   return j_res;
 }
-
-
 
 /**
  * Update ob_campaign
@@ -469,19 +572,15 @@ bool update_ob_campaign_status(const char* uuid, E_CAMP_STATUS_T status)
   return true;
 }
 
-/**
- * Get campaign for dialing.
- * @return
- */
-json_t* get_ob_campaigns_by_status(E_CAMP_STATUS_T status)
+static json_t* get_ob_campaigns_uuid_by_status(E_CAMP_STATUS_T status)
 {
   json_t* j_res;
   json_t* j_tmp;
   db_res_t* db_res;
   char* sql;
+  const char* uuid;
 
-  // get "start" status campaign only.
-  asprintf(&sql, "select * from ob_campaign where status = %d and in_use=%d;",
+  asprintf(&sql, "select uuid from ob_campaign where status = %d and in_use=%d;",
       status, E_DL_USE_OK
       );
 
@@ -498,7 +597,15 @@ json_t* get_ob_campaigns_by_status(E_CAMP_STATUS_T status)
     if(j_tmp == NULL) {
       break;
     }
-    json_array_append_new(j_res, j_tmp);
+
+    uuid = json_string_value(json_object_get(j_tmp, "uuid"));
+    if(uuid == NULL) {
+      json_decref(j_tmp);
+      continue;
+    }
+
+    json_array_append_new(j_res, json_string(uuid));
+    json_decref(j_tmp);
   }
   db_free(db_res);
 
@@ -509,14 +616,47 @@ json_t* get_ob_campaigns_by_status(E_CAMP_STATUS_T status)
  * Get campaign for dialing.
  * @return
  */
+json_t* get_ob_campaigns_by_status(E_CAMP_STATUS_T status)
+{
+  json_t* j_uuids;
+  json_t* j_res;
+  json_t* j_tmp;
+  json_t* j_val;
+  const char* uuid;
+  unsigned int idx;
+
+
+  j_uuids = get_ob_campaigns_uuid_by_status(status);
+
+  j_res = json_array();
+  json_array_foreach(j_uuids, idx, j_val) {
+    uuid = json_string_value(j_val);
+    if(uuid == NULL) {
+      continue;
+    }
+
+    j_tmp = get_ob_campaign(uuid);
+    json_array_append_new(j_res, j_tmp);
+  }
+  json_decref(j_uuids);
+
+  return j_res;
+}
+
+/**
+ * Get campaign for dialing.
+ * @return
+ */
 json_t* get_ob_campaign_for_dialing(void)
 {
+  const char* uuid;
   json_t* j_res;
+  json_t* j_tmp;
   db_res_t* db_res;
   char* sql;
 
   // get "start" status campaign only.
-  asprintf(&sql, "select * from ob_campaign where status = %d and in_use = %d order by %s limit 1;",
+  asprintf(&sql, "select uuid from ob_campaign where status = %d and in_use = %d order by %s limit 1;",
       E_CAMP_START,
       E_DL_USE_OK,
       "random()"
@@ -529,8 +669,15 @@ json_t* get_ob_campaign_for_dialing(void)
     return NULL;
   }
 
-  j_res = db_get_record(db_res);
+  j_tmp = db_get_record(db_res);
   db_free(db_res);
+  if(j_tmp == NULL) {
+    return NULL;
+  }
+
+  uuid = json_string_value(json_object_get(j_tmp, "uuid"));
+  j_res = get_ob_campaign(uuid);
+  json_decref(j_tmp);
 
   return j_res;
 }
@@ -898,6 +1045,33 @@ bool is_exist_ob_campaign(const char* uuid)
   json_decref(j_tmp);
   if(ret <= 0) {
     return false;
+  }
+
+  return true;
+}
+
+/**
+ * Validate given data
+ * @param j_data
+ * @return
+ */
+bool validate_ob_campaign(json_t* j_data)
+{
+  json_t* j_tmp;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired validate_ob_campaign.");
+
+  // variables
+  j_tmp = json_object_get(j_data, "variables");
+  if(j_tmp != NULL) {
+    if(json_is_object(j_tmp) != true) {
+      slog(LOG_NOTICE, "Wrong input type for variable. It should be json_object type.");
+      return false;
+    }
   }
 
   return true;

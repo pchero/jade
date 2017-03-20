@@ -243,36 +243,36 @@ bool originate_to_exten(json_t* j_dialing)
   }
 
   if(json_object_get(j_dialing, "dial_timeout") != NULL) {
-    json_object_set(j_cmd, "Timeout", json_incref(json_object_get(j_dialing, "dial_timeout")));
+    json_object_set(j_cmd, "Timeout", json_object_get(j_dialing, "dial_timeout"));
   }
 
   if(json_object_get(j_dialing, "callerid") != NULL) {
-    json_object_set(j_cmd, "CallerID", json_incref(json_object_get(j_dialing, "callerid")));
+    json_object_set(j_cmd, "CallerID", json_object_get(j_dialing, "callerid"));
   }
 
   if(json_object_get(j_dialing, "account") != NULL) {
-    json_object_set(j_cmd, "Account", json_incref(json_object_get(j_dialing, "account")));
+    json_object_set(j_cmd, "Account", json_object_get(j_dialing, "account"));
   }
 
   if(json_object_get(j_dialing, "early_media") != NULL) {
-    json_object_set(j_cmd, "EarlyMedia", json_incref(json_object_get(j_dialing, "early_media")));
+    json_object_set(j_cmd, "EarlyMedia", json_object_get(j_dialing, "early_media"));
   }
 
   if(json_object_get(j_dialing, "codecs") != NULL) {
-    json_object_set(j_cmd, "Codecs", json_incref(json_object_get(j_dialing, "codecs")));
+    json_object_set(j_cmd, "Codecs", json_object_get(j_dialing, "codecs"));
   }
 
   if(json_object_get(j_dialing, "channelid") != NULL) {
-    json_object_set(j_cmd, "ChannelId", json_incref(json_object_get(j_dialing, "channelid")));
+    json_object_set(j_cmd, "ChannelId", json_object_get(j_dialing, "channelid"));
   }
 
   if(json_object_get(j_dialing, "otherchannelid") != NULL) {
-    json_object_set(j_cmd, "OtherChannelId", json_incref(json_object_get(j_dialing, "otherchannelid")));
+    json_object_set(j_cmd, "OtherChannelId", json_object_get(j_dialing, "otherchannelid"));
   }
 
   // Variables
   if(json_object_get(j_dialing, "variables") != NULL) {
-    json_object_set(j_cmd, "Variables", json_incref(json_object_get(j_dialing, "variables")));
+    json_object_set(j_cmd, "Variables", json_object_get(j_dialing, "variables"));
   }
 
   // dump command string
@@ -348,35 +348,35 @@ bool originate_to_application(json_t* j_dialing)
   }
 
   if(json_object_get(j_dialing, "dial_timeout") != NULL) {
-    json_object_set(j_cmd, "Timeout", json_incref(json_object_get(j_dialing, "dial_timeout")));
+    json_object_set(j_cmd, "Timeout", json_object_get(j_dialing, "dial_timeout"));
   }
 
   if(json_object_get(j_dialing, "callerid") != NULL) {
-    json_object_set(j_cmd, "CallerID", json_incref(json_object_get(j_dialing, "callerid")));
+    json_object_set(j_cmd, "CallerID", json_object_get(j_dialing, "callerid"));
   }
 
-  if(json_object_get(j_dialing, "variable") != NULL) {
-    json_object_set(j_cmd, "Variable", json_incref(json_object_get(j_dialing, "variable")));
+  if(json_object_get(j_dialing, "dial_variables") != NULL) {
+    json_object_set(j_cmd, "Variables", json_object_get(j_dialing, "dial_variables"));
   }
 
   if(json_object_get(j_dialing, "account") != NULL) {
-    json_object_set(j_cmd, "Account", json_incref(json_object_get(j_dialing, "account")));
+    json_object_set(j_cmd, "Account", json_object_get(j_dialing, "account"));
   }
 
   if(json_object_get(j_dialing, "early_media") != NULL) {
-    json_object_set(j_cmd, "EarlyMedia", json_incref(json_object_get(j_dialing, "early_media")));
+    json_object_set(j_cmd, "EarlyMedia", json_object_get(j_dialing, "early_media"));
   }
 
   if(json_object_get(j_dialing, "codecs") != NULL) {
-    json_object_set(j_cmd, "Codecs", json_incref(json_object_get(j_dialing, "codecs")));
+    json_object_set(j_cmd, "Codecs", json_object_get(j_dialing, "codecs"));
   }
 
   if(json_object_get(j_dialing, "channelid") != NULL) {
-    json_object_set(j_cmd, "ChannelId", json_incref(json_object_get(j_dialing, "channelid")));
+    json_object_set(j_cmd, "ChannelId", json_object_get(j_dialing, "channelid"));
   }
 
   if(json_object_get(j_dialing, "otherchannelid") != NULL) {
-    json_object_set(j_cmd, "OtherChannelId", json_incref(json_object_get(j_dialing, "otherchannelid")));
+    json_object_set(j_cmd, "OtherChannelId", json_object_get(j_dialing, "otherchannelid"));
   }
 
   if(j_cmd == NULL) {

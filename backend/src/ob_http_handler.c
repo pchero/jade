@@ -634,6 +634,7 @@ static void htp_post_ob_destinations(evhtp_request_t *req, void *data)
   const char* uuid;
   const char* tmp_const;
   char* tmp;
+  int ret;
   json_t* j_data;
   json_t* j_tmp;
   json_t* j_res;
@@ -665,6 +666,13 @@ static void htp_post_ob_destinations(evhtp_request_t *req, void *data)
   j_data = json_loads(tmp, JSON_DECODE_ANY, NULL);
   sfree(tmp);
   if(j_data == NULL) {
+    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // validate data
+  ret = validate_ob_destination(j_data);
+  if(ret == false) {
     simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
@@ -1079,6 +1087,14 @@ static void htp_put_ob_plans_uuid(evhtp_request_t *req, void *data)
     return;
   }
 
+  // validate requested data
+  ret = validate_ob_plan(j_data);
+  if(ret == false) {
+    slog(LOG_DEBUG, "Could not pass validation.");
+    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
   // update info
   json_object_set_new(j_data, "uuid", json_string(uuid));
   j_tmp = update_ob_plan(j_data);
@@ -1200,6 +1216,7 @@ static void htp_post_ob_campaigns(evhtp_request_t *req, void *data)
   json_t* j_data;
   json_t* j_tmp;
   json_t* j_res;
+  int ret;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -1231,7 +1248,14 @@ static void htp_post_ob_campaigns(evhtp_request_t *req, void *data)
     return;
   }
 
-  // create plan
+  ret = validate_ob_campaign(j_data);
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not pass the validation.");
+    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // create campaigb
   j_tmp = create_ob_campaign(j_data);
   json_decref(j_data);
   if(j_tmp == NULL) {
@@ -1472,6 +1496,7 @@ static void htp_get_ob_dlmas(evhtp_request_t *req, void *data)
  */
 static void htp_post_ob_dlmas(evhtp_request_t *req, void *data)
 {
+  int ret;
   const char* uuid;
   const char* tmp_const;
   char* tmp;
@@ -1505,6 +1530,13 @@ static void htp_post_ob_dlmas(evhtp_request_t *req, void *data)
   j_data = json_loads(tmp, JSON_DECODE_ANY, NULL);
   sfree(tmp);
   if(j_data == NULL) {
+    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  ret = validate_ob_dlma(j_data);
+  if(ret == false) {
+    slog(LOG_INFO, "Could not pass the validation.");
     simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
@@ -1741,7 +1773,7 @@ static void htp_get_ob_dls(evhtp_request_t *req, void *data)
   }
 
   // get info
-  j_tmp = get_ob_dls_all_uuid_by_dlma_count(dlma_uuid, count);
+  j_tmp = get_ob_dls_uuid_by_dlma_count(dlma_uuid, count);
   if(j_tmp == NULL) {
     simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
@@ -1749,7 +1781,8 @@ static void htp_get_ob_dls(evhtp_request_t *req, void *data)
 
   // create result
   j_res = create_default_result(EVHTP_RES_OK);
-  json_object_set_new(j_res, "result", j_tmp);
+  json_object_set_new(j_res, "result", json_object());
+  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
 
   // response
   simple_response_normal(req, j_res);
@@ -2075,7 +2108,7 @@ static void htp_get_ob_dialings(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_ob_dialings.");
 
   // get info
-  j_tmp = get_ob_dialings_all_uuid();
+  j_tmp = get_ob_dialings_uuid_all();
   if(j_tmp == NULL) {
     simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
@@ -2083,7 +2116,12 @@ static void htp_get_ob_dialings(evhtp_request_t *req, void *data)
 
   // create result
   j_res = create_default_result(EVHTP_RES_OK);
-  json_object_set_new(j_res, "result", j_tmp);
+  if(j_res == NULL) {
+    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+  json_object_set_new(j_res, "result", json_object());
+  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
 
   // response
   simple_response_normal(req, j_res);
