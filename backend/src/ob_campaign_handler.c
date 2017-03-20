@@ -20,6 +20,7 @@
 #include "ob_campaign_handler.h"
 #include "ob_dl_handler.h"
 #include "ob_plan_handler.h"
+#include "ob_dlma_handler.h"
 
 #define DEF_CAMPAIGN_SCHEDULE_MODE  E_CAMP_SCHEDULE_OFF
 #define DEF_CAMPAIGN_STATUS E_CAMP_STOP
@@ -148,7 +149,7 @@ json_t* delete_ob_campaign(const char* uuid)
   tmp = get_utc_timestamp();
   json_object_set_new(j_tmp, "status", json_integer(E_CAMP_STOP));
   json_object_set_new(j_tmp, "tm_delete", json_string(tmp));
-  json_object_set_new(j_tmp, "in_use", json_integer(E_DL_USE_NO));
+  json_object_set_new(j_tmp, "in_use", json_integer(E_USE_NO));
   sfree(tmp);
 
   tmp = db_get_update_str(j_tmp);
@@ -172,7 +173,7 @@ json_t* delete_ob_campaign(const char* uuid)
   return j_res;
 }
 
-static json_t* get_ob_campaign_use(const char* uuid, E_DL_USE use)
+static json_t* get_ob_campaign_use(const char* uuid, E_USE use)
 {
   char* sql;
   json_t* j_res;
@@ -213,7 +214,7 @@ json_t* get_ob_campaign(const char* uuid)
   }
   slog(LOG_DEBUG, "Fired get_ob_campaign. uuid[%s]", uuid);
 
-  j_res = get_ob_campaign_use(uuid, E_DL_USE_OK);
+  j_res = get_ob_campaign_use(uuid, E_USE_OK);
   if(j_res == NULL) {
     slog(LOG_WARNING, "Could not get ob_campaign info.");
     return NULL;
@@ -235,7 +236,7 @@ static json_t* get_deleted_ob_campaign(const char* uuid)
   }
   slog(LOG_DEBUG, "Fired get_deleted_ob_campaign info. uuid[%s]", uuid);
 
-  j_res = get_ob_campaign_use(uuid, E_DL_USE_NO);
+  j_res = get_ob_campaign_use(uuid, E_USE_NO);
   if(j_res == NULL) {
     slog(LOG_WARNING, "Could not get deleted ob_campaign info.");
     return NULL;
@@ -292,7 +293,7 @@ json_t* get_ob_campaigns_all_uuid(void)
   json_t* j_res_tmp;
   json_t* j_tmp;
 
-  asprintf(&sql, "select uuid from ob_campaign where in_use=%d;", E_DL_USE_OK);
+  asprintf(&sql, "select uuid from ob_campaign where in_use=%d;", E_USE_OK);
   db_res = db_query(sql);
   sfree(sql);
   if(db_res == NULL) {
@@ -494,7 +495,7 @@ json_t* update_ob_campaign(const json_t* j_camp)
   }
   json_decref(j_tmp);
 
-  asprintf(&sql, "update ob_campaign set %s where uuid=\"%s\" and in_use=%d;", tmp, uuid, E_DL_USE_OK);
+  asprintf(&sql, "update ob_campaign set %s where uuid=\"%s\" and in_use=%d;", tmp, uuid, E_USE_OK);
   sfree(tmp);
 
   // update
@@ -574,7 +575,7 @@ static json_t* get_ob_campaigns_uuid_by_status(E_CAMP_STATUS_T status)
   const char* uuid;
 
   asprintf(&sql, "select uuid from ob_campaign where status = %d and in_use=%d;",
-      status, E_DL_USE_OK
+      status, E_USE_OK
       );
 
   db_res = db_query(sql);
@@ -650,7 +651,7 @@ json_t* get_ob_campaign_for_dialing(void)
   // get "start" status campaign only.
   asprintf(&sql, "select uuid from ob_campaign where status = %d and in_use = %d order by %s limit 1;",
       E_CAMP_START,
-      E_DL_USE_OK,
+      E_USE_OK,
       "random()"
       );
 
@@ -1016,7 +1017,7 @@ bool is_exist_ob_campaign(const char* uuid)
     return false;
   }
 
-  asprintf(&sql, "select count(*) from ob_campaign where uuid=\"%s\" and in_use=%d;", uuid, E_DL_USE_OK);
+  asprintf(&sql, "select count(*) from ob_campaign where uuid=\"%s\" and in_use=%d;", uuid, E_USE_OK);
 
   db_res = db_query(sql);
   sfree(sql);

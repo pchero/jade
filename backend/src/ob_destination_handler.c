@@ -25,7 +25,7 @@
 
 static json_t* get_deleted_ob_destination(const char* uuid);
 static json_t* create_ob_destination_default(void);
-static json_t* get_ob_destination_use(const char* uuid, E_DL_USE use);
+static json_t* get_ob_destination_use(const char* uuid, E_USE use);
 
 static int get_avail_cnt_exten(json_t* j_dest);
 static int get_avail_cnt_app(json_t* j_dest);
@@ -128,7 +128,7 @@ json_t* delete_ob_destination(const char* uuid)
   j_tmp = json_object();
   tmp = get_utc_timestamp();
   json_object_set_new(j_tmp, "tm_delete", json_string(tmp));
-  json_object_set_new(j_tmp, "in_use", json_integer(E_DL_USE_NO));
+  json_object_set_new(j_tmp, "in_use", json_integer(E_USE_NO));
   sfree(tmp);
 
   tmp = db_get_update_str(j_tmp);
@@ -152,7 +152,7 @@ json_t* delete_ob_destination(const char* uuid)
   return j_tmp;
 }
 
-static json_t* get_ob_destination_use(const char* uuid, E_DL_USE use)
+static json_t* get_ob_destination_use(const char* uuid, E_USE use)
 {
   char* sql;
   json_t* j_res;
@@ -192,7 +192,7 @@ json_t* get_ob_destination(const char* uuid)
     return NULL;
   }
 
-  j_res = get_ob_destination_use(uuid, E_DL_USE_OK);
+  j_res = get_ob_destination_use(uuid, E_USE_OK);
   if(j_res == NULL) {
     slog(LOG_WARNING, "Could not get ob_destination info.");
     return NULL;
@@ -214,7 +214,7 @@ static json_t* get_deleted_ob_destination(const char* uuid)
     return NULL;
   }
 
-  j_res = get_ob_destination_use(uuid, E_DL_USE_NO);
+  j_res = get_ob_destination_use(uuid, E_USE_NO);
   return j_res;
 }
 
@@ -231,7 +231,7 @@ json_t* get_ob_destinations_all_uuid(void)
   json_t* j_res_tmp;
   json_t* j_tmp;
 
-  asprintf(&sql, "select uuid from ob_destination where in_use=%d;", E_DL_USE_OK);
+  asprintf(&sql, "select uuid from ob_destination where in_use=%d;", E_USE_OK);
   db_res = db_query(sql);
   sfree(sql);
   if(db_res == NULL) {
@@ -339,7 +339,7 @@ json_t* update_ob_destination(const json_t* j_dest)
   }
   json_decref(j_tmp);
 
-  asprintf(&sql, "update ob_destination set %s where in_use=%d and uuid=\"%s\";", tmp, E_DL_USE_OK, uuid);
+  asprintf(&sql, "update ob_destination set %s where in_use=%d and uuid=\"%s\";", tmp, E_USE_OK, uuid);
   sfree(tmp);
 
   // update
@@ -775,7 +775,7 @@ bool is_exist_ob_destination(const char* uuid)
     return false;
   }
 
-  asprintf(&sql, "select count(*) from ob_destination where uuid=\"%s\" and in_use=%d;", uuid, E_DL_USE_OK);
+  asprintf(&sql, "select count(*) from ob_destination where uuid=\"%s\" and in_use=%d;", uuid, E_USE_OK);
 
   db_res = db_query(sql);
   sfree(sql);
