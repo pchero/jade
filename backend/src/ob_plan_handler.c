@@ -25,7 +25,7 @@
 
 static json_t* get_deleted_ob_plan(const char* uuid);
 static json_t* create_ob_plan_default(void);
-static json_t* get_ob_plan_use(const char* uuid, E_DL_USE use);
+static json_t* get_ob_plan_use(const char* uuid, E_USE use);
 
 #define DEF_PLAN_DIMAL_MODE     E_DIAL_MODE_NONE
 #define DEF_PLAN_TECH_NAME      "SIP"
@@ -155,7 +155,7 @@ json_t* delete_ob_plan(const char* uuid)
   j_tmp = json_object();
   tmp = get_utc_timestamp();
   json_object_set_new(j_tmp, "tm_delete", json_string(tmp));
-  json_object_set_new(j_tmp, "in_use", json_integer(E_DL_USE_NO));
+  json_object_set_new(j_tmp, "in_use", json_integer(E_USE_NO));
   sfree(tmp);
 
   tmp = db_get_update_str(j_tmp);
@@ -179,7 +179,7 @@ json_t* delete_ob_plan(const char* uuid)
   return j_tmp;
 }
 
-static json_t* get_ob_plan_use(const char* uuid, E_DL_USE use)
+static json_t* get_ob_plan_use(const char* uuid, E_USE use)
 {
   char* sql;
   json_t* j_res;
@@ -221,7 +221,7 @@ json_t* get_ob_plan(const char* uuid)
   }
   slog(LOG_DEBUG, "Fired get_ob_plan. uuid[%s]", uuid);
 
-  j_res = get_ob_plan_use(uuid, E_DL_USE_OK);
+  j_res = get_ob_plan_use(uuid, E_USE_OK);
 
   return j_res;
 }
@@ -241,7 +241,7 @@ static json_t* get_deleted_ob_plan(const char* uuid)
   }
   slog(LOG_DEBUG, "Fired get_deleted_ob_plan. uuid[%s]", uuid);
 
-  j_res = get_ob_plan_use(uuid, E_DL_USE_NO);
+  j_res = get_ob_plan_use(uuid, E_USE_NO);
 
   return j_res;
 }
@@ -293,7 +293,7 @@ json_t* get_ob_plans_all_uuid(void)
 
   slog(LOG_DEBUG, "Fired get_ob_plans_all_uuid.");
 
-  asprintf(&sql, "select * from ob_plan where in_use=%d;", E_DL_USE_OK);
+  asprintf(&sql, "select * from ob_plan where in_use=%d;", E_USE_OK);
   db_res = db_query(sql);
   sfree(sql);
   if(db_res == NULL) {
@@ -370,7 +370,7 @@ json_t* update_ob_plan(const json_t* j_plan)
   }
   json_decref(j_tmp);
 
-  asprintf(&sql, "update ob_plan set %s where in_use=%d and uuid=\"%s\";", tmp, E_DL_USE_OK, uuid);
+  asprintf(&sql, "update ob_plan set %s where in_use=%d and uuid=\"%s\";", tmp, E_USE_OK, uuid);
   sfree(tmp);
 
   ret = db_exec(sql);
@@ -480,7 +480,7 @@ bool is_exist_ob_plan(const char* uuid)
 
   asprintf(&sql, "select count(*) from ob_plan where uuid=\"%s\" and in_use=%d;",
       uuid,
-      E_DL_USE_OK
+      E_USE_OK
       );
 
   db_res = db_query(sql);

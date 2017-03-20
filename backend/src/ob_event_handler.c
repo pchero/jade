@@ -29,6 +29,8 @@
 #include "ob_plan_handler.h"
 #include "ob_destination_handler.h"
 #include "ob_http_handler.h"
+#include "ob_dlma_handler.h"
+
 
 #define TEMP_FILENAME "/tmp/asterisk_outbound_tmp.txt"
 #define DEF_EVENT_TIME_FAST "100000"
