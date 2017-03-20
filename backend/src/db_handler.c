@@ -182,6 +182,7 @@ json_t* db_get_record(db_res_t* ctx)
 	json_t* j_res;
 	json_t* j_tmp;
 	int type;
+	const char* tmp_const;
 
 	ret = sqlite3_step(ctx->res);
 	if(ret != SQLITE_ROW) {
@@ -214,7 +215,26 @@ json_t* db_get_record(db_res_t* ctx)
 
 			case SQLITE3_TEXT:
 			{
-				j_tmp = json_string((const char*)sqlite3_column_text(ctx->res, i));
+			  // if the text is loadable, create json object.
+			  tmp_const = (const char*)sqlite3_column_text(ctx->res, i);
+			  if(tmp_const == NULL) {
+			    j_tmp = json_null();
+			  }
+			  else {
+	        j_tmp = json_loads(tmp_const, JSON_DECODE_ANY, NULL);
+	        if(j_tmp == NULL) {
+	          j_tmp = json_string((const char*)sqlite3_column_text(ctx->res, i));
+	        }
+	        else {
+	          // check type
+            // the only array/object/string/null types are allowed
+            ret = json_typeof(j_tmp);
+            if((ret != JSON_ARRAY) && (ret != JSON_OBJECT) && (ret != JSON_STRING) && (ret != JSON_NULL)) {
+              json_decref(j_tmp);
+              j_tmp = json_string((const char*)sqlite3_column_text(ctx->res, i));
+            }
+	        }
+			  }
 			}
 			break;
 

@@ -655,9 +655,7 @@ static json_t* get_ob_dlma_use(const char* uuid, E_DL_USE use)
 {
   char* sql;
   json_t* j_res;
-  json_t* j_variables;
   db_res_t* db_res;
-  const char* tmp_const;
 
   if(uuid == NULL) {
     slog(LOG_WARNING, "Invalid input parameters.");
@@ -675,11 +673,6 @@ static json_t* get_ob_dlma_use(const char* uuid, E_DL_USE use)
 
   j_res = db_get_record(db_res);
   db_free(db_res);
-
-  // parsing variables
-  tmp_const = json_string_value(json_object_get(j_res, "variables"));
-  j_variables = json_loads(tmp_const, JSON_DECODE_ANY, NULL);
-  json_object_set_new(j_res, "variables", j_variables);
 
   return j_res;
 }
@@ -912,9 +905,7 @@ static json_t* get_ob_dl_use(const char* uuid, E_DL_USE use)
 {
   char* sql;
   json_t* j_res;
-  json_t* j_variables;
   db_res_t* db_res;
-  const char* tmp_const;
 
   if(uuid == NULL) {
     slog(LOG_WARNING, "Invalid input parameters.");
@@ -933,11 +924,6 @@ static json_t* get_ob_dl_use(const char* uuid, E_DL_USE use)
 
   j_res = db_get_record(db_res);
   db_free(db_res);
-
-  // parsing variables
-  tmp_const = json_string_value(json_object_get(j_res, "variables"));
-  j_variables = json_loads(tmp_const, JSON_DECODE_ANY, NULL);
-  json_object_set_new(j_res, "variables", j_variables);
 
   return j_res;
 }
@@ -1208,7 +1194,6 @@ json_t* create_dial_info(
   json_t* j_tmp;
   const char* tmp_const;
   char* tmp;
-
 
   if((j_plan == NULL) || (j_dl_list == NULL) || (j_dest == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -1594,6 +1579,12 @@ static bool create_dlma_view(const char* uuid, const char* view_name)
   return true;
 }
 
+/**
+ *
+ * @param j_dl_list
+ * @param j_plan
+ * @return
+ */
 static json_t* create_dial_dl_info(json_t* j_dl_list, json_t* j_plan)
 {
   int index;
@@ -1608,6 +1599,15 @@ static json_t* create_dial_dl_info(json_t* j_dl_list, json_t* j_plan)
     slog(LOG_WARNING, "Wrong input parameter.");
     return NULL;
   }
+
+  char* tmp;
+  tmp = json_dumps(j_dl_list, JSON_ENCODE_ANY);
+  slog(LOG_DEBUG, "Detail dl_list info. tmp[%s]", tmp);
+  sfree(tmp);
+
+  tmp = json_dumps(j_plan, JSON_ENCODE_ANY);
+  slog(LOG_DEBUG, "Detail plan info. tmp[%s]", tmp);
+  sfree(tmp);
 
   // get dial number point(index)
   index = get_dial_num_point(j_dl_list, j_plan);

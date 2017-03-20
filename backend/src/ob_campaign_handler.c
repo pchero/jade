@@ -176,9 +176,7 @@ static json_t* get_ob_campaign_use(const char* uuid, E_DL_USE use)
 {
   char* sql;
   json_t* j_res;
-  json_t* j_variables;
   db_res_t* db_res;
-  const char* tmp_const;
 
   if(uuid == NULL) {
     slog(LOG_WARNING, "Invalid input parameters.");
@@ -197,11 +195,6 @@ static json_t* get_ob_campaign_use(const char* uuid, E_DL_USE use)
 
   j_res = db_get_record(db_res);
   db_free(db_res);
-
-  // parsing variables
-  tmp_const = json_string_value(json_object_get(j_res, "variables"));
-  j_variables = json_loads(tmp_const, JSON_DECODE_ANY, NULL);
-  json_object_set_new(j_res, "variables", j_variables);
 
   return j_res;
 }
@@ -624,7 +617,6 @@ json_t* get_ob_campaigns_by_status(E_CAMP_STATUS_T status)
   json_t* j_val;
   const char* uuid;
   unsigned int idx;
-
 
   j_uuids = get_ob_campaigns_uuid_by_status(status);
 

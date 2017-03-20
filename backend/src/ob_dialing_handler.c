@@ -943,9 +943,6 @@ json_t* get_ob_dialing(const char* uuid)
   char* sql;
   db_res_t* db_res;
   json_t* j_res;
-  json_t* j_variables;
-  const char* tmp_const;
-
 
   if(uuid == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -968,11 +965,6 @@ json_t* get_ob_dialing(const char* uuid)
     slog(LOG_ERR, "Could not get correct dialing info by uuid. uuid[%s]", uuid);
     return NULL;
   }
-
-  // parsing variables
-  tmp_const = json_string_value(json_object_get(j_res, "variables"));
-  j_variables = json_loads(tmp_const, JSON_DECODE_ANY, NULL);
-  json_object_set_new(j_res, "variables", j_variables);
 
   return j_res;
 }
