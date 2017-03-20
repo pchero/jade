@@ -24,8 +24,16 @@
 #include "ob_dl_handler.h"
 
 static json_t* get_deleted_ob_plan(const char* uuid);
+static json_t* create_ob_plan_default(void);
+static json_t* get_ob_plan_use(const char* uuid, E_DL_USE use);
 
-#define DEF_OB_PLAN_TECH_NAME "SIP"
+#define DEF_PLAN_DIMAL_MODE     E_DIAL_MODE_NONE
+#define DEF_PLAN_TECH_NAME      "SIP"
+#define DEF_PLAN_DIAL_TIMEOUT   30000
+#define DEF_PLAN_DL_END         E_PLAN_DL_END_STOP
+#define DEF_PLAN_RETRY_DELAY    60
+#define DEF_PLAN_SERVICE_LEVEL  0
+#define DEF_PLAN_MAX_RETRY_CNT  5
 
 /**
  *
@@ -44,6 +52,7 @@ bool init_plan(void)
 bool validate_ob_plan(json_t* j_data)
 {
   const char* tmp_const;
+  json_t* j_tmp;
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -51,13 +60,18 @@ bool validate_ob_plan(json_t* j_data)
   }
   slog(LOG_DEBUG, "Fired validate_ob_plan.");
 
+  // variables
+  j_tmp = json_object_get(j_data, "variables");
+  if(j_tmp != NULL) {
+    if(json_is_object(j_tmp) != true) {
+      slog(LOG_NOTICE, "Wrong input type for variable. It should be json_object type.");
+      return false;
+    }
+  }
+
   // tech_name
   tmp_const = json_string_value(json_object_get(j_data, "tech_name"));
-  if(tmp_const == NULL) {
-    slog(LOG_DEBUG, "Could not get tech_name. Set default value. tech_name[%s]", DEF_OB_PLAN_TECH_NAME);
-    json_object_set_new(j_data, "tech_name", json_string(DEF_OB_PLAN_TECH_NAME));
-  }
-  else if(tmp_const != NULL) {
+  if(tmp_const != NULL) {
     if((strcasecmp(tmp_const, "SIP") != 0)
         && (strcasecmp(tmp_const, "PJSIP") != 0)
         && (strcasecmp(tmp_const, "DAHDI") != 0)
@@ -75,7 +89,7 @@ bool validate_ob_plan(json_t* j_data)
  * @param j_plan
  * @return
  */
-json_t* create_ob_plan(const json_t* j_plan)
+json_t* create_ob_plan(json_t* j_plan)
 {
   int ret;
   char* uuid;
@@ -85,8 +99,11 @@ json_t* create_ob_plan(const json_t* j_plan)
   if(j_plan == NULL) {
     return NULL;
   }
+  slog(LOG_DEBUG, "Fired create_ob_plan.");
 
-  j_tmp = json_deep_copy(j_plan);
+  j_tmp = create_ob_plan_default();
+  json_object_update_existing(j_tmp, j_plan);
+
   uuid = gen_uuid();
   json_object_set_new(j_tmp, "uuid", json_string(uuid));
 
@@ -162,13 +179,7 @@ json_t* delete_ob_plan(const char* uuid)
   return j_tmp;
 }
 
-
-/**
- * Get plan record info.
- * @param uuid
- * @return
- */
-json_t* get_ob_plan(const char* uuid)
+static json_t* get_ob_plan_use(const char* uuid, E_DL_USE use)
 {
   char* sql;
   json_t* j_res;
@@ -178,17 +189,39 @@ json_t* get_ob_plan(const char* uuid)
     slog(LOG_WARNING, "Invalid input parameters.");
     return NULL;
   }
-  asprintf(&sql, "select * from ob_plan where in_use=%d and uuid=\"%s\";", E_DL_USE_OK, uuid);
+  slog(LOG_DEBUG, "Fired get_ob_plan_use. uuid[%s], use[%d]", uuid, use);
+
+  asprintf(&sql, "select * from ob_plan where uuid=\"%s\" and in_use=%d;", uuid, use);
 
   db_res = db_query(sql);
   sfree(sql);
   if(db_res == NULL) {
-    slog(LOG_ERR, "Could not get ob_plan info. uuid[%s]", uuid);
+    slog(LOG_ERR, "Could not get ob_plan info. uuid[%s], use[%d]", uuid, use);
     return NULL;
   }
 
   j_res = db_get_record(db_res);
   db_free(db_res);
+
+  return j_res;
+}
+
+/**
+ * Get plan record info.
+ * @param uuid
+ * @return
+ */
+json_t* get_ob_plan(const char* uuid)
+{
+  json_t* j_res;
+
+  if(uuid == NULL) {
+    slog(LOG_WARNING, "Invalid input parameters.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_ob_plan. uuid[%s]", uuid);
+
+  j_res = get_ob_plan_use(uuid, E_DL_USE_OK);
 
   return j_res;
 }
@@ -200,25 +233,15 @@ json_t* get_ob_plan(const char* uuid)
  */
 static json_t* get_deleted_ob_plan(const char* uuid)
 {
-  char* sql;
   json_t* j_res;
-  db_res_t* db_res;
 
   if(uuid == NULL) {
     slog(LOG_WARNING, "Invalid input parameters.");
     return NULL;
   }
-  asprintf(&sql, "select * from ob_plan where in_use=%d and uuid=\"%s\";", E_DL_USE_NO, uuid);
+  slog(LOG_DEBUG, "Fired get_deleted_ob_plan. uuid[%s]", uuid);
 
-  db_res = db_query(sql);
-  sfree(sql);
-  if(db_res == NULL) {
-    slog(LOG_ERR, "Could not get ob_plan info. uuid[%s]", uuid);
-    return NULL;
-  }
-
-  j_res = db_get_record(db_res);
-  db_free(db_res);
+  j_res = get_ob_plan_use(uuid, E_DL_USE_NO);
 
   return j_res;
 }
@@ -229,32 +252,29 @@ static json_t* get_deleted_ob_plan(const char* uuid)
  */
 json_t* get_ob_plans_all(void)
 {
-  char* sql;
+  json_t* j_uuids;
+  json_t* j_val;
   json_t* j_res;
   json_t* j_tmp;
-  db_res_t* db_res;
+  unsigned int idx;
+  const char* uuid;
 
-  slog(LOG_DEBUG, "Fired get_ob_plans_all.");
-
-  asprintf(&sql, "select * from ob_plan where in_use=%d;", E_DL_USE_OK);
-
-  db_res = db_query(sql);
-  sfree(sql);
-  if(db_res == NULL) {
-    slog(LOG_ERR, "Could not get ob_plan all info.");
-    return NULL;
-  }
+  j_uuids = get_ob_plans_all_uuid();
 
   j_res = json_array();
-  while(1) {
-    j_tmp = db_get_record(db_res);
+  json_array_foreach(j_uuids, idx, j_val) {
+    uuid = json_string_value(j_val);
+    if(uuid == NULL) {
+      continue;
+    }
+
+    j_tmp = get_ob_plan(uuid);
     if(j_tmp == NULL) {
-      break;
+      continue;
     }
     json_array_append_new(j_res, j_tmp);
-  }
-  db_free(db_res);
 
+  }
   return j_res;
 }
 
@@ -485,4 +505,48 @@ bool is_exist_ob_plan(const char* uuid)
   }
 
   return true;
+}
+
+static json_t* create_ob_plan_default(void)
+{
+  json_t* j_res;
+
+  slog(LOG_DEBUG, "Fired create_ob_plan_default.");
+
+  j_res = json_pack("{"
+      "s:o, s:o, "
+      "s:i, s:i, s:i, s:i, s:o, s:s, s:i, "
+      "s:o, s:o, s:o, "
+      "s:o, "
+      "s:i, s:i, s:i, s:i, s:i, s:i, s:i, s:i"
+      "}",
+
+      "name",           json_null(),
+      "detail",         json_null(),
+
+      "dial_mode",      DEF_PLAN_DIMAL_MODE,
+      "dial_timeout",   DEF_PLAN_DIAL_TIMEOUT,
+      "dl_end_handle",  DEF_PLAN_DL_END,
+      "retry_delay",    DEF_PLAN_RETRY_DELAY,
+      "trunk_name",     json_null(),
+      "tech_name",      DEF_PLAN_TECH_NAME,
+      "service_level",  DEF_PLAN_SERVICE_LEVEL,
+
+      "caller_id",      json_null(),
+      "early_media",    json_null(),
+      "codecs",         json_null(),
+
+      "variables",      json_object(),
+
+      "max_retry_cnt_1",  DEF_PLAN_MAX_RETRY_CNT,
+      "max_retry_cnt_2",  DEF_PLAN_MAX_RETRY_CNT,
+      "max_retry_cnt_3",  DEF_PLAN_MAX_RETRY_CNT,
+      "max_retry_cnt_4",  DEF_PLAN_MAX_RETRY_CNT,
+      "max_retry_cnt_5",  DEF_PLAN_MAX_RETRY_CNT,
+      "max_retry_cnt_6",  DEF_PLAN_MAX_RETRY_CNT,
+      "max_retry_cnt_7",  DEF_PLAN_MAX_RETRY_CNT,
+      "max_retry_cnt_8",  DEF_PLAN_MAX_RETRY_CNT
+      );
+
+  return j_res;
 }

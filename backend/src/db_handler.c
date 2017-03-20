@@ -182,6 +182,7 @@ json_t* db_get_record(db_res_t* ctx)
 	json_t* j_res;
 	json_t* j_tmp;
 	int type;
+	const char* tmp_const;
 
 	ret = sqlite3_step(ctx->res);
 	if(ret != SQLITE_ROW) {
@@ -214,7 +215,26 @@ json_t* db_get_record(db_res_t* ctx)
 
 			case SQLITE3_TEXT:
 			{
-				j_tmp = json_string((const char*)sqlite3_column_text(ctx->res, i));
+			  // if the text is loadable, create json object.
+			  tmp_const = (const char*)sqlite3_column_text(ctx->res, i);
+			  if(tmp_const == NULL) {
+			    j_tmp = json_null();
+			  }
+			  else {
+	        j_tmp = json_loads(tmp_const, JSON_DECODE_ANY, NULL);
+	        if(j_tmp == NULL) {
+	          j_tmp = json_string((const char*)sqlite3_column_text(ctx->res, i));
+	        }
+	        else {
+	          // check type
+            // the only array/object/string/null types are allowed
+            ret = json_typeof(j_tmp);
+            if((ret != JSON_ARRAY) && (ret != JSON_OBJECT) && (ret != JSON_STRING) && (ret != JSON_NULL)) {
+              json_decref(j_tmp);
+              j_tmp = json_string((const char*)sqlite3_column_text(ctx->res, i));
+            }
+	        }
+			  }
 			}
 			break;
 
@@ -273,6 +293,7 @@ static bool db_insert_basic(const char* table, const json_t* j_data, int replace
   char*       sql_keys;
   char*       sql_values;
   char*       tmp_sub;
+  char*       tmp_sqlite_buf; // sqlite3_mprintf
 
   if((table == NULL) || (j_data == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -290,7 +311,6 @@ static bool db_insert_basic(const char* table, const json_t* j_data, int replace
   json_object_foreach(j_data_cp, key, j_val) {
 
     // key
-    sfree(tmp);
     if(sql_keys == NULL) {
       asprintf(&tmp, "%s", key);
     }
@@ -299,6 +319,7 @@ static bool db_insert_basic(const char* table, const json_t* j_data, int replace
     }
     sfree(sql_keys);
     asprintf(&sql_keys, "%s", tmp);
+    sfree(tmp);
 
     // value
     sfree(tmp_sub);
@@ -336,7 +357,18 @@ static bool db_insert_basic(const char* table, const json_t* j_data, int replace
       break;
 
       case JSON_NULL: {
-        asprintf(&tmp_sub, "\"%s\"", "null");
+        asprintf(&tmp_sub, "%s", "null");
+      }
+      break;
+
+      case JSON_ARRAY:
+      case JSON_OBJECT: {
+        tmp = json_dumps(j_val, JSON_ENCODE_ANY);
+        tmp_sqlite_buf = sqlite3_mprintf("%q", tmp);
+        sfree(tmp);
+
+        asprintf(&tmp_sub, "'%s'", tmp_sqlite_buf);
+        sqlite3_free(tmp_sqlite_buf);
       }
       break;
 
@@ -352,7 +384,6 @@ static bool db_insert_basic(const char* table, const json_t* j_data, int replace
       break;
     }
 
-    sfree(tmp);
     if(sql_values == NULL) {
       asprintf(&tmp, "%s", tmp_sub);
     }
@@ -446,6 +477,7 @@ char* db_get_update_str(const json_t* j_data)
   char*   res;
   char*   tmp;
   char*   tmp_sub;
+  char*   tmp_sqlite_buf;
   json_t*  j_val;
   json_t*  j_data_cp;
   const char* key;
@@ -499,8 +531,17 @@ char* db_get_update_str(const json_t* j_data)
       }
       break;
 
-      // object
-      // array
+      case JSON_ARRAY:
+      case JSON_OBJECT: {
+        tmp = json_dumps(j_val, JSON_ENCODE_ANY);
+        tmp_sqlite_buf = sqlite3_mprintf("%q", tmp);
+        sfree(tmp);
+
+        asprintf(&tmp_sub, "%s = '%s'", key, tmp_sqlite_buf);
+        sqlite3_free(tmp_sqlite_buf);
+      }
+      break;
+
       default: {
         // Not done yet.
         // we don't support another types.

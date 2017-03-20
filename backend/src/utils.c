@@ -241,6 +241,45 @@ char* get_variables_info_ami_str_from_string(const char* str)
   return res;
 }
 
+/**
+ *
+ * @param str
+ * @return
+ */
+char* get_variables_ami_str_from_object(json_t* j_variables)
+{
+  const char* key;
+  json_t* j_val;
+  char* res_sub;
+  char* res;
+  char* tmp;
+
+  if(j_variables == NULL) {
+    return NULL;
+  }
+
+  res = NULL;
+  json_object_foreach(j_variables, key, j_val) {
+    asprintf(&res_sub, "Variable: %s=%s\r\n",
+        key,
+        json_string_value(j_val)? : ""
+        );
+    if(res == NULL) {
+      asprintf(&tmp, "%s", res_sub);
+    }
+    else {
+      asprintf(&tmp, "%s%s", res, res_sub);
+    }
+
+    sfree(res_sub);
+    sfree(res);
+    res = tmp;
+  }
+
+  return res;
+}
+
+
 //
 //char* get_variables_info_ami_str(struct ast_json* j_obj, const char* name)
 //{

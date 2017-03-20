@@ -59,7 +59,7 @@ bool init_http_handler(void)
   // peers
   evhtp_set_regex_cb(g_htp, "/peers", cb_htp_peers, NULL);
 
-  // databases
+  // databases - deprecated
   evhtp_set_regex_cb(g_htp, "/databases/", cb_htp_databases_key, NULL);
   evhtp_set_regex_cb(g_htp, "/databases", cb_htp_databases, NULL);
 

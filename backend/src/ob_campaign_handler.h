@@ -35,7 +35,7 @@ typedef enum _E_CAMP_SCHEDULE_MODE
   E_CAMP_SCHEDULE_ON  = 1,
 } E_CAMP_SCHEDULE_MODE;
 
-json_t* create_ob_campaign(const json_t* j_camp);
+json_t* create_ob_campaign(json_t* j_camp);
 json_t* delete_ob_campaign(const char* uuid);
 json_t* update_ob_campaign(const json_t* j_camp);
 bool update_ob_campaign_status(const char* uuid, E_CAMP_STATUS_T status);
@@ -53,5 +53,6 @@ json_t* get_campaigns_stat_all(void);
 bool is_stoppable_campgain(json_t* j_camp);
 bool is_startable_campgain(json_t* j_camp);
 bool is_exist_ob_campaign(const char* uuid);
+bool validate_ob_campaign(json_t* j_data);
 
 #endif /* SRC_CAMPAIGN_HANDLER_H_ */

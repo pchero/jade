@@ -225,8 +225,6 @@ bool send_ami_cmd(json_t* j_cmd)
   const char* key;
   int type;
   char* tmp;
-  const char* tmp_const;
-
   char* cmd;
   char* cmd_sub;
 
@@ -253,13 +251,11 @@ bool send_ami_cmd(json_t* j_cmd)
 
     ret = strcmp(key, "Variables");
     if(ret == 0) {
-      tmp_const = json_string_value(j_val);
-      cmd_sub = get_variables_info_ami_str_from_string(tmp_const);
-      if(tmp != NULL) {
-        asprintf(&tmp, "%s%s\r\n", cmd, cmd_sub);
-        sfree(cmd);
-        cmd = tmp;
-      }
+      cmd_sub = get_variables_ami_str_from_object(j_val);
+      asprintf(&tmp, "%s%s", cmd, cmd_sub);
+      sfree(cmd);
+      sfree(cmd_sub);
+      cmd = tmp;
       continue;
     }
 
@@ -312,6 +308,7 @@ int send_ami_cmd_raw(const char* cmd)
     slog(LOG_WARNING, "Wrong input parameter.");
     return -1;
   }
+  slog(LOG_DEBUG, "Fired send_ami_cmd_raw. cmd[%s]", cmd);
   
   ret = send(g_ami_sock, cmd, strlen(cmd), 0);
   if(ret < 0) {
