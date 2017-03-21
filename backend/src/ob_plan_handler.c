@@ -27,7 +27,7 @@ static json_t* get_deleted_ob_plan(const char* uuid);
 static json_t* create_ob_plan_default(void);
 static json_t* get_ob_plan_use(const char* uuid, E_USE use);
 
-#define DEF_PLAN_DIMAL_MODE     E_DIAL_MODE_NONE
+#define DEF_PLAN_DIMAL_MODE     E_DIAL_MODE_PREDICTIVE
 #define DEF_PLAN_TECH_NAME      "SIP"
 #define DEF_PLAN_DIAL_TIMEOUT   30000
 #define DEF_PLAN_DL_END         E_PLAN_DL_END_STOP
