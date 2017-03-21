@@ -227,9 +227,12 @@ json_t* db_get_record(db_res_t* ctx)
 	        }
 	        else {
 	          // check type
-            // the only array/object/string/null types are allowed
+            // the only array/object/string types are allowed
+	          // especially, we don't allow the JSON_NULL type at this point.
+	          // Cause the json_loads() consider the "null" string to JSON_NULL.
+	          // It's should be done at the above.
             ret = json_typeof(j_tmp);
-            if((ret != JSON_ARRAY) && (ret != JSON_OBJECT) && (ret != JSON_STRING) && (ret != JSON_NULL)) {
+            if((ret != JSON_ARRAY) && (ret != JSON_OBJECT) && (ret != JSON_STRING)) {
               json_decref(j_tmp);
               j_tmp = json_string((const char*)sqlite3_column_text(ctx->res, i));
             }
