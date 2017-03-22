@@ -58,6 +58,8 @@ static void cb_check_dialing_refresh(__attribute__((unused)) int fd, __attribute
 static void cb_check_dialing_timeout(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg);
 static void cb_check_dialing_error(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg);
 
+static void cb_check_dl_error(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg);
+
 static void dial_desktop(const json_t* j_camp, const json_t* j_plan, const json_t* j_dlma);
 static void dial_power(const json_t* j_camp, const json_t* j_plan, const json_t* j_dlma);
 static void dial_predictive(json_t* j_camp, json_t* j_plan, json_t* j_dlma, json_t* j_dest);
@@ -145,6 +147,9 @@ static bool init_ob_event_handler(void)
   ev = event_new(g_base, -1, EV_TIMEOUT | EV_PERSIST, cb_check_dialing_error, NULL);
   event_add(ev, &tm_slow);
 
+  // check error dl
+  ev = event_new(g_base, -1, EV_TIMEOUT | EV_PERSIST, cb_check_dl_error, NULL);
+  event_add(ev, &tm_slow);
 
   return true;
 }
@@ -906,6 +911,40 @@ static void cb_check_dialing_error(__attribute__((unused)) int fd, __attribute__
   json_decref(j_dialings);
 }
 
+/**
+ * Check error dl.
+ * Get invalid error dls and update reset the status.
+ * \param fd
+ * \param event
+ * \param arg
+ */
+static void cb_check_dl_error(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg)
+{
+  json_t* j_dls;
+  json_t* j_dl;
+  unsigned int idx;
+  const char* uuid;
+  int ret;
+
+  // get error dls
+  j_dls = get_ob_dls_error();
+
+  json_array_foreach(j_dls, idx, j_dl) {
+    uuid = json_string_value(json_object_get(j_dl, "uuid"));
+    if(uuid == NULL) {
+      continue;
+    }
+
+    slog(LOG_NOTICE, "Update invalid dl info. uuid[%s]", uuid);
+    ret = update_ob_dl_hangup(uuid, 0, "", 0, "");
+    if(ret == false) {
+      slog(LOG_ERR, "Could not update invalid dl info. uuid[%s]", uuid);
+    }
+  }
+  json_decref(j_dls);
+
+  return;
+}
 
 /**
  *

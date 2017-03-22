@@ -25,7 +25,7 @@
 
 extern app* g_app;
 
-#define DEF_DL_STATUS   E_DL_IDLE
+#define DEF_DL_STATUS   E_DL_STATUS_IDLE
 
 static json_t* get_ob_dl_use(const char* uuid, E_USE use);
 static json_t* get_dls_uuid_available(json_t* j_dlma, json_t* j_plan, int count);
@@ -213,7 +213,7 @@ void clear_dl_list_dialing(const char* uuid)
   slog(LOG_DEBUG, "Fired clear_dl_list_dialing. uuid[%s]", uuid);
 
   j_tmp = json_pack("{s:i, s:s, s:o, s:o, s:o}",
-      "status",             E_DL_IDLE,
+      "status",             E_DL_STATUS_IDLE,
       "uuid",               uuid,
       "dialing_uuid",       json_null(),
       "dialing_camp_uuid",  json_null(),
@@ -576,6 +576,82 @@ json_t* get_ob_dls_by_count(int count)
   return j_res;
 }
 
+/**
+ *
+ * @param status
+ * @return
+ */
+json_t* get_ob_dls_by_status(E_DL_STATUS_T status)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+  char* sql;
+  db_res_t* db_res;
+
+  slog(LOG_DEBUG, "Fired get_ob_dls_by_status. status[%d]", status);
+
+  asprintf(&sql, "select * from ob_dl_list where status=%d and in_use=%d;", status, E_USE_OK);
+
+  db_res = db_query(sql);
+  sfree(sql);
+  if(db_res == NULL) {
+    slog(LOG_ERR, "Could not get ob_dl_list info. status[%d]", status);
+    return NULL;
+  }
+
+  j_res = json_array();
+  while(1) {
+    j_tmp = db_get_record(db_res);
+    if(j_tmp == NULL) {
+      break;
+    }
+
+    json_array_append_new(j_res, j_tmp);
+  }
+  db_free(db_res);
+
+  return j_res;
+}
+
+/**
+ * Get dial list array of invalid status.
+ *
+ * @return
+ */
+json_t* get_ob_dls_error(void)
+{
+  db_res_t* db_res;
+  json_t* j_res;
+  json_t* j_tmp;
+  char* sql;
+
+  asprintf(&sql, "select ob_dl_list.* from ob_dl_list"
+      " inner join ob_dialing on ob_dl_list.uuid != ob_dialing.uuid_dl_list"
+      " where ob_dl_list.status != %d;",
+      E_DL_STATUS_IDLE
+      );
+
+  db_res = db_query(sql);
+  sfree(sql);
+  if(db_res == NULL) {
+    slog(LOG_ERR, "Could not get ob_dl_list info for error.");
+    return NULL;
+  }
+
+  j_res = json_array();
+  while(1) {
+    j_tmp = db_get_record(db_res);
+    if(j_tmp == NULL) {
+      break;
+    }
+
+    json_array_append_new(j_res, j_tmp);
+  }
+  db_free(db_res);
+
+  return j_res;
+}
+
 static json_t* get_ob_dl_use(const char* uuid, E_USE use)
 {
   char* sql;
@@ -688,7 +764,7 @@ int get_ob_dl_list_cnt_finshed(json_t* j_dlma, json_t* j_plan)
       json_integer_value(json_object_get(j_plan, "max_retry_cnt_7")),
       json_integer_value(json_object_get(j_plan, "max_retry_cnt_8")),
       AST_CONTROL_ANSWER,
-      E_DL_IDLE,
+      E_DL_STATUS_IDLE,
       E_USE_OK
       );
 
@@ -750,7 +826,7 @@ int get_ob_dl_list_cnt_available(json_t* j_dlma, json_t* j_plan)
       json_integer_value(json_object_get(j_plan, "max_retry_cnt_8")),
 
       AST_CONTROL_ANSWER,
-      E_DL_IDLE,
+      E_DL_STATUS_IDLE,
       E_USE_OK
       );
 
@@ -791,7 +867,7 @@ int get_ob_dl_list_cnt_dialing(json_t* j_dlma)
 
   asprintf(&sql, "select count(*) from '%s' where status != %d and in_use = %d;",
       json_string_value(json_object_get(j_dlma, "dl_table"))? : "",
-      E_DL_IDLE,
+      E_DL_STATUS_IDLE,
       E_USE_OK
       );
   db_res = db_query(sql);
@@ -1388,7 +1464,7 @@ static json_t* get_dls_uuid_available(json_t* j_dlma, json_t* j_plan, int count)
       json_integer_value(json_object_get(j_plan, "max_retry_cnt_7")),
       json_integer_value(json_object_get(j_plan, "max_retry_cnt_8")),
       AST_CONTROL_ANSWER,
-      E_DL_IDLE,
+      E_DL_STATUS_IDLE,
       count
       );
 
@@ -1492,7 +1568,7 @@ bool update_ob_dl_after_create_dialing_info(json_t* j_dialing)
   j_dl_update = json_pack("{s:s, s:i, s:i, s:s, s:s, s:s, s:s}",
       "uuid",               json_string_value(json_object_get(j_dialing, "uuid_dl_list"))? : "",
       try_count_field,      json_integer_value(json_object_get(j_dialing, "dial_trycnt")),
-      "status",             E_DL_DIALING,
+      "status",             E_DL_STATUS_DIALING,
       "dialing_uuid",       json_string_value(json_object_get(j_dialing, "uuid"))? : "",
       "dialing_camp_uuid",  json_string_value(json_object_get(j_dialing, "uuid_camp"))? : "",
       "dialing_plan_uuid",  json_string_value(json_object_get(j_dialing, "uuid_plan"))? : "",
@@ -1537,7 +1613,7 @@ bool update_dl_list_after_create_dialing_info_(rb_dialing* dialing)
   j_dl_update = json_pack("{s:s, s:I, s:i, s:s, s:s, s:s, s:s}",
       "uuid",                 json_string_value(json_object_get(dialing->j_dialing, "dl_list_uuid")),
       try_count_field,      json_integer_value(json_object_get(dialing->j_dialing, "dial_trycnt")),
-      "status",               E_DL_DIALING,
+      "status",               E_DL_STATUS_DIALING,
       "dialing_uuid",         dialing->uuid,
       "dialing_camp_uuid",  json_string_value(json_object_get(dialing->j_dialing, "camp_uuid")),
       "dialing_plan_uuid",  json_string_value(json_object_get(dialing->j_dialing, "plan_uuid")),
@@ -1749,7 +1825,7 @@ bool update_ob_dl_hangup(
       "s:s"
       "}",
       "uuid",               uuid,
-      "status",             E_DL_IDLE,
+      "status",             E_DL_STATUS_IDLE,
 
       "dialing_uuid",       json_null(),
       "dialing_camp_uuid",  json_null(),

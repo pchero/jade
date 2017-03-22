@@ -34,6 +34,7 @@ static void ami_event_queuemember(json_t* j_msg);
 static void ami_event_queueentry(json_t* j_msg);
 static void ami_event_queuecallerjoin(json_t* j_msg);
 static void ami_event_queuecallerleave(json_t* j_msg);
+static void ami_event_queuememberstatus(json_t* j_msg);
 static void ami_event_registryentry(json_t* j_msg);
 
 static void ami_event_outdestinationentry(json_t* j_msg);
@@ -96,7 +97,6 @@ void ami_message_handler(const char* msg)
 
   event = json_string_value(json_object_get(j_msg, "Event"));
   if(event == NULL) {
-    slog(LOG_ERR, "Could not get event info,");
     json_decref(j_msg);
     return;
   }
@@ -138,9 +138,13 @@ void ami_message_handler(const char* msg)
   else if(strcasecmp(event, "QueueCallerLeave") == 0) {
     ami_event_queuecallerleave(j_msg);
   }
+  else if(strcasecmp(event, "QueueMemberStatus") == 0) {
+    ami_event_queuememberstatus(j_msg);
+  }
   else if(strcasecmp(event, "RegistryEntry") == 0) {
     ami_event_registryentry(j_msg);
   }
+
 
   else if(strcmp(event, "OutDestinationEntry") == 0) {
     ami_event_outdestinationentry(j_msg);
@@ -1739,7 +1743,7 @@ static void ami_event_queuecallerleave(json_t* j_msg)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired ami_event_queuecallerleave.");
+  slog(LOG_INFO, "Fired ami_event_queuecallerleave.");
 
   asprintf(&sql, "delete from queue_entry where queue_name=\"%s\" and position=%s;",
       json_string_value(json_object_get(j_msg, "Queue"))? : "",
@@ -1752,6 +1756,73 @@ static void ami_event_queuecallerleave(json_t* j_msg)
     slog(LOG_ERR, "Could not delete queue_entry.");
     return;
   }
+  return;
+}
+
+/**
+ * AMI event handler.
+ * Event: QueueMemberStatus
+ * @param j_msg
+ */
+static void ami_event_queuememberstatus(json_t* j_msg)
+{
+  int ret;
+  json_t* j_tmp;
+  char* timestamp;
+
+  if(j_msg == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired ami_event_queuememberstatus.");
+
+  timestamp = get_utc_timestamp();
+  j_tmp = json_pack("{"
+      "s:s, s:s, s:i, "
+      "s:s, s:s, s:s, s:i, s:i, "
+      "s:i, s:i, s:i, s:i, "
+      "s:i, s:s, "
+      "s:s"
+      "}",
+
+      "queue_name", json_string_value(json_object_get(j_msg, "Queue"))? : "",
+      "name",       json_string_value(json_object_get(j_msg, "MemberName"))? : "",
+      "status",     json_string_value(json_object_get(j_msg, "Status"))? atoi(json_string_value(json_object_get(j_msg, "Status"))): 0,
+
+      "location",         json_string_value(json_object_get(j_msg, "Interface"))? : "",
+      "state_interface",  json_string_value(json_object_get(j_msg, "StateInterface"))? : "",
+      "membership",       json_string_value(json_object_get(j_msg, "Membership"))? : "",
+      "penalty",          json_string_value(json_object_get(j_msg, "Penalty"))? atoi(json_string_value(json_object_get(j_msg, "Penalty"))): 0,
+      "calls_taken",      json_string_value(json_object_get(j_msg, "CallsTaken"))? atoi(json_string_value(json_object_get(j_msg, "Penalty"))): 0,
+
+      "last_call",  json_string_value(json_object_get(j_msg, "LastCall"))? atoi(json_string_value(json_object_get(j_msg, "LastCall"))): 0,
+      "ring_inuse", json_string_value(json_object_get(j_msg, "Ringinuse"))? atoi(json_string_value(json_object_get(j_msg, "Ringinuse"))): 0,
+      "last_pause", json_string_value(json_object_get(j_msg, "LastPause"))? atoi(json_string_value(json_object_get(j_msg, "LastPause"))): 0,
+      "in_call",    json_string_value(json_object_get(j_msg, "InCall"))? atoi(json_string_value(json_object_get(j_msg, "InCall"))): 0,
+
+      "paused",         json_string_value(json_object_get(j_msg, "Paused"))? atoi(json_string_value(json_object_get(j_msg, "Paused"))): 0,
+      "paused_reason",  json_string_value(json_object_get(j_msg, "PausedReason"))? : "",
+
+      "tm_update",  timestamp
+      );
+  sfree(timestamp);
+  if(j_tmp == NULL) {
+    slog(LOG_DEBUG, "Could not create message.");
+    return;
+  }
+  slog(LOG_INFO, "Update queue member status. queue_name[%s], member_name[%s], status[%lld]",
+      json_string_value(json_object_get(j_tmp, "queue_name")),
+      json_string_value(json_object_get(j_tmp, "name")),
+      json_integer_value(json_object_get(j_tmp, "status"))
+      );
+
+  ret = db_insert_or_replace("queue_member", j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert to queue_member.");
+    return;
+  }
+
   return;
 }
 

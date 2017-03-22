@@ -148,6 +148,7 @@ static const char* g_sql_create_queue_member =
 "   status            int,"
 "   paused            int,"
 "   paused_reason     text,"
+"   ring_inuse        int,"
 
 // timestamp. UTC."
 "   tm_update         datetime(6),"   // update time."
