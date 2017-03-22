@@ -26,17 +26,21 @@ Call
   {
     "name": "<string>",
     "detail": "<string>",
+    
     "tech_name": "<string>",
     "trunk_name": "<string>",
-    "dl_end_handle": <integer>,
-    "caller_id": "<string>",
+
     "dial_mode": <integer>,
     "dial_timeout": <integer>,
+    "dl_end_handle": <integer>,
     "retry_delay": <integer>,
+
+    "caller_id": "<string>",
     "service_level": <integer>,
     "early_media": "<string>",
     "codecs": "<string>",
-    "variables": "<string>",
+    "variables": {"<string>": "<string>", ...},
+    
     "max_retry_cnt_1": <integer>,
     "max_retry_cnt_2": <integer>,
     "max_retry_cnt_3": <integer>,
@@ -49,16 +53,21 @@ Call
 
 * ``name``: Plan name.
 * ``detail``: Detail info.
-* ``ob_tech_name``: Tech name for outbound dialing. See detail :ref:`ob_tech_name`.
+
+* ``tech_name``: Tech name for outbound dialing. See detail :ref:`ob_tech_name`.
 * ``trunk_name``: Trunkname for outbound dialing. See detail :ref:`trunk_name`.
-* ``dl_end_handle``: Determine behavior of when the dial list end. See detail :ref:`ob_dial_list_end_handling`.
-* ``caller_id``: Caller's id.
-* ``ob_dial_mode``: Dialling mode. See detail :ref:`ob_dial_mode`.
+
+* ``dial_mode``: Dialling mode. See detail :ref:`ob_dial_mode`.
 * ``dial_timeout``: Ringing timeout(ms).
+* ``dl_end_handle``: Determine behavior of when the dial list end. See detail :ref:`ob_dial_list_end_handling`.
 * ``retry_delay``: Delay time for next try(sec).
+
+* ``caller_id``: Caller's id.
 * ``service_level``: Determine service level.
 * ``early_media``: Set to true to force call bridge on early media. 
 * ``codecs``: Codecs. Comma-separated list of codecs to use for this call.
+* ``variables``: variables info json object.
+
 * ``max_retry_cnt_1``: Max retry count for number 1.
 * ``max_retry_cnt_2``: Max retry count for number 2.
 * ``max_retry_cnt_3``: Max retry count for number 3.
@@ -67,8 +76,6 @@ Call
 * ``max_retry_cnt_6``: Max retry count for number 6.
 * ``max_retry_cnt_7``: Max retry count for number 7.
 * ``max_retry_cnt_8``: Max retry count for number 8.
-* ``variables``:
-
 
 Returns
 +++++++
@@ -80,16 +87,21 @@ Returns
       "uuid": "<string>",
       "name": "<string>",
       "detail": "<string>",
+       
       "tech_name": "<string>",
       "trunk_name": "<string>",
-      "dl_end_handle": <integer>,
-      "caller_id": "<string>",
+   
       "dial_mode": <integer>,
       "dial_timeout": <integer>,
+      "dl_end_handle": <integer>,
       "retry_delay": <integer>,
+   
+      "caller_id": "<string>",
       "service_level": <integer>,
       "early_media": "<string>",
       "codecs": "<string>",
+      "variables": {"<string>": "<string>", ...},
+       
       "max_retry_cnt_1": <integer>,
       "max_retry_cnt_2": <integer>,
       "max_retry_cnt_3": <integer>,
@@ -98,7 +110,7 @@ Returns
       "max_retry_cnt_6": <integer>,
       "max_retry_cnt_7": <integer>,
       "max_retry_cnt_8": <integer>,
-      "variables": "<string>",
+
       "in_use": <integer>,
       "tm_create": "<timestamp>",
       "tm_update": "<timestamp>",
@@ -109,16 +121,21 @@ Returns
 * ``uuid`` : Created plan uuid.
 * ``name``: Plan name.
 * ``detail``: Detail info.
-* ``ob_tech_name``: Tech name for outbound dialing. See detail :ref:`ob_tech_name`.
+
+* ``tech_name``: Tech name for outbound dialing. See detail :ref:`ob_tech_name`.
 * ``trunk_name``: Trunkname for outbound dialing. See detail :ref:`trunk_name`.
-* ``dl_end_handle``: Determine behavior of when the dial list end. See detail :ref:`ob_dial_list_end_handling`.
-* ``caller_id``: Caller's id.
-* ``ob_dial_mode``: Dialling mode. See detail :ref:`ob_dial_mode`.
+
+* ``dial_mode``: Dialling mode. See detail :ref:`ob_dial_mode`.
 * ``dial_timeout``: Ringing timeout(ms).
+* ``dl_end_handle``: Determine behavior of when the dial list end. See detail :ref:`ob_dial_list_end_handling`.
 * ``retry_delay``: Delay time for next try(sec).
+
+* ``caller_id``: Caller's id.
 * ``service_level``: Determine service level.
 * ``early_media``: Set to true to force call bridge on early media. 
 * ``codecs``: Codecs. Comma-separated list of codecs to use for this call.
+* ``variables``: variables info json object.
+
 * ``max_retry_cnt_1``: Max retry count for number 1.
 * ``max_retry_cnt_2``: Max retry count for number 2.
 * ``max_retry_cnt_3``: Max retry count for number 3.
@@ -127,47 +144,49 @@ Returns
 * ``max_retry_cnt_6``: Max retry count for number 6.
 * ``max_retry_cnt_7``: Max retry count for number 7.
 * ``max_retry_cnt_8``: Max retry count for number 8.
-* ``variables``:
 
 Example
 +++++++
 ::
 
-  $ curl -X POST 192.168.200.10:8081/ob/plans -d '{"name": "Test plan create"}'
+   $ curl -X POST 192.168.200.10:8081/ob/plans -d \
+   '{"name": "Test plan create", "variables": {"plan_key_1": "plean_val_1"}}'
 
-  {
-    "api_ver": "0.1",
-    "timestamp": "2017-02-22T16:57:49.973941490Z",
-    "statuscode": 200,
-    "result": {
-      "detail": null,
-      "tech_name": "SIP",
-      "uuid": "c8b521ab-8114-4a62-b4e9-488d770d4ee8",
-      "dl_end_handle": 1,
-      "name": "Test plan create",
-      "tm_delete": null,
-      "max_retry_cnt_5": 5,
-      "caller_id": null,
-      "variables": null,
-      "max_retry_cnt_4": 5,
-      "in_use": 1,
-      "dial_mode": 1,
-      "retry_delay": 60,
-      "dial_timeout": 30000,
-      "trunk_name": null,
-      "tm_create": "2017-02-22T16:57:49.962162166Z",
-      "service_level": 0,
-      "early_media": null,
-      "codecs": null,
-      "max_retry_cnt_1": 5,
-      "max_retry_cnt_2": 5,
-      "max_retry_cnt_3": 5,
-      "max_retry_cnt_6": 5,
-      "max_retry_cnt_7": 5,
-      "max_retry_cnt_8": 5,
-      "tm_update": null
-    }
-  }
+   {
+     "api_ver": "0.1",
+     "result": {
+       "caller_id": null,
+       "codecs": null,
+       "detail": null,
+       "dial_mode": 0,
+       "dial_timeout": 30000,
+       "dl_end_handle": 1,
+       "early_media": null,
+       "in_use": 1,
+       "max_retry_cnt_1": 5,
+       "max_retry_cnt_2": 5,
+       "max_retry_cnt_3": 5,
+       "max_retry_cnt_4": 5,
+       "max_retry_cnt_5": 5,
+       "max_retry_cnt_6": 5,
+       "max_retry_cnt_7": 5,
+       "max_retry_cnt_8": 5,
+       "name": "Test plan create",
+       "retry_delay": 60,
+       "service_level": 0,
+       "tech_name": "SIP",
+       "tm_create": "2017-03-11T12:29:48.54314463Z",
+       "tm_delete": null,
+       "tm_update": null,
+       "trunk_name": null,
+       "uuid": "48c93d14-31f8-4445-970d-b865c8a4f432",
+       "variables": {
+         "plan_key_1": "plean_val_1"
+       }
+     },
+     "statuscode": 200,
+     "timestamp": "2017-03-11T12:29:48.70986205Z"
+   }
 
 
 Method: GET
@@ -241,48 +260,58 @@ Returns
    {
      $defhdr,
      "reuslt": {
-       "uuid": "<string>",
-       "name": "<string>",
-       "detail": "<string>",
-       "tech_name": "<string>",
-       "trunk_name": "<string>",
-       "dl_end_handle": <integer>,
-       "caller_id": "<string>",
-       "dial_mode": <integer>,
-       "dial_timeout": <integer>,
-       "retry_delay": <integer>,
-       "service_level": <integer>,
-       "early_media": "<string>",
-       "codecs": "<string>",
-       "max_retry_cnt_1": <integer>,
-       "max_retry_cnt_2": <integer>,
-       "max_retry_cnt_3": <integer>,
-       "max_retry_cnt_4": <integer>,
-       "max_retry_cnt_5": <integer>,
-       "max_retry_cnt_6": <integer>,
-       "max_retry_cnt_7": <integer>,
-       "max_retry_cnt_8": <integer>,
-       "variables": "<string>",
-       "in_use": <integer>,
-       "tm_create": "<timestamp>",
-       "tm_update": "<timestamp>",
-       "tm_delete": "<timestamp>"
+      "uuid": "<string>",
+      "name": "<string>",
+      "detail": "<string>",
+       
+      "tech_name": "<string>",
+      "trunk_name": "<string>",
+   
+      "dial_mode": <integer>,
+      "dial_timeout": <integer>,
+      "dl_end_handle": <integer>,
+      "retry_delay": <integer>,
+   
+      "caller_id": "<string>",
+      "service_level": <integer>,
+      "early_media": "<string>",
+      "codecs": "<string>",
+      "variables": {"<string>": "<string>", ...},
+       
+      "max_retry_cnt_1": <integer>,
+      "max_retry_cnt_2": <integer>,
+      "max_retry_cnt_3": <integer>,
+      "max_retry_cnt_4": <integer>,
+      "max_retry_cnt_5": <integer>,
+      "max_retry_cnt_6": <integer>,
+      "max_retry_cnt_7": <integer>,
+      "max_retry_cnt_8": <integer>,
+
+      "in_use": <integer>,
+      "tm_create": "<timestamp>",
+      "tm_update": "<timestamp>",
+      "tm_delete": "<timestamp>"
      }
    }
 
 * ``uuid`` : Plan uuid.
 * ``name``: Plan name.
 * ``detail``: Detail info.
-* ``ob_tech_name``: Tech name for outbound dialing. See detail :ref:`ob_tech_name`.
+
+* ``tech_name``: Tech name for outbound dialing. See detail :ref:`ob_tech_name`.
 * ``trunk_name``: Trunkname for outbound dialing. See detail :ref:`trunk_name`.
-* ``dl_end_handle``: Determine behavior of when the dial list end. See detail :ref:`ob_dial_list_end_handling`.
-* ``caller_id``: Caller's id.
-* ``ob_dial_mode``: Dialling mode. See detail :ref:`ob_dial_mode`.
+
+* ``dial_mode``: Dialling mode. See detail :ref:`ob_dial_mode`.
 * ``dial_timeout``: Ringing timeout(ms).
+* ``dl_end_handle``: Determine behavior of when the dial list end. See detail :ref:`ob_dial_list_end_handling`.
 * ``retry_delay``: Delay time for next try(sec).
+
+* ``caller_id``: Caller's id.
 * ``service_level``: Determine service level.
-* ``early_media``: Set to true to force call bridge on early media.
+* ``early_media``: Set to true to force call bridge on early media. 
 * ``codecs``: Codecs. Comma-separated list of codecs to use for this call.
+* ``variables``: variables info json object.
+
 * ``max_retry_cnt_1``: Max retry count for number 1.
 * ``max_retry_cnt_2``: Max retry count for number 2.
 * ``max_retry_cnt_3``: Max retry count for number 3.
@@ -291,47 +320,48 @@ Returns
 * ``max_retry_cnt_6``: Max retry count for number 6.
 * ``max_retry_cnt_7``: Max retry count for number 7.
 * ``max_retry_cnt_8``: Max retry count for number 8.
-* ``variables``:
 
 Example
 +++++++
 ::
 
-  $ curl -X GET 192.168.200.10:8081/ob/plans/552e9808-23bc-40b1-947a-60b0b96581cb
-
-  {
-    "api_ver": "0.1",
-    "result": {
-      "caller_id": null,
-      "codecs": null,
-      "detail": null,
-      "dial_mode": 1,
-      "dial_timeout": 30000,
-      "dl_end_handle": 1,
-      "early_media": null,
-      "in_use": 1,
-      "max_retry_cnt_1": 1000,
-      "max_retry_cnt_2": 5,
-      "max_retry_cnt_3": 5,
-      "max_retry_cnt_4": 5,
-      "max_retry_cnt_5": 5,
-      "max_retry_cnt_6": 5,
-      "max_retry_cnt_7": 5,
-      "max_retry_cnt_8": 5,
-      "name": null,
-      "retry_delay": 60,
-      "service_level": 0,
-      "tech_name": "SIP",
-      "tm_create": "2017-02-21T13:53:16.684583113Z",
-      "tm_delete": null,
-      "tm_update": "2017-02-21T14:08:21.484784844Z",
-      "trunk_name": null,
-      "uuid": "552e9808-23bc-40b1-947a-60b0b96581cb",
-      "variables": null
-    },
-    "statuscode": 200,
-    "timestamp": "2017-02-22T17:43:11.217963213Z"
-  }
+   $ curl -X GET 192.168.200.10:8081/ob/plans/48c93d14-31f8-4445-970d-b865c8a4f432
+   
+   {
+     "api_ver": "0.1",
+     "result": {
+       "caller_id": null,
+       "codecs": null,
+       "detail": null,
+       "dial_mode": 0,
+       "dial_timeout": 30000,
+       "dl_end_handle": 1,
+       "early_media": null,
+       "in_use": 1,
+       "max_retry_cnt_1": 5,
+       "max_retry_cnt_2": 5,
+       "max_retry_cnt_3": 5,
+       "max_retry_cnt_4": 5,
+       "max_retry_cnt_5": 5,
+       "max_retry_cnt_6": 5,
+       "max_retry_cnt_7": 5,
+       "max_retry_cnt_8": 5,
+       "name": "Test plan create",
+       "retry_delay": 60,
+       "service_level": 0,
+       "tech_name": "SIP",
+       "tm_create": "2017-03-11T12:29:48.54314463Z",
+       "tm_delete": null,
+       "tm_update": null,
+       "trunk_name": null,
+       "uuid": "48c93d14-31f8-4445-970d-b865c8a4f432",
+       "variables": {
+         "plan_key_1": "plean_val_1"
+       }
+     },
+     "statuscode": 200,
+     "timestamp": "2017-03-11T12:34:09.643603005Z"
+   }
   
 Method: PUT
 -----------
@@ -343,83 +373,54 @@ Update specified plan info.
 
 ::
 
-  PUT /ob/plans/<plan-uuid>
-  
-  {
-    "name": "<string>",
-    "detail": "<string>",
-    "tech_name": "<string>",
-    "trunk_name": "<string>",
-    "dl_end_handle": <integer>,
-    "caller_id": "<string>",
-    "dial_mode": <integer>,
-    "dial_timeout": <integer>,
-    "retry_delay": <integer>,
-    "service_level": <integer>,
-    "early_media": "<string>",
-    "codecs": "<string>",
-    "max_retry_cnt_1": <integer>,
-    "max_retry_cnt_2": <integer>,
-    "max_retry_cnt_3": <integer>,
-    "max_retry_cnt_4": <integer>,
-    "max_retry_cnt_5": <integer>,
-    "max_retry_cnt_6": <integer>,
-    "max_retry_cnt_7": <integer>,
-    "max_retry_cnt_8": <integer>,
-    "variables": "<string>"
-  }
+   PUT /ob/plans/<plan-uuid>
+   
+   {
+     "name": "<string>",
+     "detail": "<string>",
+    
+     "tech_name": "<string>",
+     "trunk_name": "<string>",
 
-Returns
-+++++++
-Updated plan info.
+     "dial_mode": <integer>,
+     "dial_timeout": <integer>,
+     "dl_end_handle": <integer>,
+     "retry_delay": <integer>,
 
-::
+     "caller_id": "<string>",
+     "service_level": <integer>,
+     "early_media": "<string>",
+     "codecs": "<string>",
+     "variables": {"<string>": "<string>", ...},
+    
+     "max_retry_cnt_1": <integer>,
+     "max_retry_cnt_2": <integer>,
+     "max_retry_cnt_3": <integer>,
+     "max_retry_cnt_4": <integer>,
+     "max_retry_cnt_5": <integer>,
+     "max_retry_cnt_6": <integer>,
+     "max_retry_cnt_7": <integer>,
+     "max_retry_cnt_8": <integer>  
+   }
 
-  {
-    $defhdr,
-    "reuslt": {
-      "uuid": "<string>",
-      "name": "<string>",
-      "detail": "<string>",
-      "tech_name": "<string>",
-      "trunk_name": "<string>",
-      "dl_end_handle": <integer>,
-      "caller_id": "<string>",
-      "dial_mode": <integer>,
-      "dial_timeout": <integer>,
-      "retry_delay": <integer>,
-      "service_level": <integer>,
-      "early_media": "<string>",
-      "codecs": "<string>",
-      "max_retry_cnt_1": <integer>,
-      "max_retry_cnt_2": <integer>,
-      "max_retry_cnt_3": <integer>,
-      "max_retry_cnt_4": <integer>,
-      "max_retry_cnt_5": <integer>,
-      "max_retry_cnt_6": <integer>,
-      "max_retry_cnt_7": <integer>,
-      "max_retry_cnt_8": <integer>,
-      "variables": "<string>",
-      "in_use": <integer>,
-      "tm_create": "<timestamp>",
-      "tm_update": "<timestamp>",
-      "tm_delete": "<timestamp>"
-    }
-  }
+* ``uuid`` : Plan uuid.
+* ``name``: Plan name.
+* ``detail``: Detail info.
 
-* ``uuid`` : plan uuid.
-* ``name`` : Plan name. Default null.
-* ``detail`` : Detail info. Default null.
-* ``ob_tech_name`` : Tech name for outbound dialing. Default null. See detail :ref:`ob_tech_name`.
-* ``trunk_name`` : Trunkname for outbound dialing. Default null.
-* ``dl_end_handle``: Determine behavior of when the dial list end. See detail :ref:`ob_dial_list_end_handling`.
-* ``caller_id``: Caller’s id.
-* ``ob_dial_mode``: Dialling mode. See detail Dial mode. See detail :ref:`ob_dial_mode`.
+* ``tech_name``: Tech name for outbound dialing. See detail :ref:`ob_tech_name`.
+* ``trunk_name``: Trunkname for outbound dialing. See detail :ref:`trunk_name`.
+
+* ``dial_mode``: Dialling mode. See detail :ref:`ob_dial_mode`.
 * ``dial_timeout``: Ringing timeout(ms).
-* ``retry_delay``: Delay time for next try(sec). 
+* ``dl_end_handle``: Determine behavior of when the dial list end. See detail :ref:`ob_dial_list_end_handling`.
+* ``retry_delay``: Delay time for next try(sec).
+
+* ``caller_id``: Caller's id.
 * ``service_level``: Determine service level.
 * ``early_media``: Set to true to force call bridge on early media. 
-* ``codecs``: Codecs. Comma-separated list of codecs to use for this call. 
+* ``codecs``: Codecs. Comma-separated list of codecs to use for this call.
+* ``variables``: variables info json object.
+
 * ``max_retry_cnt_1``: Max retry count for number 1.
 * ``max_retry_cnt_2``: Max retry count for number 2.
 * ``max_retry_cnt_3``: Max retry count for number 3.
@@ -428,47 +429,118 @@ Updated plan info.
 * ``max_retry_cnt_6``: Max retry count for number 6.
 * ``max_retry_cnt_7``: Max retry count for number 7.
 * ``max_retry_cnt_8``: Max retry count for number 8.
-* ``variables``: 
+
+Returns
++++++++
+Updated plan info.
+
+::
+
+   {
+     $defhdr,
+     "reuslt": {
+       "uuid": "<string>",
+       "name": "<string>",
+       "detail": "<string>",
+       
+       "tech_name": "<string>",
+       "trunk_name": "<string>",
+   
+       "dial_mode": <integer>,
+       "dial_timeout": <integer>,
+       "dl_end_handle": <integer>,
+       "retry_delay": <integer>,
+   
+       "caller_id": "<string>",
+       "service_level": <integer>,
+       "early_media": "<string>",
+       "codecs": "<string>",
+       "variables": {"<string>": "<string>", ...},
+       
+       "max_retry_cnt_1": <integer>,
+       "max_retry_cnt_2": <integer>,
+       "max_retry_cnt_3": <integer>,
+       "max_retry_cnt_4": <integer>,
+       "max_retry_cnt_5": <integer>,
+       "max_retry_cnt_6": <integer>,
+       "max_retry_cnt_7": <integer>,
+       "max_retry_cnt_8": <integer>,
+
+       "in_use": <integer>,
+       "tm_create": "<timestamp>",
+       "tm_update": "<timestamp>",
+       "tm_delete": "<timestamp>"
+     }
+   }
+
+* ``uuid`` : Plan uuid.
+* ``name``: Plan name.
+* ``detail``: Detail info.
+
+* ``tech_name``: Tech name for outbound dialing. See detail :ref:`ob_tech_name`.
+* ``trunk_name``: Trunkname for outbound dialing. See detail :ref:`trunk_name`.
+
+* ``dial_mode``: Dialling mode. See detail :ref:`ob_dial_mode`.
+* ``dial_timeout``: Ringing timeout(ms).
+* ``dl_end_handle``: Determine behavior of when the dial list end. See detail :ref:`ob_dial_list_end_handling`.
+* ``retry_delay``: Delay time for next try(sec).
+
+* ``caller_id``: Caller's id.
+* ``service_level``: Determine service level.
+* ``early_media``: Set to true to force call bridge on early media. 
+* ``codecs``: Codecs. Comma-separated list of codecs to use for this call.
+* ``variables``: variables info json object.
+
+* ``max_retry_cnt_1``: Max retry count for number 1.
+* ``max_retry_cnt_2``: Max retry count for number 2.
+* ``max_retry_cnt_3``: Max retry count for number 3.
+* ``max_retry_cnt_4``: Max retry count for number 4.
+* ``max_retry_cnt_5``: Max retry count for number 5.
+* ``max_retry_cnt_6``: Max retry count for number 6.
+* ``max_retry_cnt_7``: Max retry count for number 7.
+* ``max_retry_cnt_8``: Max retry count for number 8.
 
 Example
 +++++++
 ::
 
-   $ curl -X PUT 192.168.200.10:8081/ob/plans/c8b521ab-8114-4a62-b4e9-488d770d4ee8 \
-    -d '{"name": "Updated plan name"}'
+   $ curl -X PUT 192.168.200.10:8081/ob/plans/48c93d14-31f8-4445-970d-b865c8a4f432 -d \
+   '{"name": "update plan name"}'
    
    {
      "api_ver": "0.1",
-     "timestamp": "2017-02-22T17:59:41.91267195Z",
-     "statuscode": 200,
      "result": {
-       "detail": null,
-       "tech_name": "SIP",
-       "uuid": "c8b521ab-8114-4a62-b4e9-488d770d4ee8",
-       "dl_end_handle": 1,
-       "name": "Updated plan name",
-       "tm_delete": null,
-       "max_retry_cnt_5": 5,
        "caller_id": null,
-       "variables": null,
-       "max_retry_cnt_4": 5,
-       "in_use": 1,
-       "dial_mode": 1,
-       "retry_delay": 60,
-       "dial_timeout": 30000,
-       "trunk_name": null,
-       "tm_create": "2017-02-22T16:57:49.962162166Z",
-       "service_level": 0,
-       "early_media": null,
        "codecs": null,
+       "detail": null,
+       "dial_mode": 0,
+       "dial_timeout": 30000,
+       "dl_end_handle": 1,
+       "early_media": null,
+       "in_use": 1,
        "max_retry_cnt_1": 5,
        "max_retry_cnt_2": 5,
        "max_retry_cnt_3": 5,
+       "max_retry_cnt_4": 5,
+       "max_retry_cnt_5": 5,
        "max_retry_cnt_6": 5,
        "max_retry_cnt_7": 5,
        "max_retry_cnt_8": 5,
-       "tm_update": "2017-02-22T17:59:41.59248781Z"
-     }
+       "name": "update plan name",
+       "retry_delay": 60,
+       "service_level": 0,
+       "tech_name": "SIP",
+       "tm_create": "2017-03-11T12:29:48.54314463Z",
+       "tm_delete": null,
+       "tm_update": "2017-03-11T12:39:35.385525099Z",
+       "trunk_name": null,
+       "uuid": "48c93d14-31f8-4445-970d-b865c8a4f432",
+       "variables": {
+         "plan_key_1": "plean_val_1"
+       }
+     },
+     "statuscode": 200,
+     "timestamp": "2017-03-11T12:39:35.404466531Z"
    }
 
 Method: DELETE
@@ -495,16 +567,21 @@ Deleted plan info.
        "uuid": "<string>",
        "name": "<string>",
        "detail": "<string>",
+       
        "tech_name": "<string>",
        "trunk_name": "<string>",
-       "dl_end_handle": <integer>,
-       "caller_id": "<string>",
+   
        "dial_mode": <integer>,
        "dial_timeout": <integer>,
+       "dl_end_handle": <integer>,
        "retry_delay": <integer>,
+   
+       "caller_id": "<string>",
        "service_level": <integer>,
        "early_media": "<string>",
        "codecs": "<string>",
+       "variables": {"<string>": "<string>", ...},
+       
        "max_retry_cnt_1": <integer>,
        "max_retry_cnt_2": <integer>,
        "max_retry_cnt_3": <integer>,
@@ -513,7 +590,7 @@ Deleted plan info.
        "max_retry_cnt_6": <integer>,
        "max_retry_cnt_7": <integer>,
        "max_retry_cnt_8": <integer>,
-       "variables": "<string>",
+
        "in_use": <integer>,
        "tm_create": "<timestamp>",
        "tm_update": "<timestamp>",
@@ -530,36 +607,38 @@ Example
    
    {
      "api_ver": "0.1",
-     "timestamp": "2017-02-22T18:05:00.598284056Z",
-     "statuscode": 200,
      "result": {
-       "detail": null,
-       "tech_name": "SIP",
-       "uuid": "c8b521ab-8114-4a62-b4e9-488d770d4ee8",
-       "dl_end_handle": 1,
-       "name": "Updated plan name",
-       "tm_delete": "2017-02-22T18:05:00.548497354Z",
-       "max_retry_cnt_5": 5,
        "caller_id": null,
-       "variables": null,
-       "max_retry_cnt_4": 5,
-       "in_use": 0,
-       "dial_mode": 1,
-       "retry_delay": 60,
-       "dial_timeout": 30000,
-       "trunk_name": null,
-       "tm_create": "2017-02-22T16:57:49.962162166Z",
-       "service_level": 0,
-       "early_media": null,
        "codecs": null,
+       "detail": null,
+       "dial_mode": 0,
+       "dial_timeout": 30000,
+       "dl_end_handle": 1,
+       "early_media": null,
+       "in_use": 0,
        "max_retry_cnt_1": 5,
        "max_retry_cnt_2": 5,
        "max_retry_cnt_3": 5,
+       "max_retry_cnt_4": 5,
+       "max_retry_cnt_5": 5,
        "max_retry_cnt_6": 5,
        "max_retry_cnt_7": 5,
        "max_retry_cnt_8": 5,
-       "tm_update": "2017-02-22T17:59:41.59248781Z"
-     }
+       "name": "update plan name",
+       "retry_delay": 60,
+       "service_level": 0,
+       "tech_name": "SIP",
+       "tm_create": "2017-03-11T12:29:48.54314463Z",
+       "tm_delete": "2017-03-11T12:45:37.751824868Z",
+       "tm_update": "2017-03-11T12:39:35.385525099Z",
+       "trunk_name": null,
+       "uuid": "48c93d14-31f8-4445-970d-b865c8a4f432",
+       "variables": {
+         "plan_key_1": "plean_val_1"
+       }
+     },
+     "statuscode": 200,
+     "timestamp": "2017-03-11T12:45:37.805729832Z"
    }
 
 /ob/destinations
@@ -584,25 +663,34 @@ Call
    {
      "name": "<string>",
      "detail": "<string>",
+     
      "type": <integer>,
+     
      "application": "<string>",
      "data": "<string>",
+     
      "context": "<string>",
      "exten": "<string>",
      "priority": "<string>",
-     "variables": "<string>"
+     
+     "variables": {"<string>": "<string>", ...}
    }
 
-Parameters
+Data parameters
+
 * ``name``: Destination name.
 * ``detail``: Detail info.
+
 * ``type``: Destination type. See detail :ref:`ob_destination_type`.
+
 * ``application``: Application name. Type: 1(application) only
 * ``data``: Application data. Type: 1(application) only
+
 * ``context``: Conetxt. Type: 0(exten) only
 * ``exten``: Extension. Type: 0(exten) only
 * ``priority``: Priority. Type: 0(exten) only
-* ``variables``: Set(var=val). Could be more than one. Type: 0(exten) only.
+
+* ``variables``: variables info json object.
 
 Returns
 +++++++
@@ -616,13 +704,18 @@ Created destination info.
        "uuid": "<string>",
        "name": "<string>",
        "detail": "<string>",
+       
        "type": <integer>,
+       
        "application": "<string>",
        "data": "<string>",
+       
        "context": "<string>",
        "exten": "<string>",
        "priority": "<string>",
+       
        "variables": "<string>"
+       
        "in_use": 1,
        "tm_create": "<timestamp>",
        "tm_delete": "<timestamp>",
@@ -630,16 +723,22 @@ Created destination info.
      }
    }
 
+Result parameters
+
 * ``uuid``: Created destination uuid.
 * ``name``: Destination name.
 * ``detail``: Detail info.
+
 * ``type``: Destination type. See detail :ref:`ob_destination_type`.
+
 * ``application``: Application name. Type: 1(application) only
 * ``data``: Application data. Type: 1(application) only
+
 * ``context``: Conetxt. Type: 0(exten) only
 * ``exten``: Extension. Type: 0(exten) only
 * ``priority``: Priority. Type: 0(exten) only
-* ``variables``: Set(var=val). Could be more than one. Type: 0(exten) only.
+
+* ``variables``: variables info json object.
 
 Example
 +++++++
@@ -746,13 +845,18 @@ Specified destination detail info.
        "uuid": "<string>",
        "name": "<string>",
        "detail": "<string>",
+       
        "type": <integer>,
+       
        "application": "<string>",
        "data": "<string>",
+       
        "context": "<string>",
        "exten": "<string>",
        "priority": "<string>",
+       
        "variables": "<string>"
+       
        "in_use": 1,
        "tm_create": "<timestamp>",
        "tm_delete": "<timestamp>",
@@ -760,16 +864,22 @@ Specified destination detail info.
      }
    }
 
+Return parameters
+
 * ``uuid``: Destination uuid.
 * ``name``: Destination name.
 * ``detail``: Detail info.
+
 * ``type``: Destination type. See detail :ref:`ob_destination_type`.
+
 * ``application``: Application name. Type: 1(application) only
 * ``data``: Application data. Type: 1(application) only
+
 * ``context``: Conetxt. Type: 0(exten) only
 * ``exten``: Extension. Type: 0(exten) only
 * ``priority``: Priority. Type: 0(exten) only
-* ``variables``: Set(var=val). Could be more than one. Type: 0(exten) only.
+
+* ``variables``: variables info json object.
 
 Example
 +++++++
@@ -812,25 +922,38 @@ Call
    {
      "name": "<string>",
      "detail": "<string>",
+     
      "type": <integer>,
+     
      "application": "<string>",
      "data": "<string>",
+     
      "context": "<string>",
      "exten": "<string>",
      "priority": "<string>",
+     
      "variables": "<string>"
    }
 
-Parameters
+Method parameters
+
+* ``uuid``: Destination uuid.
+
+Data parameters
+
 * ``name``: Destination name.
 * ``detail``: Detail info.
+
 * ``type``: Destination type. See detail :ref:`ob_destination_type`.
+
 * ``application``: Application name. Type: 1(application) only
 * ``data``: Application data. Type: 1(application) only
+
 * ``context``: Conetxt. Type: 0(exten) only
 * ``exten``: Extension. Type: 0(exten) only
 * ``priority``: Priority. Type: 0(exten) only
-* ``variables``: Set(var=val). Could be more than one. Type: 0(exten) only.
+
+* ``variables``: variables info json object.
 
 Returns
 +++++++
@@ -844,13 +967,18 @@ Return the updated destination detail info.
        "uuid": "<string>",
        "name": "<string>",
        "detail": "<string>",
+       
        "type": <integer>,
+       
        "application": "<string>",
        "data": "<string>",
+       
        "context": "<string>",
        "exten": "<string>",
        "priority": "<string>",
-       "variables": "<string>"
+       
+       "variables": {}
+       
        "in_use": 1,
        "tm_create": "<timestamp>",
        "tm_delete": "<timestamp>",
@@ -858,16 +986,22 @@ Return the updated destination detail info.
      }
    }
 
+Return parameters
+
 * ``uuid``: Destination uuid.
 * ``name``: Destination name.
 * ``detail``: Detail info.
+
 * ``type``: Destination type. See detail :ref:`ob_destination_type`.
+
 * ``application``: Application name. Type: 1(application) only
 * ``data``: Application data. Type: 1(application) only
+
 * ``context``: Conetxt. Type: 0(exten) only
 * ``exten``: Extension. Type: 0(exten) only
 * ``priority``: Priority. Type: 0(exten) only
-* ``variables``: Set(var=val). Could be more than one. Type: 0(exten) only.
+
+* ``variables``: variables info json object.
 
 
 Example
@@ -909,6 +1043,10 @@ Call
 
   DELETE /ob/destinations/<uuid>  
 
+Method parameters
+
+* ``uuid``: Destination uuid.
+
 Returns
 +++++++
 Return the deleted destination detail info.
@@ -921,13 +1059,18 @@ Return the deleted destination detail info.
        "uuid": "<string>",
        "name": "<string>",
        "detail": "<string>",
+       
        "type": <integer>,
+       
        "application": "<string>",
        "data": "<string>",
+       
        "context": "<string>",
        "exten": "<string>",
        "priority": "<string>",
-       "variables": "<string>"
+       
+       "variables": {}
+       
        "in_use": 0,
        "tm_create": "<timestamp>",
        "tm_delete": "<timestamp>",
@@ -935,17 +1078,22 @@ Return the deleted destination detail info.
      }
    }
 
+Return parameters
+
 * ``uuid``: Destination uuid.
 * ``name``: Destination name.
 * ``detail``: Detail info.
+
 * ``type``: Destination type. See detail :ref:`ob_destination_type`.
+
 * ``application``: Application name. Type: 1(application) only
 * ``data``: Application data. Type: 1(application) only
+
 * ``context``: Conetxt. Type: 0(exten) only
 * ``exten``: Extension. Type: 0(exten) only
 * ``priority``: Priority. Type: 0(exten) only
-* ``variables``: Set(var=val). Could be more than one. Type: 0(exten) only.
 
+* ``variables``: variables info json object.
 
 Example
 +++++++
@@ -997,14 +1145,14 @@ Call
    {
      "name": "<string>",
      "detail": "<string>",
-     "variables": "<string>"
+     "variables": {}
    }
 
-Parameters
+Data parameters
    
 * ``name``: Dlma name.
 * ``detail``: Detail dlma info.
-* ``variables``: Set(var=val). Could be more than one.
+* ``variables``: variables info json object.
 
 Returns
 +++++++
@@ -1018,19 +1166,27 @@ Return the created campaign info.
        "uuid": "<string>",
        "name": "<string>",
        "detail": "<string>",
+       
        "dl_table": "<string>",
-       "variables": "<string>",
+       
+       "variables": {},
+       
        "in_use": 1,
        "tm_create": "<timestamp>",
        "tm_update": "<timestamp>",
        "tm_delete": "<timestamp>"
      }
    }
-   
+
+Return parameters
+
 * ``uuid``: Created dlma uuid.
 * ``name``: dlma name.
 * ``detail``: dlma detail info.
+
 * ``dl_table``: dlma reference table.
+
+* ``variables``: variables info json object.
 
 Example
 +++++++
@@ -1078,6 +1234,8 @@ Returns
        ]
      }
    }
+
+Return parameters
   
 * ``list`` : array of dlma-uuid.
 
@@ -1122,9 +1280,9 @@ Call
 
    GET /ob/dlmas/<uuid>
 
-Parameters
+Method parameters
 
-* uuid : dlma uuid.
+* ``uuid`` : dlma uuid.
    
 Returns
 +++++++
@@ -1138,20 +1296,27 @@ Get specified campaign detail info.
        "uuid": "<string>",
        "name": "<string>",
        "detail": "<string>",
+       
        "dl_table": "<string>",
-       "variables": "<string>",
+       
+       "variables": {},
+       
        "in_use": 1,
        "tm_create": "<timestamp>",
        "tm_update": "<timestamp>",
        "tm_delete": "<timestamp>"
      }
    }
-   
+
+Return parameters
+
 * ``uuid``: dlma uuid.
 * ``name``: dlma name.
 * ``detail``: dlma detail info.
+
 * ``dl_table``: dlma reference table.
-* ``variables``: 
+
+* ``variables``: variables info json object.
 
 Example
 +++++++
@@ -1192,15 +1357,15 @@ Call
      "variables": "<string>"
    }
 
-Parameters
+Method parameters
 
 * ``uuid`` : dlma uuid.
 
-Data
+Data parameters
 
 * ``name``: Update dlma name
 * ``detail``: Update dlma detail info.
-* ``variables``:
+* ``variables``: variables info json object.
 
 Returns
 +++++++
@@ -1214,20 +1379,27 @@ Updated dlma info.
        "uuid": "<string>",
        "name": "<string>",
        "detail": "<string>",
+       
        "dl_table": "<string>",
-       "variables": "<string>",
+       
+       "variables": {},
+       
        "in_use": 1,
        "tm_create": "<timestamp>",
        "tm_update": "<timestamp>",
        "tm_delete": "<timestamp>"
      }
    }
+
+Return parameters
    
 * ``uuid``: dlma uuid.
 * ``name``: dlma name.
 * ``detail``: dlma detail info.
+
 * ``dl_table``: dlma reference table.
-* ``variables``: 
+
+* ``variables``: variables info json object.
 
 Example
 +++++++
@@ -1263,7 +1435,7 @@ Call
 
    DELETE /ob/dlmas/<uuid>
 
-Parameters
+Method parameters
 
 * ``uuid`` : dlma uuid.
 
@@ -1279,20 +1451,25 @@ Deleted dlma info.
        "uuid": "<string>",
        "name": "<string>",
        "detail": "<string>",
+       
        "dl_table": "<string>",
-       "variables": "<string>",
+       
+       "variables": {},
+       
        "in_use": 0,
        "tm_create": "<timestamp>",
        "tm_update": "<timestamp>",
        "tm_delete": "<timestamp>"
      }
    }
-   
+
+Return parameters
+
 * ``uuid``: dlma uuid.
 * ``name``: dlma name.
 * ``detail``: dlma detail info.
 * ``dl_table``: dlma reference table.
-* ``variables``: 
+* ``variables``: variables info json object.
 
 Example
 +++++++
@@ -1355,7 +1532,7 @@ Call
      
      "resv_target": "<string>",
      "ukey": "<string>",
-     "variables": "<string>"
+     "variables": {}
    }
 
 Data details
@@ -1378,7 +1555,7 @@ Data details
 
 * ``resv_target``: Reserved target. Used for reserved dial.
 * ``ukey``: User defined key.
-* ``variables``: 
+* ``variables``: variables info json object.
 
 Returns
 +++++++
@@ -1430,7 +1607,7 @@ Returns created dial list info.
        "resv_target": "<string>",
        
        "ukey": "<string>",
-       "variables": "<string>",
+       "variables": {},
 
        "in_use": 1,
 
@@ -1481,7 +1658,7 @@ Returns created dial list info.
 * ``in_use``: Use flag. See detail :ref:`ob_use_flag`.
 * ``resv_target``: Reserved target. Used for reserved dial.
 * ``ukey``: 
-* ``variables``: 
+* ``variables``: variables info json object.
 
 * ``tm_create``: 
 * ``tm_delete``: 
@@ -1659,7 +1836,7 @@ Returns specified dial list detail info.
        "resv_target": "<string>",
        
        "ukey": "<string>",
-       "variables": "<string>",
+       "variables": {},
 
        "in_use": 1,
 
@@ -1710,7 +1887,7 @@ Returns specified dial list detail info.
 * ``in_use``: Use flag. See detail :ref:`ob_use_flag`.
 * ``resv_target``: Reserved target. Used for reserved dial.
 * ``ukey``: 
-* ``variables``: 
+* ``variables``: variables info json object.
 
 * ``tm_create``: 
 * ``tm_delete``: 
@@ -1819,6 +1996,10 @@ Call
      "variables": "<string>"
    }
 
+Method parameters
+
+* ``dl-uuid``: dl uuid.
+
 Data parameters
 
 * ``name``: dial list name.
@@ -1861,7 +2042,7 @@ Data parameters
 * ``in_use``: Use flag. See detail :ref:`ob_use_flag`.
 * ``resv_target``: Reserved target. Used for reserved dial.
 * ``ukey``: 
-* ``variables``: 
+* ``variables``: variables info json object.
 
 Returns
 +++++++
@@ -1913,7 +2094,7 @@ Returns updated dial list detail info.
        "resv_target": "<string>",
        
        "ukey": "<string>",
-       "variables": "<string>",
+       "variables": {},
 
        "in_use": 1,
 
@@ -1922,6 +2103,8 @@ Returns updated dial list detail info.
        "tm_delete": "<timestamp>"
      }
    }
+
+Return parameters
 
 * ``uuid``: dial list uuid.
 * ``name``: dial list name.
@@ -1964,7 +2147,7 @@ Returns updated dial list detail info.
 * ``in_use``: Use flag. See detail :ref:`ob_use_flag`.
 * ``resv_target``: Reserved target. Used for reserved dial.
 * ``ukey``: 
-* ``variables``: 
+* ``variables``: variables info json object.
 
 * ``tm_create``: 
 * ``tm_delete``: 
@@ -2034,7 +2217,7 @@ Call
 
    DELETE /ob/dls/<dl-uuid>
 
-Parameter details
+Method parameters
 
 * ``uuid`` : dl uuid.
 
@@ -2088,7 +2271,7 @@ Returns deleted dial list info.
        "resv_target": "<string>",
        
        "ukey": "<string>",
-       "variables": "<string>",
+       "variables": {},
 
        "in_use": 1,
 
@@ -2097,6 +2280,8 @@ Returns deleted dial list info.
        "tm_delete": "<timestamp>"
      }
    }
+
+Return parameters
 
 * ``uuid``: dial list uuid.
 * ``name``: dial list name.
@@ -2139,7 +2324,7 @@ Returns deleted dial list info.
 * ``in_use``: Use flag. See detail :ref:`ob_use_flag`.
 * ``resv_target``: Reserved target. Used for reserved dial.
 * ``ukey``: 
-* ``variables``: 
+* ``variables``: variables info json object.
 
 * ``tm_create``: 
 * ``tm_delete``: 
@@ -2267,6 +2452,10 @@ Call
 
    GET /ob/dialings/<uuid>
 
+Method parameters
+
+* ``uuid``: Dialing uuid.
+
 Returns
 +++++++
 ::
@@ -2298,6 +2487,7 @@ Returns
        "dial_timeout": <integer>,
        "dial_index": <integer>,
        "dial_trycnt": <integer>,
+       "dial_variables": {}
 
        "uuid_camp": "<string>",
        "uuid_dest": "<string>",
@@ -2341,6 +2531,7 @@ Returns
 * ``dial_timeout``: Dialing timeout.
 * ``dial_index``: The index number of customer numbers.
 * ``dial_trycnt``: Try count number of current dialing.
+* ``dial_variables``: The combination of variables(campaign/plan/destination/dlma/dl)
 
 * ``uuid_camp``: Dialing campign uuid.
 * ``uuid_dest``: Dialing destination uuid.
@@ -2359,13 +2550,13 @@ Example
 +++++++
 ::
 
-   $ curl -X GET 192.168.200.10:8081/ob/dialings/16c680fe-0ac7-472f-9e6f-c979db05cac0
+   $ curl -X GET 192.168.200.10:8081/ob/dialings/4d78b20b-99e5-4449-977f-261204e11a26
    
    {
      "api_ver": "0.1",
      "result": {
-       "action_id": "e6e78192-e271-4ac4-afb0-739bc3abf91f",
-       "channel": "SIP/300-00000022",
+       "action_id": "0ab20783-50e5-40fc-8a22-c075f901722c",
+       "channel": "SIP/300-0000002e",
        "dial_addr": "300",
        "dial_application": "queue",
        "dial_channel": "SIP/300",
@@ -2375,31 +2566,177 @@ Example
        "dial_index": 1,
        "dial_priority": null,
        "dial_timeout": 30000,
-       "dial_trycnt": 1,
+       "dial_trycnt": 2,
        "dial_type": 1,
-       "info_camp": "{\"dlma\": \"42b72a18-a6c5-43bf-b9aa-6043ff32128d\", \"status\": 1, \"uuid\": \"9841bc9e-3103-4fea-ab11-54ccfcc8322f\", \"detail\": null, \"sc_date_start\": null, \"plan\": \"552e9808-23bc-40b1-947a-60b0b96581cb\", \"name\": \"test campaign\", \"tm_update\": \"2017-03-09T11:51:46.23019402Z\", \"in_use\": 1, \"sc_date_list_except\": null, \"sc_day_list\": null, \"next_campaign\": null, \"dest\": \"45122654-5633-4af0-a739-e32eddfbd2ae\", \"sc_mode\": 0, \"sc_date_end\": null, \"sc_date_list\": null, \"sc_time_end\": null, \"sc_time_start\": null, \"tm_create\": \"2017-02-07T20:32:59.812399819Z\", \"tm_delete\": null}",
-       "info_dest": "{\"uuid\": \"45122654-5633-4af0-a739-e32eddfbd2ae\", \"priority\": \"<unknown>\", \"application\": \"queue\", \"context\": \"<unknown>\", \"name\": \"tttt\", \"type\": 1, \"detail\": \"test destination\", \"tm_update\": \"2017-02-07T19:41:06.608256973Z\", \"in_use\": 1, \"tm_delete\": \"\", \"exten\": \"<unknown>\", \"variables\": \"\", \"data\": \"sales_1\", \"tm_create\": \"2016-11-15T03:17:11.997148863Z\"}",
-       "info_dial": "{\"channelid\": \"16c680fe-0ac7-472f-9e6f-c979db05cac0\", \"dial_application\": \"queue\", \"otherchannelid\": \"27c49a4b-522d-48b7-90ba-e1fd84ac9f28\", \"dial_data\": \"sales_1\", \"dest_variables\": \"\", \"dial_timeout\": 30000, \"dl_variables\": \"\", \"dial_channel\": \"SIP/300\", \"dial_type\": 1, \"uuid\": \"11294c33-b1ea-4bc8-a182-9fca3c87d98d\", \"variables\": \"{}\", \"plan_variables\": \"\", \"dial_addr\": \"300\", \"dial_index\": 1, \"dial_trycnt\": 1}",
-       "info_dl_list": "{\"number_1\": \"300\", \"dialing_plan_uuid\": null, \"uuid\": \"11294c33-b1ea-4bc8-a182-9fca3c87d98d\", \"trycnt_5\": 0, \"status\": 0, \"dlma_uuid\": \"42b72a18-a6c5-43bf-b9aa-6043ff32128d\", \"in_use\": 1, \"trycnt_2\": 0, \"tm_update\": null, \"ukey\": null, \"name\": \"normal call distribute test customer 3\", \"number_2\": null, \"detail\": \"test customer for normal call distribute\", \"resv_target\": null, \"dialing_camp_uuid\": null, \"variables\": null, \"email\": null, \"number_4\": null, \"tm_last_dial\": null, \"dialing_uuid\": null, \"number_3\": null, \"number_6\": null, \"number_8\": null, \"number_7\": null, \"number_5\": null, \"trycnt_8\": 0, \"trycnt_1\": 0, \"trycnt_3\": 0, \"trycnt_4\": 0, \"res_dial\": 0, \"tm_last_hangup\": null, \"trycnt_6\": 0, \"trycnt_7\": 0, \"res_dial_detail\": null, \"res_hangup\": 0, \"res_hangup_detail\": null, \"tm_create\": \"2017-03-09T13:11:46.442498464Z\", \"tm_delete\": null, \"trycnt\": 0}",
-       "info_dlma": "{\"uuid\": \"42b72a18-a6c5-43bf-b9aa-6043ff32128d\", \"dl_table\": \"42b72a18_a6c5_43bf_b9aa_6043ff32128d\", \"variables\": null, \"name\": \"basic tutorial dlma\", \"detail\": \"test dlma for basic tutorial\", \"tm_update\": null, \"in_use\": 1, \"tm_create\": \"2017-03-08T01:51:40.978836362Z\", \"tm_delete\": null}",
-       "info_plan": "{\"service_level\": 0, \"uuid\": \"552e9808-23bc-40b1-947a-60b0b96581cb\", \"max_retry_cnt_6\": 5, \"early_media\": null, \"dial_mode\": 1, \"name\": null, \"variables\": null, \"detail\": null, \"tm_update\": \"2017-03-09T11:47:30.977866923Z\", \"in_use\": 1, \"tech_name\": \"SIP\", \"max_retry_cnt_4\": 5, \"max_retry_cnt_3\": 5, \"dl_end_handle\": 0, \"dial_timeout\": 30000, \"caller_id\": null, \"tm_create\": \"2017-02-21T13:53:16.684583113Z\", \"retry_delay\": 60, \"codecs\": null, \"trunk_name\": null, \"max_retry_cnt_1\": 1000, \"max_retry_cnt_2\": 5, \"max_retry_cnt_5\": 5, \"max_retry_cnt_7\": 5, \"max_retry_cnt_8\": 5, \"tm_delete\": null}",
+       "dial_variables": {
+         "campaign key 1": "campaign value 1",
+         "destination key 1": "destination value 1",
+         "dl key1": "dl val1",
+         "dlma_key1": "dlma_val1",
+         "plan key 1": "plan value 1"
+       },
+       "info_camp": {
+         "dest": "78c8cfb5-2ca3-471f-a843-2a287842fef4",
+         "detail": null,
+         "dlma": "26f91049-469d-4437-8a42-0e00c7f4eaa3",
+         "in_use": 1,
+         "name": "Test campaign 1",
+         "next_campaign": null,
+         "plan": "e55e4655-6065-4e9a-bdcf-50363aa6f6d4",
+         "sc_date_end": null,
+         "sc_date_list": null,
+         "sc_date_list_except": null,
+         "sc_date_start": null,
+         "sc_day_list": null,
+         "sc_mode": 0,
+         "sc_time_end": null,
+         "sc_time_start": null,
+         "status": 1,
+         "tm_create": "2017-03-11T05:24:26.976688716Z",
+         "tm_delete": null,
+         "tm_update": "2017-03-11T05:52:24.817439382Z",
+         "uuid": "ab02b7ef-9c12-4d24-b944-9e853c9ce0f9",
+         "variables": {
+           "campaign key 1": "campaign value 1"
+         }
+       },
+       "info_dest": {
+         "application": "queue",
+         "context": null,
+         "data": "sales_1",
+         "detail": null,
+         "exten": null,
+         "in_use": 1,
+         "name": "Test destination 1",
+         "priority": null,
+         "tm_create": "2017-03-11T05:28:20.20643710Z",
+         "tm_delete": null,
+         "tm_update": "2017-03-11T05:45:29.804143894Z",
+         "type": 1,
+         "uuid": "78c8cfb5-2ca3-471f-a843-2a287842fef4",
+         "variables": {
+           "destination key 1": "destination value 1"
+         }
+       },
+       "info_dial": {
+         "channelid": "4d78b20b-99e5-4449-977f-261204e11a26",
+         "dest_variables": "",
+         "dial_addr": "300",
+         "dial_application": "queue",
+         "dial_channel": "SIP/300",
+         "dial_data": "sales_1",
+         "dial_index": 1,
+         "dial_timeout": 30000,
+         "dial_trycnt": 2,
+         "dial_type": 1,
+         "dl_variables": "",
+         "otherchannelid": "f0b6b955-6978-4c75-b51f-b231623bd351",
+         "plan_variables": "",
+         "uuid": "7dc1b243-f6ea-4f45-bda5-dd478dac2fd5",
+         "variables": "{}"
+       },
+       "info_dl_list": {
+         "detail": "test customer for normal call distribute",
+         "dialing_camp_uuid": null,
+         "dialing_plan_uuid": null,
+         "dialing_uuid": null,
+         "dlma_uuid": "26f91049-469d-4437-8a42-0e00c7f4eaa3",
+         "email": null,
+         "in_use": 1,
+         "name": "normal call distribute test customer 3",
+         "number_1": "300",
+         "number_2": null,
+         "number_3": null,
+         "number_4": null,
+         "number_5": null,
+         "number_6": null,
+         "number_7": null,
+         "number_8": null,
+         "res_dial": 0,
+         "res_dial_detail": "",
+         "res_hangup": 0,
+         "res_hangup_detail": "",
+         "resv_target": null,
+         "status": 0,
+         "tm_create": "2017-03-11T10:09:05.424657580Z",
+         "tm_delete": null,
+         "tm_last_dial": "2017-03-11T11:38:08.568583019Z",
+         "tm_last_hangup": "2017-03-11T11:38:29.151276033Z",
+         "tm_update": null,
+         "trycnt_1": 1,
+         "trycnt_2": 0,
+         "trycnt_3": 0,
+         "trycnt_4": 0,
+         "trycnt_5": 0,
+         "trycnt_6": 0,
+         "trycnt_7": 0,
+         "trycnt_8": 0,
+         "ukey": null,
+         "uuid": "7dc1b243-f6ea-4f45-bda5-dd478dac2fd5",
+         "variables": {
+           "dl key1": "dl val1"
+         }
+       },
+       "info_dlma": {
+         "detail": null,
+         "dl_table": "26f91049_469d_4437_8a42_0e00c7f4eaa3",
+         "in_use": 1,
+         "name": null,
+         "tm_create": "2017-03-11T05:29:26.927951044Z",
+         "tm_delete": null,
+         "tm_update": null,
+         "uuid": "26f91049-469d-4437-8a42-0e00c7f4eaa3",
+         "variables": {
+           "dlma_key1": "dlma_val1"
+         }
+       },
+       "info_plan": {
+         "caller_id": null,
+         "codecs": null,
+         "detail": null,
+         "dial_mode": 1,
+         "dial_timeout": 30000,
+         "dl_end_handle": 0,
+         "early_media": null,
+         "in_use": 1,
+         "max_retry_cnt_1": 5,
+         "max_retry_cnt_2": 5,
+         "max_retry_cnt_3": 5,
+         "max_retry_cnt_4": 5,
+         "max_retry_cnt_5": 5,
+         "max_retry_cnt_6": 5,
+         "max_retry_cnt_7": 5,
+         "max_retry_cnt_8": 5,
+         "name": "Test plan 1",
+         "retry_delay": 60,
+         "service_level": 0,
+         "tech_name": "SIP",
+         "tm_create": "2017-03-11T05:27:38.778880388Z",
+         "tm_delete": null,
+         "tm_update": "2017-03-11T05:51:44.923547573Z",
+         "trunk_name": null,
+         "uuid": "e55e4655-6065-4e9a-bdcf-50363aa6f6d4",
+         "variables": {
+           "plan key 1": "plan value 1"
+         }
+       },
        "res_dial": 4,
        "res_dial_detail": "Remote end has answered",
        "res_hangup": 0,
        "res_hangup_detail": null,
        "status": 6,
-       "tm_create": "2017-03-09T13:11:46.548039078Z",
+       "tm_create": "2017-03-11T12:12:17.546144349Z",
        "tm_delete": null,
-       "tm_update": "2017-03-09T13:11:50.448264338Z",
-       "uuid": "16c680fe-0ac7-472f-9e6f-c979db05cac0",
-       "uuid_camp": "9841bc9e-3103-4fea-ab11-54ccfcc8322f",
-       "uuid_dest": "45122654-5633-4af0-a739-e32eddfbd2ae",
-       "uuid_dl_list": "11294c33-b1ea-4bc8-a182-9fca3c87d98d",
-       "uuid_dlma": "42b72a18-a6c5-43bf-b9aa-6043ff32128d",
-       "uuid_plan": "552e9808-23bc-40b1-947a-60b0b96581cb"
+       "tm_update": "2017-03-11T13:13:02.933694875Z",
+       "uuid": "4d78b20b-99e5-4449-977f-261204e11a26",
+       "uuid_camp": "ab02b7ef-9c12-4d24-b944-9e853c9ce0f9",
+       "uuid_dest": "78c8cfb5-2ca3-471f-a843-2a287842fef4",
+       "uuid_dl_list": "7dc1b243-f6ea-4f45-bda5-dd478dac2fd5",
+       "uuid_dlma": "26f91049-469d-4437-8a42-0e00c7f4eaa3",
+       "uuid_plan": "e55e4655-6065-4e9a-bdcf-50363aa6f6d4"
      },
      "statuscode": 200,
-     "timestamp": "2017-03-09T13:12:02.250011714Z"
+     "timestamp": "2017-03-11T13:13:03.573061013Z"
    }
 
 Method: DELETE
@@ -2413,6 +2750,10 @@ Call
 ::
 
    DELETE /ob/dialings/<uuid>
+
+Method parameters
+
+* ``uuid``: Dialing uuid.
 
 Returns
 +++++++
@@ -2458,30 +2799,39 @@ Call
      "name": "<string>",
      "detail": "<string>",
      "status": <integer>,
+     
      "plan": "<string>",
      "dlma": "<string>",
      "dest": "<string>",
-     "in_use": 1,
+     
+     "variables": {},
+     
      "next_campaign": "<string>",
+     
      "sc_mode": <integer>,
-     "sc_time_start": null,
-     "sc_time_end": null,
-     "sc_date_start": null,
-     "sc_date_end": null,
-     "sc_date_list": null,
-     "sc_date_list_except": null,
-     "sc_day_list": null
+     "sc_time_start": "<string>",
+     "sc_time_end": "<string>",
+     "sc_date_start": "<string>",
+     "sc_date_end": "<string>",
+     "sc_date_list": "<string>",
+     "sc_date_list_except": "<string>",
+     "sc_day_list": "<string>"
    }
 
-Parameters
+Data parameters
 
 * ``name`` : Campaign name.
 * ``detail`` : Campaign detail info.
 * ``status`` : Campaign status. See detail :ref:`campaign_status`.
+
 * ``plan`` : Registered plan uuid.
 * ``dlma`` : Registered dlma uuid.
 * ``dest`` : Registered destination uuid.
-* ``next_campaign`` : 
+
+* ``variables``: variables info json object.
+
+* ``next_campaign`` : Campaign uuid for next campaign running.
+
 * ``sc_mode`` : Scheduling mode. See detail :ref:`scheduling_mode`.
 * ``sc_time_start`` : Campaign scheduling start time. See detail :ref:`scheduling_time`.
 * ``sc_time_end`` : Campaign scheduling end time. See detail :ref:`scheduling_time`.
@@ -2504,33 +2854,46 @@ Return the created campaign info.
        "name": "<string>",
        "detail": "<string>",
        "status": <integer>,
+     
        "plan": "<string>",
        "dlma": "<string>",
        "dest": "<string>",
-       "in_use": 1,
+     
+       "variables": {},
+     
        "next_campaign": "<string>",
+     
        "sc_mode": <integer>,
-       "sc_time_start": null,
-       "sc_time_end": null,
-       "sc_date_start": null,
-       "sc_date_end": null,
-       "sc_date_list": null,
-       "sc_date_list_except": null,
-       "sc_day_list": null,
+       "sc_time_start": "<string>",
+       "sc_time_end": "<string>",
+       "sc_date_start": "<string>",
+       "sc_date_end": "<string>",
+       "sc_date_list": "<string>",
+       "sc_date_list_except": "<string>",
+       "sc_day_list": "<string>"
+
+       "in_use": 1,
        "tm_create": "<string>",
        "tm_delete": "<string>",
        "tm_update": "<string>"
      }
    }
 
+Return parameters
+
 * ``uuid`` : Campaign uuid.
 * ``name`` : Campaign name.
 * ``detail`` : Campaign detail info.
 * ``status`` : Campaign status. See detail :ref:`campaign_status`.
+
 * ``plan`` : Registered plan uuid.
 * ``dlma`` : Registered dlma uuid.
 * ``dest`` : Registered destination uuid.
-* ``next_campaign`` : 
+
+* ``variables``: variables info json object.
+
+* ``next_campaign`` : Campaign uuid for next campaign running.
+
 * ``sc_mode`` : Scheduling mode. See detail :ref:`scheduling_mode`.
 * ``sc_time_start`` : Campaign scheduling start time. See detail :ref:`scheduling_time`.
 * ``sc_time_end`` : Campaign scheduling end time. See detail :ref:`scheduling_time`.
@@ -2556,6 +2919,7 @@ Example
        "name": null,
        "next_campaign": null,
        "plan": null,
+       "variables": null, 
        "sc_date_end": null,
        "sc_date_list": null,
        "sc_date_list_except": null,
@@ -2652,33 +3016,46 @@ Get specified campaign detail info.
        "name": "<string>",
        "detail": "<string>",
        "status": <integer>,
+     
        "plan": "<string>",
        "dlma": "<string>",
        "dest": "<string>",
-       "in_use": 1,
+     
+       "variables": {},
+     
        "next_campaign": "<string>",
+     
        "sc_mode": <integer>,
-       "sc_time_start": null,
-       "sc_time_end": null,
-       "sc_date_start": null,
-       "sc_date_end": null,
-       "sc_date_list": null,
-       "sc_date_list_except": null,
-       "sc_day_list": null,
+       "sc_time_start": "<string>",
+       "sc_time_end": "<string>",
+       "sc_date_start": "<string>",
+       "sc_date_end": "<string>",
+       "sc_date_list": "<string>",
+       "sc_date_list_except": "<string>",
+       "sc_day_list": "<string>"
+
+       "in_use": 1,
        "tm_create": "<string>",
        "tm_delete": "<string>",
        "tm_update": "<string>"
      }
    }
 
+Return parameters
+
 * ``uuid`` : Campaign uuid.
 * ``name`` : Campaign name.
 * ``detail`` : Campaign detail info.
 * ``status`` : Campaign status. See detail :ref:`campaign_status`.
+
 * ``plan`` : Registered plan uuid.
 * ``dlma`` : Registered dlma uuid.
 * ``dest`` : Registered destination uuid.
-* ``next_campaign`` : 
+
+* ``variables``: variables info json object.
+
+* ``next_campaign`` : Campaign uuid for next campaign running.
+
 * ``sc_mode`` : Scheduling mode. See detail :ref:`scheduling_mode`.
 * ``sc_time_start`` : Campaign scheduling start time. See detail :ref:`scheduling_time`.
 * ``sc_time_end`` : Campaign scheduling end time. See detail :ref:`scheduling_time`.
@@ -2687,6 +3064,7 @@ Get specified campaign detail info.
 * ``sc_date_list`` : Campaign schedling date list. See detail :ref:`scheduling_date_list`.
 * ``sc_date_list_except`` : Campaign scheduling except date list. See detail :ref:`scheduling_date_list`.
 * ``sc_day_list`` : Campaign scheduling day list. See detail :ref:`scheduling_day_list`.
+
 
 Example
 +++++++
@@ -2704,6 +3082,7 @@ Example
         "name": "test campaign",
         "next_campaign": null,
         "plan": "552e9808-23bc-40b1-947a-60b0b96581cb",
+        "variables": null,
         "sc_date_end": null,
         "sc_date_list": null,
         "sc_date_list_except": null,
@@ -2732,32 +3111,48 @@ Call
 
    PUT /ob/campaigns/<campaign-uuid>
 
-   {   
+   {
      "name": "<string>",
      "detail": "<string>",
      "status": <integer>,
+     
      "plan": "<string>",
      "dlma": "<string>",
      "dest": "<string>",
+     
+     "variables": {},
+     
      "next_campaign": "<string>",
+     
      "sc_mode": <integer>,
-     "sc_time_start": null,
-     "sc_time_end": null,
-     "sc_date_start": null,
-     "sc_date_end": null,
-     "sc_date_list": null,
-     "sc_date_list_except": null,
-     "sc_day_list": null
+     "sc_time_start": "<string>",
+     "sc_time_end": "<string>",
+     "sc_date_start": "<string>",
+     "sc_date_end": "<string>",
+     "sc_date_list": "<string>",
+     "sc_date_list_except": "<string>",
+     "sc_day_list": "<string>"
+   
    }
 
-Parameters
+Method parameters
+
+* ``campaign-uuid``: Campaign uuid.
+
+Data parameters
+
 * ``name`` : Campaign name.
 * ``detail`` : Campaign detail info.
 * ``status`` : Campaign status. See detail :ref:`campaign_status`.
+
 * ``plan`` : Registered plan uuid.
 * ``dlma`` : Registered dlma uuid.
 * ``dest`` : Registered destination uuid.
-* ``next_campaign`` : 
+
+* ``variables``: variables info json object.
+
+* ``next_campaign`` : Campaign uuid for next campaign running.
+
 * ``sc_mode`` : Scheduling mode. See detail :ref:`scheduling_mode`.
 * ``sc_time_start`` : Campaign scheduling start time. See detail :ref:`scheduling_time`.
 * ``sc_time_end`` : Campaign scheduling end time. See detail :ref:`scheduling_time`.
@@ -2780,33 +3175,46 @@ Updated campaign info.
        "name": "<string>",
        "detail": "<string>",
        "status": <integer>,
+     
        "plan": "<string>",
        "dlma": "<string>",
        "dest": "<string>",
-       "in_use": 1,
+     
+       "variables": {},
+     
        "next_campaign": "<string>",
+     
        "sc_mode": <integer>,
-       "sc_time_start": null,
-       "sc_time_end": null,
-       "sc_date_start": null,
-       "sc_date_end": null,
-       "sc_date_list": null,
-       "sc_date_list_except": null,
-       "sc_day_list": null,
+       "sc_time_start": "<string>",
+       "sc_time_end": "<string>",
+       "sc_date_start": "<string>",
+       "sc_date_end": "<string>",
+       "sc_date_list": "<string>",
+       "sc_date_list_except": "<string>",
+       "sc_day_list": "<string>"
+
+       "in_use": 1,
        "tm_create": "<string>",
        "tm_delete": "<string>",
        "tm_update": "<string>"
      }
    }
 
+Return parameters
+
 * ``uuid`` : Campaign uuid.
 * ``name`` : Campaign name.
 * ``detail`` : Campaign detail info.
 * ``status`` : Campaign status. See detail :ref:`campaign_status`.
+
 * ``plan`` : Registered plan uuid.
 * ``dlma`` : Registered dlma uuid.
 * ``dest`` : Registered destination uuid.
-* ``next_campaign`` : 
+
+* ``variables``: variables info json object.
+
+* ``next_campaign`` : Campaign uuid for next campaign running.
+
 * ``sc_mode`` : Scheduling mode. See detail :ref:`scheduling_mode`.
 * ``sc_time_start`` : Campaign scheduling start time. See detail :ref:`scheduling_time`.
 * ``sc_time_end`` : Campaign scheduling end time. See detail :ref:`scheduling_time`.
@@ -2815,6 +3223,7 @@ Updated campaign info.
 * ``sc_date_list`` : Campaign schedling date list. See detail :ref:`scheduling_date_list`.
 * ``sc_date_list_except`` : Campaign scheduling except date list. See detail :ref:`scheduling_date_list`.
 * ``sc_day_list`` : Campaign scheduling day list. See detail :ref:`scheduling_day_list`.
+
 
 Example
 +++++++
@@ -2833,6 +3242,7 @@ Example
        "name": "Update campaign info",
        "next_campaign": null,
        "plan": null,
+       "variables": null,
        "sc_date_end": null,
        "sc_date_list": null,
        "sc_date_list_except": null,
@@ -2876,24 +3286,54 @@ Deleted campaign info.
        "name": "<string>",
        "detail": "<string>",
        "status": <integer>,
+     
        "plan": "<string>",
        "dlma": "<string>",
        "dest": "<string>",
-       "in_use": 0,
+     
+       "variables": {},
+     
        "next_campaign": "<string>",
+     
        "sc_mode": <integer>,
-       "sc_time_start": null,
-       "sc_time_end": null,
-       "sc_date_start": null,
-       "sc_date_end": null,
-       "sc_date_list": null,
-       "sc_date_list_except": null,
-       "sc_day_list": null,
+       "sc_time_start": "<string>",
+       "sc_time_end": "<string>",
+       "sc_date_start": "<string>",
+       "sc_date_end": "<string>",
+       "sc_date_list": "<string>",
+       "sc_date_list_except": "<string>",
+       "sc_day_list": "<string>"
+
+       "in_use": 0,
        "tm_create": "<string>",
        "tm_delete": "<string>",
        "tm_update": "<string>"
      }
    }
+
+Return parameters
+
+* ``uuid`` : Campaign uuid.
+* ``name`` : Campaign name.
+* ``detail`` : Campaign detail info.
+* ``status`` : Campaign status. See detail :ref:`campaign_status`.
+
+* ``plan`` : Registered plan uuid.
+* ``dlma`` : Registered dlma uuid.
+* ``dest`` : Registered destination uuid.
+
+* ``variables``: variables info json object.
+
+* ``next_campaign`` : Campaign uuid for next campaign running.
+
+* ``sc_mode`` : Scheduling mode. See detail :ref:`scheduling_mode`.
+* ``sc_time_start`` : Campaign scheduling start time. See detail :ref:`scheduling_time`.
+* ``sc_time_end`` : Campaign scheduling end time. See detail :ref:`scheduling_time`.
+* ``sc_date_start`` : Campaign scheduling start date. See detail :ref:`scheduling_date`.
+* ``sc_date_end`` : Campaign scheduling end date. See detail :ref:`scheduling_date`.
+* ``sc_date_list`` : Campaign schedling date list. See detail :ref:`scheduling_date_list`.
+* ``sc_date_list_except`` : Campaign scheduling except date list. See detail :ref:`scheduling_date_list`.
+* ``sc_day_list`` : Campaign scheduling day list. See detail :ref:`scheduling_day_list`.
 
 Example
 +++++++
@@ -2911,6 +3351,7 @@ Example
        "sc_date_list_except": null,
        "next_campaign": null,
        "uuid": "305c96cb-4704-4f33-bcad-6b2e4031d7d4",
+       "variables": null,
        "detail": null,
        "dlma": null,
        "name": "Update campaign info",
