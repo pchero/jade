@@ -18,4 +18,16 @@ json_t* get_database_info(const char* key);
 json_t* get_registries_all_account(void);
 json_t* get_registry_info(const char* account);
 
+// queue param
+json_t* get_queue_params_all_name(void);
+json_t* get_queue_param_info(const char* name);
+
+// queue member
+json_t* get_queue_members_all_name_queue(void);
+json_t* get_queue_member_info(const char* name, const char* queue_name);
+
+// queue entry
+json_t* get_queue_entries_all_unique_id_queue_name(void);
+json_t* get_queue_entry_info(const char* channel, const char* queue_name);
+
 #endif /* BACKEND_SRC_RESOURCE_HANDLER_H_ */

@@ -29,12 +29,18 @@ static void ami_event_hangup(json_t* j_msg);
 static void ami_event_newchannel(json_t* j_msg);
 static void ami_event_originateresponse(json_t* j_msg);
 static void ami_event_peerentry(json_t* j_msg);
-static void ami_event_queueparams(json_t* j_msg);
-static void ami_event_queuemember(json_t* j_msg);
-static void ami_event_queueentry(json_t* j_msg);
+static void ami_event_queuecallerabandon(json_t* j_msg);
 static void ami_event_queuecallerjoin(json_t* j_msg);
 static void ami_event_queuecallerleave(json_t* j_msg);
+static void ami_event_queueentry(json_t* j_msg);
+static void ami_event_queuemember(json_t* j_msg);
+static void ami_event_queuememberadded(json_t* j_msg);
 static void ami_event_queuememberstatus(json_t* j_msg);
+static void ami_event_queuememberpause(json_t* j_msg);
+static void ami_event_queuememberpenalty(json_t* j_msg);
+static void ami_event_queuememberremoved(json_t* j_msg);
+static void ami_event_queuememberringinuse(json_t* j_msg);
+static void ami_event_queueparams(json_t* j_msg);
 static void ami_event_registryentry(json_t* j_msg);
 
 static void ami_event_outdestinationentry(json_t* j_msg);
@@ -123,14 +129,8 @@ void ami_message_handler(const char* msg)
   else if(strcasecmp(event, "PeerEntry") == 0) {
     ami_event_peerentry(j_msg);
   }
-  else if(strcasecmp(event, "QueueParams") == 0) {
-    ami_event_queueparams(j_msg);
-  }
-  else if(strcasecmp(event, "QueueMember") == 0) {
-    ami_event_queuemember(j_msg);
-  }
-  else if(strcasecmp(event, "QueueEntry") == 0) {
-    ami_event_queueentry(j_msg);
+  else if(strcasecmp(event, "QueueCallerAbandon") == 0) {
+    ami_event_queuecallerabandon(j_msg);
   }
   else if(strcasecmp(event, "QueueCallerJoin") == 0) {
     ami_event_queuecallerjoin(j_msg);
@@ -138,8 +138,32 @@ void ami_message_handler(const char* msg)
   else if(strcasecmp(event, "QueueCallerLeave") == 0) {
     ami_event_queuecallerleave(j_msg);
   }
+  else if(strcasecmp(event, "QueueEntry") == 0) {
+    ami_event_queueentry(j_msg);
+  }
+  else if(strcasecmp(event, "QueueMember") == 0) {
+    ami_event_queuemember(j_msg);
+  }
+  else if(strcasecmp(event, "QueueMemberAdded") == 0) {
+    ami_event_queuememberadded(j_msg);
+  }
   else if(strcasecmp(event, "QueueMemberStatus") == 0) {
     ami_event_queuememberstatus(j_msg);
+  }
+  else if(strcasecmp(event, "QueueMemberPause") == 0) {
+    ami_event_queuememberpause(j_msg);
+  }
+  else if(strcasecmp(event, "QueueMemberPenalty") == 0) {
+    ami_event_queuememberpenalty(j_msg);
+  }
+  else if(strcasecmp(event, "QueueMemberRemoved") == 0) {
+    ami_event_queuememberremoved(j_msg);
+  }
+  else if(strcasecmp(event, "QueueMemberRinginuse") == 0) {
+    ami_event_queuememberringinuse(j_msg);
+  }
+  else if(strcasecmp(event, "QueueParams") == 0) {
+    ami_event_queueparams(j_msg);
   }
   else if(strcasecmp(event, "RegistryEntry") == 0) {
     ami_event_registryentry(j_msg);
@@ -397,7 +421,7 @@ static void ami_event_peerentry(json_t* j_msg)
   );
   sfree(name);
   if(j_tmp == NULL) {
-    slog(LOG_DEBUG, "Could not create message.");
+    slog(LOG_ERR, "Could not create message.");
     return;
   }
 
@@ -450,7 +474,7 @@ static void ami_event_outdestinationentry(json_t* j_msg)
     "tm_delete",    json_string_value(json_object_get(j_msg, "TmpDelete"))? : ""
   );
   if(j_tmp == NULL) {
-    slog(LOG_DEBUG, "Could not create message.");
+    slog(LOG_ERR, "Could not create message.");
     return;
   }
 
@@ -503,7 +527,7 @@ static void ami_event_outdestinationcreate(json_t* j_msg)
     "tm_delete",    json_string_value(json_object_get(j_msg, "TmpDelete"))? : ""
   );
   if(j_tmp == NULL) {
-    slog(LOG_DEBUG, "Could not create message.");
+    slog(LOG_ERR, "Could not create message.");
     return;
   }
 
@@ -556,7 +580,7 @@ static void ami_event_outdestinationupdate(json_t* j_msg)
     "tm_delete",    json_string_value(json_object_get(j_msg, "TmpDelete"))? : ""
   );
   if(j_tmp == NULL) {
-    slog(LOG_DEBUG, "Could not create message.");
+    slog(LOG_ERR, "Could not create message.");
     return;
   }
 
@@ -654,7 +678,7 @@ static void ami_event_outplanentry(json_t* j_msg)
       "tm_delete",  json_string_value(json_object_get(j_msg, "TmDelete"))? : ""
       );
   if(j_tmp == NULL) {
-    slog(LOG_DEBUG, "Could not create message.");
+    slog(LOG_ERR, "Could not create message.");
     return;
   }
 
@@ -723,7 +747,7 @@ static void ami_event_outplancreate(json_t* j_msg)
       "tm_delete",  json_string_value(json_object_get(j_msg, "TmDelete"))? : ""
       );
   if(j_tmp == NULL) {
-    slog(LOG_DEBUG, "Could not create message.");
+    slog(LOG_ERR, "Could not create message.");
     return;
   }
 
@@ -792,7 +816,7 @@ static void ami_event_outplanupdate(json_t* j_msg)
       "tm_delete",  json_string_value(json_object_get(j_msg, "TmDelete"))? : ""
       );
   if(j_tmp == NULL) {
-    slog(LOG_DEBUG, "Could not create message.");
+    slog(LOG_ERR, "Could not create message.");
     return;
   }
 
@@ -885,7 +909,7 @@ static void ami_event_outcampaignentry(json_t* j_msg)
       "tm_delete",  json_string_value(json_object_get(j_msg, "TmDelete"))? : ""
       );
   if(j_tmp == NULL) {
-    slog(LOG_DEBUG, "Could not create message.");
+    slog(LOG_ERR, "Could not create message.");
     return;
   }
 
@@ -949,7 +973,7 @@ static void ami_event_outcampaigncreate(json_t* j_msg)
       "tm_delete",  json_string_value(json_object_get(j_msg, "TmDelete"))? : ""
       );
   if(j_tmp == NULL) {
-    slog(LOG_DEBUG, "Could not create message.");
+    slog(LOG_ERR, "Could not create message.");
     return;
   }
 
@@ -1013,7 +1037,7 @@ static void ami_event_outcampaignupdate(json_t* j_msg)
       "tm_delete",  json_string_value(json_object_get(j_msg, "TmDelete"))? : ""
       );
   if(j_tmp == NULL) {
-    slog(LOG_DEBUG, "Could not create message.");
+    slog(LOG_ERR, "Could not create message.");
     return;
   }
 
@@ -1090,7 +1114,7 @@ static void ami_event_outdlmaentry(json_t* j_msg)
       "tm_delete",  json_string_value(json_object_get(j_msg, "TmDelete"))? : ""
       );
   if(j_tmp == NULL) {
-    slog(LOG_DEBUG, "Could not create message.");
+    slog(LOG_ERR, "Could not create message.");
     return;
   }
 
@@ -1138,7 +1162,7 @@ static void ami_event_outdlmacreate(json_t* j_msg)
       "tm_delete",  json_string_value(json_object_get(j_msg, "TmDelete"))? : ""
       );
   if(j_tmp == NULL) {
-    slog(LOG_DEBUG, "Could not create message.");
+    slog(LOG_ERR, "Could not create message.");
     return;
   }
 
@@ -1186,7 +1210,7 @@ static void ami_event_outdlmaupdate(json_t* j_msg)
       "tm_delete",  json_string_value(json_object_get(j_msg, "TmDelete"))? : ""
       );
   if(j_tmp == NULL) {
-    slog(LOG_DEBUG, "Could not create message.");
+    slog(LOG_ERR, "Could not create message.");
     return;
   }
 
@@ -1297,7 +1321,7 @@ static void ami_event_outdllistentry(json_t* j_msg)
       "tm_delete",  json_string_value(json_object_get(j_msg, "TmDelete"))? : ""
       );
   if(j_tmp == NULL) {
-    slog(LOG_DEBUG, "Could not create message.");
+    slog(LOG_ERR, "Could not create message.");
     return;
   }
 
@@ -1379,7 +1403,7 @@ static void ami_event_outdllistcreate(json_t* j_msg)
       "tm_delete",  json_string_value(json_object_get(j_msg, "TmDelete"))? : ""
       );
   if(j_tmp == NULL) {
-    slog(LOG_DEBUG, "Could not create message.");
+    slog(LOG_ERR, "Could not create message.");
     return;
   }
 
@@ -1461,7 +1485,7 @@ static void ami_event_outdllistupdate(json_t* j_msg)
       "tm_delete",  json_string_value(json_object_get(j_msg, "TmDelete"))? : ""
       );
   if(j_tmp == NULL) {
-    slog(LOG_DEBUG, "Could not create message.");
+    slog(LOG_ERR, "Could not create message.");
     return;
   }
 
@@ -1547,7 +1571,7 @@ static void ami_event_queueparams(json_t* j_msg)
       );
   sfree(timestamp);
   if(j_tmp == NULL) {
-    slog(LOG_DEBUG, "Could not create message.");
+    slog(LOG_ERR, "Could not create message.");
     return;
   }
 
@@ -1608,7 +1632,7 @@ static void ami_event_queuemember(json_t* j_msg)
       );
   sfree(timestamp);
   if(j_tmp == NULL) {
-    slog(LOG_DEBUG, "Could not create message.");
+    slog(LOG_ERR, "Could not create message.");
     return;
   }
 
@@ -1621,6 +1645,287 @@ static void ami_event_queuemember(json_t* j_msg)
 
   return;
 }
+
+/**
+ * AMI event handler.
+ * Event: QueueMemberAdded
+ * @param j_msg
+ */
+static void ami_event_queuememberadded(json_t* j_msg)
+{
+  json_t* j_tmp;
+  int ret;
+  char* timestamp;
+
+  if(j_msg == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired ami_event_queuememberadded.");
+
+  timestamp = get_utc_timestamp();
+  j_tmp = json_pack("{"
+      "s:s, s:s, "
+      "s:s, s:s, s:s, s:i, s:i, "
+      "s:i, s:i, s:i, s:i, s:i, "
+      "s:s, s:i, "
+      "s:s"
+      "}",
+
+      "name",         json_string_value(json_object_get(j_msg, "MemberName"))? : "",
+      "queue_name",   json_string_value(json_object_get(j_msg, "Queue"))? : "",
+
+      "location",         json_string_value(json_object_get(j_msg, "Interface"))? : "",
+      "state_interface",  json_string_value(json_object_get(j_msg, "StateInterface"))? : "",
+      "membership",       json_string_value(json_object_get(j_msg, "Membership"))? : "",
+      "penalty",          json_string_value(json_object_get(j_msg, "Penalty"))? atoi(json_string_value(json_object_get(j_msg, "Penalty"))) : 0,
+      "calls_taken",      json_string_value(json_object_get(j_msg, "CallsTaken"))? atoi(json_string_value(json_object_get(j_msg, "CallsTaken"))) : 0,
+
+      "last_call",  json_string_value(json_object_get(j_msg, "LastCall"))? atoi(json_string_value(json_object_get(j_msg, "LastCall"))) : 0,
+      "last_pause", json_string_value(json_object_get(j_msg, "LastPause"))? atoi(json_string_value(json_object_get(j_msg, "LastPause"))) : 0,
+      "in_call",    json_string_value(json_object_get(j_msg, "InCall"))? atoi(json_string_value(json_object_get(j_msg, "InCall"))) : 0,
+      "status",     json_string_value(json_object_get(j_msg, "Status"))? atoi(json_string_value(json_object_get(j_msg, "Status"))) : 0,
+      "paused",     json_string_value(json_object_get(j_msg, "Paused"))? atoi(json_string_value(json_object_get(j_msg, "Paused"))) : 0,
+
+      "paused_reason",  json_string_value(json_object_get(j_msg, "PausedReason"))? : "",
+      "ring_inuse",     json_string_value(json_object_get(j_msg, "Ringinuse"))? atoi(json_string_value(json_object_get(j_msg, "Ringinuse"))): 0,
+
+      "tm_update",  timestamp
+      );
+  sfree(timestamp);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not create message.");
+    return;
+  }
+
+  ret = db_insert_or_replace("queue_member", j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert queue_member.");
+    return;
+  }
+
+  return;
+}
+
+/**
+ * AMI event handler.
+ * Event: QueueMemberPause
+ * @param j_msg
+ */
+static void ami_event_queuememberpause(json_t* j_msg)
+{
+  json_t* j_tmp;
+  int ret;
+  char* timestamp;
+
+  if(j_msg == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired ami_event_queuememberpause.");
+
+  timestamp = get_utc_timestamp();
+  j_tmp = json_pack("{"
+      "s:s, s:s, "
+      "s:s, s:s, s:s, s:i, s:i, "
+      "s:i, s:i, s:i, s:i, s:i, "
+      "s:s, s:i, "
+      "s:s"
+      "}",
+
+      "name",         json_string_value(json_object_get(j_msg, "MemberName"))? : "",
+      "queue_name",   json_string_value(json_object_get(j_msg, "Queue"))? : "",
+
+      "location",         json_string_value(json_object_get(j_msg, "Interface"))? : "",
+      "state_interface",  json_string_value(json_object_get(j_msg, "StateInterface"))? : "",
+      "membership",       json_string_value(json_object_get(j_msg, "Membership"))? : "",
+      "penalty",          json_string_value(json_object_get(j_msg, "Penalty"))? atoi(json_string_value(json_object_get(j_msg, "Penalty"))) : 0,
+      "calls_taken",      json_string_value(json_object_get(j_msg, "CallsTaken"))? atoi(json_string_value(json_object_get(j_msg, "CallsTaken"))) : 0,
+
+      "last_call",  json_string_value(json_object_get(j_msg, "LastCall"))? atoi(json_string_value(json_object_get(j_msg, "LastCall"))) : 0,
+      "last_pause", json_string_value(json_object_get(j_msg, "LastPause"))? atoi(json_string_value(json_object_get(j_msg, "LastPause"))) : 0,
+      "in_call",    json_string_value(json_object_get(j_msg, "InCall"))? atoi(json_string_value(json_object_get(j_msg, "InCall"))) : 0,
+      "status",     json_string_value(json_object_get(j_msg, "Status"))? atoi(json_string_value(json_object_get(j_msg, "Status"))) : 0,
+      "paused",     json_string_value(json_object_get(j_msg, "Paused"))? atoi(json_string_value(json_object_get(j_msg, "Paused"))) : 0,
+
+      "paused_reason",  json_string_value(json_object_get(j_msg, "PausedReason"))? : "",
+      "ring_inuse",     json_string_value(json_object_get(j_msg, "Ringinuse"))? atoi(json_string_value(json_object_get(j_msg, "Ringinuse"))): 0,
+
+      "tm_update",  timestamp
+      );
+  sfree(timestamp);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not create message.");
+    return;
+  }
+
+  ret = db_insert_or_replace("queue_member", j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert queue_member.");
+    return;
+  }
+
+  return;
+}
+
+/**
+ * AMI event handler.
+ * Event: QueueMemberPenalty
+ * @param j_msg
+ */
+static void ami_event_queuememberpenalty(json_t* j_msg)
+{
+  json_t* j_tmp;
+  int ret;
+  char* timestamp;
+
+  if(j_msg == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired ami_event_queuememberpenalty.");
+
+  timestamp = get_utc_timestamp();
+  j_tmp = json_pack("{"
+      "s:s, s:s, "
+      "s:s, s:s, s:s, s:i, s:i, "
+      "s:i, s:i, s:i, s:i, s:i, "
+      "s:s, s:i, "
+      "s:s"
+      "}",
+
+      "name",         json_string_value(json_object_get(j_msg, "MemberName"))? : "",
+      "queue_name",   json_string_value(json_object_get(j_msg, "Queue"))? : "",
+
+      "location",         json_string_value(json_object_get(j_msg, "Interface"))? : "",
+      "state_interface",  json_string_value(json_object_get(j_msg, "StateInterface"))? : "",
+      "membership",       json_string_value(json_object_get(j_msg, "Membership"))? : "",
+      "penalty",          json_string_value(json_object_get(j_msg, "Penalty"))? atoi(json_string_value(json_object_get(j_msg, "Penalty"))) : 0,
+      "calls_taken",      json_string_value(json_object_get(j_msg, "CallsTaken"))? atoi(json_string_value(json_object_get(j_msg, "CallsTaken"))) : 0,
+
+      "last_call",  json_string_value(json_object_get(j_msg, "LastCall"))? atoi(json_string_value(json_object_get(j_msg, "LastCall"))) : 0,
+      "last_pause", json_string_value(json_object_get(j_msg, "LastPause"))? atoi(json_string_value(json_object_get(j_msg, "LastPause"))) : 0,
+      "in_call",    json_string_value(json_object_get(j_msg, "InCall"))? atoi(json_string_value(json_object_get(j_msg, "InCall"))) : 0,
+      "status",     json_string_value(json_object_get(j_msg, "Status"))? atoi(json_string_value(json_object_get(j_msg, "Status"))) : 0,
+      "paused",     json_string_value(json_object_get(j_msg, "Paused"))? atoi(json_string_value(json_object_get(j_msg, "Paused"))) : 0,
+
+      "paused_reason",  json_string_value(json_object_get(j_msg, "PausedReason"))? : "",
+      "ring_inuse",     json_string_value(json_object_get(j_msg, "Ringinuse"))? atoi(json_string_value(json_object_get(j_msg, "Ringinuse"))): 0,
+
+      "tm_update",  timestamp
+      );
+  sfree(timestamp);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not create message.");
+    return;
+  }
+
+  ret = db_insert_or_replace("queue_member", j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert queue_member.");
+    return;
+  }
+
+  return;
+}
+
+/**
+ * AMI event handler.
+ * Event: QueueMemberRemoved
+ * @param j_msg
+ */
+static void ami_event_queuememberremoved(json_t* j_msg)
+{
+  char* sql;
+  int ret;
+
+  if(j_msg == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired ami_event_queuecallerabandon.");
+
+
+  asprintf(&sql, "delete from queue_member where queue_name=\"%s\" and name=\"%s\";",
+      json_string_value(json_object_get(j_msg, "Queue"))? : "",
+      json_string_value(json_object_get(j_msg, "MemberName"))? : ""
+      );
+
+  ret = db_exec(sql);
+  sfree(sql);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not delete queue_member.");
+    return;
+  }
+
+  return;
+}
+
+/**
+ * AMI event handler.
+ * Event: QueueMemberRinginuse
+ * @param j_msg
+ */
+static void ami_event_queuememberringinuse(json_t* j_msg)
+{
+  json_t* j_tmp;
+  int ret;
+  char* timestamp;
+
+  if(j_msg == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired ami_event_queuememberringinuse.");
+
+  timestamp = get_utc_timestamp();
+  j_tmp = json_pack("{"
+      "s:s, s:s, "
+      "s:s, s:s, s:s, s:i, s:i, "
+      "s:i, s:i, s:i, s:i, s:i, "
+      "s:s, s:i, "
+      "s:s"
+      "}",
+
+      "name",         json_string_value(json_object_get(j_msg, "MemberName"))? : "",
+      "queue_name",   json_string_value(json_object_get(j_msg, "Queue"))? : "",
+
+      "location",         json_string_value(json_object_get(j_msg, "Interface"))? : "",
+      "state_interface",  json_string_value(json_object_get(j_msg, "StateInterface"))? : "",
+      "membership",       json_string_value(json_object_get(j_msg, "Membership"))? : "",
+      "penalty",          json_string_value(json_object_get(j_msg, "Penalty"))? atoi(json_string_value(json_object_get(j_msg, "Penalty"))) : 0,
+      "calls_taken",      json_string_value(json_object_get(j_msg, "CallsTaken"))? atoi(json_string_value(json_object_get(j_msg, "CallsTaken"))) : 0,
+
+      "last_call",  json_string_value(json_object_get(j_msg, "LastCall"))? atoi(json_string_value(json_object_get(j_msg, "LastCall"))) : 0,
+      "last_pause", json_string_value(json_object_get(j_msg, "LastPause"))? atoi(json_string_value(json_object_get(j_msg, "LastPause"))) : 0,
+      "in_call",    json_string_value(json_object_get(j_msg, "InCall"))? atoi(json_string_value(json_object_get(j_msg, "InCall"))) : 0,
+      "status",     json_string_value(json_object_get(j_msg, "Status"))? atoi(json_string_value(json_object_get(j_msg, "Status"))) : 0,
+      "paused",     json_string_value(json_object_get(j_msg, "Paused"))? atoi(json_string_value(json_object_get(j_msg, "Paused"))) : 0,
+
+      "paused_reason",  json_string_value(json_object_get(j_msg, "PausedReason"))? : "",
+      "ring_inuse",     json_string_value(json_object_get(j_msg, "Ringinuse"))? atoi(json_string_value(json_object_get(j_msg, "Ringinuse"))): 0,
+
+      "tm_update",  timestamp
+      );
+  sfree(timestamp);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not create message.");
+    return;
+  }
+
+  ret = db_insert_or_replace("queue_member", j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert queue_member.");
+    return;
+  }
+
+  return;
+}
+
 
 /**
  * AMI event handler.
@@ -1663,7 +1968,7 @@ static void ami_event_queueentry(json_t* j_msg)
       );
   sfree(timestamp);
   if(j_tmp == NULL) {
-    slog(LOG_DEBUG, "Could not create message.");
+    slog(LOG_ERR, "Could not create message.");
     return;
   }
 
@@ -1671,6 +1976,38 @@ static void ami_event_queueentry(json_t* j_msg)
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert queue_member.");
+    return;
+  }
+
+  return;
+}
+
+/**
+ * AMI event handler.
+ * Event: QueueCallerAbandon
+ * @param j_msg
+ */
+static void ami_event_queuecallerabandon(json_t* j_msg)
+{
+  char* sql;
+  int ret;
+
+  if(j_msg == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired ami_event_queuecallerabandon.");
+
+
+  asprintf(&sql, "delete from queue_entry where queue_name=\"%s\" and channel=%s;",
+      json_string_value(json_object_get(j_msg, "Queue"))? : "",
+      json_string_value(json_object_get(j_msg, "Channel"))? : ""
+      );
+
+  ret = db_exec(sql);
+  sfree(sql);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not delete queue_entry.");
     return;
   }
 
@@ -1696,15 +2033,15 @@ static void ami_event_queuecallerjoin(json_t* j_msg)
 
   timestamp = get_utc_timestamp();
   j_tmp = json_pack("{"
-      "s:s, s:i, "
-      "s:s, s:s, s:s, s:s, s:s, s:s, "
+      "s:s, s:s, "
+      "s:i, s:s, s:s, s:s, s:s, s:s, "
       "s:s"
       "}",
 
       "queue_name", json_string_value(json_object_get(j_msg, "Queue"))? : "",
-      "position",   json_string_value(json_object_get(j_msg, "Position"))? atoi(json_string_value(json_object_get(j_msg, "Position"))) : 0,
-
       "channel",              json_string_value(json_object_get(j_msg, "Channel"))? : "",
+
+      "position",   json_string_value(json_object_get(j_msg, "Position"))? atoi(json_string_value(json_object_get(j_msg, "Position"))) : 0,
       "unique_id",            json_string_value(json_object_get(j_msg, "Uniqueid"))? : "",
       "caller_id_num",        json_string_value(json_object_get(j_msg, "CallerIDNum"))? : "",
       "caller_id_name",       json_string_value(json_object_get(j_msg, "CallerIDName"))? : "",
@@ -1715,7 +2052,7 @@ static void ami_event_queuecallerjoin(json_t* j_msg)
       );
   sfree(timestamp);
   if(j_tmp == NULL) {
-    slog(LOG_DEBUG, "Could not create message.");
+    slog(LOG_ERR, "Could not create message.");
     return;
   }
 
@@ -1807,7 +2144,7 @@ static void ami_event_queuememberstatus(json_t* j_msg)
       );
   sfree(timestamp);
   if(j_tmp == NULL) {
-    slog(LOG_DEBUG, "Could not create message.");
+    slog(LOG_ERR, "Could not create message.");
     return;
   }
   slog(LOG_INFO, "Update queue member status. queue_name[%s], member_name[%s], status[%lld]",
@@ -2010,7 +2347,7 @@ static void ami_event_newchannel(json_t* j_msg)
       );
   sfree(timestamp);
   if(j_tmp == NULL) {
-    slog(LOG_DEBUG, "Could not create message.");
+    slog(LOG_ERR, "Could not create message.");
     return;
   }
 
@@ -2070,7 +2407,7 @@ static void ami_event_registryentry(json_t* j_msg)
   sfree(account);
   sfree(timestamp);
   if(j_tmp == NULL) {
-    slog(LOG_DEBUG, "Could not create message.");
+    slog(LOG_ERR, "Could not create message.");
     return;
   }
 
