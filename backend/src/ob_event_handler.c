@@ -936,7 +936,7 @@ static void cb_check_dl_error(__attribute__((unused)) int fd, __attribute__((unu
     }
 
     slog(LOG_NOTICE, "Update invalid dl info. uuid[%s]", uuid);
-    ret = update_ob_dl_hangup(uuid, 0, "", 0, "");
+    ret = update_ob_dl_status(uuid, E_DL_STATUS_IDLE);
     if(ret == false) {
       slog(LOG_ERR, "Could not update invalid dl info. uuid[%s]", uuid);
     }

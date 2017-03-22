@@ -56,6 +56,7 @@ json_t* create_dial_info(json_t* j_plan, json_t* j_dl_list, json_t* j_dest);
 json_t* create_json_for_dl_result(json_t* j_dialing);
 
 bool update_ob_dl_after_create_dialing_info(json_t* dialing);
+bool update_ob_dl_status(const char* uuid, E_DL_STATUS_T status);
 bool update_ob_dl_hangup(
     const char* uuid,
     int res_dial,

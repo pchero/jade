@@ -1851,6 +1851,41 @@ bool update_ob_dl_hangup(
   return true;
 }
 
+/**
+ * Update ob_dl's status info
+ * @param uuid
+ * @param status
+ * @return
+ */
+bool update_ob_dl_status(const char* uuid, E_DL_STATUS_T status)
+{
+  json_t* j_update;
+  json_t* j_res;
+
+  if(uuid == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired update_ob_dl_status. uuid[%s], status[%d]", uuid, status);
+
+  // create update info
+  j_update = json_pack("{s:s, s:i}",
+      "uuid",   uuid,
+      "status", status
+      );
+  if(j_update == NULL) {
+    slog(LOG_ERR, "Could not create update dl_list info.");
+    return false;
+  }
+
+  // update dial list
+  j_res = update_ob_dl(j_update);
+  json_decref(j_update);
+  json_decref(j_res);
+
+  return true;
+}
+
 static json_t* create_ob_dl_default(void)
 {
   json_t* j_res;
