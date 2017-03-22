@@ -84,6 +84,167 @@ sessions and are temporary.
 Resources
 *********
 
+
+/channels
+=========
+
+Methods
+-------
+GET : Get list of all channels info.
+
+Method: GET
+-----------
+Get list of all channels info.
+
+Call
+++++
+::
+
+   GET /channels
+
+Returns
++++++++
+::
+
+   {
+     $defhdr,
+     "reuslt": {
+       "list": [
+         {
+           "unique_id": "<string>"
+         },
+         ...
+       ]
+     }
+   }
+  
+* ``list`` : array of channels.
+   * ``unique_id``: unique id.
+
+Example
++++++++
+::
+
+   $ curl -X GET 192.168.200.10:8081/channels
+   
+   {
+     "api_ver": "0.1",
+     "result": {
+       "list": [
+         {
+           "unique_id": "6d4c1dc4-7e91-430c-a51a-92fcbdd2f831"
+         }
+       ]
+     },
+     "statuscode": 200,
+     "timestamp": "2017-03-12T01:12:04.633580922Z"
+   }
+
+
+/channels/
+==========
+
+Methods
+-------
+GET : Get channel's detail info of given channel info.
+
+Method: GET
+-----------
+Get channel's detail info of given channel info.
+
+Call
+++++
+::
+
+   GET /queue_entries/
+  
+   {
+     "unique_id": "<string>"
+   }
+   
+Data parameters
+
+* ``unique_id``: unique id.
+
+Returns
++++++++
+::
+
+   {
+     $defhdr,
+     "reuslt": {
+       "name": "SIP/300-000003a2",
+       "unique_id": "6d4c1dc4-7e91-430c-a51a-92fcbdd2f831",
+       "linked_id": "6d4c1dc4-7e91-430c-a51a-92fcbdd2f831",
+       "state": 0,
+       "state_desc": "Down",
+
+       "context": "public",
+       "exten": "s",
+       "priority": "1",
+
+       "caller_id_name": "<unknown>",
+       "caller_id_num": "<unknown>",
+       "connected_line_name": "<unknown>",
+       "connected_line_num": "<unknown>",
+
+       "account_code": "",
+       "language": "en",
+       
+       "tm_update": "2017-03-12T01:59:15.213772334Z"
+     }
+   }
+
+Return parameters
+
+* ``name``: Channel name.
+* ``unique_id``: Channel's unique id.
+* ``linked_id``: Channel's linked id.
+* ``state``: Channel's state.
+* ``state_desc``: Channel's state description.
+
+* ``context``: Context.
+* ``exten``: Extension.
+* ``priority``: Priority
+
+* ``caller_id_name``: Caller's id name.
+* ``caller_id_num``: Caller's id number.
+* ``connected_line_name``: Caller's line name.
+* ``connected_line_num``: Caller's line number.
+
+* ``account_code``: Account code.
+* ``language``: Language.
+
+Example
++++++++
+::
+
+   $ curl -X GET 192.168.200.10:8081/queue_entries/ -d \
+   '{"unique_id": "6d4c1dc4-7e91-430c-a51a-92fcbdd2f831"}'
+   
+   {
+     "api_ver": "0.1",
+     "result": {
+       "account_code": "",
+       "caller_id_name": "<unknown>",
+       "caller_id_num": "<unknown>",
+       "connected_line_name": "<unknown>",
+       "connected_line_num": "<unknown>",
+       "context": "public",
+       "exten": "s",
+       "language": "en",
+       "linked_id": "6d4c1dc4-7e91-430c-a51a-92fcbdd2f831",
+       "name": "SIP/300-000003a2",
+       "priority": "1",
+       "state": 0,
+       "state_desc": "Down",
+       "tm_update": "2017-03-12T01:59:15.213772334Z",
+       "unique_id": "6d4c1dc4-7e91-430c-a51a-92fcbdd2f831"
+     },
+     "statuscode": 200,
+     "timestamp": "2017-03-12T02:00:57.493480577Z"
+   }
+
 /registries
 ===========
 
@@ -694,6 +855,7 @@ Example
      "statuscode": 200,
      "timestamp": "2017-03-12T01:13:34.221218064Z"
    }
+
 
 
    

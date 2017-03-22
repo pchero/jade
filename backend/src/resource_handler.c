@@ -376,7 +376,7 @@ json_t* get_queue_entries_all_unique_id_queue_name(void)
   db_res = db_query(sql);
   sfree(sql);
   if(db_res == NULL) {
-    slog(LOG_WARNING, "Could not get correct queue member info.");
+    slog(LOG_WARNING, "Could not get correct queue entries info.");
     return NULL;
   }
 
@@ -434,3 +434,80 @@ json_t* get_queue_entry_info(const char* unique_id, const char* queue_name)
   }
   return j_tmp;
 }
+
+/**
+ * Get all channel's unique id array
+ * @return
+ */
+json_t* get_channels_all_unique_id(void)
+{
+  char* sql;
+  db_res_t* db_res;
+  json_t* j_res;
+  json_t* j_res_tmp;
+  json_t* j_tmp;
+
+  asprintf(&sql, "select * from channel;");
+  db_res = db_query(sql);
+  sfree(sql);
+  if(db_res == NULL) {
+    slog(LOG_WARNING, "Could not get correct channel info.");
+    return NULL;
+  }
+
+  j_res = json_array();
+  while(1) {
+    j_tmp = db_get_record(db_res);
+    if(j_tmp == NULL) {
+      break;
+    }
+
+    j_res_tmp = json_pack("{s:s}",
+        "unique_id",  json_string_value(json_object_get(j_tmp, "unique_id"))
+        );
+    json_decref(j_tmp);
+    if(j_res_tmp == NULL) {
+      continue;
+    }
+
+    json_array_append_new(j_res, j_res_tmp);
+  }
+  db_free(db_res);
+
+  return j_res;
+}
+
+/**
+ * Get corresponding channel info.
+ * @return
+ */
+json_t* get_channel_info(const char* unique_id)
+{
+  char* sql;
+  db_res_t* db_res;
+  json_t* j_tmp;
+
+  if(unique_id == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_channel_info. unique_id[%s]", unique_id);
+
+  asprintf(&sql, "select * from channel where unique_id=\"%s\";", unique_id);
+  db_res = db_query(sql);
+  sfree(sql);
+  if(db_res == NULL) {
+    slog(LOG_WARNING, "Could not get correct channel info.");
+    return NULL;
+  }
+
+  j_tmp = db_get_record(db_res);
+  db_free(db_res);
+  if(j_tmp == NULL) {
+    return NULL;
+  }
+  return j_tmp;
+}
+
+
+

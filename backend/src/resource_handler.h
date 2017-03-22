@@ -30,4 +30,9 @@ json_t* get_queue_member_info(const char* name, const char* queue_name);
 json_t* get_queue_entries_all_unique_id_queue_name(void);
 json_t* get_queue_entry_info(const char* channel, const char* queue_name);
 
+// channel
+json_t* get_channels_all_unique_id(void);
+json_t* get_channel_info(const char* unique_id);
+
+
 #endif /* BACKEND_SRC_RESOURCE_HANDLER_H_ */

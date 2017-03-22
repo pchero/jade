@@ -1999,7 +1999,7 @@ static void ami_event_queuecallerabandon(json_t* j_msg)
   slog(LOG_DEBUG, "Fired ami_event_queuecallerabandon.");
 
 
-  asprintf(&sql, "delete from queue_entry where queue_name=\"%s\" and channel=%s;",
+  asprintf(&sql, "delete from queue_entry where queue_name=\"%s\" and channel=\"%s\";",
       json_string_value(json_object_get(j_msg, "Queue"))? : "",
       json_string_value(json_object_get(j_msg, "Channel"))? : ""
       );
