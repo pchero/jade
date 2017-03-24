@@ -1408,14 +1408,16 @@
 <div class="section" id="id55">
 <h3>Method: DELETE<a class="headerlink" href="#id55" title="Permalink to this headline">¶</a></h3>
 <p>Delete specified dlma.</p>
+<p>If there&#8217;s available dl(dial list), error responsed.</p>
 <div class="section" id="id56">
 <h4>Call<a class="headerlink" href="#id56" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>DELETE /ob/dlmas/&lt;uuid&gt;
+<div class="highlight-python"><div class="highlight"><pre>DELETE /ob/dlmas/&lt;uuid&gt;?force=&lt;force_option&gt;
 </pre></div>
 </div>
 <p>Method parameters</p>
 <ul class="simple">
 <li><tt class="docutils literal"><span class="pre">uuid</span></tt> : dlma uuid.</li>
+<li><tt class="docutils literal"><span class="pre">force</span></tt>: &lt;optional&gt; If sets to 1, delete dlma and all the dl(dial list) related with given dlma. default=0</li>
 </ul>
 </div>
 <div class="section" id="id57">
