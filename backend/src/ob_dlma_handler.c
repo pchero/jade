@@ -18,6 +18,7 @@
 #include "utils.h"
 
 #include "ob_dlma_handler.h"
+#include "ob_dl_handler.h"
 
 static bool create_dlma_view(const char* uuid, const char* view_name);
 static json_t* create_ob_dlma_default(void);
@@ -128,19 +129,32 @@ static json_t* create_ob_dlma_default(void)
   return j_res;
 }
 
-json_t* delete_ob_dlma(const char* uuid)
+json_t* delete_ob_dlma(const char* uuid, bool force)
 {
   json_t* j_tmp;
   char* tmp;
   char* sql;
   int ret;
+  int count;
 
   if(uuid == NULL) {
     // invalid parameter.
     slog(LOG_WARNING, "Wrong input parameter.");
     return NULL;
   }
-  slog(LOG_DEBUG, "Fired delete_ob_dlma");
+  slog(LOG_DEBUG, "Fired delete_ob_dlma. uuid[%s]", uuid);
+
+  // if the force option is set, delete all the ob_dl by the dlma_uuid.
+  if(force == true) {
+    delete_ob_dls_by_dlma_uuid(uuid);
+  }
+
+  // check dl count
+  count = get_ob_dl_count_by_dlma_uuid(uuid);
+  if(count > 0) {
+    slog(LOG_NOTICE, "Could not delete ob_dlma. There are available ob_dl info related with given dlma_uuid. dlma_uuid[%s]", uuid);
+    return NULL;
+  }
 
   j_tmp = json_object();
   tmp = get_utc_timestamp();
@@ -447,3 +461,34 @@ static char* create_view_name(const char* uuid)
   tmp[j] = '\0';
   return tmp;
 }
+
+char* get_ob_dlma_table_name(const char* dlma_uuid)
+{
+  json_t* j_dlma;
+  const char* tmp_const;
+  char* res;
+
+  if(dlma_uuid == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_ob_dl_table_name. dlma_uuid[%s]", dlma_uuid);
+
+  j_dlma = get_ob_dlma(dlma_uuid);
+  if(j_dlma == NULL) {
+    slog(LOG_WARNING, "Could not get ob_dlma info. dlma_uuid[%s]", dlma_uuid);
+    return NULL;
+  }
+
+  tmp_const = json_string_value(json_object_get(j_dlma, "dl_table"));
+  if(tmp_const == NULL) {
+    json_decref(j_dlma);
+    slog(LOG_INFO, "Could not get dl_table info from ob_dlma. dlma_uuid[%s]", dlma_uuid);
+    return NULL;
+  }
+  res = strdup(tmp_const);
+  json_decref(j_dlma);
+
+  return res;
+}
+

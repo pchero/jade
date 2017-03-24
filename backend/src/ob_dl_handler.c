@@ -697,21 +697,28 @@ json_t* get_ob_dl(const char* uuid)
   return j_res;
 }
 
-int get_ob_dl_list_cnt_total(json_t* j_dlma)
+int get_ob_dl_count_by_dlma_uuid(const char* dlma_uuid)
 {
   char* sql;
+  char* dl_table;
   db_res_t* db_res;
   json_t* j_res;
   int ret;
 
-  if(j_dlma == NULL) {
+  if(dlma_uuid == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
-    return -1;
+    return 0;
+  }
+  slog(LOG_DEBUG, "Fired get_ob_dl_count_by_dlma_uuid. dlma_uuid[%s]", dlma_uuid);
+
+  dl_table = get_ob_dlma_table_name(dlma_uuid);
+  if(dl_table == NULL) {
+    slog(LOG_ERR, "Could not get correct dlma table name. dlma_uuid[%s]", dlma_uuid);
+    return 0;
   }
 
-  asprintf(&sql, "select count(*) from '%s' where in_use=%d;",
-      json_string_value(json_object_get(j_dlma, "dl_table"))? : "",
-      E_USE_OK
+  asprintf(&sql, "select count(*) from %s where in_use=%d;",
+      dl_table, E_USE_OK
       );
   db_res = db_query(sql);
   sfree(sql);
@@ -721,6 +728,21 @@ int get_ob_dl_list_cnt_total(json_t* j_dlma)
 
   ret = json_integer_value(json_object_get(j_res, "count(*)"));
   json_decref(j_res);
+
+  return ret;
+}
+
+int get_ob_dl_list_cnt_total(json_t* j_dlma)
+{
+  int ret;
+
+  if(j_dlma == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return -1;
+  }
+  slog(LOG_DEBUG, "Fired get_ob_dl_list_cnt_total.");
+
+  ret = get_ob_dl_count_by_dlma_uuid(json_string_value(json_object_get(j_dlma, "uuid")));
 
   return ret;
 }
@@ -754,6 +776,7 @@ int get_ob_dl_list_cnt_finshed(json_t* j_dlma, json_t* j_plan)
       " and status = %d"
       " and in_use = %d"
       ";",
+
       json_string_value(json_object_get(j_dlma, "dl_table")),
       json_integer_value(json_object_get(j_plan, "max_retry_cnt_1")),
       json_integer_value(json_object_get(j_plan, "max_retry_cnt_2")),
@@ -1727,13 +1750,51 @@ bool is_exist_ob_dl(const char* uuid)
 }
 
 /**
+ * Delete ob_dls related with given dlma_uuid
+ * @param dlma_uuid
+ * @return
+ */
+bool delete_ob_dls_by_dlma_uuid(const char* dlma_uuid)
+{
+  char* sql;
+  char* timestamp;
+  char* tmp;
+  json_t* j_tmp;
+  int ret;
+
+  if(dlma_uuid == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired delete_ob_dls_by_dlma_uuid. dlma_uuid[%s]", dlma_uuid);
+
+  j_tmp = json_object();
+  timestamp = get_utc_timestamp();
+  json_object_set_new(j_tmp, "tm_delete", json_string(timestamp));
+  json_object_set_new(j_tmp, "in_use", json_integer(E_USE_NO));
+  sfree(timestamp);
+
+  tmp = db_get_update_str(j_tmp);
+  json_decref(j_tmp);
+  asprintf(&sql, "update ob_dl_list set %s where dlma_uuid=\"%s\";", tmp, dlma_uuid);
+  sfree(tmp);
+
+  ret = db_exec(sql);
+  sfree(sql);
+  if(ret == false) {
+    return false;
+  }
+
+  return true;
+}
+
+/**
  * Delete ob_dl_list record.
  * @param uuid
  * @return
  */
 json_t* delete_ob_dl(const char* uuid)
 {
-
   json_t* j_tmp;
   char* tmp;
   char* sql;
@@ -1744,7 +1805,7 @@ json_t* delete_ob_dl(const char* uuid)
     slog(LOG_ERR, "Wrong input parameter.");
     return NULL;
   }
-  slog(LOG_DEBUG, "Fired delete_ob_dl.");
+  slog(LOG_DEBUG, "Fired delete_ob_dl. uuid[%s]", uuid);
 
   j_tmp = json_object();
   tmp = get_utc_timestamp();
@@ -1924,4 +1985,3 @@ static json_t* create_ob_dl_default(void)
 
   return j_res;
 }
-

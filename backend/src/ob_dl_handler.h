@@ -38,9 +38,11 @@ json_t* get_ob_dls_error(void);
 json_t* create_ob_dl(json_t* j_dl);
 json_t* update_ob_dl(json_t* j_dl);
 json_t* delete_ob_dl(const char* uuid);
+bool delete_ob_dls_by_dlma_uuid(const char* dlma_uuid);
 bool delete_dl_list(const char* uuid);
 bool validate_ob_dl(json_t* j_dl);
 
+int get_ob_dl_count_by_dlma_uuid(const char* dlma_uuid);
 int get_ob_dl_list_cnt_total(json_t* j_dlma);
 int get_ob_dl_list_cnt_finshed(json_t* j_dlma, json_t* j_plan);
 int get_ob_dl_list_cnt_available(json_t* j_dlma, json_t* j_plan);

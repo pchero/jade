@@ -1696,9 +1696,11 @@ static void htp_put_ob_dlmas_uuid(evhtp_request_t *req, void *data)
 static void htp_delete_ob_dlmas_uuid(evhtp_request_t *req, void *data)
 {
   const char* uuid;
+  const char* tmp_const;
   json_t* j_tmp;
   json_t* j_res;
   int ret;
+  int force;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -1721,8 +1723,16 @@ static void htp_delete_ob_dlmas_uuid(evhtp_request_t *req, void *data)
     return;
   }
 
+  // get params
+  force = 0;
+  tmp_const = evhtp_kv_find(req->uri->query, "force");
+  if(tmp_const != NULL) {
+    force = atoi(tmp_const);
+  }
+  slog(LOG_DEBUG, "Check force option. force[%d]", force);
+
   // delete info
-  j_tmp = delete_ob_dlma(uuid);
+  j_tmp = delete_ob_dlma(uuid, force);
   if(j_tmp == NULL) {
     simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;

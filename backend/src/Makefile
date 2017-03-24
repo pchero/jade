@@ -1,7 +1,7 @@
 TARGET = jade_backend
 LIBS = -ljansson -levhtp -levent -levent_openssl -lssl -lcrypto -lpthread -luuid -lsqlite3 -lbsd
 CC = gcc
-CFLAGS = -g -Wall
+CFLAGS = -g -Wall -I/usr/local/include/evhtp
 
 .PHONY: default all clean
 
