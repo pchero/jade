@@ -720,10 +720,10 @@ json_t* get_ob_campaign_stat(const char* uuid)
 
       "uuid",                  json_string_value(json_object_get(j_camp, "uuid"))? : "",
 
-      "dial_total_count",      get_ob_dl_list_cnt_total(j_dlma),
+      "dial_total_count",     get_ob_dl_list_cnt_total(j_dlma),
       "dial_finished_count",  get_ob_dl_list_cnt_finshed(j_dlma, j_plan),
-      "dial_available_count",  get_ob_dl_list_cnt_available(j_dlma, j_plan),
-      "dial_dialing_count",    get_ob_dl_list_cnt_dialing(j_dlma),
+      "dial_available_count", get_ob_dl_list_cnt_available(j_dlma, j_plan),
+      "dial_dialing_count",   get_ob_dl_list_cnt_dialing(j_dlma),
       "dial_called_count",    get_ob_dl_list_cnt_tried(j_dlma)
       );
 

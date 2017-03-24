@@ -1429,15 +1429,18 @@ Method: DELETE
 --------------
 Delete specified dlma.
 
+If there's available dl(dial list), error responsed.
+
 Call
 ++++
 ::
 
-   DELETE /ob/dlmas/<uuid>
+   DELETE /ob/dlmas/<uuid>?force=<force_option>
 
 Method parameters
 
 * ``uuid`` : dlma uuid.
+* ``force``: <optional> If sets to 1, delete dlma and all the dl(dial list) related with given dlma. default=0
 
 Returns
 +++++++
