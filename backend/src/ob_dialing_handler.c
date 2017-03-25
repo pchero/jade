@@ -1310,9 +1310,9 @@ static const char* get_res_dial_detail_string(int res_dial)
 json_t* get_ob_dialings_uuid_all(void)
 {
   char* sql;
-  const char* tmp_const;
   db_res_t* db_res;
   json_t* j_res;
+  json_t* j_res_tmp;
   json_t* j_tmp;
 
   asprintf(&sql, "select uuid from ob_dialing;");
@@ -1330,14 +1330,15 @@ json_t* get_ob_dialings_uuid_all(void)
       break;
     }
 
-    tmp_const = json_string_value(json_object_get(j_tmp, "uuid"));
-    if(tmp_const == NULL) {
-      json_decref(j_tmp);
+    j_res_tmp = json_pack("{s:s}",
+        "uuid", json_string_value(json_object_get(j_tmp, "uuid"))
+        );
+    json_decref(j_tmp);
+    if(j_res_tmp == NULL) {
       continue;
     }
 
-    json_array_append_new(j_res, json_string(tmp_const));
-    json_decref(j_tmp);
+    json_array_append_new(j_res, j_res_tmp);
   }
   db_free(db_res);
 
