@@ -403,28 +403,29 @@ json_t* get_ob_dls_uuid_by_dlma_count(const char* dlma_uuid, int count)
 {
   char* sql;
   db_res_t* db_res;
+  json_t* j_res_tmp;
   json_t* j_res;
   json_t* j_tmp;
-  json_t* j_dlma;
-  const char* uuid;
+  char* dl_table;
 
   if((dlma_uuid == NULL) || (count <= 0)) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return NULL;
   }
 
-  j_dlma = get_ob_dlma(dlma_uuid);
-  if(j_dlma == NULL) {
-    slog(LOG_WARNING, "Could not find dlma info. dlma_uuid[%s]", dlma_uuid);
+  // get dl_table
+  dl_table = get_ob_dlma_table_name(dlma_uuid);
+  if(dl_table == NULL) {
+    slog(LOG_NOTICE, "Could not get correct dl_table name. dlma_uuid[%s]", dlma_uuid);
     return NULL;
   }
 
   asprintf(&sql, "select uuid from `%s` where in_use=%d limit %d;",
-      json_string_value(json_object_get(j_dlma, "dl_table")),
+      dl_table,
       E_USE_OK,
       count
       );
-  json_decref(j_dlma);
+  sfree(dl_table);
 
   db_res = db_query(sql);
   sfree(sql);
@@ -440,14 +441,15 @@ json_t* get_ob_dls_uuid_by_dlma_count(const char* dlma_uuid, int count)
       break;
     }
 
-    uuid = json_string_value(json_object_get(j_tmp, "uuid"));
-    if(uuid == NULL) {
-      json_decref(j_tmp);
+    j_res_tmp = json_pack("{s:s}",
+        "uuid", json_string_value(json_object_get(j_tmp, "uuid"))
+        );
+    json_decref(j_tmp);
+    if(j_res_tmp == NULL) {
       continue;
     }
 
-    json_array_append_new(j_res, json_string(uuid));
-    json_decref(j_tmp);
+    json_array_append_new(j_res, j_res_tmp);
   }
   db_free(db_res);
 

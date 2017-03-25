@@ -32,16 +32,6 @@ extern evhtp_t* g_htp;
 
 ///// outbound modules
 
-static void cb_htp_ob_plans(evhtp_request_t *req, void *data);
-static void cb_htp_ob_plans_uuid(evhtp_request_t *req, void *data);
-static void cb_htp_ob_campaigns(evhtp_request_t *req, void *data);
-static void cb_htp_ob_campaigns_uuid(evhtp_request_t *req, void *data);
-static void cb_htp_ob_dlmas(evhtp_request_t *req, void *data);
-static void cb_htp_ob_dlmas_uuid(evhtp_request_t *req, void *data);
-static void cb_htp_ob_dls(evhtp_request_t *req, void *data);
-static void cb_htp_ob_dls_uuid(evhtp_request_t *req, void *data);
-static void cb_htp_ob_dialings(evhtp_request_t *req, void *data);
-static void cb_htp_ob_dialings_uuid(evhtp_request_t *req, void *data);
 
 // ob/destinations
 static void cb_htp_ob_destinations(evhtp_request_t *req, void *data);
@@ -53,6 +43,8 @@ static void htp_put_ob_destinations_uuid(evhtp_request_t *req, void *data);
 static void htp_delete_ob_destinations_uuid(evhtp_request_t *req, void *data);
 
 // ob/plans
+static void cb_htp_ob_plans(evhtp_request_t *req, void *data);
+static void cb_htp_ob_plans_uuid(evhtp_request_t *req, void *data);
 static void htp_get_ob_plans(evhtp_request_t *req, void *data);
 static void htp_post_ob_plans(evhtp_request_t *req, void *data);
 static void htp_get_ob_plans_uuid(evhtp_request_t *req, void *data);
@@ -60,6 +52,8 @@ static void htp_put_ob_plans_uuid(evhtp_request_t *req, void *data);
 static void htp_delete_ob_plans_uuid(evhtp_request_t *req, void *data);
 
 // ob/campaigns
+static void cb_htp_ob_campaigns(evhtp_request_t *req, void *data);
+static void cb_htp_ob_campaigns_uuid(evhtp_request_t *req, void *data);
 static void htp_get_ob_campaigns(evhtp_request_t *req, void *data);
 static void htp_post_ob_campaigns(evhtp_request_t *req, void *data);
 static void htp_get_ob_campaigns_uuid(evhtp_request_t *req, void *data);
@@ -67,6 +61,8 @@ static void htp_put_ob_campaigns_uuid(evhtp_request_t *req, void *data);
 static void htp_delete_ob_campaigns_uuid(evhtp_request_t *req, void *data);
 
 // ob/dlmas
+static void cb_htp_ob_dlmas(evhtp_request_t *req, void *data);
+static void cb_htp_ob_dlmas_uuid(evhtp_request_t *req, void *data);
 static void htp_get_ob_dlmas(evhtp_request_t *req, void *data);
 static void htp_post_ob_dlmas(evhtp_request_t *req, void *data);
 static void htp_get_ob_dlmas_uuid(evhtp_request_t *req, void *data);
@@ -74,6 +70,8 @@ static void htp_put_ob_dlmas_uuid(evhtp_request_t *req, void *data);
 static void htp_delete_ob_dlmas_uuid(evhtp_request_t *req, void *data);
 
 // ob/dls
+static void cb_htp_ob_dls(evhtp_request_t *req, void *data);
+static void cb_htp_ob_dls_uuid(evhtp_request_t *req, void *data);
 static void htp_get_ob_dls(evhtp_request_t *req, void *data);
 static void htp_post_ob_dls(evhtp_request_t *req, void *data);
 static void htp_get_ob_dls_uuid(evhtp_request_t *req, void *data);
@@ -81,6 +79,8 @@ static void htp_put_ob_dls_uuid(evhtp_request_t *req, void *data);
 static void htp_delete_ob_dls_uuid(evhtp_request_t *req, void *data);
 
 // ob/dialings
+static void cb_htp_ob_dialings(evhtp_request_t *req, void *data);
+static void cb_htp_ob_dialings_uuid(evhtp_request_t *req, void *data);
 static void htp_get_ob_dialings(evhtp_request_t *req, void *data);
 static void htp_get_ob_dialings_uuid(evhtp_request_t *req, void *data);
 static void htp_delete_ob_dialings_uuid(evhtp_request_t *req, void *data);
@@ -615,7 +615,8 @@ static void htp_get_ob_destinations(evhtp_request_t *req, void *data)
 
   // create result
   j_res = create_default_result(EVHTP_RES_OK);
-  json_object_set_new(j_res, "result", j_tmp);
+  json_object_set_new(j_res, "result", json_object());
+  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
 
   // response
   simple_response_normal(req, j_res);
@@ -899,7 +900,8 @@ static void htp_get_ob_plans(evhtp_request_t *req, void *data)
 
   // create result
   j_res = create_default_result(EVHTP_RES_OK);
-  json_object_set_new(j_res, "result", j_tmp);
+  json_object_set_new(j_res, "result", json_object());
+  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
 
   // response
   simple_response_normal(req, j_res);
@@ -1194,7 +1196,8 @@ static void htp_get_ob_campaigns(evhtp_request_t *req, void *data)
 
   // create result
   j_res = create_default_result(EVHTP_RES_OK);
-  json_object_set_new(j_res, "result", j_tmp);
+  json_object_set_new(j_res, "result", json_object());
+  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
 
   // response
   simple_response_normal(req, j_res);
@@ -1480,7 +1483,8 @@ static void htp_get_ob_dlmas(evhtp_request_t *req, void *data)
 
   // create result
   j_res = create_default_result(EVHTP_RES_OK);
-  json_object_set_new(j_res, "result", j_tmp);
+  json_object_set_new(j_res, "result", json_object());
+  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
 
   // response
   simple_response_normal(req, j_res);

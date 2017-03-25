@@ -357,30 +357,29 @@ json_t* update_ob_dlma(const json_t* j_dlma)
  */
 json_t* get_ob_dlmas_all(void)
 {
-  json_t* j_uuids;
-  json_t* j_val;
+  char* sql;
+  db_res_t* db_res;
   json_t* j_res;
   json_t* j_tmp;
-  unsigned int idx;
-  const char* uuid;
 
-  j_uuids = get_ob_dlmas_all_uuid();
+  asprintf(&sql, "select * from ob_dl_list_ma where in_use=%d;", E_USE_OK);
+  db_res = db_query(sql);
+  sfree(sql);
+  if(db_res == NULL) {
+    slog(LOG_WARNING, "Could not get correct ob_dlma info.");
+    return NULL;
+  }
 
   j_res = json_array();
-  json_array_foreach(j_uuids, idx, j_val) {
-    uuid = json_string_value(j_val);
-    if(uuid == NULL) {
-      continue;
-    }
-
-    j_tmp = get_ob_dlma(uuid);
+  while(1) {
+    j_tmp = db_get_record(db_res);
     if(j_tmp == NULL) {
-      continue;
+      break;
     }
 
     json_array_append_new(j_res, j_tmp);
   }
-  json_decref(j_uuids);
+  db_free(db_res);
 
   return j_res;
 }
@@ -392,7 +391,6 @@ json_t* get_ob_dlmas_all(void)
 json_t* get_ob_dlmas_all_uuid(void)
 {
   char* sql;
-  const char* tmp_const;
   db_res_t* db_res;
   json_t* j_res;
   json_t* j_res_tmp;
@@ -406,26 +404,24 @@ json_t* get_ob_dlmas_all_uuid(void)
     return NULL;
   }
 
-  j_res_tmp = json_array();
+  j_res = json_array();
   while(1) {
     j_tmp = db_get_record(db_res);
     if(j_tmp == NULL) {
       break;
     }
 
-    tmp_const = json_string_value(json_object_get(j_tmp, "uuid"));
-    if(tmp_const == NULL) {
-      json_decref(j_tmp);
+    j_res_tmp = json_pack("{s:s}",
+        "uuid", json_string_value(json_object_get(j_tmp, "uuid"))
+        );
+    json_decref(j_tmp);
+    if(j_res_tmp == NULL) {
       continue;
     }
 
-    json_array_append_new(j_res_tmp, json_string(tmp_const));
-    json_decref(j_tmp);
+    json_array_append_new(j_res, j_res_tmp);
   }
   db_free(db_res);
-
-  j_res = json_object();
-  json_object_set_new(j_res, "list", j_res_tmp);
 
   return j_res;
 }
