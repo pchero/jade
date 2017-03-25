@@ -242,15 +242,23 @@
   $defhdr,
   &quot;reuslt&quot;: {
     &quot;list&quot;: [
-      &quot;&lt;plan-uuid&gt;&quot;,
+      {&quot;uuid&quot;: &quot;&lt;string&gt;&quot;},
       ...
     ]
   }
 }
 </pre></div>
 </div>
-<ul class="simple">
-<li><tt class="docutils literal"><span class="pre">list</span></tt> : array of plan-uuid.</li>
+<p>Return parameters</p>
+<ul>
+<li><dl class="first docutils">
+<dt><tt class="docutils literal"><span class="pre">list</span></tt> <span class="classifier-delimiter">:</span> <span class="classifier">array of items.</span></dt>
+<dd><ul class="first last simple">
+<li><tt class="docutils literal"><span class="pre">uuid</span></tt>: plan uuid.</li>
+</ul>
+</dd>
+</dl>
+</li>
 </ul>
 </div>
 <div class="section" id="id3">
@@ -261,11 +269,16 @@
   &quot;api_ver&quot;: &quot;0.1&quot;,
   &quot;result&quot;: {
     &quot;list&quot;: [
-       &quot;552e9808-23bc-40b1-947a-60b0b96581cb&quot;
-    ]
+      {
+        &quot;uuid&quot;: &quot;e55e4655-6065-4e9a-bdcf-50363aa6f6d4&quot;
+      },
+      {
+        &quot;uuid&quot;: &quot;05540cd8-be5d-4a1a-936c-4f2e439b9126&quot;
+       }
+     ]
   },
   &quot;statuscode&quot;: 200,
-  &quot;timestamp&quot;: &quot;2017-02-22T16:48:04.890697147Z&quot;
+  &quot;timestamp&quot;: &quot;2017-03-12T15:51:10.303203612Z&quot;
 }
 </pre></div>
 </div>
@@ -796,15 +809,23 @@
   $defhdr,
   &quot;reuslt&quot;: {
     &quot;list&quot;: [
-      &quot;&lt;destination-uuid&gt;&quot;,
+      {&quot;uuid&quot;: &quot;&lt;string&gt;&quot;},
       ...
     ]
   }
 }
 </pre></div>
 </div>
-<ul class="simple">
-<li><tt class="docutils literal"><span class="pre">list</span></tt> : array of destination-uuid.</li>
+<p>Return parameters</p>
+<ul>
+<li><dl class="first docutils">
+<dt><tt class="docutils literal"><span class="pre">list</span></tt> <span class="classifier-delimiter">:</span> <span class="classifier">array of items.</span></dt>
+<dd><ul class="first last simple">
+<li><tt class="docutils literal"><span class="pre">uuid</span></tt>&#8221; destination uuid.</li>
+</ul>
+</dd>
+</dl>
+</li>
 </ul>
 </div>
 <div class="section" id="id23">
@@ -814,13 +835,14 @@
 {
   &quot;api_ver&quot;: &quot;0.1&quot;,
   &quot;result&quot;: {
-      &quot;list&quot;: [
-          &quot;45122654-5633-4af0-a739-e32eddfbd2ae&quot;,
-          &quot;5ff9611c-136b-47d7-b8d4-0bd6f0d5b037&quot;
-      ]
+    &quot;list&quot;: [
+      {
+        &quot;uuid&quot;: &quot;78c8cfb5-2ca3-471f-a843-2a287842fef4&quot;
+      }
+    ]
   },
   &quot;statuscode&quot;: 200,
-  &quot;timestamp&quot;: &quot;2017-03-05T08:58:09.460418643Z&quot;
+  &quot;timestamp&quot;: &quot;2017-03-12T15:52:21.86883360Z&quot;
 }
 </pre></div>
 </div>
@@ -1214,7 +1236,7 @@
   $defhdr,
   &quot;reuslt&quot;: {
     &quot;list&quot;: [
-      &quot;&lt;dlma-uuid&gt;&quot;,
+      {&quot;uuid&quot;: &quot;&lt;string&gt;&quot;},
       ...
     ]
   }
@@ -1222,8 +1244,15 @@
 </pre></div>
 </div>
 <p>Return parameters</p>
-<ul class="simple">
-<li><tt class="docutils literal"><span class="pre">list</span></tt> : array of dlma-uuid.</li>
+<ul>
+<li><dl class="first docutils">
+<dt><tt class="docutils literal"><span class="pre">list</span></tt> <span class="classifier-delimiter">:</span> <span class="classifier">array of items.</span></dt>
+<dd><ul class="first last simple">
+<li><tt class="docutils literal"><span class="pre">uuid</span></tt>: dlma uuid.</li>
+</ul>
+</dd>
+</dl>
+</li>
 </ul>
 </div>
 <div class="section" id="id45">
@@ -1234,14 +1263,13 @@
   &quot;api_ver&quot;: &quot;0.1&quot;,
   &quot;result&quot;: {
     &quot;list&quot;: [
-      &quot;6526c474-280e-4652-a1bf-731089c981a2&quot;,
-      &quot;42b72a18-a6c5-43bf-b9aa-6043ff32128d&quot;,
-      &quot;b0d73193-2787-4341-8c32-bc051bad9f94&quot;,
-      &quot;cd60aff5-3355-488c-bf6a-d42f8b67a006&quot;
+      {
+        &quot;uuid&quot;: &quot;26f91049-469d-4437-8a42-0e00c7f4eaa3&quot;
+      }
     ]
   },
   &quot;statuscode&quot;: 200,
-  &quot;timestamp&quot;: &quot;2017-03-08T06:12:14.117712363Z&quot;
+  &quot;timestamp&quot;: &quot;2017-03-12T15:55:00.283719620Z&quot;
 }
 </pre></div>
 </div>
@@ -1707,13 +1735,24 @@
   $defhdr,
   &quot;reuslt&quot;: {
     &quot;list&quot;: [
-      &quot;&lt;dl-uuid&gt;&quot;,
+      {&quot;uuid&quot;: &quot;&lt;string&gt;&quot;},
       ...
     ]
   }
 }
 </pre></div>
 </div>
+<p>Return parameters</p>
+<ul>
+<li><dl class="first docutils">
+<dt><tt class="docutils literal"><span class="pre">list</span></tt>: Array of items.</dt>
+<dd><ul class="first last simple">
+<li><tt class="docutils literal"><span class="pre">uuid</span></tt>: dl uuid.</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
 </div>
 <div class="section" id="id67">
 <h4>Example<a class="headerlink" href="#id67" title="Permalink to this headline">¶</a></h4>
@@ -1723,12 +1762,13 @@
   &quot;api_ver&quot;: &quot;0.1&quot;,
   &quot;result&quot;: {
     &quot;list&quot;: [
-      &quot;7d760dd1-8ba5-48d9-989d-415d610ffe57&quot;,
-      &quot;ef3281f6-b18c-4bf5-9e9d-072bb6036717&quot;
-    ]
+      {
+        &quot;uuid&quot;: &quot;26f91049-469d-4437-8a42-0e00c7f4eaa3&quot;
+       }
+     ]
   },
   &quot;statuscode&quot;: 200,
-  &quot;timestamp&quot;: &quot;2017-03-08T18:32:06.244932866Z&quot;
+  &quot;timestamp&quot;: &quot;2017-03-12T15:55:00.283719620Z&quot;
 }
 </pre></div>
 </div>
@@ -2336,15 +2376,23 @@
   $defhdr,
   &quot;reuslt&quot;: {
     &quot;list&quot;: [
-      &quot;&lt;dialing-uuid&gt;&quot;,
+      {&quot;uuid&quot;: &quot;&lt;string&gt;&quot;},
       ...
     ]
   }
 }
 </pre></div>
 </div>
-<ul class="simple">
-<li><tt class="docutils literal"><span class="pre">list</span></tt> : array of dialing uuid</li>
+<p>Return parameters</p>
+<ul>
+<li><dl class="first docutils">
+<dt><tt class="docutils literal"><span class="pre">list</span></tt> <span class="classifier-delimiter">:</span> <span class="classifier">Array of items.</span></dt>
+<dd><ul class="first last simple">
+<li><tt class="docutils literal"><span class="pre">uuid</span></tt>: dialing uuid.</li>
+</ul>
+</dd>
+</dl>
+</li>
 </ul>
 </div>
 <div class="section" id="id85">
@@ -2355,11 +2403,13 @@
   &quot;api_ver&quot;: &quot;0.1&quot;,
   &quot;result&quot;: {
     &quot;list&quot;: [
-      &quot;ba77e20a-42c7-4299-a743-a784e6b78d58&quot;
+      {
+        &quot;uuid&quot;: &quot;21663592-8171-4fcb-9390-bac51a3280fd&quot;
+      }
     ]
   },
   &quot;statuscode&quot;: 200,
-  &quot;timestamp&quot;: &quot;2017-03-09T12:16:47.620456114Z&quot;
+  &quot;timestamp&quot;: &quot;2017-03-12T16:02:24.445429913Z&quot;
 }
 </pre></div>
 </div>
@@ -2867,15 +2917,23 @@
   $defhdr,
   &quot;reuslt&quot;: {
     &quot;list&quot;: [
-      &quot;&lt;campaign-uuid&gt;&quot;,
+      &quot;uuid&quot;: &quot;&lt;string&gt;&quot;,
       ...
     ]
   }
 }
 </pre></div>
 </div>
-<ul class="simple">
-<li><tt class="docutils literal"><span class="pre">list</span></tt> : array of campaign-uuid</li>
+<p>Return parameters</p>
+<ul>
+<li><dl class="first docutils">
+<dt><tt class="docutils literal"><span class="pre">list</span></tt> <span class="classifier-delimiter">:</span> <span class="classifier">Array of items.</span></dt>
+<dd><ul class="first last simple">
+<li><tt class="docutils literal"><span class="pre">uuid</span></tt>: campaign uuid.</li>
+</ul>
+</dd>
+</dl>
+</li>
 </ul>
 </div>
 <div class="section" id="id103">
@@ -2885,12 +2943,14 @@
 {
   &quot;api_ver&quot;: &quot;0.1&quot;,
   &quot;result&quot;: {
-      &quot;list&quot;: [
-          &quot;9841bc9e-3103-4fea-ab11-54ccfcc8322f&quot;
-      ]
+    &quot;list&quot;: [
+      {
+        &quot;uuid&quot;: &quot;ab02b7ef-9c12-4d24-b944-9e853c9ce0f9&quot;
+      }
+    ]
   },
   &quot;statuscode&quot;: 200,
-  &quot;timestamp&quot;: &quot;2017-03-05T09:10:23.658031316Z&quot;
+  &quot;timestamp&quot;: &quot;2017-03-12T16:03:06.987929616Z&quot;
 }
 </pre></div>
 </div>

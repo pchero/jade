@@ -203,34 +203,42 @@ Returns
 +++++++
 ::
 
-  {
-    $defhdr,
-    "reuslt": {
-      "list": [
-        "<plan-uuid>",
-        ...
-      ]
-    }
-  }
-  
-* ``list`` : array of plan-uuid.
+   {
+     $defhdr,
+     "reuslt": {
+       "list": [
+         {"uuid": "<string>"},
+         ...
+       ]
+     }
+   }
+
+Return parameters
+
+* ``list`` : array of items.
+   * ``uuid``: plan uuid.
 
 Example
 +++++++
 ::
 
-  curl -X GET 192.168.200.10:8081/ob/plans
+   curl -X GET 192.168.200.10:8081/ob/plans
   
-  {
-    "api_ver": "0.1",
-    "result": {
-      "list": [
-         "552e9808-23bc-40b1-947a-60b0b96581cb"
-      ]
-    },
-    "statuscode": 200,
-    "timestamp": "2017-02-22T16:48:04.890697147Z"
-  }
+   {
+     "api_ver": "0.1",
+     "result": {
+       "list": [
+         {
+           "uuid": "e55e4655-6065-4e9a-bdcf-50363aa6f6d4"
+         },
+         {
+           "uuid": "05540cd8-be5d-4a1a-936c-4f2e439b9126"
+          }
+        ]
+     },
+     "statuscode": 200,
+     "timestamp": "2017-03-12T15:51:10.303203612Z"
+   }
   
 /ob/plans/<uuid>
 ================
@@ -782,35 +790,39 @@ Returns
 +++++++
 ::
 
-  {
-    $defhdr,
-    "reuslt": {
-      "list": [
-        "<destination-uuid>",
-        ...
-      ]
-    }
-  }
-  
-* ``list`` : array of destination-uuid.
+   {
+     $defhdr,
+     "reuslt": {
+       "list": [
+         {"uuid": "<string>"},
+         ...
+       ]
+     }
+   }
+
+Return parameters
+
+* ``list`` : array of items.
+   * ``uuid``" destination uuid.
 
 Example
 +++++++
 ::
 
-  curl -X GET 192.168.200.10:8081/ob/destinations
+   curl -X GET 192.168.200.10:8081/ob/destinations
   
-  {
-    "api_ver": "0.1",
-    "result": {
-        "list": [
-            "45122654-5633-4af0-a739-e32eddfbd2ae",
-            "5ff9611c-136b-47d7-b8d4-0bd6f0d5b037"
-        ]
-    },
-    "statuscode": 200,
-    "timestamp": "2017-03-05T08:58:09.460418643Z"
-  }
+   {
+     "api_ver": "0.1",
+     "result": {
+       "list": [
+         {
+           "uuid": "78c8cfb5-2ca3-471f-a843-2a287842fef4"
+         }
+       ]
+     },
+     "statuscode": 200,
+     "timestamp": "2017-03-12T15:52:21.86883360Z"
+   }
 
 /ob/destinations/<uuid>
 =======================
@@ -1229,7 +1241,7 @@ Returns
      $defhdr,
      "reuslt": {
        "list": [
-         "<dlma-uuid>",
+         {"uuid": "<string>"},
          ...
        ]
      }
@@ -1237,7 +1249,8 @@ Returns
 
 Return parameters
   
-* ``list`` : array of dlma-uuid.
+* ``list`` : array of items.
+   * ``uuid``: dlma uuid.
 
 Example
 +++++++
@@ -1249,14 +1262,13 @@ Example
      "api_ver": "0.1",
      "result": {
        "list": [
-         "6526c474-280e-4652-a1bf-731089c981a2",
-         "42b72a18-a6c5-43bf-b9aa-6043ff32128d",
-         "b0d73193-2787-4341-8c32-bc051bad9f94",
-         "cd60aff5-3355-488c-bf6a-d42f8b67a006"
+         {
+           "uuid": "26f91049-469d-4437-8a42-0e00c7f4eaa3"
+         }
        ]
      },
      "statuscode": 200,
-     "timestamp": "2017-03-08T06:12:14.117712363Z"
+     "timestamp": "2017-03-12T15:55:00.283719620Z"
    }
 
 /ob/dlmas/<uuid>
@@ -1744,11 +1756,17 @@ Returns
      $defhdr,
      "reuslt": {
        "list": [
-         "<dl-uuid>",
+         {"uuid": "<string>"},
          ...
        ]
      }
    }
+
+Return parameters
+
+* ``list``: Array of items.
+   * ``uuid``: dl uuid.   
+
 
 Example
 +++++++
@@ -1760,12 +1778,13 @@ Example
      "api_ver": "0.1",
      "result": {
        "list": [
-         "7d760dd1-8ba5-48d9-989d-415d610ffe57",
-         "ef3281f6-b18c-4bf5-9e9d-072bb6036717"
-       ]
+         {
+           "uuid": "26f91049-469d-4437-8a42-0e00c7f4eaa3"
+          }
+        ]
      },
      "statuscode": 200,
-     "timestamp": "2017-03-08T18:32:06.244932866Z"
+     "timestamp": "2017-03-12T15:55:00.283719620Z"
    }
 
 /ob/dls/<uuid>
@@ -2411,13 +2430,16 @@ Returns
      $defhdr,
      "reuslt": {
        "list": [
-         "<dialing-uuid>",
+         {"uuid": "<string>"},
          ...
        ]
      }
    }
-  
-* ``list`` : array of dialing uuid
+
+Return parameters
+
+* ``list`` : Array of items.
+   * ``uuid``: dialing uuid.
 
 Example
 +++++++
@@ -2429,12 +2451,15 @@ Example
      "api_ver": "0.1",
      "result": {
        "list": [
-         "ba77e20a-42c7-4299-a743-a784e6b78d58"
+         {
+           "uuid": "21663592-8171-4fcb-9390-bac51a3280fd"
+         }
        ]
      },
      "statuscode": 200,
-     "timestamp": "2017-03-09T12:16:47.620456114Z"
+     "timestamp": "2017-03-12T16:02:24.445429913Z"
    }
+
 
 /ob/dialings/<uuid>
 ===================
@@ -2956,34 +2981,39 @@ Returns
 +++++++
 ::
 
-  {
-    $defhdr,
-    "reuslt": {
-      "list": [
-        "<campaign-uuid>",
-        ...
-      ]
-    }
-  }
+   {
+     $defhdr,
+     "reuslt": {
+       "list": [
+         "uuid": "<string>",
+         ...
+       ]
+     }
+   }
+
+Return parameters
   
-* ``list`` : array of campaign-uuid
+* ``list`` : Array of items.
+   * ``uuid``: campaign uuid.
 
 Example
 +++++++
 ::
 
-  $ curl -X GET 192.168.200.10:8081/ob/campaigns
-  
-  {
-    "api_ver": "0.1",
-    "result": {
-        "list": [
-            "9841bc9e-3103-4fea-ab11-54ccfcc8322f"
-        ]
-    },
-    "statuscode": 200,
-    "timestamp": "2017-03-05T09:10:23.658031316Z"
-  }
+   $ curl -X GET 192.168.200.10:8081/ob/campaigns
+
+   {
+     "api_ver": "0.1",
+     "result": {
+       "list": [
+         {
+           "uuid": "ab02b7ef-9c12-4d24-b944-9e853c9ce0f9"
+         }
+       ]
+     },
+     "statuscode": 200,
+     "timestamp": "2017-03-12T16:03:06.987929616Z"
+   }
 
 /ob/campaigns/<uuid>
 ====================
