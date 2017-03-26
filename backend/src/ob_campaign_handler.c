@@ -1066,3 +1066,212 @@ bool validate_ob_campaign(json_t* j_data)
 
   return true;
 }
+
+/**
+ * Return true if given destination uuid in use in campaign
+ * @param uuid_dest
+ * @return
+ */
+bool is_referenced_destination_by_campaign(const char* uuid_dest)
+{
+  char* sql;
+  db_res_t* db_res;
+  json_t* j_tmp;
+  int ret;
+
+  if(uuid_dest == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired is_inuse_destination_in_campaign. uuid_dest[%s]", uuid_dest);
+
+  asprintf(&sql, "select count(*) from ob_campaign where dest=\"%s\" and in_use=%d;", uuid_dest, E_USE_OK);
+
+  db_res = db_query(sql);
+  if(db_res == NULL) {
+    slog(LOG_ERR, "Could not get correct database result.");
+    return false;
+  }
+
+  j_tmp = db_get_record(db_res);
+  db_free(db_res);
+  if(j_tmp == NULL) {
+    return false;
+  }
+
+  ret = json_integer_value(json_object_get(j_tmp, "count(*)"));
+  json_decref(j_tmp);
+  if(ret > 0) {
+    return true;
+  }
+
+  return true;
+}
+
+/**
+ * Return true if given dlma uuid in use in campaign
+ * @param uuid_dest
+ * @return
+ */
+bool is_referenced_dlma_by_campaign(const char* uuid_dlma)
+{
+  char* sql;
+  db_res_t* db_res;
+  json_t* j_tmp;
+  int ret;
+
+  if(uuid_dlma == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired is_inuse_dlma_in_campaign. uuid_dest[%s]", uuid_dlma);
+
+  asprintf(&sql, "select count(*) from ob_campaign where dlma=\"%s\" and in_use=%d;", uuid_dlma, E_USE_OK);
+
+  db_res = db_query(sql);
+  if(db_res == NULL) {
+    slog(LOG_ERR, "Could not get correct database result.");
+    return false;
+  }
+
+  j_tmp = db_get_record(db_res);
+  db_free(db_res);
+  if(j_tmp == NULL) {
+    return false;
+  }
+
+  ret = json_integer_value(json_object_get(j_tmp, "count(*)"));
+  json_decref(j_tmp);
+  if(ret > 0) {
+    return true;
+  }
+
+  return true;
+}
+
+/**
+ * Return true if given plan uuid in use in campaign
+ * @param uuid_dest
+ * @return
+ */
+bool is_referenced_plan_by_campaign(const char* uuid_plan)
+{
+  char* sql;
+  db_res_t* db_res;
+  json_t* j_tmp;
+  int ret;
+
+  if(uuid_plan == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired is_inuse_plan_in_campaign. uuid_plan[%s]", uuid_plan);
+
+  asprintf(&sql, "select count(*) from ob_campaign where plan=\"%s\" and in_use=%d;", uuid_plan, E_USE_OK);
+
+  db_res = db_query(sql);
+  if(db_res == NULL) {
+    slog(LOG_ERR, "Could not get correct database result.");
+    return false;
+  }
+
+  j_tmp = db_get_record(db_res);
+  db_free(db_res);
+  if(j_tmp == NULL) {
+    return false;
+  }
+
+  ret = json_integer_value(json_object_get(j_tmp, "count(*)"));
+  json_decref(j_tmp);
+  if(ret > 0) {
+    return true;
+  }
+
+  return true;
+}
+
+
+/**
+ * Clear destination info from campaign.
+ * @param uuid_dest
+ * @return
+ */
+bool clear_campaign_destination(const char* uuid_dest)
+{
+  char* sql;
+  int ret;
+
+  if(uuid_dest == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired clear_campaign_destination. uuid_dest[%s]", uuid_dest);
+
+  asprintf(&sql, "update ob_campaign set dest=null where dest=\"%s\";", uuid_dest);
+
+  ret = db_exec(sql);
+  sfree(sql);
+  if(ret == false) {
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Clear dlma info from campaign.
+ * @param uuid_dest
+ * @return
+ */
+bool clear_campaign_dlma(const char* uuid_dlma)
+{
+  char* sql;
+  int ret;
+
+  if(uuid_dlma == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired clear_campaign_dlma. uuid_dlma[%s]", uuid_dlma);
+
+  asprintf(&sql, "update ob_campaign set dlma=null where dlma=\"%s\";", uuid_dlma);
+
+  ret = db_exec(sql);
+  sfree(sql);
+  if(ret == false) {
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Clear plan info from campaign.
+ * @param uuid_dest
+ * @return
+ */
+bool clear_campaign_plan(const char* uuid_plan)
+{
+  char* sql;
+  int ret;
+
+  if(uuid_plan == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired clear_campaign_plan. uuid_plan[%s]", uuid_plan);
+
+  asprintf(&sql, "update ob_campaign set plan=null where plan=\"%s\";", uuid_plan);
+
+  ret = db_exec(sql);
+  sfree(sql);
+  if(ret == false) {
+    return false;
+  }
+
+  return true;
+}
+
+
+
+

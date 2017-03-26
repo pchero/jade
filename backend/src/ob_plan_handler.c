@@ -507,6 +507,31 @@ bool is_exist_ob_plan(const char* uuid)
   return true;
 }
 
+/**
+ * Check the given ob_plan is deletable.
+ * @param uuid
+ * @return
+ */
+bool is_deletable_ob_plan(const char* uuid)
+{
+  int ret;
+
+  if(uuid == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_INFO, "Fired is_deletable_ob_plan. uuid[%s]", uuid);
+
+  // check referenced campaign
+  ret = is_referenced_plan_by_campaign(uuid);
+  if(ret == false) {
+    slog(LOG_NOTICE, "The given plan info is used in campaign. dlma_uuid[%s]", uuid);
+    return false;
+  }
+
+  return true;
+}
+
 static json_t* create_ob_plan_default(void)
 {
   json_t* j_res;

@@ -50,6 +50,14 @@ json_t* get_ob_campaign_for_dialing(void);
 json_t* get_ob_campaign_stat(const char* uuid);
 json_t* get_campaigns_stat_all(void);
 
+bool is_referenced_destination_by_campaign(const char* uuid_dest);
+bool is_referenced_dlma_by_campaign(const char* uuid_dlma);
+bool is_referenced_plan_by_campaign(const char* uuid_plan);
+
+bool clear_campaign_destination(const char* uuid_dest);
+bool clear_campaign_dlma(const char* uuid_dlma);
+bool clear_campaign_plan(const char* uuid_plan);
+
 bool is_stoppable_campgain(json_t* j_camp);
 bool is_startable_campgain(json_t* j_camp);
 bool is_exist_ob_campaign(const char* uuid);

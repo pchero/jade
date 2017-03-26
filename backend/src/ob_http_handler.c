@@ -831,15 +831,17 @@ static void htp_put_ob_destinations_uuid(evhtp_request_t *req, void *data)
 static void htp_delete_ob_destinations_uuid(evhtp_request_t *req, void *data)
 {
   const char* uuid;
+  const char* tmp_const;
   json_t* j_tmp;
   json_t* j_res;
   int ret;
+  int force;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired htp_delete_ob_destinations_uuid.");
+  slog(LOG_INFO, "Fired htp_delete_ob_destinations_uuid.");
 
   // get uuid
   uuid = req->uri->path->file;
@@ -856,9 +858,36 @@ static void htp_delete_ob_destinations_uuid(evhtp_request_t *req, void *data)
     return;
   }
 
+  // get parameters
+  force = 0;
+  tmp_const = evhtp_kv_find(req->uri->query, "force");
+  if(tmp_const != NULL) {
+    force = atoi(tmp_const);
+  }
+  slog(LOG_DEBUG, "Check force option. force[%d]", force);
+
+  // check force option
+  if(force == 1) {
+    ret = clear_campaign_destination(uuid);
+    if(ret == false) {
+      slog(LOG_ERR, "Could not clear destination info from campaign. dest_uuid[%s]", uuid);
+      simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+      return;
+    }
+  }
+
+  // check deletable
+  ret = is_deletable_destination(uuid);
+  if(ret == false) {
+    slog(LOG_NOTICE, "The given destination info is not deletable. uuid[%s]", uuid);
+    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
   // delete info
   j_tmp = delete_ob_destination(uuid);
   if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not delete destination info. uuid[%s]", uuid);
     simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
@@ -1127,9 +1156,11 @@ static void htp_put_ob_plans_uuid(evhtp_request_t *req, void *data)
 static void htp_delete_ob_plans_uuid(evhtp_request_t *req, void *data)
 {
   const char* uuid;
+  const char* tmp_const;
   json_t* j_tmp;
   json_t* j_res;
   int ret;
+  int force;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -1149,6 +1180,32 @@ static void htp_delete_ob_plans_uuid(evhtp_request_t *req, void *data)
   if(ret == false) {
     slog(LOG_NOTICE, "Could not find correct ob_plan info. uuid[%s]", uuid);
     simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // get parameters
+  force = 0;
+  tmp_const = evhtp_kv_find(req->uri->query, "force");
+  if(tmp_const != NULL) {
+    force = atoi(tmp_const);
+  }
+  slog(LOG_DEBUG, "Check force option. force[%d]", force);
+
+  // check force option
+  if(force == 1) {
+    ret = clear_campaign_plan(uuid);
+    if(ret == false) {
+      slog(LOG_ERR, "Could not clear destination info from campaign. dest_uuid[%s]", uuid);
+      simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+      return;
+    }
+  }
+
+  // check deletable
+  ret = is_deletable_ob_plan(uuid);
+  if(ret == false) {
+    slog(LOG_NOTICE, "The given plan info is deletable. uuid[%s]", uuid);
+    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -1705,6 +1762,7 @@ static void htp_delete_ob_dlmas_uuid(evhtp_request_t *req, void *data)
   json_t* j_res;
   int ret;
   int force;
+  int delete_dls;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -1727,16 +1785,49 @@ static void htp_delete_ob_dlmas_uuid(evhtp_request_t *req, void *data)
     return;
   }
 
-  // get params
+  // get parameters
   force = 0;
   tmp_const = evhtp_kv_find(req->uri->query, "force");
   if(tmp_const != NULL) {
     force = atoi(tmp_const);
   }
-  slog(LOG_DEBUG, "Check force option. force[%d]", force);
+  delete_dls = 0;
+  tmp_const = evhtp_kv_find(req->uri->query, "delete_dls");
+  if(tmp_const != NULL) {
+    delete_dls = atoi(tmp_const);
+  }
+  slog(LOG_DEBUG, "Check force option. force[%d], delete_dls[%d]", force, delete_dls);
+
+  // check force option
+  if(force == 1) {
+    ret = clear_campaign_dlma(uuid);
+    if(ret == false) {
+      slog(LOG_ERR, "Could not clear destination info from campaign. dest_uuid[%s]", uuid);
+      simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+      return;
+    }
+  }
+
+  // check delete_dls option
+  if(delete_dls == 1) {
+    ret = delete_ob_dls_by_dlma_uuid(uuid);
+    if(ret == false) {
+      slog(LOG_ERR, "Could not delete ob_dls info. dlma_uuid[%s]", uuid);
+      simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+      return;
+    }
+  }
+
+  // check deletable
+  ret = is_deletable_ob_dlma(uuid);
+  if(ret == false) {
+    slog(LOG_NOTICE, "Given dlma info is not deletable. dlma_uuid[%s]", uuid);
+    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
 
   // delete info
-  j_tmp = delete_ob_dlma(uuid, force);
+  j_tmp = delete_ob_dlma(uuid);
   if(j_tmp == NULL) {
     simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;

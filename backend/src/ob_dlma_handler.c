@@ -19,6 +19,7 @@
 
 #include "ob_dlma_handler.h"
 #include "ob_dl_handler.h"
+#include "ob_campaign_handler.h"
 
 static bool create_dlma_view(const char* uuid, const char* view_name);
 static json_t* create_ob_dlma_default(void);
@@ -129,13 +130,12 @@ static json_t* create_ob_dlma_default(void)
   return j_res;
 }
 
-json_t* delete_ob_dlma(const char* uuid, bool force)
+json_t* delete_ob_dlma(const char* uuid)
 {
   json_t* j_tmp;
   char* tmp;
   char* sql;
   int ret;
-  int count;
 
   if(uuid == NULL) {
     // invalid parameter.
@@ -143,18 +143,6 @@ json_t* delete_ob_dlma(const char* uuid, bool force)
     return NULL;
   }
   slog(LOG_DEBUG, "Fired delete_ob_dlma. uuid[%s]", uuid);
-
-  // if the force option is set, delete all the ob_dl by the dlma_uuid.
-  if(force == true) {
-    delete_ob_dls_by_dlma_uuid(uuid);
-  }
-
-  // check dl count
-  count = get_ob_dl_count_by_dlma_uuid(uuid);
-  if(count > 0) {
-    slog(LOG_NOTICE, "Could not delete ob_dlma. There are available ob_dl info related with given dlma_uuid. dlma_uuid[%s]", uuid);
-    return NULL;
-  }
 
   j_tmp = json_object();
   tmp = get_utc_timestamp();
@@ -486,5 +474,36 @@ char* get_ob_dlma_table_name(const char* dlma_uuid)
   json_decref(j_dlma);
 
   return res;
+}
+
+/**
+ * Check the given ob_dlma is deletable.
+ * @param uuid
+ * @return
+ */
+bool is_deletable_ob_dlma(const char* uuid)
+{
+  int ret;
+
+  if(uuid == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  // check referenced campaign
+  ret = is_referenced_dlma_by_campaign(uuid);
+  if(ret == false) {
+    slog(LOG_NOTICE, "The given dlma info is used in campaign. dlma_uuid[%s]", uuid);
+    return false;
+  }
+
+  // check dl count
+  ret = get_ob_dl_count_by_dlma_uuid(uuid);
+  if(ret > 0) {
+    slog(LOG_NOTICE, "There are available ob_dl info related with given dlma_uuid. dlma_uuid[%s]", uuid);
+    return false;
+  }
+
+  return true;
 }
 

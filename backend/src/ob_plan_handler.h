@@ -42,5 +42,6 @@ json_t* create_ob_dial_plan_info(json_t* j_plan);
 bool is_endable_ob_plan(json_t* j_plan);
 bool is_nonstop_ob_dl_handle(json_t* j_plan);
 bool is_exist_ob_plan(const char* uuid);
+bool is_deletable_ob_plan(const char* uuid);
 
 #endif /* SRC_PLAN_HANDLER_H_ */

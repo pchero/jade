@@ -22,6 +22,7 @@
 #include "ob_destination_handler.h"
 #include "db_handler.h"
 #include "ob_dl_handler.h"
+#include "ob_campaign_handler.h"
 
 static json_t* get_deleted_ob_destination(const char* uuid);
 static json_t* create_ob_destination_default(void);
@@ -105,7 +106,6 @@ static json_t* create_ob_destination_default(void)
 
   return j_res;
 }
-
 
 /**
  * Delete destination.
@@ -796,6 +796,31 @@ bool is_exist_ob_destination(const char* uuid)
   ret = json_integer_value(json_object_get(j_tmp, "count(*)"));
   json_decref(j_tmp);
   if(ret <= 0) {
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Return false if given destination is not deletable.
+ * @param uuid
+ * @return
+ */
+bool is_deletable_destination(const char* uuid)
+{
+  int ret;
+
+  if(uuid == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired is_deletable_destination. uuid[%s]", uuid);
+
+  // check referenced campaign
+  ret = is_referenced_destination_by_campaign(uuid);
+  if(ret == false) {
+    slog(LOG_NOTICE, "The given destination info is used in campaign. dlma_uuid[%s]", uuid);
     return false;
   }
 
