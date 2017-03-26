@@ -1083,7 +1083,7 @@ bool is_referenced_destination_by_campaign(const char* uuid_dest)
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
-  slog(LOG_DEBUG, "Fired is_inuse_destination_in_campaign. uuid_dest[%s]", uuid_dest);
+  slog(LOG_DEBUG, "Fired is_referenced_destination_by_campaign. uuid_dest[%s]", uuid_dest);
 
   asprintf(&sql, "select count(*) from ob_campaign where dest=\"%s\" and in_use=%d;", uuid_dest, E_USE_OK);
 
@@ -1124,7 +1124,7 @@ bool is_referenced_dlma_by_campaign(const char* uuid_dlma)
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
-  slog(LOG_DEBUG, "Fired is_inuse_dlma_in_campaign. uuid_dest[%s]", uuid_dlma);
+  slog(LOG_DEBUG, "Fired is_referenced_dlma_by_campaign. uuid_dlma[%s]", uuid_dlma);
 
   asprintf(&sql, "select count(*) from ob_campaign where dlma=\"%s\" and in_use=%d;", uuid_dlma, E_USE_OK);
 
@@ -1165,7 +1165,7 @@ bool is_referenced_plan_by_campaign(const char* uuid_plan)
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
-  slog(LOG_DEBUG, "Fired is_inuse_plan_in_campaign. uuid_plan[%s]", uuid_plan);
+  slog(LOG_DEBUG, "Fired is_referenced_plan_by_campaign. uuid_plan[%s]", uuid_plan);
 
   asprintf(&sql, "select count(*) from ob_campaign where plan=\"%s\" and in_use=%d;", uuid_plan, E_USE_OK);
 

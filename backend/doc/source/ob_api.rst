@@ -555,13 +555,18 @@ Method: DELETE
 --------------
 Delete specified plan info.
 
+If there is any related with this item, response error.
+
 Call
 ++++
-Delete specified plan info.
-
 ::
 
-   DELETE /ob/plans/<plan-uuid>
+   DELETE /ob/plans/<uuid>?force=<force option>
+
+Method parameters
+
+* ``uuid``: plan uuid.
+* ``force``: <optional> Force option. See detail :ref:`ob_force_option`. Default: 0.
 
 Returns
 +++++++
@@ -1049,15 +1054,18 @@ Method: DELETE
 --------------
 Delete specified destination info.
 
+If there is any related with this item, response error.
+
 Call
 ++++
 ::
 
-  DELETE /ob/destinations/<uuid>  
+  DELETE /ob/destinations/<uuid>?force=<force option>  
 
 Method parameters
 
 * ``uuid``: Destination uuid.
+* ``force``: <optional> Force option. See detail :ref:`ob_force_option`. Default: 0.
 
 Returns
 +++++++
@@ -1441,18 +1449,21 @@ Method: DELETE
 --------------
 Delete specified dlma.
 
+If there is any related with this item, response error.
+
 If there's available dl(dial list), error responsed.
 
 Call
 ++++
 ::
 
-   DELETE /ob/dlmas/<uuid>?force=<force_option>
+   DELETE /ob/dlmas/<uuid>?force=<force_option>&delete_dls=<delete option>
 
 Method parameters
 
 * ``uuid`` : dlma uuid.
-* ``force``: <optional> If sets to 1, delete dlma and all the dl(dial list) related with given dlma. default=0
+* ``force``: <optional> Force option. See detail :ref:`ob_force_option`. Default: 0.
+* ``delete_dls``: <optional> If sets to 1, delete all the dl(dial list) related with given dlma. Default: 0.
 
 Returns
 +++++++
@@ -2233,15 +2244,18 @@ Method: DELETE
 --------------
 Delete specified dial list.
 
+If there is any related with this item, response error.
+
 Call
 ++++
 ::
 
-   DELETE /ob/dls/<dl-uuid>
+   DELETE /ob/dls/<uuid>?force=<force_option>
 
 Method parameters
 
 * ``uuid`` : dl uuid.
+* ``force``: <optional> Force option. See detail :ref:`ob_force_option`. Default: 0.
 
 Returns
 +++++++
@@ -3304,7 +3318,12 @@ Delete specified campaign info.
 
 ::
 
-   DELETE /ob/campaign/<campaign-uuid>
+   DELETE /ob/campaign/<uuid>
+
+Method parameters
+
+* ``uuid``: Campaign uuid.
+ 
 
 Returns
 +++++++

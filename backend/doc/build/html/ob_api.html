@@ -585,12 +585,17 @@
 <div class="section" id="method-delete">
 <h3>Method: DELETE<a class="headerlink" href="#method-delete" title="Permalink to this headline">¶</a></h3>
 <p>Delete specified plan info.</p>
+<p>If there is any related with this item, response error.</p>
 <div class="section" id="id12">
 <h4>Call<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h4>
-<p>Delete specified plan info.</p>
-<div class="highlight-python"><div class="highlight"><pre>DELETE /ob/plans/&lt;plan-uuid&gt;
+<div class="highlight-python"><div class="highlight"><pre>DELETE /ob/plans/&lt;uuid&gt;?force=&lt;force option&gt;
 </pre></div>
 </div>
+<p>Method parameters</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">uuid</span></tt>: plan uuid.</li>
+<li><tt class="docutils literal"><span class="pre">force</span></tt>: &lt;optional&gt; Force option. See detail <a class="reference internal" href="ob_structure.html#ob-force-option"><em>Force option</em></a>. Default: 0.</li>
+</ul>
 </div>
 <div class="section" id="id13">
 <h4>Returns<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h4>
@@ -1055,14 +1060,16 @@
 <div class="section" id="id33">
 <h3>Method: DELETE<a class="headerlink" href="#id33" title="Permalink to this headline">¶</a></h3>
 <p>Delete specified destination info.</p>
+<p>If there is any related with this item, response error.</p>
 <div class="section" id="id34">
 <h4>Call<a class="headerlink" href="#id34" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>DELETE /ob/destinations/&lt;uuid&gt;
+<div class="highlight-python"><div class="highlight"><pre>DELETE /ob/destinations/&lt;uuid&gt;?force=&lt;force option&gt;
 </pre></div>
 </div>
 <p>Method parameters</p>
 <ul class="simple">
 <li><tt class="docutils literal"><span class="pre">uuid</span></tt>: Destination uuid.</li>
+<li><tt class="docutils literal"><span class="pre">force</span></tt>: &lt;optional&gt; Force option. See detail <a class="reference internal" href="ob_structure.html#ob-force-option"><em>Force option</em></a>. Default: 0.</li>
 </ul>
 </div>
 <div class="section" id="id35">
@@ -1436,16 +1443,18 @@
 <div class="section" id="id55">
 <h3>Method: DELETE<a class="headerlink" href="#id55" title="Permalink to this headline">¶</a></h3>
 <p>Delete specified dlma.</p>
+<p>If there is any related with this item, response error.</p>
 <p>If there&#8217;s available dl(dial list), error responsed.</p>
 <div class="section" id="id56">
 <h4>Call<a class="headerlink" href="#id56" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>DELETE /ob/dlmas/&lt;uuid&gt;?force=&lt;force_option&gt;
+<div class="highlight-python"><div class="highlight"><pre>DELETE /ob/dlmas/&lt;uuid&gt;?force=&lt;force_option&gt;&amp;delete_dls=&lt;delete option&gt;
 </pre></div>
 </div>
 <p>Method parameters</p>
 <ul class="simple">
 <li><tt class="docutils literal"><span class="pre">uuid</span></tt> : dlma uuid.</li>
-<li><tt class="docutils literal"><span class="pre">force</span></tt>: &lt;optional&gt; If sets to 1, delete dlma and all the dl(dial list) related with given dlma. default=0</li>
+<li><tt class="docutils literal"><span class="pre">force</span></tt>: &lt;optional&gt; Force option. See detail <a class="reference internal" href="ob_structure.html#ob-force-option"><em>Force option</em></a>. Default: 0.</li>
+<li><tt class="docutils literal"><span class="pre">delete_dls</span></tt>: &lt;optional&gt; If sets to 1, delete all the dl(dial list) related with given dlma. Default: 0.</li>
 </ul>
 </div>
 <div class="section" id="id57">
@@ -2191,14 +2200,16 @@
 <div class="section" id="id77">
 <h3>Method: DELETE<a class="headerlink" href="#id77" title="Permalink to this headline">¶</a></h3>
 <p>Delete specified dial list.</p>
+<p>If there is any related with this item, response error.</p>
 <div class="section" id="id78">
 <h4>Call<a class="headerlink" href="#id78" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>DELETE /ob/dls/&lt;dl-uuid&gt;
+<div class="highlight-python"><div class="highlight"><pre>DELETE /ob/dls/&lt;uuid&gt;?force=&lt;force_option&gt;
 </pre></div>
 </div>
 <p>Method parameters</p>
 <ul class="simple">
 <li><tt class="docutils literal"><span class="pre">uuid</span></tt> : dl uuid.</li>
+<li><tt class="docutils literal"><span class="pre">force</span></tt>: &lt;optional&gt; Force option. See detail <a class="reference internal" href="ob_structure.html#ob-force-option"><em>Force option</em></a>. Default: 0.</li>
 </ul>
 </div>
 <div class="section" id="id79">
@@ -3223,9 +3234,13 @@
 <div class="section" id="id114">
 <h4>Call<a class="headerlink" href="#id114" title="Permalink to this headline">¶</a></h4>
 <p>Delete specified campaign info.</p>
-<div class="highlight-python"><div class="highlight"><pre>DELETE /ob/campaign/&lt;campaign-uuid&gt;
+<div class="highlight-python"><div class="highlight"><pre>DELETE /ob/campaign/&lt;uuid&gt;
 </pre></div>
 </div>
+<p>Method parameters</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">uuid</span></tt>: Campaign uuid.</li>
+</ul>
 </div>
 <div class="section" id="id115">
 <h4>Returns<a class="headerlink" href="#id115" title="Permalink to this headline">¶</a></h4>

@@ -489,6 +489,7 @@ bool is_deletable_ob_dlma(const char* uuid)
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
+  slog(LOG_DEBUG, "Fired is_deletable_ob_dlma. uuid[%s]", uuid);
 
   // check referenced campaign
   ret = is_referenced_dlma_by_campaign(uuid);

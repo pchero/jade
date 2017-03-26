@@ -22,6 +22,22 @@ Represent usable item.
      1  In use.
    ==== ==========  
 
+.. _ob_force_option:
+
+Force option
+------------
+Determine delete all the referenced items.
+
+.. table:: Force option
+
+   ====== ===========
+   option detail
+   ====== ===========
+     0    Do not delete the referenced items.
+     1    Delete the referenced items.
+   ====== ===========
+   
+
 Destination
 ===========
 
