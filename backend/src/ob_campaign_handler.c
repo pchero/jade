@@ -1088,6 +1088,7 @@ bool is_referenced_destination_by_campaign(const char* uuid_dest)
   asprintf(&sql, "select count(*) from ob_campaign where dest=\"%s\" and in_use=%d;", uuid_dest, E_USE_OK);
 
   db_res = db_query(sql);
+  sfree(sql);
   if(db_res == NULL) {
     slog(LOG_ERR, "Could not get correct database result.");
     return false;
@@ -1129,6 +1130,7 @@ bool is_referenced_dlma_by_campaign(const char* uuid_dlma)
   asprintf(&sql, "select count(*) from ob_campaign where dlma=\"%s\" and in_use=%d;", uuid_dlma, E_USE_OK);
 
   db_res = db_query(sql);
+  sfree(sql);
   if(db_res == NULL) {
     slog(LOG_ERR, "Could not get correct database result.");
     return false;
@@ -1170,6 +1172,7 @@ bool is_referenced_plan_by_campaign(const char* uuid_plan)
   asprintf(&sql, "select count(*) from ob_campaign where plan=\"%s\" and in_use=%d;", uuid_plan, E_USE_OK);
 
   db_res = db_query(sql);
+  sfree(sql);
   if(db_res == NULL) {
     slog(LOG_ERR, "Could not get correct database result.");
     return false;

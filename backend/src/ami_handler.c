@@ -373,6 +373,17 @@ static bool ami_get_init_info(void)
     return false;
   }
 
+  // agents
+  j_tmp = json_pack("{s:s}",
+      "Action", "Agents"
+      );
+  ret = send_ami_cmd(j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not send ami action. action[%s]", "Agents");
+    return false;
+  }
+
   return true;
 }
 
@@ -707,10 +718,19 @@ static bool init_ami_database(void)
     return false;
   }
 
+  // asterisk registry
   db_exec(g_sql_drop_registry);
   ret = db_exec(g_sql_create_registry);
   if(ret == false) {
     slog(LOG_ERR, "Could not create table. table[%s]", "registry");
+    return false;
+  }
+
+  // asterisk agent
+  db_exec(g_sql_drop_agent);
+  ret = db_exec(g_sql_create_agent);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create table. table[%s]", "agent");
     return false;
   }
 
