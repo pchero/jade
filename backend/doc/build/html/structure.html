@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Configuration &mdash; jade 0.0.1 documentation</title>
+    <title>Structure &mdash; jade 0.0.1 documentation</title>
     
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -24,8 +24,8 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="jade 0.0.1 documentation" href="index.html" />
-    <link rel="next" title="Structure" href="structure.html" />
-    <link rel="prev" title="Installation" href="installation.html" /> 
+    <link rel="next" title="API basics" href="api.html" />
+    <link rel="prev" title="Configuration" href="configuration.html" /> 
   </head>
   <body>
     <div class="related">
@@ -35,10 +35,10 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="structure.html" title="Structure"
+          <a href="api.html" title="API basics"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="installation.html" title="Installation"
+          <a href="configuration.html" title="Configuration"
              accesskey="P">previous</a> |</li>
         <li><a href="index.html">jade 0.0.1 documentation</a> &raquo;</li> 
       </ul>
@@ -49,24 +49,37 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="configuration">
-<h1>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h1>
-<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
-  <span class="s">&quot;serv_addr&quot;</span><span class="p">:</span> <span class="s">&quot;127.0.0.1&quot;</span><span class="p">,</span>
-  <span class="s">&quot;serv_port&quot;</span><span class="p">:</span> <span class="s">&quot;5038&quot;</span><span class="p">,</span>
-  <span class="s">&quot;username&quot;</span><span class="p">:</span> <span class="s">&quot;&quot;</span><span class="p">,</span>
-  <span class="s">&quot;password&quot;</span><span class="p">:</span> <span class="s">&quot;&quot;</span><span class="p">,</span>
-  <span class="s">&quot;loglevel&quot;</span><span class="p">:</span> <span class="s">&quot;7&quot;</span><span class="p">,</span>
-
-  <span class="s">&quot;general&quot;</span> <span class="p">:</span> <span class="p">{</span>
-    <span class="s">&quot;result_filename&quot;</span> <span class="p">:</span> <span class="s">&quot;./outbound_result.json&quot;</span>
-  <span class="p">},</span>
-
-  <span class="s">&quot;database&quot;</span> <span class="p">:</span> <span class="p">{</span>
-    <span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="s">&quot;./database.db&quot;</span>
-  <span class="p">}</span>
-<span class="p">}</span>
-</pre></div>
+  <div class="section" id="structure">
+<h1>Structure<a class="headerlink" href="#structure" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="basic-structures">
+<h2>Basic structures<a class="headerlink" href="#basic-structures" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="agent-status">
+<span id="id1"></span><h3>Agent status<a class="headerlink" href="#agent-status" title="Permalink to this headline">¶</a></h3>
+<p>Agent&#8217;s status.</p>
+<table border="1" class="docutils">
+<caption>Agent status</caption>
+<colgroup>
+<col width="30%" />
+<col width="70%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Status</th>
+<th class="head">Detail</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>AGENT_LOGGEDOFF</td>
+<td>Agent is not logged in.</td>
+</tr>
+<tr class="row-odd"><td>AGENT_IDLE</td>
+<td>Agent is logged in status idle.</td>
+</tr>
+<tr class="row-even"><td>AGENT_ONCALL</td>
+<td>Agent is logged in and now on call.</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 </div>
 
@@ -76,15 +89,26 @@
       </div>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Structure</a><ul>
+<li><a class="reference internal" href="#basic-structures">Basic structures</a><ul>
+<li><a class="reference internal" href="#agent-status">Agent status</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
   <h4>Previous topic</h4>
-  <p class="topless"><a href="installation.html"
-                        title="previous chapter">Installation</a></p>
+  <p class="topless"><a href="configuration.html"
+                        title="previous chapter">Configuration</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="structure.html"
-                        title="next chapter">Structure</a></p>
+  <p class="topless"><a href="api.html"
+                        title="next chapter">API basics</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
-    <li><a href="_sources/configuration.txt"
+    <li><a href="_sources/structure.txt"
            rel="nofollow">Show Source</a></li>
   </ul>
 <div id="searchbox" style="display: none">
@@ -111,10 +135,10 @@
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="structure.html" title="Structure"
+          <a href="api.html" title="API basics"
              >next</a> |</li>
         <li class="right" >
-          <a href="installation.html" title="Installation"
+          <a href="configuration.html" title="Configuration"
              >previous</a> |</li>
         <li><a href="index.html">jade 0.0.1 documentation</a> &raquo;</li> 
       </ul>
