@@ -84,6 +84,190 @@ sessions and are temporary.
 Resources
 *********
 
+/agents
+=======
+
+Methods
+-------
+GET : Get list of all agents info.
+
+Method: GET
+-----------
+Get list of all agents info.
+
+Call
+++++
+::
+
+   GET /agents
+
+Returns
++++++++
+::
+
+   {
+     $defhdr,
+     "reuslt": {
+       "list": [
+         {
+           "id": "<string>"
+         },
+         ...
+       ]
+     }
+   }
+  
+* ``list`` : array of agents id.
+   * ``id``: agent id.
+
+Example
++++++++
+::
+
+   $ curl -X GET 192.168.200.10:8081/agents
+   
+   {
+     "api_ver": "0.1",
+     "result": {
+       "list": [
+         {
+           "id": "1001"
+         },
+         {
+           "id": "1002"
+         }
+       ]
+     },
+     "statuscode": 200,
+     "timestamp": "2017-03-13T17:19:07.48261155Z"
+   }
+
+
+/agents/
+========
+
+Methods
+-------
+GET : Get agent's detail info of given agent id.
+
+Method: GET
+-----------
+Get agent's detail info of given agent id.
+
+Call
+++++
+::
+
+   GET /agents/
+  
+   {
+     "id": "<string>"
+   }
+
+Data parameters
+
+* ``id``: agent id.
+
+Returns
++++++++
+::
+
+   {
+     $defhdr,
+     "reuslt": {
+       "id": "<string>",
+       "name": "<string>",
+       "status": "<string>",
+       "logged_in_time": <integer>,
+
+       "channel_name": "<string>",
+       "channel_state": <integer>,
+       "channel_state_desc": "<string>",
+
+       "caller_id_name": "<string>",
+       "caller_id_num": "<string>",
+
+       "connected_line_name": "<string>",
+       "connected_line_num": "<string>",
+
+       "context": "<string>",
+       "exten": "<string>",
+       "priority": "<string>",
+
+       "account_code": "<string>",
+       "language": "<string>",
+
+       "unique_id": "<string>",
+       "linked_id": "<string>",
+
+       "tm_update": "<string>",
+     }
+   }
+
+Return parameters
+
+* ``id``: Agent id.
+* ``name``: Agent name.
+* ``status``: Agent status. See detail :ref:`agent_status`.
+* ``logged_in_time``: Logged in time.
+
+* ``channel_name``: Agent channel's name.
+* ``channel_state``: Agent channel's state.
+* ``channel_state_desc``: Agent channel's state description.
+
+* ``caller_id_name``: Caller's id name.
+* ``caller_id_num``: Caller's id number.
+
+* ``connected_line_name``: Connected line name.
+* ``connected_line_num``: Connected line number.
+
+* ``context``: Context.
+* ``exten``: Extension.
+* ``priority``: Priority
+
+* ``caller_id_name``: Caller's id name.
+* ``caller_id_num``: Caller's id number.
+* ``connected_line_name``: Caller's line name.
+* ``connected_line_num``: Caller's line number.
+
+* ``account_code``: Account code.
+* ``language``: Language.
+
+* ``unique_id``: Channel's unique id.
+* ``linked_id``: Channel's linked id.
+
+Example
++++++++
+::
+
+   $ curl -X GET 192.168.200.10:8081/agents/ -d '{"id": "1001"}'
+   
+   {
+     "api_ver": "0.1",
+     "result": {
+       "account_code": "",
+       "caller_id_name": "300",
+       "caller_id_num": "300",
+       "channel_name": "SIP/300-00000425",
+       "channel_state": 6,
+       "channel_state_desc": "Up",
+       "connected_line_name": "<unknown>",
+       "connected_line_num": "<unknown>",
+       "context": "sample_agent_login",
+       "exten": "s",
+       "id": "1001",
+       "language": "en",
+       "linked_id": "1489423716.2037",
+       "logged_in_time": 1489423716,
+       "name": "Agent 1001",
+       "priority": "2",
+       "status": "AGENT_IDLE",
+       "tm_update": "2017-03-13T17:19:06.724533682Z",
+       "unique_id": "1489423716.2037"
+     },
+     "statuscode": 200,
+     "timestamp": "2017-03-13T17:20:01.778206702Z"
+   }
 
 /channels
 =========

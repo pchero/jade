@@ -227,5 +227,47 @@ static const char* g_sql_create_registry =
 ");";
 
 
+// agent
+static const char* g_sql_drop_agent = "drop table if exists agent;";
+static const char* g_sql_create_agent =
+"create table agent("
+
+// identity
+"   id              varchar(255),"
+"   status          varchar(255),"
+"   name            varchar(255),"
+"   logged_in_time  int,"           ///< logged in time.
+
+// channel info
+"   channel_name        varchar(255),"
+"   channel_state       int,"
+"   channel_state_desc  varchar(255),"
+
+// caller info
+"   caller_id_num       varchar(255),"
+"   caller_id_name      varchar(255),"
+
+// connected line info
+"   connected_line_num  varchar(255),"
+"   connected_line_name varchar(255),"
+
+"   language      varchar(255),"
+"   account_code  varchar(255),"
+
+// dialplan
+"   context       varchar(255),"
+"   exten         varchar(255),"
+"   priority      varchar(255),"
+
+"   unique_id     varchar(255),"
+"   linked_id     varchar(255),"
+
+// timestamp. UTC."
+"   tm_update         datetime(6),"   // update time."
+
+"   primary key(id)"
+
+");";
+
 
 #endif /* SRC_DB_SQL_CREATE_H_ */

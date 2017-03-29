@@ -15,6 +15,7 @@ Contents:
    intro
    installation
    configuration
+   structure
    api
    ob_basic
    ob_structure
