@@ -34,5 +34,9 @@ json_t* get_queue_entry_info(const char* channel, const char* queue_name);
 json_t* get_channels_all_unique_id(void);
 json_t* get_channel_info(const char* unique_id);
 
+// agent
+json_t* get_agents_all_id(void);
+json_t* get_agent_info(const char* id);
+
 
 #endif /* BACKEND_SRC_RESOURCE_HANDLER_H_ */

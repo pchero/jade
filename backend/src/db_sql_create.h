@@ -233,10 +233,10 @@ static const char* g_sql_create_agent =
 "create table agent("
 
 // identity
-"   agent   varchar(255),"
-"   status  varchar(255),"
-"   name    varchar(255),"
-"   logged_in_time  int,"
+"   id              varchar(255),"
+"   status          varchar(255),"
+"   name            varchar(255),"
+"   logged_in_time  int,"           ///< logged in time.
 
 // channel info
 "   channel_name        varchar(255),"
@@ -265,7 +265,7 @@ static const char* g_sql_create_agent =
 // timestamp. UTC."
 "   tm_update         datetime(6),"   // update time."
 
-"   primary key(agent)"
+"   primary key(id)"
 
 ");";
 
