@@ -133,6 +133,12 @@ void simple_response_normal(evhtp_request_t *req, json_t* j_msg)
   }
   slog(LOG_DEBUG, "Fired simple_response_normal.");
 
+  // add default headers
+  evhtp_headers_add_header(req->headers_out, evhtp_header_new("Access-Control-Allow-Headers", "x-requested-with, content-type, accept, origin, authorization", 1, 1));
+  evhtp_headers_add_header(req->headers_out, evhtp_header_new("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE", 1, 1));
+  evhtp_headers_add_header(req->headers_out, evhtp_header_new("Access-Control-Allow-Origin", "*", 1, 1));
+  evhtp_headers_add_header(req->headers_out, evhtp_header_new("Access-Control-Max-Age", "86400", 1, 1));
+
   res = json_dumps(j_msg, JSON_ENCODE_ANY);
 
   evbuffer_add_printf(req->buffer_out, "%s", res);
@@ -154,6 +160,12 @@ void simple_response_error(evhtp_request_t *req, int status_code, int err_code, 
     return;
   }
   slog(LOG_DEBUG, "Fired simple_response_error.");
+
+  // add default headers
+  evhtp_headers_add_header(req->headers_out, evhtp_header_new("Access-Control-Allow-Headers", "x-requested-with, content-type, accept, origin, authorization", 1, 1));
+  evhtp_headers_add_header(req->headers_out, evhtp_header_new("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE", 1, 1));
+  evhtp_headers_add_header(req->headers_out, evhtp_header_new("Access-Control-Allow-Origin", "*", 1, 1));
+  evhtp_headers_add_header(req->headers_out, evhtp_header_new("Access-Control-Max-Age", "86400", 1, 1));
 
   // create default result
   j_res = create_default_result(status_code);
