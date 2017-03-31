@@ -809,7 +809,7 @@ static void cb_check_dialing_refresh(__attribute__((unused)) int fd, __attribute
       continue;
     }
 
-    insert_action(action_id, "ob.status");
+    insert_action(action_id, "ob.status", NULL);
     sfree(action_id);
   }
 

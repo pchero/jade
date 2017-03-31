@@ -16,6 +16,7 @@
 #include "ami_handler.h"
 #include "action_handler.h"
 
+#include "ami_response_handler.h"
 #include "ob_ami_handler.h"
 #include "ob_dialing_handler.h"
 
@@ -292,7 +293,16 @@ static void ami_response_handler(json_t* j_msg)
 //  if(strcasecmp(type, "command.databaseshowall") == 0) {
 //    res_action = ami_response_handler_databaseshowall(j_action, j_msg);
 //  }
-  if(strcasecmp(type, "ob.originate") == 0) {
+
+  if(strcasecmp(type, "coresettings") == 0) {
+    res_action = ami_response_handler_coresettings(j_action, j_msg);
+  }
+  else if(strcasecmp(type, "corestatus") == 0) {
+    res_action = ami_response_handler_corestatus(j_action, j_msg);
+  }
+
+  // outbound
+  else if(strcasecmp(type, "ob.originate") == 0) {
     res_action = ob_ami_response_handler_originate(j_action, j_msg);
   }
   else if(strcasecmp(type, "ob.status") == 0) {

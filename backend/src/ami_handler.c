@@ -68,6 +68,9 @@ static bool init_ami_connect(void);
 static void cb_ami_handler(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg);
 static void cb_ami_connect(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg);
 
+static void cb_ami_connection_check(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg);
+static void cb_ami_status_check(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg);
+
 
 static void cb_ami_handler(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg)
 {
@@ -177,6 +180,83 @@ static void cb_ami_connect(__attribute__((unused)) int fd, __attribute__((unused
   // update event ami handler
   update_ev_ami_handler(ev);
 
+  return;
+}
+
+/**
+ * Check the ami/asterisk status info.
+ * @param fd
+ * @param event
+ * @param arg
+ */
+static void cb_ami_status_check(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg)
+{
+  json_t* j_tmp;
+  json_t* j_data;
+  char* action_id;
+  char* sql;
+  int ret;
+
+  slog(LOG_DEBUG, "Fired cb_ami_status_check.");
+
+  // create initial info if need.
+  asprintf(&sql, "insert or ignore into system(id) values(1)");
+  db_exec(sql);
+  sfree(sql);
+
+  //// CoreStatus
+  // create data
+  j_data = json_pack("{s:s}",
+      "id", "1"
+      );
+
+  // create action
+  action_id = gen_uuid();
+  j_tmp = json_pack("{s:s, s:s}",
+      "Action",   "CoreStatus",
+      "ActionID", action_id
+      );
+  ret = send_ami_cmd(j_tmp);
+  sfree(action_id);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not send ami request.");
+    json_decref(j_tmp);
+    json_decref(j_data);
+    return;
+  }
+
+  // insert action
+  insert_action(json_string_value(json_object_get(j_tmp, "ActionID")), "corestatus", j_data);
+  json_decref(j_tmp);
+  json_decref(j_data);
+
+  //// CoreSettings
+  // create data
+  j_data = json_pack("{s:s}",
+      "id", "1"
+      );
+
+  // create action
+  action_id = gen_uuid();
+  j_tmp = json_pack("{s:s, s:s}",
+      "Action",     "CoreSettings",
+      "ActionID",   action_id
+      );
+  ret = send_ami_cmd(j_tmp);
+  sfree(action_id);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not send ami request.");
+    json_decref(j_tmp);
+    json_decref(j_data);
+    return;
+  }
+
+  // insert action
+  insert_action(json_string_value(json_object_get(j_tmp, "ActionID")), "coresettings", j_data);
+  json_decref(j_tmp);
+  json_decref(j_data);
+
+  return;
 }
 
 /**
@@ -197,6 +277,10 @@ bool init_ami_handler(void)
 
   // check ami connection
   ev = event_new(g_base, -1, EV_TIMEOUT | EV_PERSIST, cb_ami_connection_check, NULL);
+  event_add(ev, &tm_event);
+
+  // check ami status
+  ev = event_new(g_base, -1, EV_TIMEOUT | EV_PERSIST, cb_ami_status_check, NULL);
   event_add(ev, &tm_event);
 
   return true;
@@ -670,6 +754,14 @@ static bool init_ami_database(void)
     return false;
   }
 
+  // system
+  db_exec(g_sql_drop_system);
+  ret = db_exec(g_sql_create_system);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create table. table[%s]", "system");
+    return false;
+  }
+
   // channel
   db_exec(g_sql_drop_channel);
   ret = db_exec(g_sql_create_channel);
@@ -710,7 +802,7 @@ static bool init_ami_database(void)
     return false;
   }
 
-  // asterisk database
+  // database
   db_exec(g_sql_drop_database);
   ret = db_exec(g_sql_create_database);
   if(ret == false) {
@@ -718,7 +810,7 @@ static bool init_ami_database(void)
     return false;
   }
 
-  // asterisk registry
+  // registry
   db_exec(g_sql_drop_registry);
   ret = db_exec(g_sql_create_registry);
   if(ret == false) {
@@ -726,7 +818,7 @@ static bool init_ami_database(void)
     return false;
   }
 
-  // asterisk agent
+  // agent
   db_exec(g_sql_drop_agent);
   ret = db_exec(g_sql_create_agent);
   if(ret == false) {
