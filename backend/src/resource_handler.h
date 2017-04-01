@@ -38,5 +38,9 @@ json_t* get_channel_info(const char* unique_id);
 json_t* get_agents_all_id(void);
 json_t* get_agent_info(const char* id);
 
+// system
+json_t* get_systems_all_id(void);
+json_t* get_system_info(const char* id);
+
 
 #endif /* BACKEND_SRC_RESOURCE_HANDLER_H_ */

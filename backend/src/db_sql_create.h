@@ -275,9 +275,10 @@ static const char* g_sql_drop_system = "drop table if exists system;";
 static const char* g_sql_create_system =
 "create table system("
 
+// identity
 "   id varchar(255),"
 
-
+// version info
 "   ami_version   varchar(255),"
 "   ast_version   varchar(255),"
 "   system_name   varchar(255),"

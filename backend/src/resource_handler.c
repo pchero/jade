@@ -584,3 +584,81 @@ json_t* get_agent_info(const char* id)
   }
   return j_tmp;
 }
+
+/**
+ * Get all system's id array
+ * @return
+ */
+json_t* get_systems_all_id(void)
+{
+  char* sql;
+  db_res_t* db_res;
+  json_t* j_res;
+  json_t* j_res_tmp;
+  json_t* j_tmp;
+
+  slog(LOG_DEBUG, "Fired get_systems_all_id.");
+
+  asprintf(&sql, "select id from system;");
+  db_res = db_query(sql);
+  sfree(sql);
+  if(db_res == NULL) {
+    slog(LOG_WARNING, "Could not get correct system info.");
+    return NULL;
+  }
+
+  j_res = json_array();
+  while(1) {
+    j_tmp = db_get_record(db_res);
+    if(j_tmp == NULL) {
+      break;
+    }
+
+    j_res_tmp = json_pack("{s:s}",
+        "id",  json_string_value(json_object_get(j_tmp, "id"))
+        );
+    json_decref(j_tmp);
+    if(j_res_tmp == NULL) {
+      continue;
+    }
+
+    json_array_append_new(j_res, j_res_tmp);
+  }
+  db_free(db_res);
+
+  return j_res;
+}
+
+/**
+ * Get corresponding system detail info.
+ * @return
+ */
+json_t* get_system_info(const char* id)
+{
+  char* sql;
+  db_res_t* db_res;
+  json_t* j_tmp;
+
+  if(id == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_system_info. id[%s]", id);
+
+  asprintf(&sql, "select * from system where id=\"%s\";", id);
+  db_res = db_query(sql);
+  sfree(sql);
+  if(db_res == NULL) {
+    slog(LOG_WARNING, "Could not get correct system info.");
+    return NULL;
+  }
+
+  j_tmp = db_get_record(db_res);
+  db_free(db_res);
+  if(j_tmp == NULL) {
+    return NULL;
+  }
+  return j_tmp;
+}
+
+
