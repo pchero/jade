@@ -310,4 +310,22 @@ static const char* g_sql_create_system =
 ");";
 
 
+// device_state
+static const char* g_sql_drop_device_state = "drop table if exists device_state;";
+static const char* g_sql_create_device_state =
+"create table device_state("
+
+// identity
+"   device  varchar(255),"
+
+// info
+"   state   varchar(255),"
+
+// timestamp. UTC."
+"   tm_update         datetime(6),"   // update time."
+
+"   primary key(device)"
+");";
+
+
 #endif /* SRC_DB_SQL_CREATE_H_ */

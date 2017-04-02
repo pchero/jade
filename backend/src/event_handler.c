@@ -17,7 +17,7 @@
 #include "common.h"
 #include "slog.h"
 #include "event_handler.h"
-#include "ami_handler.h"
+#include "data_handler.h"
 #include "config.h"
 
 #define DEF_PID_FILEPATH "/var/run/jade_backend.pid"
@@ -168,8 +168,6 @@ static void cb_signal_hup(evutil_socket_t sig, short events, void *user_data)
 
   return;
 }
-
-
 
 static void cb_pid_update(int sock, short which, void* arg)
 {

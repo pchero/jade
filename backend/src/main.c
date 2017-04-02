@@ -10,11 +10,10 @@
 #include "common.h"
 #include "slog.h"
 #include "config.h"
-#include "ami_handler.h"
 #include "db_handler.h"
-//#include "db_sql_create.h"
 #include "http_handler.h"
 #include "event_handler.h"
+#include "data_handler.h"
 
 #include "ob_event_handler.h"
 
@@ -75,7 +74,7 @@ bool init(void)
   }
   slog(LOG_DEBUG, "Finished db_init.");
 
-  ret = init_ami_handler();
+  ret = init_data_handler();
   if(ret == false) {
     slog(LOG_WARNING, "Could not initiate ami_handle.");
     return false;
