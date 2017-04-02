@@ -25,6 +25,7 @@ def http_send(url, method, data):
     
     # set request buffer
     if data is not None:
+        conn.setopt(pycurl.POST, 1)
         conn.setopt(pycurl.POSTFIELDSIZE, len(data))
         conn.setopt(pycurl.POSTFIELDS, data)
 #         conn.setopt(conn.HTTPHEADER, ["Content-Type: application/json"])
