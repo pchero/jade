@@ -567,6 +567,179 @@ Example
      "timestamp": "2017-03-09T09:13:00.969355467Z"
    }
 
+
+/systems
+========
+
+Methods
+-------
+GET : Get list of all system's id info
+
+Method: GET
+-----------
+Get list of all system's id info
+
+Call
+++++
+::
+
+   GET /systems
+
+Returns
++++++++
+::
+
+   {
+     $defhdr,
+     "reuslt": {
+       "list": [
+         {"id": "<string>"},
+         ...
+       ]
+     }
+   }
+  
+* ``list`` : array of system id.
+
+Example
++++++++
+::
+
+   $ curl -X GET 192.168.200.10:8081/queue_params
+   
+   {
+     "api_ver": "0.1",
+     "result": {
+       "list": [
+         {
+           "id": "1"
+         }
+       ]
+     },
+     "statuscode": 200,
+     "timestamp": "2017-03-15T12:30:49.68453712Z"
+   }
+
+
+/systems/
+=========
+
+Methods
+-------
+GET : Get detail info of given system id.
+
+Method: GET
+-----------
+Get detail info of given system id.
+
+Call
+++++
+::
+
+   GET /systems/
+   
+   {
+     "id": "<string>"
+   }
+
+Data parameters
+
+* ``id``: System id. 
+
+Returns
++++++++
+::
+
+   {
+     $defhdr,
+     "reuslt": {
+       "id": "<string>",
+
+       "ami_version": "<string>",
+       "ast_version": "<string>",
+       "system_name": "<string>",
+
+       "max_calls": <integer>,
+       "max_file_handles": <integer>,
+       "max_load_avg": <real>,
+
+       "reload_date": "<string>",
+       "reload_time": "<string>",
+
+       "run_group": "<string>",
+       "run_user": "<string>",
+
+       "startup_date": "<string>",
+       "startup_time": "<string>",
+
+       "current_calls": <integer>,
+       "cdr_enabled": "<string>",
+       "http_enabled": "<string>",
+       "real_time_enabled": "<string>",
+       
+       "tm_update": "<timestamp>"
+     }
+   }
+
+Return parameters
+
+* ``id`` : system id.
+
+* ``ami_version``: ami version.
+* ``ast_version``: asterisk version.
+* ``system_name``: system name.
+
+* ``max_calls``: Max call count.
+* ``max_file_handles``: Max file handle cont.
+* ``max_load_avg``: Max load average.
+
+* ``reload_date``: Reloaded date.
+* ``reload_time``: Reloaded time.
+
+* ``run_group``: Process running group.
+* ``run_user``: Process running user.
+
+* ``startup_date``: Started date.
+* ``startup_time``: Started time.
+
+* ``current_calls``: Current call count.
+* ``cdr_enabled``: Cdr enanbled or not. If enabled "Yes".
+* ``http_enabled``: http enabled or not. If enabled "Yes".
+* ``real_time_enabled``: real time enabled or not. If enabled "Yes".
+
+Example
++++++++
+::
+
+   $ curl -X GET 192.168.200.10:8081/queue_params
+   
+   {
+     "api_ver": "0.1",
+     "result": {
+       "ami_version": "3.1.0",
+       "ast_version": "14.3.0",
+       "cdr_enabled": "Yes",
+       "current_calls": 0,
+       "http_enabled": "No",
+       "id": "1",
+       "max_calls": 0,
+       "max_file_handles": 0,
+       "max_load_avg": 0.0,
+       "real_time_enabled": "No",
+       "reload_date": "2017-03-13",
+       "reload_time": "17:02:25",
+       "run_group": "",
+       "run_user": "",
+       "startup_date": "2017-03-11",
+       "startup_time": "07:54:10",
+       "system_name": "",
+       "tm_update": "2017-03-15T12:33:01.496243787Z"
+     },
+     "statuscode": 200,
+     "timestamp": "2017-03-15T12:33:02.430854779Z"
+   }
+
+
 /queue_params
 =============
 

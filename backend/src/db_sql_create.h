@@ -16,7 +16,8 @@ static const char* g_sql_create_action =
 
 // identity
 "   id        varchar(255),"
-"   type             varchar(255),"
+"   type      varchar(255),"
+"   data      text,"
 
 // timestamp. UTC."
 "   tm_update         datetime(6),"   // update time."
@@ -261,6 +262,45 @@ static const char* g_sql_create_agent =
 
 "   unique_id     varchar(255),"
 "   linked_id     varchar(255),"
+
+// timestamp. UTC."
+"   tm_update         datetime(6),"   // update time."
+
+"   primary key(id)"
+
+");";
+
+// system
+static const char* g_sql_drop_system = "drop table if exists system;";
+static const char* g_sql_create_system =
+"create table system("
+
+// identity
+"   id varchar(255),"
+
+// version info
+"   ami_version   varchar(255),"
+"   ast_version   varchar(255),"
+"   system_name   varchar(255),"
+
+//  time info
+"   startup_date  varchar(255),"
+"   startup_time  varchar(255),"
+"   reload_date   varchar(255),"
+"   reload_time   varchar(255),"
+"   current_calls int,"
+
+// max info
+"   max_calls         int,"
+"   max_load_avg      real,"
+"   max_file_handles  int,"
+
+"   run_user          varchar(255),"
+"   run_group         varchar(255),"
+
+"   real_time_enabled varchar(255),"
+"   cdr_enabled       varchar(255),"
+"   http_enabled      varchar(255),"
 
 // timestamp. UTC."
 "   tm_update         datetime(6),"   // update time."

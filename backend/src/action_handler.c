@@ -16,9 +16,10 @@
 #include "db_handler.h"
 #include "action_handler.h"
 
-bool insert_action(const char* id, const char* type)
+bool insert_action(const char* id, const char* type, const json_t* j_data)
 {
   int ret;
+  char* tmp;
   json_t* j_tmp;
 
   if((id == NULL) || (type == NULL)) {
@@ -33,6 +34,13 @@ bool insert_action(const char* id, const char* type)
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not create action object.");
     return false;
+  }
+
+  // data
+  if(j_data != NULL) {
+    tmp = json_dumps(j_data, JSON_ENCODE_ANY);
+    json_object_set_new(j_tmp, "data", json_string(tmp));
+    sfree(tmp);
   }
 
   ret = db_insert("action", j_tmp);
