@@ -28,6 +28,7 @@ static void ami_response_handler(json_t* j_msg);
 static void ami_event_agentlogin(json_t* j_msg);
 static void ami_event_agentlogoff(json_t* j_msg);
 static void ami_event_agents(json_t* j_msg);
+static void ami_event_devicestatechange(json_t* j_msg);
 static void ami_event_dialbegin(json_t* j_msg);
 static void ami_event_dialend(json_t* j_msg);
 static void ami_event_hangup(json_t* j_msg);
@@ -103,6 +104,9 @@ void ami_message_handler(const char* msg)
   }
   else if(strcasecmp(event, "Agents") == 0) {
     ami_event_agents(j_msg);
+  }
+  else if(strcasecmp(event, "DeviceStateChange") == 0) {
+    ami_event_devicestatechange(j_msg);
   }
   else if(strcasecmp(event, "DialBegin") == 0) {
     ami_event_dialbegin(j_msg);
@@ -1493,6 +1497,50 @@ static void ami_event_agentlogoff(json_t* j_msg)
   sfree(sql);
   if(ret == false) {
     slog(LOG_WARNING, "Could not update agent info. agent[%s]", json_string_value(json_object_get(j_msg, "Agent")));
+    return;
+  }
+
+  return;
+}
+
+/**
+ * AMI event handler.
+ * Event: DeviceStateChange
+ * @param j_msg
+ */
+static void ami_event_devicestatechange(json_t* j_msg)
+{
+  json_t* j_tmp;
+  int ret;
+  char* timestamp;
+
+  if(j_msg == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired ami_event_devicestatechange.");
+
+  timestamp = get_utc_timestamp();
+  j_tmp = json_pack("{"
+      "s:s, s:s, "
+      "s:s"
+      "}",
+
+      "device", json_string_value(json_object_get(j_msg, "Device"))? : "",
+      "state",  json_string_value(json_object_get(j_msg, "State"))? : "",
+
+      "tm_update",  timestamp
+      );
+  sfree(timestamp);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not create message.");
+    return;
+  }
+
+  ret = db_insert_or_replace("device_state", j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert to device_state.");
     return;
   }
 

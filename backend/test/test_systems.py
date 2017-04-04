@@ -6,37 +6,37 @@ import subprocess
 
 def check_system_data_types(j_data):    
     
-    if j_data["id"] != None and isinstance(j_data["id"], str) != True:
+    if j_data["id"] == None or isinstance(j_data["id"], str) != True:
         print("Type error. id. type[%s]" % type(j_data["id"]))
         return False
     
     
-    if j_data["ami_version"] != None and isinstance(j_data["ami_version"], str) != True:
+    if j_data["ami_version"] == None or isinstance(j_data["ami_version"], str) != True:
         print("Type error. ami_version. type[%s]" % type(j_data["ami_version"]))
         return False
     
-    if j_data["ast_version"] != None and isinstance(j_data["ast_version"], str) != True:
+    if j_data["ast_version"] == None or isinstance(j_data["ast_version"], str) != True:
         print("Type error. ast_version. type[%s]" % type(j_data["ast_version"]))
         return False
     
-    if j_data["system_name"] != None and isinstance(j_data["system_name"], str) != True:
+    if j_data["system_name"] == None or isinstance(j_data["system_name"], str) != True:
         print("Type error. system_name. type[%s]" % type(j_data["system_name"]))
         return False
     
     
-    if j_data["startup_date"] != None and isinstance(j_data["startup_date"], str) != True:
+    if j_data["startup_date"] == None or isinstance(j_data["startup_date"], str) != True:
         print("Type error. startup_date. type[%s]" % type(j_data["startup_date"]))
         return False
     
-    if j_data["startup_time"] != None and isinstance(j_data["startup_time"], str) != True:
+    if j_data["startup_time"] == None or isinstance(j_data["startup_time"], str) != True:
         print("Type error. startup_time. type[%s]" % type(j_data["startup_time"]))
         return False
     
-    if j_data["reload_date"] != None and isinstance(j_data["reload_date"], str) != True:
+    if j_data["reload_date"] == None or isinstance(j_data["reload_date"], str) != True:
         print("Type error. reload_date. type[%s]" % type(j_data["reload_date"]))
         return False
 
-    if j_data["reload_time"] != None and isinstance(j_data["reload_time"], str) != True:
+    if j_data["reload_time"] == None or isinstance(j_data["reload_time"], str) != True:
         print("Type error. reload_time. type[%s]" % type(j_data["reload_time"]))
         return False
 
@@ -58,24 +58,24 @@ def check_system_data_types(j_data):
         return False
 
 
-    if j_data["run_user"] != None and isinstance(j_data["run_user"], str) != True:
+    if j_data["run_user"] == None or isinstance(j_data["run_user"], str) != True:
         print("Type error. run_user. type[%s]" % type(j_data["run_user"]))
         return False
 
-    if j_data["run_group"] != None and isinstance(j_data["run_group"], str) != True:
+    if j_data["run_group"] == None or isinstance(j_data["run_group"], str) != True:
         print("Type error. run_group. type[%s]" % type(j_data["run_group"]))
         return False
 
 
-    if j_data["real_time_enabled"] != None and isinstance(j_data["real_time_enabled"], str) != True:
+    if j_data["real_time_enabled"] == None or isinstance(j_data["real_time_enabled"], str) != True:
         print("Type error. real_time_enabled. type[%s]" % type(j_data["real_time_enabled"]))
         return False
 
-    if j_data["cdr_enabled"] != None and isinstance(j_data["cdr_enabled"], str) != True:
+    if j_data["cdr_enabled"] == None or isinstance(j_data["cdr_enabled"], str) != True:
         print("Type error. cdr_enabled. type[%s]" % type(j_data["cdr_enabled"]))
         return False
 
-    if j_data["http_enabled"] != None and isinstance(j_data["http_enabled"], str) != True:
+    if j_data["http_enabled"] == None or isinstance(j_data["http_enabled"], str) != True:
         print("Type error. http_enabled. type[%s]" % type(j_data["http_enabled"]))
         return False
 

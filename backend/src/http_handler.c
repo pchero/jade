@@ -63,6 +63,10 @@ static void cb_htp_agents_detail(evhtp_request_t *req, void *data);
 static void cb_htp_systems(evhtp_request_t *req, void *data);
 static void cb_htp_systems_detail(evhtp_request_t *req, void *data);
 
+// device_states
+static void cb_htp_device_states(evhtp_request_t *req, void *data);
+static void cb_htp_device_states_detail(evhtp_request_t *req, void *data);
+
 
 bool init_http_handler(void)
 {
@@ -115,6 +119,11 @@ bool init_http_handler(void)
   // systems
   evhtp_set_regex_cb(g_htp, "/systems/", cb_htp_systems_detail, NULL);
   evhtp_set_regex_cb(g_htp, "/systems", cb_htp_systems, NULL);
+
+  // device_states
+  evhtp_set_regex_cb(g_htp, "/device_states/", cb_htp_device_states_detail, NULL);
+  evhtp_set_regex_cb(g_htp, "/device_states", cb_htp_device_states, NULL);
+
 
 
   return true;
@@ -1118,6 +1127,125 @@ static void cb_htp_systems_detail(evhtp_request_t *req, void *data)
     // get value
     j_tmp = get_system_info(
         json_string_value(json_object_get(j_data, "id"))
+        );
+    json_decref(j_data);
+    if(j_tmp == NULL) {
+      simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+      return;
+    }
+
+    // create result
+    j_res = create_default_result(EVHTP_RES_OK);
+    json_object_set_new(j_res, "result", j_tmp);
+
+    simple_response_normal(req, j_res);
+    json_decref(j_res);
+  }
+  else {
+    // should not reach to here.
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  }
+
+  return;
+}
+
+/**
+ * http request handler
+ * ^/device_states
+ * @param req
+ * @param data
+ */
+static void cb_htp_device_states(evhtp_request_t *req, void *data)
+{
+  int method;
+  json_t* j_res;
+  json_t* j_tmp;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired cb_htp_device_states.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if(method != htp_method_GET) {
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  if(method == htp_method_GET) {
+    j_tmp = get_device_states_all_device();
+    if(j_tmp == NULL) {
+      simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+      return;
+    }
+
+    // create result
+    j_res = create_default_result(EVHTP_RES_OK);
+    json_object_set_new(j_res, "result", json_object());
+    json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
+
+    simple_response_normal(req, j_res);
+    json_decref(j_res);
+  }
+  else {
+    // should not reach to here.
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  }
+
+  return;
+}
+
+/**
+ * http request handler
+ * ^/device_states/
+ * @param req
+ * @param data
+ */
+static void cb_htp_device_states_detail(evhtp_request_t *req, void *data)
+{
+  int method;
+  json_t* j_data;
+  json_t* j_res;
+  json_t* j_tmp;
+  const char* tmp_const;
+  char* tmp;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired cb_htp_systems_detail.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if(method != htp_method_GET) {
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  if(method == htp_method_GET) {
+    // get data
+    tmp_const = (char*)evbuffer_pullup(req->buffer_in, evbuffer_get_length(req->buffer_in));
+    if(tmp_const == NULL) {
+      simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+      return;
+    }
+
+    // create json
+    tmp = strndup(tmp_const, evbuffer_get_length(req->buffer_in));
+    slog(LOG_DEBUG, "Requested data. data[%s]", tmp);
+    j_data = json_loads(tmp, JSON_DECODE_ANY, NULL);
+    sfree(tmp);
+    if(j_data == NULL) {
+      simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+      return;
+    }
+
+    // get value
+    j_tmp = get_device_state_info(
+        json_string_value(json_object_get(j_data, "device"))
         );
     json_decref(j_data);
     if(j_tmp == NULL) {

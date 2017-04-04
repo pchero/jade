@@ -514,6 +514,17 @@ static bool send_init_actions(void)
     return false;
   }
 
+  // device state
+  j_tmp = json_pack("{s:s}",
+      "Action", "DeviceStateList"
+      );
+  ret = send_ami_cmd(j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not send ami action. action[%s]", "DeviceStateList");
+    return false;
+  }
+
   return true;
 }
 
