@@ -16,6 +16,100 @@
 #include "db_handler.h"
 #include "resource_handler.h"
 
+static json_t* get_items(const char* table, const char* item);
+static json_t* get_detail_item_key_string(const char* table, const char* key, const char* val);
+
+
+/**
+ *
+ * @param table
+ * @param item
+ * @return
+ */
+static json_t* get_items(const char* table, const char* item)
+{
+  db_res_t* db_res;
+  json_t* j_res;
+  json_t* j_res_tmp;
+  json_t* j_tmp;
+  json_t* j_val;
+  char* sql;
+
+  if((table == NULL) || (item == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_items. table[%s], item[%s]", table, item);
+
+  asprintf(&sql, "select %s from %s;", item, table);
+  db_res = db_query(sql);
+  sfree(sql);
+  if(db_res == NULL) {
+    slog(LOG_WARNING, "Could not get correct databases name info.");
+    return NULL;
+  }
+
+  j_res = json_array();
+  while(1) {
+    j_tmp = db_get_record(db_res);
+    if(j_tmp == NULL) {
+      break;
+    }
+
+    j_val = json_object_get(j_tmp, item);
+    if(j_val == NULL) {
+      json_decref(j_tmp);
+      continue;
+    }
+
+    j_res_tmp = json_pack("{s:O}", item, j_val);
+    json_decref(j_tmp);
+    if(j_res_tmp == NULL) {
+      continue;
+    }
+    json_array_append_new(j_res, j_res_tmp);
+  }
+  db_free(db_res);
+
+  return j_res;
+}
+
+/**
+ * Get detail info of key="val" from table.
+ * @param table
+ * @param item
+ * @return
+ */
+static json_t* get_detail_item_key_string(const char* table, const char* key, const char* val)
+{
+  db_res_t* db_res;
+  json_t* j_res;
+  char* sql;
+
+  if((table == NULL) || (key == NULL) || (val == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_detail_item_key_string. table[%s], key[%s], val[%s]", table, key, val);
+
+  asprintf(&sql, "select * from %s where %s=\"%s\";", table, key, val);
+  db_res = db_query(sql);
+  sfree(sql);
+  if(db_res == NULL) {
+    slog(LOG_WARNING, "Could not get detail info.");
+    return NULL;
+  }
+
+  j_res = db_get_record(db_res);
+  db_free(db_res);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+
+}
+
 
 /**
  * Get all peer names array
@@ -586,45 +680,16 @@ json_t* get_agent_info(const char* id)
 }
 
 /**
- * Get all system's id array
+ * Get all system's all id array
  * @return
  */
 json_t* get_systems_all_id(void)
 {
-  char* sql;
-  db_res_t* db_res;
   json_t* j_res;
-  json_t* j_res_tmp;
-  json_t* j_tmp;
 
   slog(LOG_DEBUG, "Fired get_systems_all_id.");
 
-  asprintf(&sql, "select id from system;");
-  db_res = db_query(sql);
-  sfree(sql);
-  if(db_res == NULL) {
-    slog(LOG_WARNING, "Could not get correct system info.");
-    return NULL;
-  }
-
-  j_res = json_array();
-  while(1) {
-    j_tmp = db_get_record(db_res);
-    if(j_tmp == NULL) {
-      break;
-    }
-
-    j_res_tmp = json_pack("{s:s}",
-        "id",  json_string_value(json_object_get(j_tmp, "id"))
-        );
-    json_decref(j_tmp);
-    if(j_res_tmp == NULL) {
-      continue;
-    }
-
-    json_array_append_new(j_res, j_res_tmp);
-  }
-  db_free(db_res);
+  j_res = get_items("system", "id");
 
   return j_res;
 }
@@ -635,9 +700,7 @@ json_t* get_systems_all_id(void)
  */
 json_t* get_system_info(const char* id)
 {
-  char* sql;
-  db_res_t* db_res;
-  json_t* j_tmp;
+  json_t* j_res;
 
   if(id == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -645,20 +708,44 @@ json_t* get_system_info(const char* id)
   }
   slog(LOG_DEBUG, "Fired get_system_info. id[%s]", id);
 
-  asprintf(&sql, "select * from system where id=\"%s\";", id);
-  db_res = db_query(sql);
-  sfree(sql);
-  if(db_res == NULL) {
-    slog(LOG_WARNING, "Could not get correct system info.");
-    return NULL;
-  }
+  j_res = get_detail_item_key_string("system", "id", id);
 
-  j_tmp = db_get_record(db_res);
-  db_free(db_res);
-  if(j_tmp == NULL) {
+  return j_res;
+}
+
+
+/**
+ * Get all device_state's all device array
+ * @return
+ */
+json_t* get_device_states_all_device(void)
+{
+  json_t* j_res;
+
+  slog(LOG_DEBUG, "Fired get_device_states_all_device.");
+
+  j_res = get_items("device_state", "device");
+
+  return j_res;
+}
+
+/**
+ * Get corresponding device_state detail info.
+ * @return
+ */
+json_t* get_device_state_info(const char* device)
+{
+  json_t* j_res;
+
+  if(device == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
     return NULL;
   }
-  return j_tmp;
+  slog(LOG_DEBUG, "Fired get_device_state_info. device[%s]", device);
+
+  j_res = get_detail_item_key_string("device_state", "device", device);
+
+  return j_res;
 }
 
 
