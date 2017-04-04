@@ -357,23 +357,23 @@ Returns
    {
      $defhdr,
      "reuslt": {
-       "name": "SIP/300-000003a2",
-       "unique_id": "6d4c1dc4-7e91-430c-a51a-92fcbdd2f831",
-       "linked_id": "6d4c1dc4-7e91-430c-a51a-92fcbdd2f831",
-       "state": 0,
-       "state_desc": "Down",
+       "name": "<string>",
+       "unique_id": "<string>",
+       "linked_id": "<string>",
+       "state": <integer>,
+       "state_desc": "<string>",
 
-       "context": "public",
-       "exten": "s",
-       "priority": "1",
+       "context": "<string>",
+       "exten": "<string>",
+       "priority": "<string>",
 
-       "caller_id_name": "<unknown>",
-       "caller_id_num": "<unknown>",
-       "connected_line_name": "<unknown>",
-       "connected_line_num": "<unknown>",
+       "caller_id_name": "<string>",
+       "caller_id_num": "<string>",
+       "connected_line_name": "<string>",
+       "connected_line_num": "<string>",
 
-       "account_code": "",
-       "language": "en",
+       "account_code": "<string>",
+       "language": "<string>",
        
        "tm_update": "2017-03-12T01:59:15.213772334Z"
      }
@@ -428,6 +428,127 @@ Example
      "statuscode": 200,
      "timestamp": "2017-03-12T02:00:57.493480577Z"
    }
+
+
+/device_states
+==============
+
+Methods
+-------
+GET : Get list of all device_state device info.
+
+Method: GET
+-----------
+Get list of all device_state device info.
+
+Call
+++++
+::
+
+   GET /device_states
+
+Returns
++++++++
+::
+
+   {
+     $defhdr,
+     "reuslt": {
+       "list": [
+         {
+           "device": "<string>"
+         },
+         ...
+       ]
+     }
+   }
+
+Return parameters
+
+* ``list`` : array of channels.
+   * ``device``: device name.
+
+Example
++++++++
+::
+
+   $ curl -X GET example.com:8081/device_states
+   
+   {
+     "api_ver": "0.1",
+     "result": {
+       "list": [
+         {"device": "Agent:1001"},
+         ...
+       ]
+     },
+     "statuscode": 200,
+     "timestamp": "2017-04-04T23:09:36.539677164Z"
+   }
+
+
+/device_states/
+===============
+
+Methods
+-------
+GET : Get device_state's detail info of given info.
+
+Method: GET
+-----------
+Get device_state's detail info of given info.
+
+Call
+++++
+::
+
+   GET /device_states/
+  
+   {
+     "device": "<string>"
+   }
+   
+Data parameters
+
+* ``device``: unique id.
+
+Returns
++++++++
+::
+
+   {
+     $defhdr,
+     "reuslt": {
+       "device": "<string>",
+       "state": "<string>",
+       
+       "tm_update": "2017-04-04T23:08:40.878892472Z"
+     }
+   }
+
+Return parameters
+
+* ``device``: Device name.
+* ``state``: Device state.
+
+Example
++++++++
+::
+
+   $ curl -X GET example.com/device_states/ -d \
+   '{"device": "Agent:1001"}'
+   
+   {
+     "api_ver": "0.1",
+     "result": {
+       "device": "Agent:1001",
+       "state": "UNAVAILABLE",
+       "tm_update": "2017-04-04T23:08:40.878892472Z"
+     },
+     "statuscode": 200,
+     "timestamp": "2017-04-04T23:10:37.684581876Z"
+   }
+
 
 /registries
 ===========
