@@ -396,23 +396,23 @@ sessions and are temporary.</p>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr,
   &quot;reuslt&quot;: {
-    &quot;name&quot;: &quot;SIP/300-000003a2&quot;,
-    &quot;unique_id&quot;: &quot;6d4c1dc4-7e91-430c-a51a-92fcbdd2f831&quot;,
-    &quot;linked_id&quot;: &quot;6d4c1dc4-7e91-430c-a51a-92fcbdd2f831&quot;,
-    &quot;state&quot;: 0,
-    &quot;state_desc&quot;: &quot;Down&quot;,
+    &quot;name&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;unique_id&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;linked_id&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;state&quot;: &lt;integer&gt;,
+    &quot;state_desc&quot;: &quot;&lt;string&gt;&quot;,
 
-    &quot;context&quot;: &quot;public&quot;,
-    &quot;exten&quot;: &quot;s&quot;,
-    &quot;priority&quot;: &quot;1&quot;,
+    &quot;context&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;exten&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;priority&quot;: &quot;&lt;string&gt;&quot;,
 
-    &quot;caller_id_name&quot;: &quot;&lt;unknown&gt;&quot;,
-    &quot;caller_id_num&quot;: &quot;&lt;unknown&gt;&quot;,
-    &quot;connected_line_name&quot;: &quot;&lt;unknown&gt;&quot;,
-    &quot;connected_line_num&quot;: &quot;&lt;unknown&gt;&quot;,
+    &quot;caller_id_name&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;caller_id_num&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;connected_line_name&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;connected_line_num&quot;: &quot;&lt;string&gt;&quot;,
 
-    &quot;account_code&quot;: &quot;&quot;,
-    &quot;language&quot;: &quot;en&quot;,
+    &quot;account_code&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;language&quot;: &quot;&lt;string&gt;&quot;,
 
     &quot;tm_update&quot;: &quot;2017-03-12T01:59:15.213772334Z&quot;
   }
@@ -469,23 +469,147 @@ sessions and are temporary.</p>
 </div>
 </div>
 </div>
-<div class="section" id="registries">
-<h2>/registries<a class="headerlink" href="#registries" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="device-states">
+<h2>/device_states<a class="headerlink" href="#device-states" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="id22">
 <h3>Methods<a class="headerlink" href="#id22" title="Permalink to this headline">¶</a></h3>
-<p>GET : Get list of all registry accounts info.</p>
+<p>GET : Get list of all device_state device info.</p>
 </div>
 <div class="section" id="id23">
 <h3>Method: GET<a class="headerlink" href="#id23" title="Permalink to this headline">¶</a></h3>
-<p>Get list of all registry accounts info.</p>
+<p>Get list of all device_state device info.</p>
 <div class="section" id="id24">
 <h4>Call<a class="headerlink" href="#id24" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">GET</span> <span class="o">/</span><span class="n">registries</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">GET</span> <span class="o">/</span><span class="n">device_states</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="id25">
 <h4>Returns<a class="headerlink" href="#id25" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr,
+  &quot;reuslt&quot;: {
+    &quot;list&quot;: [
+      {
+        &quot;device&quot;: &quot;&lt;string&gt;&quot;
+      },
+      ...
+    ]
+  }
+}
+</pre></div>
+</div>
+<p>Return parameters</p>
+<ul>
+<li><dl class="first docutils">
+<dt><tt class="docutils literal"><span class="pre">list</span></tt> <span class="classifier-delimiter">:</span> <span class="classifier">array of channels.</span></dt>
+<dd><ul class="first last simple">
+<li><tt class="docutils literal"><span class="pre">device</span></tt>: device name.</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</div>
+<div class="section" id="id26">
+<h4>Example<a class="headerlink" href="#id26" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET example.com:8081/device_states
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;result&quot;: {
+    &quot;list&quot;: [
+      {&quot;device&quot;: &quot;Agent:1001&quot;},
+      ...
+    ]
+  },
+  &quot;statuscode&quot;: 200,
+  &quot;timestamp&quot;: &quot;2017-04-04T23:09:36.539677164Z&quot;
+}
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="id27">
+<h2>/device_states/<a class="headerlink" href="#id27" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id28">
+<h3>Methods<a class="headerlink" href="#id28" title="Permalink to this headline">¶</a></h3>
+<p>GET : Get device_state&#8217;s detail info of given info.</p>
+</div>
+<div class="section" id="id29">
+<h3>Method: GET<a class="headerlink" href="#id29" title="Permalink to this headline">¶</a></h3>
+<p>Get device_state&#8217;s detail info of given info.</p>
+<div class="section" id="id30">
+<h4>Call<a class="headerlink" href="#id30" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-python"><div class="highlight"><pre>GET /device_states/
+
+{
+  &quot;device&quot;: &quot;&lt;string&gt;&quot;
+}
+</pre></div>
+</div>
+<p>Data parameters</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">device</span></tt>: unique id.</li>
+</ul>
+</div>
+<div class="section" id="id31">
+<h4>Returns<a class="headerlink" href="#id31" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr,
+  &quot;reuslt&quot;: {
+    &quot;device&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;state&quot;: &quot;&lt;string&gt;&quot;,
+
+    &quot;tm_update&quot;: &quot;2017-04-04T23:08:40.878892472Z&quot;
+  }
+}
+</pre></div>
+</div>
+<p>Return parameters</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">device</span></tt>: Device name.</li>
+<li><tt class="docutils literal"><span class="pre">state</span></tt>: Device state.</li>
+</ul>
+</div>
+<div class="section" id="id32">
+<h4>Example<a class="headerlink" href="#id32" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET example.com/device_states/ -d \
+&#39;{&quot;device&quot;: &quot;Agent:1001&quot;}&#39;
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;result&quot;: {
+    &quot;device&quot;: &quot;Agent:1001&quot;,
+    &quot;state&quot;: &quot;UNAVAILABLE&quot;,
+    &quot;tm_update&quot;: &quot;2017-04-04T23:08:40.878892472Z&quot;
+  },
+  &quot;statuscode&quot;: 200,
+  &quot;timestamp&quot;: &quot;2017-04-04T23:10:37.684581876Z&quot;
+}
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="registries">
+<h2>/registries<a class="headerlink" href="#registries" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id33">
+<h3>Methods<a class="headerlink" href="#id33" title="Permalink to this headline">¶</a></h3>
+<p>GET : Get list of all registry accounts info.</p>
+</div>
+<div class="section" id="id34">
+<h3>Method: GET<a class="headerlink" href="#id34" title="Permalink to this headline">¶</a></h3>
+<p>Get list of all registry accounts info.</p>
+<div class="section" id="id35">
+<h4>Call<a class="headerlink" href="#id35" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">GET</span> <span class="o">/</span><span class="n">registries</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id36">
+<h4>Returns<a class="headerlink" href="#id36" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr,
   &quot;reuslt&quot;: {
@@ -508,8 +632,8 @@ sessions and are temporary.</p>
 </li>
 </ul>
 </div>
-<div class="section" id="id26">
-<h4>Example<a class="headerlink" href="#id26" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id37">
+<h4>Example<a class="headerlink" href="#id37" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/registries
 
 {
@@ -528,17 +652,17 @@ sessions and are temporary.</p>
 </div>
 </div>
 </div>
-<div class="section" id="id27">
-<h2>/registries/<a class="headerlink" href="#id27" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id28">
-<h3>Methods<a class="headerlink" href="#id28" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id38">
+<h2>/registries/<a class="headerlink" href="#id38" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id39">
+<h3>Methods<a class="headerlink" href="#id39" title="Permalink to this headline">¶</a></h3>
 <p>GET : Get registry detail info of given account info.</p>
 </div>
-<div class="section" id="id29">
-<h3>Method: GET<a class="headerlink" href="#id29" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id40">
+<h3>Method: GET<a class="headerlink" href="#id40" title="Permalink to this headline">¶</a></h3>
 <p>Get registry detail info of given account info.</p>
-<div class="section" id="id30">
-<h4>Call<a class="headerlink" href="#id30" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id41">
+<h4>Call<a class="headerlink" href="#id41" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>GET /registries/
 
 {
@@ -551,8 +675,8 @@ sessions and are temporary.</p>
 <li><tt class="docutils literal"><span class="pre">account</span></tt>: account info.</li>
 </ul>
 </div>
-<div class="section" id="id31">
-<h4>Returns<a class="headerlink" href="#id31" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id42">
+<h4>Returns<a class="headerlink" href="#id42" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr,
   &quot;reuslt&quot;: {
@@ -586,8 +710,8 @@ sessions and are temporary.</p>
 <li><tt class="docutils literal"><span class="pre">tm_update</span></tt>: Updated timestamp.</li>
 </ul>
 </div>
-<div class="section" id="id32">
-<h4>Example<a class="headerlink" href="#id32" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id43">
+<h4>Example<a class="headerlink" href="#id43" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/registries/ -d &#39;{&quot;account&quot;: &quot;2345@sip_proxy&quot;}&#39;
 
 {
@@ -614,21 +738,21 @@ sessions and are temporary.</p>
 </div>
 <div class="section" id="systems">
 <h2>/systems<a class="headerlink" href="#systems" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id33">
-<h3>Methods<a class="headerlink" href="#id33" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id44">
+<h3>Methods<a class="headerlink" href="#id44" title="Permalink to this headline">¶</a></h3>
 <p>GET : Get list of all system&#8217;s id info</p>
 </div>
-<div class="section" id="id34">
-<h3>Method: GET<a class="headerlink" href="#id34" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id45">
+<h3>Method: GET<a class="headerlink" href="#id45" title="Permalink to this headline">¶</a></h3>
 <p>Get list of all system&#8217;s id info</p>
-<div class="section" id="id35">
-<h4>Call<a class="headerlink" href="#id35" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id46">
+<h4>Call<a class="headerlink" href="#id46" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">GET</span> <span class="o">/</span><span class="n">systems</span>
 </pre></div>
 </div>
 </div>
-<div class="section" id="id36">
-<h4>Returns<a class="headerlink" href="#id36" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id47">
+<h4>Returns<a class="headerlink" href="#id47" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr,
   &quot;reuslt&quot;: {
@@ -644,8 +768,8 @@ sessions and are temporary.</p>
 <li><tt class="docutils literal"><span class="pre">list</span></tt> : array of system id.</li>
 </ul>
 </div>
-<div class="section" id="id37">
-<h4>Example<a class="headerlink" href="#id37" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id48">
+<h4>Example<a class="headerlink" href="#id48" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/queue_params
 
 {
@@ -665,17 +789,17 @@ sessions and are temporary.</p>
 </div>
 </div>
 </div>
-<div class="section" id="id38">
-<h2>/systems/<a class="headerlink" href="#id38" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id39">
-<h3>Methods<a class="headerlink" href="#id39" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id49">
+<h2>/systems/<a class="headerlink" href="#id49" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id50">
+<h3>Methods<a class="headerlink" href="#id50" title="Permalink to this headline">¶</a></h3>
 <p>GET : Get detail info of given system id.</p>
 </div>
-<div class="section" id="id40">
-<h3>Method: GET<a class="headerlink" href="#id40" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id51">
+<h3>Method: GET<a class="headerlink" href="#id51" title="Permalink to this headline">¶</a></h3>
 <p>Get detail info of given system id.</p>
-<div class="section" id="id41">
-<h4>Call<a class="headerlink" href="#id41" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id52">
+<h4>Call<a class="headerlink" href="#id52" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>GET /systems/
 
 {
@@ -688,8 +812,8 @@ sessions and are temporary.</p>
 <li><tt class="docutils literal"><span class="pre">id</span></tt>: System id.</li>
 </ul>
 </div>
-<div class="section" id="id42">
-<h4>Returns<a class="headerlink" href="#id42" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id53">
+<h4>Returns<a class="headerlink" href="#id53" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr,
   &quot;reuslt&quot;: {
@@ -743,8 +867,8 @@ sessions and are temporary.</p>
 <li><tt class="docutils literal"><span class="pre">real_time_enabled</span></tt>: real time enabled or not. If enabled &#8220;Yes&#8221;.</li>
 </ul>
 </div>
-<div class="section" id="id43">
-<h4>Example<a class="headerlink" href="#id43" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id54">
+<h4>Example<a class="headerlink" href="#id54" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/queue_params
 
 {
@@ -779,21 +903,21 @@ sessions and are temporary.</p>
 </div>
 <div class="section" id="queue-params">
 <h2>/queue_params<a class="headerlink" href="#queue-params" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id44">
-<h3>Methods<a class="headerlink" href="#id44" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id55">
+<h3>Methods<a class="headerlink" href="#id55" title="Permalink to this headline">¶</a></h3>
 <p>GET : Get list of all queue param info</p>
 </div>
-<div class="section" id="id45">
-<h3>Method: GET<a class="headerlink" href="#id45" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id56">
+<h3>Method: GET<a class="headerlink" href="#id56" title="Permalink to this headline">¶</a></h3>
 <p>Get list of all queue param info</p>
-<div class="section" id="id46">
-<h4>Call<a class="headerlink" href="#id46" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id57">
+<h4>Call<a class="headerlink" href="#id57" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">GET</span> <span class="o">/</span><span class="n">queue_params</span>
 </pre></div>
 </div>
 </div>
-<div class="section" id="id47">
-<h4>Returns<a class="headerlink" href="#id47" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id58">
+<h4>Returns<a class="headerlink" href="#id58" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr,
   &quot;reuslt&quot;: {
@@ -809,8 +933,8 @@ sessions and are temporary.</p>
 <li><tt class="docutils literal"><span class="pre">list</span></tt> : array of registry account.</li>
 </ul>
 </div>
-<div class="section" id="id48">
-<h4>Example<a class="headerlink" href="#id48" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id59">
+<h4>Example<a class="headerlink" href="#id59" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/queue_params
 
 {
@@ -830,17 +954,17 @@ sessions and are temporary.</p>
 </div>
 </div>
 </div>
-<div class="section" id="id49">
-<h2>/queue_params/<a class="headerlink" href="#id49" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id50">
-<h3>Methods<a class="headerlink" href="#id50" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id60">
+<h2>/queue_params/<a class="headerlink" href="#id60" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id61">
+<h3>Methods<a class="headerlink" href="#id61" title="Permalink to this headline">¶</a></h3>
 <p>GET : Get queue param detail info of given queue info.</p>
 </div>
-<div class="section" id="id51">
-<h3>Method: GET<a class="headerlink" href="#id51" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id62">
+<h3>Method: GET<a class="headerlink" href="#id62" title="Permalink to this headline">¶</a></h3>
 <p>Get queue param detail info of given queue info.</p>
-<div class="section" id="id52">
-<h4>Call<a class="headerlink" href="#id52" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id63">
+<h4>Call<a class="headerlink" href="#id63" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>GET /queue_params/
 
 {
@@ -853,8 +977,8 @@ sessions and are temporary.</p>
 <li><tt class="docutils literal"><span class="pre">account</span></tt>: account info.</li>
 </ul>
 </div>
-<div class="section" id="id53">
-<h4>Returns<a class="headerlink" href="#id53" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id64">
+<h4>Returns<a class="headerlink" href="#id64" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr,
   &quot;reuslt&quot;: {
@@ -893,8 +1017,8 @@ sessions and are temporary.</p>
 <li><tt class="docutils literal"><span class="pre">service_leve_perf</span></tt>: Service level performance.</li>
 </ul>
 </div>
-<div class="section" id="id54">
-<h4>Example<a class="headerlink" href="#id54" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id65">
+<h4>Example<a class="headerlink" href="#id65" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/queue_params/ -d &#39;{&quot;name&quot;: &quot;sales_1&quot;}&#39;
 
 {
@@ -923,21 +1047,21 @@ sessions and are temporary.</p>
 </div>
 <div class="section" id="queue-members">
 <h2>/queue_members<a class="headerlink" href="#queue-members" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id55">
-<h3>Methods<a class="headerlink" href="#id55" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id66">
+<h3>Methods<a class="headerlink" href="#id66" title="Permalink to this headline">¶</a></h3>
 <p>GET : Get list of all queue member info.</p>
 </div>
-<div class="section" id="id56">
-<h3>Method: GET<a class="headerlink" href="#id56" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id67">
+<h3>Method: GET<a class="headerlink" href="#id67" title="Permalink to this headline">¶</a></h3>
 <p>Get list of all queue member info.</p>
-<div class="section" id="id57">
-<h4>Call<a class="headerlink" href="#id57" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id68">
+<h4>Call<a class="headerlink" href="#id68" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">GET</span> <span class="o">/</span><span class="n">queue_members</span>
 </pre></div>
 </div>
 </div>
-<div class="section" id="id58">
-<h4>Returns<a class="headerlink" href="#id58" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id69">
+<h4>Returns<a class="headerlink" href="#id69" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr,
   &quot;reuslt&quot;: {
@@ -964,8 +1088,8 @@ sessions and are temporary.</p>
 </li>
 </ul>
 </div>
-<div class="section" id="id59">
-<h4>Example<a class="headerlink" href="#id59" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id70">
+<h4>Example<a class="headerlink" href="#id70" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/queue_params
 
 {
@@ -994,17 +1118,17 @@ sessions and are temporary.</p>
 </div>
 </div>
 </div>
-<div class="section" id="id60">
-<h2>/queue_members/<a class="headerlink" href="#id60" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id61">
-<h3>Methods<a class="headerlink" href="#id61" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id71">
+<h2>/queue_members/<a class="headerlink" href="#id71" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id72">
+<h3>Methods<a class="headerlink" href="#id72" title="Permalink to this headline">¶</a></h3>
 <p>GET : Get queue member detail info of given queue member info.</p>
 </div>
-<div class="section" id="id62">
-<h3>Method: GET<a class="headerlink" href="#id62" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id73">
+<h3>Method: GET<a class="headerlink" href="#id73" title="Permalink to this headline">¶</a></h3>
 <p>Get queue member detail info of given queue member info.</p>
-<div class="section" id="id63">
-<h4>Call<a class="headerlink" href="#id63" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id74">
+<h4>Call<a class="headerlink" href="#id74" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>GET /queue_params/
 
 {
@@ -1026,8 +1150,8 @@ sessions and are temporary.</p>
 </li>
 </ul>
 </div>
-<div class="section" id="id64">
-<h4>Returns<a class="headerlink" href="#id64" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id75">
+<h4>Returns<a class="headerlink" href="#id75" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr,
   &quot;reuslt&quot;: {
@@ -1074,8 +1198,8 @@ sessions and are temporary.</p>
 <li><tt class="docutils literal"><span class="pre">ring_inuse</span></tt>: Ring in use option.</li>
 </ul>
 </div>
-<div class="section" id="id65">
-<h4>Example<a class="headerlink" href="#id65" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id76">
+<h4>Example<a class="headerlink" href="#id76" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/queue_members/ -d &#39;{&quot;name&quot;: &quot;sip/agent-01&quot;, &quot;queue_name&quot;:&quot;sales_1&quot;}&#39;
 
 {
@@ -1107,21 +1231,21 @@ sessions and are temporary.</p>
 </div>
 <div class="section" id="queue-entries">
 <h2>/queue_entries<a class="headerlink" href="#queue-entries" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id66">
-<h3>Methods<a class="headerlink" href="#id66" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id77">
+<h3>Methods<a class="headerlink" href="#id77" title="Permalink to this headline">¶</a></h3>
 <p>GET : Get list of all queue entries info.</p>
 </div>
-<div class="section" id="id67">
-<h3>Method: GET<a class="headerlink" href="#id67" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id78">
+<h3>Method: GET<a class="headerlink" href="#id78" title="Permalink to this headline">¶</a></h3>
 <p>Get list of all queue entries info.</p>
-<div class="section" id="id68">
-<h4>Call<a class="headerlink" href="#id68" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id79">
+<h4>Call<a class="headerlink" href="#id79" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">GET</span> <span class="o">/</span><span class="n">queue_entries</span>
 </pre></div>
 </div>
 </div>
-<div class="section" id="id69">
-<h4>Returns<a class="headerlink" href="#id69" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id80">
+<h4>Returns<a class="headerlink" href="#id80" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr,
   &quot;reuslt&quot;: {
@@ -1148,8 +1272,8 @@ sessions and are temporary.</p>
 </li>
 </ul>
 </div>
-<div class="section" id="id70">
-<h4>Example<a class="headerlink" href="#id70" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id81">
+<h4>Example<a class="headerlink" href="#id81" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/queue_entries
 
 {
@@ -1170,17 +1294,17 @@ sessions and are temporary.</p>
 </div>
 </div>
 </div>
-<div class="section" id="id71">
-<h2>/queue_entries/<a class="headerlink" href="#id71" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id72">
-<h3>Methods<a class="headerlink" href="#id72" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id82">
+<h2>/queue_entries/<a class="headerlink" href="#id82" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id83">
+<h3>Methods<a class="headerlink" href="#id83" title="Permalink to this headline">¶</a></h3>
 <p>GET : Get queue entry detail info of given queue entry info.</p>
 </div>
-<div class="section" id="id73">
-<h3>Method: GET<a class="headerlink" href="#id73" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id84">
+<h3>Method: GET<a class="headerlink" href="#id84" title="Permalink to this headline">¶</a></h3>
 <p>Get queue entry detail info of given queue entry info.</p>
-<div class="section" id="id74">
-<h4>Call<a class="headerlink" href="#id74" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id85">
+<h4>Call<a class="headerlink" href="#id85" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>GET /queue_entries/
 
 {
@@ -1202,8 +1326,8 @@ sessions and are temporary.</p>
 </li>
 </ul>
 </div>
-<div class="section" id="id75">
-<h4>Returns<a class="headerlink" href="#id75" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id86">
+<h4>Returns<a class="headerlink" href="#id86" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr,
   &quot;reuslt&quot;: {
@@ -1237,8 +1361,8 @@ sessions and are temporary.</p>
 <li><tt class="docutils literal"><span class="pre">wait</span></tt>: If set when paused, the reason the queue member was paused.</li>
 </ul>
 </div>
-<div class="section" id="id76">
-<h4>Example<a class="headerlink" href="#id76" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id87">
+<h4>Example<a class="headerlink" href="#id87" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/queue_entries/ -d \
 &#39;{&quot;channel&quot;: &quot;SIP/300-000001d6&quot;, &quot;queue_name&quot;: &quot;sales_1&quot;}&#39;
 
@@ -1330,7 +1454,7 @@ sessions and are temporary.</p>
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#registries">/registries</a><ul>
+<li><a class="reference internal" href="#device-states">/device_states</a><ul>
 <li><a class="reference internal" href="#id22">Methods</a></li>
 <li><a class="reference internal" href="#id23">Method: GET</a><ul>
 <li><a class="reference internal" href="#id24">Call</a></li>
@@ -1340,7 +1464,7 @@ sessions and are temporary.</p>
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#id27">/registries/</a><ul>
+<li><a class="reference internal" href="#id27">/device_states/</a><ul>
 <li><a class="reference internal" href="#id28">Methods</a></li>
 <li><a class="reference internal" href="#id29">Method: GET</a><ul>
 <li><a class="reference internal" href="#id30">Call</a></li>
@@ -1350,7 +1474,7 @@ sessions and are temporary.</p>
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#systems">/systems</a><ul>
+<li><a class="reference internal" href="#registries">/registries</a><ul>
 <li><a class="reference internal" href="#id33">Methods</a></li>
 <li><a class="reference internal" href="#id34">Method: GET</a><ul>
 <li><a class="reference internal" href="#id35">Call</a></li>
@@ -1360,7 +1484,7 @@ sessions and are temporary.</p>
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#id38">/systems/</a><ul>
+<li><a class="reference internal" href="#id38">/registries/</a><ul>
 <li><a class="reference internal" href="#id39">Methods</a></li>
 <li><a class="reference internal" href="#id40">Method: GET</a><ul>
 <li><a class="reference internal" href="#id41">Call</a></li>
@@ -1370,7 +1494,7 @@ sessions and are temporary.</p>
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#queue-params">/queue_params</a><ul>
+<li><a class="reference internal" href="#systems">/systems</a><ul>
 <li><a class="reference internal" href="#id44">Methods</a></li>
 <li><a class="reference internal" href="#id45">Method: GET</a><ul>
 <li><a class="reference internal" href="#id46">Call</a></li>
@@ -1380,7 +1504,7 @@ sessions and are temporary.</p>
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#id49">/queue_params/</a><ul>
+<li><a class="reference internal" href="#id49">/systems/</a><ul>
 <li><a class="reference internal" href="#id50">Methods</a></li>
 <li><a class="reference internal" href="#id51">Method: GET</a><ul>
 <li><a class="reference internal" href="#id52">Call</a></li>
@@ -1390,7 +1514,7 @@ sessions and are temporary.</p>
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#queue-members">/queue_members</a><ul>
+<li><a class="reference internal" href="#queue-params">/queue_params</a><ul>
 <li><a class="reference internal" href="#id55">Methods</a></li>
 <li><a class="reference internal" href="#id56">Method: GET</a><ul>
 <li><a class="reference internal" href="#id57">Call</a></li>
@@ -1400,7 +1524,7 @@ sessions and are temporary.</p>
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#id60">/queue_members/</a><ul>
+<li><a class="reference internal" href="#id60">/queue_params/</a><ul>
 <li><a class="reference internal" href="#id61">Methods</a></li>
 <li><a class="reference internal" href="#id62">Method: GET</a><ul>
 <li><a class="reference internal" href="#id63">Call</a></li>
@@ -1410,7 +1534,7 @@ sessions and are temporary.</p>
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#queue-entries">/queue_entries</a><ul>
+<li><a class="reference internal" href="#queue-members">/queue_members</a><ul>
 <li><a class="reference internal" href="#id66">Methods</a></li>
 <li><a class="reference internal" href="#id67">Method: GET</a><ul>
 <li><a class="reference internal" href="#id68">Call</a></li>
@@ -1420,12 +1544,32 @@ sessions and are temporary.</p>
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#id71">/queue_entries/</a><ul>
+<li><a class="reference internal" href="#id71">/queue_members/</a><ul>
 <li><a class="reference internal" href="#id72">Methods</a></li>
 <li><a class="reference internal" href="#id73">Method: GET</a><ul>
 <li><a class="reference internal" href="#id74">Call</a></li>
 <li><a class="reference internal" href="#id75">Returns</a></li>
 <li><a class="reference internal" href="#id76">Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#queue-entries">/queue_entries</a><ul>
+<li><a class="reference internal" href="#id77">Methods</a></li>
+<li><a class="reference internal" href="#id78">Method: GET</a><ul>
+<li><a class="reference internal" href="#id79">Call</a></li>
+<li><a class="reference internal" href="#id80">Returns</a></li>
+<li><a class="reference internal" href="#id81">Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id82">/queue_entries/</a><ul>
+<li><a class="reference internal" href="#id83">Methods</a></li>
+<li><a class="reference internal" href="#id84">Method: GET</a><ul>
+<li><a class="reference internal" href="#id85">Call</a></li>
+<li><a class="reference internal" href="#id86">Returns</a></li>
+<li><a class="reference internal" href="#id87">Example</a></li>
 </ul>
 </li>
 </ul>
