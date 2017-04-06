@@ -33,6 +33,7 @@ static void ami_event_dialend(json_t* j_msg);
 static void ami_event_hangup(json_t* j_msg);
 static void ami_event_newchannel(json_t* j_msg);
 static void ami_event_originateresponse(json_t* j_msg);
+static void ami_event_parkinglot(json_t* j_msg);
 static void ami_event_peerentry(json_t* j_msg);
 static void ami_event_queuecallerabandon(json_t* j_msg);
 static void ami_event_queuecallerjoin(json_t* j_msg);
@@ -118,6 +119,9 @@ void ami_message_handler(const char* msg)
   }
   else if(strcasecmp(event, "OriginateResponse") == 0) {
     ami_event_originateresponse(j_msg);
+  }
+  else if(strcasecmp(event, "ParkingLot")) {
+    ami_event_parkinglot(j_msg);
   }
   else if(strcasecmp(event, "PeerEntry") == 0) {
     ami_event_peerentry(j_msg);
@@ -1493,6 +1497,137 @@ static void ami_event_agentlogoff(json_t* j_msg)
   sfree(sql);
   if(ret == false) {
     slog(LOG_WARNING, "Could not update agent info. agent[%s]", json_string_value(json_object_get(j_msg, "Agent")));
+    return;
+  }
+
+  return;
+}
+
+/**
+ * AMI event handler.
+ * Event: Parkinglot
+ * @param j_msg
+ */
+static void ami_event_parkinglot(json_t* j_msg)
+{
+  json_t* j_tmp;
+  int ret;
+  char* timestamp;
+  char* tmp;
+  char* sql;
+
+  if(j_msg == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired ami_event_parkinglot.");
+
+  timestamp = get_utc_timestamp();
+  j_tmp = json_pack("{"
+      "s:s, "
+      "s:s, s:s, "
+      "s:i, "
+      "s:s"
+      "}",
+
+      "name", json_string_value(json_object_get(j_msg, "Name"))? : "",
+
+      "start_space",  json_string_value(json_object_get(j_msg, "StartSpace"))? : "",
+      "stop_spcae",   json_string_value(json_object_get(j_msg, "StopSpace"))? : "",
+
+      "timeout",  json_string_value(json_object_get(j_msg, "Timeout"))? atoi(json_string_value(json_object_get(j_msg, "Timeout"))): 0,
+
+      "tm_update",  timestamp
+      );
+  sfree(timestamp);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not create message.");
+    return;
+  }
+
+  ret = db_insert_or_replace("parking_lot", j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert to parking_lot.");
+    return;
+  }
+
+  return;
+}
+
+/**
+ * AMI event handler.
+ * Event: ParkedCall
+ * @param j_msg
+ */
+static void ami_event_parkedcall(json_t* j_msg)
+{
+  json_t* j_tmp;
+  int ret;
+  char* timestamp;
+  char* tmp;
+  char* sql;
+
+  if(j_msg == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired ami_event_parkedcall.");
+
+  timestamp = get_utc_timestamp();
+  j_tmp = json_pack("{"
+      "s:s, s:s, s:s, "
+      "s:s, s:s, "
+      "s:s, s:s, "
+      "s:s"
+      "}",
+
+      // parked channel info
+      "parkee_channel",             json_string_value(json_object_get(j_msg, "ParkeeChannel"))? : "",
+      "parkee_channel_state",       json_string_value(json_object_get(j_msg, "ParkeeChannelState"))? : "",
+      "parkee_channel_state_desc",  json_string_value(json_object_get(j_msg, "ParkeeChannelStateDesc"))? : "",
+
+      // parked channel caller info
+      "parkee_caller_id_num",   json_string_value(json_object_get(j_msg, "ParkeeCallerIDNum"))? : "",
+      "parkee_caller_id_name",  json_string_value(json_object_get(j_msg, "ParkeeCallerIDName"))? : "",
+
+      // parked channel connected line info
+      "parkee_connected_line_num",  json_string_value(json_object_get(j_msg, "ParkeeConnectedLineNum"))? : "",
+      "parkee_connected_line_name", json_string_value(json_object_get(j_msg, "ParkeeConnectedLineName"))? : "",
+
+      // parked channel account info
+      "parkee_account_code",  json_string_value(json_object_get(j_msg, "ParkeeAccountCode"))? : "",
+
+      // parked channel dialplan info
+      "parkee_context",   json_string_value(json_object_get(j_msg, "ParkeeContext"))? : "",
+      "parkee_exten",     json_string_value(json_object_get(j_msg, "ParkeeExten"))? : "",
+      "parkee_priority",  json_string_value(json_object_get(j_msg, "ParkeePriority"))? : "",
+
+      // parked channel id info
+      "parkee_unique_id",   json_string_value(json_object_get(j_msg, "ParkeeUniqueid"))? : "",
+      "parkee_linked_id",   json_string_value(json_object_get(j_msg, "ParkeeLinkedid"))? : "",
+
+      // parked channel parker info
+      "parker_dial_string", json_string_value(json_object_get(j_msg, "ParkerDialString"))? : "",
+
+      // parking lot info
+      "parking_lot",      json_string_value(json_object_get(j_msg, "Parkinglot"))? : "",
+      "parking_space",    json_string_value(json_object_get(j_msg, "ParkingSpace"))? : "",
+      "parking_timeout",  json_string_value(json_object_get(j_msg, "ParkingTimeout"))? atoi(json_string_value(json_object_get(j_msg, "ParkingTimeout"))): 0,
+      "parking_duration", json_string_value(json_object_get(j_msg, "ParkingDuration"))? atoi(json_string_value(json_object_get(j_msg, "ParkingDuration"))): 0,
+
+      "tm_update",  timestamp
+      );
+  sfree(timestamp);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not create message.");
+    return;
+  }
+
+  ret = db_insert_or_replace("parking_lot", j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert to parking_lot.");
     return;
   }
 
