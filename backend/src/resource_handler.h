@@ -42,5 +42,9 @@ json_t* get_agent_info(const char* id);
 json_t* get_systems_all_id(void);
 json_t* get_system_info(const char* id);
 
+// device_state
+json_t* get_device_states_all_device(void);
+json_t* get_device_state_info(const char* device);
+
 
 #endif /* BACKEND_SRC_RESOURCE_HANDLER_H_ */
