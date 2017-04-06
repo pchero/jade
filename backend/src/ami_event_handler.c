@@ -1583,6 +1583,11 @@ static void ami_event_parkedcall(json_t* j_msg)
       "s:s, s:s, s:s, "
       "s:s, s:s, "
       "s:s, s:s, "
+      "s:s, "
+      "s:s, s:s, s:s, "
+      "s:s, s:s, "
+      "s:s, "
+      "s:s, s:s, s:i, s:i, "
       "s:s"
       "}",
 
@@ -1628,10 +1633,10 @@ static void ami_event_parkedcall(json_t* j_msg)
     return;
   }
 
-  ret = db_insert_or_replace("parking_lot", j_tmp);
+  ret = db_insert_or_replace("parked_call", j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
-    slog(LOG_ERR, "Could not insert to parking_lot.");
+    slog(LOG_ERR, "Could not insert to parked_call.");
     return;
   }
 
