@@ -46,5 +46,13 @@ json_t* get_system_info(const char* id);
 json_t* get_device_states_all_device(void);
 json_t* get_device_state_info(const char* device);
 
+// parking_lot
+json_t* get_parking_lots_all_name(void);
+json_t* get_parking_lot_info(const char* parkee_unique_id);
+
+// parked_call
+json_t* get_parked_calls_all_parkee_unique_id(void);
+json_t* get_parked_call_info(const char* parkee_unique_id);
+
 
 #endif /* BACKEND_SRC_RESOURCE_HANDLER_H_ */

@@ -37,6 +37,7 @@ static void ami_event_originateresponse(json_t* j_msg);
 static void ami_event_parkedcall(json_t* j_msg);
 static void ami_event_parkedcallgiveup(json_t* j_msg);
 static void ami_event_parkedcallswap(json_t* j_msg);
+static void ami_event_parkedcalltimeout(json_t* j_msg);
 static void ami_event_parkinglot(json_t* j_msg);
 static void ami_event_peerentry(json_t* j_msg);
 static void ami_event_queuecallerabandon(json_t* j_msg);
@@ -137,7 +138,10 @@ void ami_message_handler(const char* msg)
   else if(strcasecmp(event, "ParkedCallSwap") == 0) {
     ami_event_parkedcallswap(j_msg);
   }
-  else if(strcasecmp(event, "ParkingLot")) {
+  else if(strcasecmp(event, "ParkedCallTimeOut") == 0) {
+    ami_event_parkedcalltimeout(j_msg);
+  }
+  else if(strcasecmp(event, "ParkingLot") == 0) {
     ami_event_parkinglot(j_msg);
   }
   else if(strcasecmp(event, "PeerEntry") == 0) {
@@ -1525,7 +1529,7 @@ static void ami_event_agentlogoff(json_t* j_msg)
 
 /**
  * AMI event handler.
- * Event: Parkinglot
+ * Event: ParkingLot
  * @param j_msg
  */
 static void ami_event_parkinglot(json_t* j_msg)
@@ -1533,12 +1537,18 @@ static void ami_event_parkinglot(json_t* j_msg)
   json_t* j_tmp;
   int ret;
   char* timestamp;
+  char* tmp;
 
   if(j_msg == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
   slog(LOG_DEBUG, "Fired ami_event_parkinglot.");
+
+  // check event
+  tmp = json_dumps(j_msg, JSON_ENCODE_ANY);
+  slog(LOG_DEBUG, "Event message. msg[%s]", tmp);
+  sfree(tmp);
 
   timestamp = get_utc_timestamp();
   j_tmp = json_pack("{"
@@ -1748,6 +1758,35 @@ static void ami_event_parkedcallswap(json_t* j_msg)
     return;
   }
 
+  return;
+}
+
+/**
+ * AMI event handler.
+ * Event: ParkedCallTimeOut
+ * @param j_msg
+ */
+static void ami_event_parkedcalltimeout(json_t* j_msg)
+{
+  int ret;
+  char* sql;
+
+  if(j_msg == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired ami_event_parkedcalltimeout.");
+
+  asprintf(&sql, "delete from parked_call where parkee_unique_id=\"%s\";",
+      json_string_value(json_object_get(j_msg, "ParkeeUniqueid"))? : ""
+      );
+
+  ret = db_exec(sql);
+  sfree(sql);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not delete parked_call.");
+    return;
+  }
   return;
 }
 

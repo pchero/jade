@@ -532,7 +532,7 @@ static bool send_init_actions(void)
 
   // parking_lot
   j_tmp = json_pack("{s:s}",
-      "Action", "Parkinglosts"
+      "Action", "ParkingLots"
       );
   ret = send_ami_cmd(j_tmp);
   json_decref(j_tmp);
