@@ -340,6 +340,9 @@ static const char* g_sql_create_parking_lot =
 
 "   timeout int,"
 
+// timestamp. UTC."
+"   tm_update         datetime(6),"   // update time."
+
 "   primary key(name)"
 ");";
 
@@ -348,6 +351,10 @@ static const char* g_sql_create_parking_lot =
 static const char* g_sql_drop_parked_call = "drop table if exists parked_call;";
 static const char* g_sql_create_parked_call =
 "create table parked_call("
+
+// parked channel id info
+"   parkee_unique_id  varchar(255),"
+"   parkee_linked_id  varchar(255),"
 
 // parked channel info
 "   parkee_channel              varchar(255),"
@@ -370,10 +377,6 @@ static const char* g_sql_create_parked_call =
 "   parkee_exten      varchar(255),"
 "   parkee_priority   varchar(255),"
 
-// parked channel id info
-"   parkee_unique_id  varchar(255),"
-"   parkee_linked_id  varchar(255),"
-
 // parked channel parker info
 "   parker_dial_string varchar(255),"
 
@@ -382,6 +385,9 @@ static const char* g_sql_create_parked_call =
 "   parking_space     varchar(255),"
 "   parking_timeout   int,"
 "   parking_duration  int,"
+
+// timestamp. UTC."
+"   tm_update         datetime(6),"   // update time."
 
 "   primary key(parkee_unique_id)"
 ");";
