@@ -357,7 +357,6 @@ Returns
    {
      $defhdr,
      "reuslt": {
-       "name": "<string>",
        "unique_id": "<string>",
        "linked_id": "<string>",
        "state": <integer>,
@@ -381,7 +380,6 @@ Returns
 
 Return parameters
 
-* ``name``: Channel name.
 * ``unique_id``: Channel's unique id.
 * ``linked_id``: Channel's linked id.
 * ``state``: Channel's state.
@@ -428,6 +426,48 @@ Example
      "statuscode": 200,
      "timestamp": "2017-03-12T02:00:57.493480577Z"
    }
+   
+   {
+     "api_ver": "0.1",
+     "result": {
+       "account_code": "",
+       "caller_id_name": "<unknown>",
+       "caller_id_num": "agent-02",
+       "channel": "SIP/agent-02-0000001e",
+       "channel_state": 6,
+       "channel_state_desc": "Up",
+       "connected_line_name": "<unknown>",
+       "connected_line_num": "<unknown>",
+       "context": "park-dial",
+       "exten": "SIP_agent-02",
+       "language": "en",
+       "linked_id": "1491687461.63",
+       "priority": "1",
+       "state": 0,
+       "state_desc": "Down",
+       "tm_update": "2017-04-08T21:38:26.377086874Z",
+       "unique_id": "1491687461.63",
+       "variables": {
+         "ANSWEREDTIME": "",
+         "BRIDGE_FEATURES": "",
+         "DIALEDPEERNAME": "",
+         "DIALEDPEERNUMBER": "",
+         "DIALEDTIME": "",
+         "DIALSTATUS": "",
+         "PARKEDLOT": "default",
+         "PARKER": "SIP/agent-02",
+         "PARKER_FLAT": "SIP_agent-02",
+         "PARKINGSLOT": "701",
+         "PARKING_SPACE": "701",
+         "SIPCALLID": "736758400",
+         "SIPDOMAIN": "saturn.pchero21.com",
+         "SIPURI": "sip:agent-02@192.168.200.1"
+       }
+     },
+     "statuscode": 200,
+     "timestamp": "2017-04-08T21:38:30.939884476Z"
+   }
+
 
 
 /device_states

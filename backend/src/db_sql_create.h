@@ -38,12 +38,8 @@ static const char* g_sql_create_channel =
 
 // channel info
 "   channel             varchar(255),"
-"   channel_state       integer,"
+"   channel_state       int,"
 "   channel_state_desc  varchar(255),"
-
-// status
-"   state       int,"
-"   state_desc  varchar(255),"
 
 // dial info
 "   caller_id_num       varchar(255),"

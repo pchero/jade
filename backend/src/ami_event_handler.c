@@ -1197,18 +1197,20 @@ static void ami_event_newchannel(json_t* j_msg)
 
   timestamp = get_utc_timestamp();
   j_tmp = json_pack("{"
-      "s:s, "
-      "s:i, s:s, "
+      "s:s, s:s, "
+      "s:s, s:i, s:s, "
       "s:s, s:s, s:s, s:s, s:s, s:s, "
-      "s:s, s:s, s:s, s:s, s:s, ,"
+      "s:s, s:s, s:s, ,"
       "s:{}"
       "s:s"
       "}",
 
-      "channel",   json_string_value(json_object_get(j_msg, "Channel"))? : "",
+      "unique_id",  json_string_value(json_object_get(j_msg, "Uniqueid"))? : "",
+      "linked_id",  json_string_value(json_object_get(j_msg, "Linkedid"))? : "",
 
-      "state",      json_string_value(json_object_get(j_msg, "ChannelState"))? atoi(json_string_value(json_object_get(j_msg, "ChannelState"))): 0,
-      "state_desc", json_string_value(json_object_get(j_msg, "ChannelStateDesc"))? : "",
+      "channel",   json_string_value(json_object_get(j_msg, "Channel"))? : "",
+      "channel_state",      json_string_value(json_object_get(j_msg, "ChannelState"))? atoi(json_string_value(json_object_get(j_msg, "ChannelState"))): 0,
+      "channel_state_desc", json_string_value(json_object_get(j_msg, "ChannelStateDesc"))? : "",
 
       "caller_id_num",        json_string_value(json_object_get(j_msg, "CallerIDNum"))? : "",
       "caller_id_name",       json_string_value(json_object_get(j_msg, "CallerIDName"))? : "",
@@ -1220,8 +1222,6 @@ static void ami_event_newchannel(json_t* j_msg)
       "context",    json_string_value(json_object_get(j_msg, "Context"))? : "",
       "exten",      json_string_value(json_object_get(j_msg, "Exten"))? : "",
       "priority",   json_string_value(json_object_get(j_msg, "Priority"))? : "",
-      "unique_id",  json_string_value(json_object_get(j_msg, "Uniqueid"))? : "",
-      "linked_id",  json_string_value(json_object_get(j_msg, "Linkedid"))? : "",
 
       "variables",
 
