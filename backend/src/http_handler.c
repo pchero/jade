@@ -194,9 +194,14 @@ void simple_response_error(evhtp_request_t *req, int status_code, int err_code, 
 
   // add default headers
   evhtp_headers_add_header(req->headers_out, evhtp_header_new("Access-Control-Allow-Headers", "x-requested-with, content-type, accept, origin, authorization", 1, 1));
-  evhtp_headers_add_header(req->headers_out, evhtp_header_new("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE", 1, 1));
+  evhtp_headers_add_header (req->headers_out, evhtp_header_new("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS", 1, 1));
   evhtp_headers_add_header(req->headers_out, evhtp_header_new("Access-Control-Allow-Origin", "*", 1, 1));
   evhtp_headers_add_header(req->headers_out, evhtp_header_new("Access-Control-Max-Age", "86400", 1, 1));
+
+  if(evhtp_request_get_method(req) == htp_method_OPTIONS) {
+    evhtp_send_reply(req, EVHTP_RES_OK);
+    return;
+  }
 
   // create default result
   j_res = create_default_result(status_code);
