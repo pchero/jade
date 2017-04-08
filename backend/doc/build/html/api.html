@@ -356,7 +356,7 @@ sessions and are temporary.</p>
   &quot;result&quot;: {
     &quot;list&quot;: [
       {
-        &quot;unique_id&quot;: &quot;6d4c1dc4-7e91-430c-a51a-92fcbdd2f831&quot;
+        &quot;unique_id&quot;: &quot;1491685655.33&quot;
       }
     ]
   },
@@ -379,7 +379,7 @@ sessions and are temporary.</p>
 <p>Get channel&#8217;s detail info of given channel info.</p>
 <div class="section" id="id19">
 <h4>Call<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>GET /queue_entries/
+<div class="highlight-python"><div class="highlight"><pre>GET /channels/
 
 {
   &quot;unique_id&quot;: &quot;&lt;string&gt;&quot;
@@ -396,11 +396,12 @@ sessions and are temporary.</p>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr,
   &quot;reuslt&quot;: {
-    &quot;name&quot;: &quot;&lt;string&gt;&quot;,
     &quot;unique_id&quot;: &quot;&lt;string&gt;&quot;,
     &quot;linked_id&quot;: &quot;&lt;string&gt;&quot;,
-    &quot;state&quot;: &lt;integer&gt;,
-    &quot;state_desc&quot;: &quot;&lt;string&gt;&quot;,
+
+    &quot;channel&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;channel_state&quot;: &lt;integer&gt;,
+    &quot;channel_state_desc&quot;: &quot;&lt;string&gt;&quot;,
 
     &quot;context&quot;: &quot;&lt;string&gt;&quot;,
     &quot;exten&quot;: &quot;&lt;string&gt;&quot;,
@@ -408,11 +409,14 @@ sessions and are temporary.</p>
 
     &quot;caller_id_name&quot;: &quot;&lt;string&gt;&quot;,
     &quot;caller_id_num&quot;: &quot;&lt;string&gt;&quot;,
+
     &quot;connected_line_name&quot;: &quot;&lt;string&gt;&quot;,
     &quot;connected_line_num&quot;: &quot;&lt;string&gt;&quot;,
 
     &quot;account_code&quot;: &quot;&lt;string&gt;&quot;,
     &quot;language&quot;: &quot;&lt;string&gt;&quot;,
+
+    &quot;variables&quot;: {},
 
     &quot;tm_update&quot;: &quot;2017-03-12T01:59:15.213772334Z&quot;
   }
@@ -421,11 +425,11 @@ sessions and are temporary.</p>
 </div>
 <p>Return parameters</p>
 <ul class="simple">
-<li><tt class="docutils literal"><span class="pre">name</span></tt>: Channel name.</li>
 <li><tt class="docutils literal"><span class="pre">unique_id</span></tt>: Channel&#8217;s unique id.</li>
 <li><tt class="docutils literal"><span class="pre">linked_id</span></tt>: Channel&#8217;s linked id.</li>
-<li><tt class="docutils literal"><span class="pre">state</span></tt>: Channel&#8217;s state.</li>
-<li><tt class="docutils literal"><span class="pre">state_desc</span></tt>: Channel&#8217;s state description.</li>
+<li><tt class="docutils literal"><span class="pre">channel</span></tt>: Channel&#8217;s name.</li>
+<li><tt class="docutils literal"><span class="pre">channel_state</span></tt>: Channel&#8217;s state.</li>
+<li><tt class="docutils literal"><span class="pre">channel_state_desc</span></tt>: Channel&#8217;s state description.</li>
 <li><tt class="docutils literal"><span class="pre">context</span></tt>: Context.</li>
 <li><tt class="docutils literal"><span class="pre">exten</span></tt>: Extension.</li>
 <li><tt class="docutils literal"><span class="pre">priority</span></tt>: Priority</li>
@@ -435,34 +439,40 @@ sessions and are temporary.</p>
 <li><tt class="docutils literal"><span class="pre">connected_line_num</span></tt>: Caller&#8217;s line number.</li>
 <li><tt class="docutils literal"><span class="pre">account_code</span></tt>: Account code.</li>
 <li><tt class="docutils literal"><span class="pre">language</span></tt>: Language.</li>
+<li><tt class="docutils literal"><span class="pre">variables</span></tt>: List of channel&#8217;s variables.</li>
 </ul>
 </div>
 <div class="section" id="id21">
 <h4>Example<a class="headerlink" href="#id21" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/queue_entries/ -d \
-&#39;{&quot;unique_id&quot;: &quot;6d4c1dc4-7e91-430c-a51a-92fcbdd2f831&quot;}&#39;
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET saturn.pchero21.com:8081/channels/ -d \
+ &#39;{&quot;unique_id&quot;: &quot;1491687461.63&quot;}&#39;
 
 {
   &quot;api_ver&quot;: &quot;0.1&quot;,
   &quot;result&quot;: {
     &quot;account_code&quot;: &quot;&quot;,
     &quot;caller_id_name&quot;: &quot;&lt;unknown&gt;&quot;,
-    &quot;caller_id_num&quot;: &quot;&lt;unknown&gt;&quot;,
+    &quot;caller_id_num&quot;: &quot;agent-02&quot;,
+    &quot;channel&quot;: &quot;SIP/agent-02-00000020&quot;,
+    &quot;channel_state&quot;: 0,
+    &quot;channel_state_desc&quot;: &quot;Down&quot;,
     &quot;connected_line_name&quot;: &quot;&lt;unknown&gt;&quot;,
     &quot;connected_line_num&quot;: &quot;&lt;unknown&gt;&quot;,
     &quot;context&quot;: &quot;public&quot;,
-    &quot;exten&quot;: &quot;s&quot;,
+    &quot;exten&quot;: &quot;4001&quot;,
     &quot;language&quot;: &quot;en&quot;,
-    &quot;linked_id&quot;: &quot;6d4c1dc4-7e91-430c-a51a-92fcbdd2f831&quot;,
-    &quot;name&quot;: &quot;SIP/300-000003a2&quot;,
+    &quot;linked_id&quot;: &quot;1491688157.67&quot;,
     &quot;priority&quot;: &quot;1&quot;,
-    &quot;state&quot;: 0,
-    &quot;state_desc&quot;: &quot;Down&quot;,
-    &quot;tm_update&quot;: &quot;2017-03-12T01:59:15.213772334Z&quot;,
-    &quot;unique_id&quot;: &quot;6d4c1dc4-7e91-430c-a51a-92fcbdd2f831&quot;
+    &quot;tm_update&quot;: &quot;2017-04-08T21:49:17.733273728Z&quot;,
+    &quot;unique_id&quot;: &quot;1491688157.67&quot;,
+    &quot;variables&quot;: {
+      &quot;SIPCALLID&quot;: &quot;1378128099&quot;,
+      &quot;SIPDOMAIN&quot;: &quot;saturn.pchero21.com&quot;,
+      &quot;SIPURI&quot;: &quot;sip:agent-02@192.168.200.1&quot;
+    }
   },
   &quot;statuscode&quot;: 200,
-  &quot;timestamp&quot;: &quot;2017-03-12T02:00:57.493480577Z&quot;
+  &quot;timestamp&quot;: &quot;2017-04-08T21:49:58.201627251Z&quot;
 }
 </pre></div>
 </div>

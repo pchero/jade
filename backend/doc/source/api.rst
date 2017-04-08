@@ -316,7 +316,7 @@ Example
      "result": {
        "list": [
          {
-           "unique_id": "6d4c1dc4-7e91-430c-a51a-92fcbdd2f831"
+           "unique_id": "1491685655.33"
          }
        ]
      },
@@ -340,7 +340,7 @@ Call
 ++++
 ::
 
-   GET /queue_entries/
+   GET /channels/
   
    {
      "unique_id": "<string>"
@@ -359,8 +359,10 @@ Returns
      "reuslt": {
        "unique_id": "<string>",
        "linked_id": "<string>",
-       "state": <integer>,
-       "state_desc": "<string>",
+              
+       "channel": "<string>",
+       "channel_state": <integer>,
+       "channel_state_desc": "<string>",
 
        "context": "<string>",
        "exten": "<string>",
@@ -368,11 +370,14 @@ Returns
 
        "caller_id_name": "<string>",
        "caller_id_num": "<string>",
+       
        "connected_line_name": "<string>",
        "connected_line_num": "<string>",
 
        "account_code": "<string>",
        "language": "<string>",
+       
+       "variables": {},
        
        "tm_update": "2017-03-12T01:59:15.213772334Z"
      }
@@ -382,8 +387,10 @@ Return parameters
 
 * ``unique_id``: Channel's unique id.
 * ``linked_id``: Channel's linked id.
-* ``state``: Channel's state.
-* ``state_desc``: Channel's state description.
+
+* ``channel``: Channel's name.
+* ``channel_state``: Channel's state.
+* ``channel_state_desc``: Channel's state description.
 
 * ``context``: Context.
 * ``exten``: Extension.
@@ -391,81 +398,48 @@ Return parameters
 
 * ``caller_id_name``: Caller's id name.
 * ``caller_id_num``: Caller's id number.
+
 * ``connected_line_name``: Caller's line name.
 * ``connected_line_num``: Caller's line number.
 
 * ``account_code``: Account code.
 * ``language``: Language.
 
+* ``variables``: List of channel's variables.
+
 Example
 +++++++
 ::
 
-   $ curl -X GET 192.168.200.10:8081/queue_entries/ -d \
-   '{"unique_id": "6d4c1dc4-7e91-430c-a51a-92fcbdd2f831"}'
-   
-   {
-     "api_ver": "0.1",
-     "result": {
-       "account_code": "",
-       "caller_id_name": "<unknown>",
-       "caller_id_num": "<unknown>",
-       "connected_line_name": "<unknown>",
-       "connected_line_num": "<unknown>",
-       "context": "public",
-       "exten": "s",
-       "language": "en",
-       "linked_id": "6d4c1dc4-7e91-430c-a51a-92fcbdd2f831",
-       "name": "SIP/300-000003a2",
-       "priority": "1",
-       "state": 0,
-       "state_desc": "Down",
-       "tm_update": "2017-03-12T01:59:15.213772334Z",
-       "unique_id": "6d4c1dc4-7e91-430c-a51a-92fcbdd2f831"
-     },
-     "statuscode": 200,
-     "timestamp": "2017-03-12T02:00:57.493480577Z"
-   }
-   
+   $ curl -X GET saturn.pchero21.com:8081/channels/ -d \
+    '{"unique_id": "1491687461.63"}'
+      
    {
      "api_ver": "0.1",
      "result": {
        "account_code": "",
        "caller_id_name": "<unknown>",
        "caller_id_num": "agent-02",
-       "channel": "SIP/agent-02-0000001e",
-       "channel_state": 6,
-       "channel_state_desc": "Up",
+       "channel": "SIP/agent-02-00000020",
+       "channel_state": 0,
+       "channel_state_desc": "Down",
        "connected_line_name": "<unknown>",
        "connected_line_num": "<unknown>",
-       "context": "park-dial",
-       "exten": "SIP_agent-02",
+       "context": "public",
+       "exten": "4001",
        "language": "en",
-       "linked_id": "1491687461.63",
+       "linked_id": "1491688157.67",
        "priority": "1",
-       "state": 0,
-       "state_desc": "Down",
-       "tm_update": "2017-04-08T21:38:26.377086874Z",
-       "unique_id": "1491687461.63",
+       "tm_update": "2017-04-08T21:49:17.733273728Z",
+       "unique_id": "1491688157.67",
        "variables": {
-         "ANSWEREDTIME": "",
-         "BRIDGE_FEATURES": "",
-         "DIALEDPEERNAME": "",
-         "DIALEDPEERNUMBER": "",
-         "DIALEDTIME": "",
-         "DIALSTATUS": "",
-         "PARKEDLOT": "default",
-         "PARKER": "SIP/agent-02",
-         "PARKER_FLAT": "SIP_agent-02",
-         "PARKINGSLOT": "701",
-         "PARKING_SPACE": "701",
-         "SIPCALLID": "736758400",
+         "SIPCALLID": "1378128099",
          "SIPDOMAIN": "saturn.pchero21.com",
          "SIPURI": "sip:agent-02@192.168.200.1"
        }
      },
      "statuscode": 200,
-     "timestamp": "2017-04-08T21:38:30.939884476Z"
+     "timestamp": "2017-04-08T21:49:58.201627251Z"
    }
 
 
