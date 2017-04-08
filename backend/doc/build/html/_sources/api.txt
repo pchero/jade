@@ -543,7 +543,7 @@ Returns
 Return parameters
 
 * ``device``: Device name.
-* ``state``: Device state.
+* ``state``: Device state. See detail :ref:`device_state`.
 
 Example
 +++++++
