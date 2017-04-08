@@ -67,6 +67,15 @@ static void cb_htp_systems_detail(evhtp_request_t *req, void *data);
 static void cb_htp_device_states(evhtp_request_t *req, void *data);
 static void cb_htp_device_states_detail(evhtp_request_t *req, void *data);
 
+// parking_lots
+static void cb_htp_parking_lots(evhtp_request_t *req, void *data);
+static void cb_htp_parking_lots_detail(evhtp_request_t *req, void *data);
+
+// parked_calls
+static void cb_htp_parked_calls(evhtp_request_t *req, void *data);
+static void cb_htp_parked_calls_detail(evhtp_request_t *req, void *data);
+
+
 
 bool init_http_handler(void)
 {
@@ -124,6 +133,13 @@ bool init_http_handler(void)
   evhtp_set_regex_cb(g_htp, "/device_states/", cb_htp_device_states_detail, NULL);
   evhtp_set_regex_cb(g_htp, "/device_states", cb_htp_device_states, NULL);
 
+  // parking_lots
+  evhtp_set_regex_cb(g_htp, "/parking_lots/", cb_htp_parking_lots_detail, NULL);
+  evhtp_set_regex_cb(g_htp, "/parking_lots", cb_htp_parking_lots, NULL);
+
+  // parked_calls
+  evhtp_set_regex_cb(g_htp, "/parked_calls/", cb_htp_parked_calls_detail, NULL);
+  evhtp_set_regex_cb(g_htp, "/parked_calls", cb_htp_parked_calls, NULL);
 
 
   return true;
@@ -1267,4 +1283,239 @@ static void cb_htp_device_states_detail(evhtp_request_t *req, void *data)
 
   return;
 }
+
+/**
+ * http request handler
+ * ^/parking_lots
+ * @param req
+ * @param data
+ */
+static void cb_htp_parking_lots(evhtp_request_t *req, void *data)
+{
+  int method;
+  json_t* j_res;
+  json_t* j_tmp;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_parking_lots.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if(method != htp_method_GET) {
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  if(method == htp_method_GET) {
+    j_tmp = get_parking_lots_all_name();
+    if(j_tmp == NULL) {
+      simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+      return;
+    }
+
+    // create result
+    j_res = create_default_result(EVHTP_RES_OK);
+    json_object_set_new(j_res, "result", json_object());
+    json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
+
+    simple_response_normal(req, j_res);
+    json_decref(j_res);
+  }
+  else {
+    // should not reach to here.
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  }
+
+  return;
+}
+
+/**
+ * http request handler
+ * ^/parking_lots/
+ * @param req
+ * @param data
+ */
+static void cb_htp_parking_lots_detail(evhtp_request_t *req, void *data)
+{
+  int method;
+  json_t* j_data;
+  json_t* j_res;
+  json_t* j_tmp;
+  const char* tmp_const;
+  char* tmp;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_parking_lots_detail.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if(method != htp_method_GET) {
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  if(method == htp_method_GET) {
+    // get data
+    tmp_const = (char*)evbuffer_pullup(req->buffer_in, evbuffer_get_length(req->buffer_in));
+    if(tmp_const == NULL) {
+      simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+      return;
+    }
+
+    // create json
+    tmp = strndup(tmp_const, evbuffer_get_length(req->buffer_in));
+    slog(LOG_DEBUG, "Requested data. data[%s]", tmp);
+    j_data = json_loads(tmp, JSON_DECODE_ANY, NULL);
+    sfree(tmp);
+    if(j_data == NULL) {
+      simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+      return;
+    }
+
+    // get value
+    j_tmp = get_parking_lot_info(json_string_value(json_object_get(j_data, "name")));
+    json_decref(j_data);
+    if(j_tmp == NULL) {
+      simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+      return;
+    }
+
+    // create result
+    j_res = create_default_result(EVHTP_RES_OK);
+    json_object_set_new(j_res, "result", j_tmp);
+
+    simple_response_normal(req, j_res);
+    json_decref(j_res);
+  }
+  else {
+    // should not reach to here.
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  }
+
+  return;
+}
+
+/**
+ * http request handler
+ * ^/parked_calls
+ * @param req
+ * @param data
+ */
+static void cb_htp_parked_calls(evhtp_request_t *req, void *data)
+{
+  int method;
+  json_t* j_res;
+  json_t* j_tmp;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_parked_calls.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if(method != htp_method_GET) {
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  if(method == htp_method_GET) {
+    j_tmp = get_parked_calls_all_parkee_unique_id();
+    if(j_tmp == NULL) {
+      simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+      return;
+    }
+
+    // create result
+    j_res = create_default_result(EVHTP_RES_OK);
+    json_object_set_new(j_res, "result", json_object());
+    json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
+
+    simple_response_normal(req, j_res);
+    json_decref(j_res);
+  }
+  else {
+    // should not reach to here.
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  }
+
+  return;
+}
+
+/**
+ * http request handler
+ * ^/parked_calls/
+ * @param req
+ * @param data
+ */
+static void cb_htp_parked_calls_detail(evhtp_request_t *req, void *data)
+{
+  int method;
+  json_t* j_data;
+  json_t* j_res;
+  json_t* j_tmp;
+  const char* tmp_const;
+  char* tmp;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_parking_lots_detail.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if(method != htp_method_GET) {
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  if(method == htp_method_GET) {
+    // get data
+    tmp_const = (char*)evbuffer_pullup(req->buffer_in, evbuffer_get_length(req->buffer_in));
+    if(tmp_const == NULL) {
+      simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+      return;
+    }
+
+    // create json
+    tmp = strndup(tmp_const, evbuffer_get_length(req->buffer_in));
+    slog(LOG_DEBUG, "Requested data. data[%s]", tmp);
+    j_data = json_loads(tmp, JSON_DECODE_ANY, NULL);
+    sfree(tmp);
+    if(j_data == NULL) {
+      simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+      return;
+    }
+
+    // get value
+    j_tmp = get_parked_call_info(json_string_value(json_object_get(j_data, "parkee_unique_id")));
+    json_decref(j_data);
+    if(j_tmp == NULL) {
+      simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+      return;
+    }
+
+    // create result
+    j_res = create_default_result(EVHTP_RES_OK);
+    json_object_set_new(j_res, "result", j_tmp);
+
+    simple_response_normal(req, j_res);
+    json_decref(j_res);
+  }
+  else {
+    // should not reach to here.
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  }
+
+  return;
+}
+
 

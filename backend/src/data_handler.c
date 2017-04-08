@@ -445,6 +445,22 @@ static bool init_ami_database(void)
     return false;
   }
 
+  // parking_lot
+  db_exec(g_sql_drop_parking_lot);
+  ret = db_exec(g_sql_create_parking_lot);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create table. table[%s]", "parking_lot");
+    return false;
+  }
+
+  // parked_call
+  db_exec(g_sql_drop_parked_call);
+  ret = db_exec(g_sql_create_parked_call);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create table. table[%s]", "parked_call");
+    return false;
+  }
+
   return true;
 }
 
@@ -511,6 +527,28 @@ static bool send_init_actions(void)
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not send ami action. action[%s]", "Agents");
+    return false;
+  }
+
+  // parking_lot
+  j_tmp = json_pack("{s:s}",
+      "Action", "ParkingLots"
+      );
+  ret = send_ami_cmd(j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not send ami action. action[%s]", "Parkinglosts");
+    return false;
+  }
+
+  // parked_call
+  j_tmp = json_pack("{s:s}",
+      "Action", "ParkedCalls"
+      );
+  ret = send_ami_cmd(j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not send ami action. action[%s]", "ParkedCalls");
     return false;
   }
 

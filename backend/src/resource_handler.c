@@ -733,17 +733,85 @@ json_t* get_device_states_all_device(void)
  * Get corresponding device_state detail info.
  * @return
  */
-json_t* get_device_state_info(const char* device)
+json_t* get_device_state_info(const char* name)
 {
   json_t* j_res;
 
-  if(device == NULL) {
+  if(name == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return NULL;
   }
-  slog(LOG_DEBUG, "Fired get_device_state_info. device[%s]", device);
+  slog(LOG_DEBUG, "Fired get_device_state_info. device[%s]", name);
 
-  j_res = get_detail_item_key_string("device_state", "device", device);
+  j_res = get_detail_item_key_string("device_state", "device", name);
+
+  return j_res;
+}
+
+/**
+ * Get all parking_lot's all name array
+ * @return
+ */
+json_t* get_parking_lots_all_name(void)
+{
+  json_t* j_res;
+
+  slog(LOG_DEBUG, "Fired get_parking_lots_all_name.");
+
+  j_res = get_items("parking_lot", "name");
+
+  return j_res;
+}
+
+/**
+ * Get corresponding parking_lot detail info.
+ * @return
+ */
+json_t* get_parking_lot_info(const char* name)
+{
+  json_t* j_res;
+
+  if(name == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_parking_lot_info. name[%s]", name);
+
+  j_res = get_detail_item_key_string("parking_lot", "name", name);
+
+  return j_res;
+}
+
+/**
+ * Get all parking_lot's all parkee_unique_id array
+ * @return
+ */
+json_t* get_parked_calls_all_parkee_unique_id(void)
+{
+  json_t* j_res;
+
+  slog(LOG_DEBUG, "Fired get_parked_calls_all_unique_id.");
+
+  j_res = get_items("parked_call", "parkee_unique_id");
+
+  return j_res;
+}
+
+/**
+ * Get corresponding parking_lot detail info.
+ * @return
+ */
+json_t* get_parked_call_info(const char* parkee_unique_id)
+{
+  json_t* j_res;
+
+  if(parkee_unique_id == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_parked_call_info. name[%s]", parkee_unique_id);
+
+  j_res = get_detail_item_key_string("parked_call", "parkee_unique_id", parkee_unique_id);
 
   return j_res;
 }
