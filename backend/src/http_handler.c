@@ -246,6 +246,12 @@ json_t* create_default_result(int code)
   return j_res;
 }
 
+/**
+ * http request handler
+ * ^/ping
+ * @param req
+ * @param data
+ */
 static void cb_htp_ping(evhtp_request_t *req, void *a)
 {
   json_t* j_res;
@@ -255,7 +261,7 @@ static void cb_htp_ping(evhtp_request_t *req, void *a)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired cb_htp_ping");
+  slog(LOG_INFO, "Fired cb_htp_ping.");
 
   // create result
   j_tmp = json_pack("{s:s}",
@@ -272,6 +278,12 @@ static void cb_htp_ping(evhtp_request_t *req, void *a)
   return;
 }
 
+/**
+ * http request handler
+ * ^/peers
+ * @param req
+ * @param data
+ */
 static void cb_htp_peers(evhtp_request_t *req, void *data)
 {
   int method;
@@ -282,7 +294,7 @@ static void cb_htp_peers(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired cb_htp_peers.");
+  slog(LOG_INFO, "Fired cb_htp_peers.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -313,6 +325,12 @@ static void cb_htp_peers(evhtp_request_t *req, void *data)
   return;
 }
 
+/**
+ * http request handler
+ * ^/databases
+ * @param req
+ * @param data
+ */
 static void cb_htp_databases(evhtp_request_t *req, void *data)
 {
   int method;
@@ -326,7 +344,7 @@ static void cb_htp_databases(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired cb_htp_databases.");
+  slog(LOG_INFO, "Fired cb_htp_databases.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -357,6 +375,12 @@ static void cb_htp_databases(evhtp_request_t *req, void *data)
   return;
 }
 
+/**
+ * http request handler
+ * ^/databases/
+ * @param req
+ * @param data
+ */
 static void cb_htp_databases_key(evhtp_request_t *req, void *data)
 {
   int method;
@@ -373,7 +397,7 @@ static void cb_htp_databases_key(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired cb_htp_databases_key.");
+  slog(LOG_INFO, "Fired cb_htp_databases_key.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -423,6 +447,12 @@ static void cb_htp_databases_key(evhtp_request_t *req, void *data)
   return;
 }
 
+/**
+ * http request handler
+ * ^/registries
+ * @param req
+ * @param data
+ */
 static void cb_htp_registries(evhtp_request_t *req, void *data)
 {
   int method;
@@ -433,7 +463,7 @@ static void cb_htp_registries(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired cb_htp_registries.");
+  slog(LOG_INFO, "Fired cb_htp_registries.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -465,6 +495,12 @@ static void cb_htp_registries(evhtp_request_t *req, void *data)
   return;
 }
 
+/**
+ * http request handler
+ * ^/registries/
+ * @param req
+ * @param data
+ */
 static void cb_htp_registries_detail(evhtp_request_t *req, void *data)
 {
   int method;
@@ -478,7 +514,7 @@ static void cb_htp_registries_detail(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired cb_htp_registries_account.");
+  slog(LOG_INFO, "Fired cb_htp_registries_account.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -528,6 +564,12 @@ static void cb_htp_registries_detail(evhtp_request_t *req, void *data)
   return;
 }
 
+/**
+ * http request handler
+ * ^/queue_params
+ * @param req
+ * @param data
+ */
 static void cb_htp_queue_params(evhtp_request_t *req, void *data)
 {
   int method;
@@ -538,7 +580,7 @@ static void cb_htp_queue_params(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired cb_htp_queue_params.");
+  slog(LOG_INFO, "Fired cb_htp_queue_params.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -570,6 +612,12 @@ static void cb_htp_queue_params(evhtp_request_t *req, void *data)
   return;
 }
 
+/**
+ * http request handler
+ * ^/queue_params/
+ * @param req
+ * @param data
+ */
 static void cb_htp_queue_params_detail(evhtp_request_t *req, void *data)
 {
   int method;
@@ -583,7 +631,7 @@ static void cb_htp_queue_params_detail(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired cb_htp_queue_params_name.");
+  slog(LOG_INFO, "Fired cb_htp_queue_params_name.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -633,6 +681,12 @@ static void cb_htp_queue_params_detail(evhtp_request_t *req, void *data)
   return;
 }
 
+/**
+ * http request handler
+ * ^/queue_members
+ * @param req
+ * @param data
+ */
 static void cb_htp_queue_members(evhtp_request_t *req, void *data)
 {
   int method;
@@ -643,7 +697,7 @@ static void cb_htp_queue_members(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired cb_htp_queue_members.");
+  slog(LOG_INFO, "Fired cb_htp_queue_members.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -675,6 +729,12 @@ static void cb_htp_queue_members(evhtp_request_t *req, void *data)
   return;
 }
 
+/**
+ * http request handler
+ * ^/queue_members/
+ * @param req
+ * @param data
+ */
 static void cb_htp_queue_members_detail(evhtp_request_t *req, void *data)
 {
   int method;
@@ -688,7 +748,7 @@ static void cb_htp_queue_members_detail(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired cb_htp_queue_members_detail.");
+  slog(LOG_INFO, "Fired cb_htp_queue_members_detail.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -741,6 +801,12 @@ static void cb_htp_queue_members_detail(evhtp_request_t *req, void *data)
   return;
 }
 
+/**
+ * http request handler
+ * ^/queue_entries
+ * @param req
+ * @param data
+ */
 static void cb_htp_queue_entries(evhtp_request_t *req, void *data)
 {
   int method;
@@ -751,7 +817,7 @@ static void cb_htp_queue_entries(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired cb_htp_queue_entries.");
+  slog(LOG_INFO, "Fired cb_htp_queue_entries.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -783,6 +849,12 @@ static void cb_htp_queue_entries(evhtp_request_t *req, void *data)
   return;
 }
 
+/**
+ * http request handler
+ * ^/queue_entries/
+ * @param req
+ * @param data
+ */
 static void cb_htp_queue_entries_detail(evhtp_request_t *req, void *data)
 {
   int method;
@@ -796,7 +868,7 @@ static void cb_htp_queue_entries_detail(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired cb_htp_queue_entries_detail.");
+  slog(LOG_INFO, "Fired cb_htp_queue_entries_detail.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -849,6 +921,12 @@ static void cb_htp_queue_entries_detail(evhtp_request_t *req, void *data)
   return;
 }
 
+/**
+ * http request handler
+ * ^/channels
+ * @param req
+ * @param data
+ */
 static void cb_htp_channels(evhtp_request_t *req, void *data)
 {
   int method;
@@ -859,7 +937,7 @@ static void cb_htp_channels(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired cb_htp_channels.");
+  slog(LOG_INFO, "Fired cb_htp_channels.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -891,6 +969,12 @@ static void cb_htp_channels(evhtp_request_t *req, void *data)
   return;
 }
 
+/**
+ * http request handler
+ * ^/channels/
+ * @param req
+ * @param data
+ */
 static void cb_htp_channels_detail(evhtp_request_t *req, void *data)
 {
   int method;
@@ -904,7 +988,7 @@ static void cb_htp_channels_detail(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired cb_htp_queue_entries_detail.");
+  slog(LOG_INFO, "Fired cb_htp_queue_entries_detail.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -956,6 +1040,12 @@ static void cb_htp_channels_detail(evhtp_request_t *req, void *data)
   return;
 }
 
+/**
+ * http request handler
+ * ^/agents
+ * @param req
+ * @param data
+ */
 static void cb_htp_agents(evhtp_request_t *req, void *data)
 {
   int method;
@@ -966,7 +1056,7 @@ static void cb_htp_agents(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired cb_htp_agents.");
+  slog(LOG_INFO, "Fired cb_htp_agents.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -998,6 +1088,12 @@ static void cb_htp_agents(evhtp_request_t *req, void *data)
   return;
 }
 
+/**
+ * http request handler
+ * ^/agents/
+ * @param req
+ * @param data
+ */
 static void cb_htp_agents_detail(evhtp_request_t *req, void *data)
 {
   int method;
@@ -1011,7 +1107,7 @@ static void cb_htp_agents_detail(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired cb_htp_agents_detail.");
+  slog(LOG_INFO, "Fired cb_htp_agents_detail.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -1063,6 +1159,12 @@ static void cb_htp_agents_detail(evhtp_request_t *req, void *data)
   return;
 }
 
+/**
+ * http request handler
+ * ^/systems
+ * @param req
+ * @param data
+ */
 static void cb_htp_systems(evhtp_request_t *req, void *data)
 {
   int method;
@@ -1073,7 +1175,7 @@ static void cb_htp_systems(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired cb_htp_systems.");
+  slog(LOG_INFO, "Fired cb_htp_systems.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -1105,6 +1207,12 @@ static void cb_htp_systems(evhtp_request_t *req, void *data)
   return;
 }
 
+/**
+ * http request handler
+ * ^/systems/
+ * @param req
+ * @param data
+ */
 static void cb_htp_systems_detail(evhtp_request_t *req, void *data)
 {
   int method;
@@ -1118,7 +1226,7 @@ static void cb_htp_systems_detail(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired cb_htp_systems_detail.");
+  slog(LOG_INFO, "Fired cb_htp_systems_detail.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -1186,7 +1294,7 @@ static void cb_htp_device_states(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired cb_htp_device_states.");
+  slog(LOG_INFO, "Fired cb_htp_device_states.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -1237,7 +1345,7 @@ static void cb_htp_device_states_detail(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired cb_htp_systems_detail.");
+  slog(LOG_INFO, "Fired cb_htp_systems_detail.");
 
   // method check
   method = evhtp_request_get_method(req);
