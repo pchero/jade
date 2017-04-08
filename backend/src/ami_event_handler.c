@@ -15,8 +15,9 @@
 #include "db_handler.h"
 #include "ami_handler.h"
 #include "action_handler.h"
-
 #include "ami_response_handler.h"
+#include "resource_handler.h"
+
 #include "ob_ami_handler.h"
 #include "ob_dialing_handler.h"
 
@@ -54,6 +55,7 @@ static void ami_event_queuememberringinuse(json_t* j_msg);
 static void ami_event_queueparams(json_t* j_msg);
 static void ami_event_registryentry(json_t* j_msg);
 static void ami_event_unparkedcall(json_t* j_msg);
+static void ami_event_varset(json_t* j_msg);
 
 // action response handlers
 //static ACTION_RES ami_response_handler_databaseshowall(json_t* j_action, json_t* j_msg);
@@ -188,6 +190,9 @@ void ami_message_handler(const char* msg)
   }
   else if(strcasecmp(event, "UnParkedCall") == 0) {
     ami_event_unparkedcall(j_msg);
+  }
+  else if(strcasecmp(event, "VarSet") == 0) {
+    ami_event_varset(j_msg);
   }
   else {
     tmp = json_dumps(j_msg, JSON_ENCODE_ANY);
@@ -1144,8 +1149,8 @@ static void ami_event_hangup(json_t* j_msg)
   slog(LOG_DEBUG, "Event message. msg[%s]", tmp);
   sfree(tmp);
 
-  asprintf(&sql, "delete from channel where name=\"%s\";",
-      json_string_value(json_object_get(j_msg, "Channel"))
+  asprintf(&sql, "delete from channel where unique_id=\"%s\";",
+      json_string_value(json_object_get(j_msg, "Uniqueid"))
       );
 
   ret = db_exec(sql);
@@ -1195,11 +1200,12 @@ static void ami_event_newchannel(json_t* j_msg)
       "s:s, "
       "s:i, s:s, "
       "s:s, s:s, s:s, s:s, s:s, s:s, "
-      "s:s, s:s, s:s, s:s, s:s, "
+      "s:s, s:s, s:s, s:s, s:s, ,"
+      "s:{}"
       "s:s"
       "}",
 
-      "name",   json_string_value(json_object_get(j_msg, "Channel"))? : "",
+      "channel",   json_string_value(json_object_get(j_msg, "Channel"))? : "",
 
       "state",      json_string_value(json_object_get(j_msg, "ChannelState"))? atoi(json_string_value(json_object_get(j_msg, "ChannelState"))): 0,
       "state_desc", json_string_value(json_object_get(j_msg, "ChannelStateDesc"))? : "",
@@ -1216,6 +1222,8 @@ static void ami_event_newchannel(json_t* j_msg)
       "priority",   json_string_value(json_object_get(j_msg, "Priority"))? : "",
       "unique_id",  json_string_value(json_object_get(j_msg, "Uniqueid"))? : "",
       "linked_id",  json_string_value(json_object_get(j_msg, "Linkedid"))? : "",
+
+      "variables",
 
       "tm_update",  timestamp
       );
@@ -1886,6 +1894,80 @@ static void ami_event_devicestatechange(json_t* j_msg)
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to device_state.");
+    return;
+  }
+
+  return;
+}
+
+/**
+ * AMI event handler.
+ * Event: VarSet
+ * @param j_msg
+ */
+static void ami_event_varset(json_t* j_msg)
+{
+  json_t* j_chan;
+  int ret;
+  char* timestamp;
+  const char* unique_id;
+  const char* key;
+  const char* val;
+
+  if(j_msg == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired ami_event_varset.");
+
+  // get unique_id info
+  unique_id = json_string_value(json_object_get(j_msg, "Uniqueid"));
+  if(unique_id == NULL) {
+    slog(LOG_ERR, "Could not get unique_id info.");
+    return;
+  }
+
+  // get values
+  key = json_string_value(json_array_get(json_object_get(j_msg, "Variable"), 0));
+  val = json_string_value(json_object_get(j_msg, "Value"));
+  slog(LOG_DEBUG, "Check value. key[%s], val[%s]", key, val);
+
+  // get channel info
+  j_chan = get_channel_info(unique_id);
+  if(j_chan == NULL) {
+    slog(LOG_ERR, "Could not get channel info.");
+    return;
+  }
+
+  // update variables
+  json_object_set_new(json_object_get(j_chan, "variables"), key, json_string(val));
+
+  // update other values
+  json_object_set(j_chan, "channel", json_object_get(j_msg, "Channel"));
+  json_object_set_new(j_chan, "channel_state", json_integer(atoi(json_string_value(json_object_get(j_msg, "ChannelState")))));
+  json_object_set(j_chan, "channel_state_desc", json_object_get(j_msg, "ChannelStateDesc"));
+
+  json_object_set(j_chan, "caller_id_num", json_object_get(j_msg, "CallerIDNum"));
+  json_object_set(j_chan, "caller_id_name", json_object_get(j_msg, "CallerIDName"));
+
+  json_object_set(j_chan, "connected_line_num", json_object_get(j_msg, "ConnectedLineNum"));
+  json_object_set(j_chan, "connected_line_name", json_object_get(j_msg, "ConnectedLineName"));
+
+  json_object_set(j_chan, "language", json_object_get(j_msg, "Language"));
+  json_object_set(j_chan, "account_code", json_object_get(j_msg, "AccountCode"));
+
+  json_object_set(j_chan, "context", json_object_get(j_msg, "Context"));
+  json_object_set(j_chan, "exten", json_object_get(j_msg, "Exten"));
+  json_object_set(j_chan, "priority", json_object_get(j_msg, "Priority"));
+
+  timestamp = get_utc_timestamp();
+  json_object_set_new(j_chan, "tm_update", json_string(timestamp));
+  sfree(timestamp);
+
+  ret = db_insert_or_replace("channel", j_chan);
+  json_decref(j_chan);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert to channel.");
     return;
   }
 

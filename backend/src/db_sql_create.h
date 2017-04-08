@@ -33,7 +33,13 @@ static const char* g_sql_create_channel =
 "create table channel("
 
 // identity
-"   name    varchar(255)  not null,"
+"   unique_id   varchar(255) not null,"
+"   linked_id   varchar(255),"
+
+// channel info
+"   channel             varchar(255),"
+"   channel_state       integer,"
+"   channel_state_desc  varchar(255),"
 
 // status
 "   state       int,"
@@ -42,8 +48,10 @@ static const char* g_sql_create_channel =
 // dial info
 "   caller_id_num       varchar(255),"
 "   caller_id_name      varchar(255),"
+
 "   connected_line_num  varchar(255),"
 "   connected_line_name varchar(255),"
+
 "   language            varchar(255),"
 "   account_code        varchar(255),"
 
@@ -51,13 +59,14 @@ static const char* g_sql_create_channel =
 "   context     varchar(255),"
 "   exten       varchar(255),"
 "   priority    varchar(255),"
-"   unique_id   varchar(255),"
-"   linked_id   varchar(255),"
+
+// variables
+"   variables   text,"
 
 // timestamp. UTC."
 "   tm_update     datetime(6),"
 
-"   primary key(name)"
+"   primary key(unique_id)"
 ");";
 
 // peer
