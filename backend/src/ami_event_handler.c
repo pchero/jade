@@ -41,6 +41,7 @@ static void ami_event_parkedcallswap(json_t* j_msg);
 static void ami_event_parkedcalltimeout(json_t* j_msg);
 static void ami_event_parkinglot(json_t* j_msg);
 static void ami_event_peerentry(json_t* j_msg);
+static void ami_event_peerstatus(json_t* j_msg);
 static void ami_event_queuecallerabandon(json_t* j_msg);
 static void ami_event_queuecallerjoin(json_t* j_msg);
 static void ami_event_queuecallerleave(json_t* j_msg);
@@ -148,6 +149,9 @@ void ami_message_handler(const char* msg)
   }
   else if(strcasecmp(event, "PeerEntry") == 0) {
     ami_event_peerentry(j_msg);
+  }
+  else if(strcasecmp(event, "PeerStatus") == 0) {
+    ami_event_peerstatus(j_msg);
   }
   else if(strcasecmp(event, "QueueCallerAbandon") == 0) {
     ami_event_queuecallerabandon(j_msg);
@@ -348,7 +352,9 @@ static void ami_response_handler(json_t* j_msg)
 static void ami_event_peerentry(json_t* j_msg)
 {
   json_t* j_tmp;
-  char* name;
+  char* peer;
+  char* address;
+  char* timestamp;
   int ret;
 
   if(j_msg == NULL) {
@@ -357,26 +363,33 @@ static void ami_event_peerentry(json_t* j_msg)
   }
   slog(LOG_DEBUG, "Fired ami_event_peerentry.");
 
-  // create name
-  asprintf(&name, "%s/%s",
+  // create peer
+  asprintf(&peer, "%s/%s",
       json_string_value(json_object_get(j_msg, "Channeltype"))? : "",
       json_string_value(json_object_get(j_msg, "ObjectName"))? : ""
       );
 
+  // create address
+  asprintf(&address, "%s:%s",
+      json_string_value(json_object_get(j_msg, "IPaddress")),
+      json_string_value(json_object_get(j_msg, "IPport"))
+      );
+
+  timestamp = get_utc_timestamp();
   j_tmp = json_pack("{"
-    "s:s, s:s, s:s, "
+    "s:s, s:s, "
     "s:s, s:s, s:s, "
     "s:s, s:s, s:s, s:s, s:s, s:s, s:s, "
-    "s:s, s:s, s:s, s:s"
+    "s:s, s:s, s:s, "
+    "s:s"
     "}",
 
-    "name",         name,
-    "channel_type", json_string_value(json_object_get(j_msg, "Channeltype"))? : "",
-    "object_name",  json_string_value(json_object_get(j_msg, "ObjectName"))? : "",
+    "peer",     peer,
+    "address",  address,
 
+    "channel_type", json_string_value(json_object_get(j_msg, "Channeltype"))? : "",
     "chan_object_type", json_string_value(json_object_get(j_msg, "ChanObjectType"))? : "",
-    "ip_address",       json_string_value(json_object_get(j_msg, "IPaddress"))? : "",
-    "ip_port",          json_string_value(json_object_get(j_msg, "IPport"))? : "",
+    "monitor_status",   json_string_value(json_object_get(j_msg, "Status"))? : "",
 
     "dynamic",          json_string_value(json_object_get(j_msg, "Dynamic"))? : "",
     "auto_force_port",  json_string_value(json_object_get(j_msg, "AutoForcerport"))? : "",
@@ -387,11 +400,14 @@ static void ami_event_peerentry(json_t* j_msg)
     "text_support",     json_string_value(json_object_get(j_msg, "TextSupport"))? : "",
 
     "acl",              json_string_value(json_object_get(j_msg, "ACL"))? : "",
-    "status",           json_string_value(json_object_get(j_msg, "Status"))? : "",
     "realtime_device",  json_string_value(json_object_get(j_msg, "RealtimeDevice"))? : "",
-    "description",      json_string_value(json_object_get(j_msg, "Description"))? : ""
+    "description",      json_string_value(json_object_get(j_msg, "Description"))? : "",
+
+    "tm_update",  timestamp
   );
-  sfree(name);
+  sfree(timestamp);
+  sfree(peer);
+  sfree(address);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not create message.");
     return;
@@ -401,6 +417,51 @@ static void ami_event_peerentry(json_t* j_msg)
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert destination.");
+    return;
+  }
+
+  return;
+}
+
+/**
+ * AMI event handler.
+ * Event: PeerStatus
+ * @param j_msg
+ */
+static void ami_event_peerstatus(json_t* j_msg)
+{
+  int ret;
+  json_t* j_peer;
+  const char* peer;
+
+  if(j_msg == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+
+  // get peer
+  peer = json_string_value(json_object_get(j_msg, "Peer"));
+  if(peer == NULL) {
+    slog(LOG_ERR, "Could not get peer.");
+    return;
+  }
+
+  // get peer info.
+  j_peer = get_peer_detail(peer);
+  if(j_peer == NULL) {
+    slog(LOG_ERR, "Coudl not get peer info.");
+    return;
+  }
+
+  // update info
+  json_object_set(j_peer, "status", json_object_get(j_peer, "PeerStatus"));
+  json_object_set(j_peer, "address", json_object_get(j_peer, "Address"));
+  json_object_set(j_peer, "channel_type", json_object_get(j_peer, "ChannelType"));
+
+  ret = db_insert_or_replace("peer", j_peer);
+  json_decref(j_peer);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update peer status info.");
     return;
   }
 

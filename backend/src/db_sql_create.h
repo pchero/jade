@@ -71,14 +71,14 @@ static const char* g_sql_create_peer =
 "create table peer("
 
 // identity
-"   name         varchar(255)    not null,"
+"   peer         varchar(255)    not null,"
+"   status       varchar(255),"
+"   address      varchar(255),"     // ip_address:port
 
-"   channel_type varchar(255),"   // channel type(SIP, ...)
-"   object_name  varchar(255),"   // name(test-1, test-2, ...)
-
+// peer info
+"   channel_type     varchar(255),"   // channel type(SIP, ...)
 "   chan_object_type varchar(255),"   // (peer, ...)
-"   ip_address       varchar(255),"   // address
-"   ip_port          varchar(255),"   // port
+"   monitor_status   varchar(255),"
 
 "   dynamic          varchar(255),"   // dynamic(yes, ...)
 "   auto_force_port  varchar(255),"   //
@@ -89,15 +89,13 @@ static const char* g_sql_create_peer =
 "   text_support     varchar(255),"   //
 
 "   acl              varchar(255),"   //
-"   status           varchar(255),"   //
 "   realtime_device  varchar(255),"   //
 "   description      varchar(255),"   //
 
 // timestamp. UTC."
 "   tm_update        datetime(6),"   // update time."
 
-
-"   primary key(name)"
+"   primary key(peer)"
 
 ");";
 

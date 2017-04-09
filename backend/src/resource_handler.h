@@ -8,7 +8,9 @@
 #ifndef BACKEND_SRC_RESOURCE_HANDLER_H_
 #define BACKEND_SRC_RESOURCE_HANDLER_H_
 
-json_t* get_peers_all_name(void);
+// peer
+json_t* get_peers_all_peer(void);
+json_t* get_peer_detail(const char* name);
 
 // database
 json_t* get_databases_all_key(void);
