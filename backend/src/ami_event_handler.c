@@ -454,9 +454,9 @@ static void ami_event_peerstatus(json_t* j_msg)
   }
 
   // update info
-  json_object_set(j_peer, "status", json_object_get(j_peer, "PeerStatus"));
-  json_object_set(j_peer, "address", json_object_get(j_peer, "Address"));
-  json_object_set(j_peer, "channel_type", json_object_get(j_peer, "ChannelType"));
+  json_object_set(j_peer, "status", json_object_get(j_msg, "PeerStatus"));
+  json_object_set(j_peer, "address", json_object_get(j_msg, "Address"));
+  json_object_set(j_peer, "channel_type", json_object_get(j_msg, "ChannelType"));
 
   ret = db_insert_or_replace("peer", j_peer);
   json_decref(j_peer);

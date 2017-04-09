@@ -876,6 +876,166 @@ Example
    }
 
 
+/peers
+======
+
+Methods
+-------
+GET : Get list of all peer info.
+
+Method: GET
+-----------
+Get list of all peer info.
+
+Call
+++++
+::
+
+   GET /peers
+
+Returns
++++++++
+::
+
+   {
+     $defhdr,
+     "reuslt": {
+       "list": [
+         {"peer": "<string>"},
+         ...
+       ]
+     }
+   }
+  
+* ``list`` : array of peer entry info.
+   * ``peer``: Peer entry info.
+
+Example
++++++++
+::
+
+  $ curl -X GET saturn.pchero21.com:8081/peers
+  
+  {
+    "api_ver": "0.1",
+    "result": {
+      "list": [
+        {
+            "peer": "SIP/300"
+        },
+        ...
+      ]
+    },
+    "statuscode": 200,
+    "timestamp": "2017-04-09T01:42:24.765567356Z"
+  }
+
+/peers/
+=======
+
+Methods
+-------
+GET : Get peer detail info of given peer info.
+
+Method: GET
+-----------
+Get peer detail info of given peer info.
+
+Call
+++++
+::
+
+   GET /peers/
+  
+   {
+     "peer": "<string>"  
+   }
+   
+Data parameters
+
+* ``peer``: peer info.
+
+Returns
++++++++
+::
+
+  {
+    $defhdr,
+    "reuslt": {
+      "peer": "<string>",
+
+      "status": "<string>",
+      "address": "<string>",
+      "monitor_status": "<string>",
+
+      "channel_type": "<string>",
+      "chan_object_type": "<string>",
+
+      "dynamic": "<string>",
+      "auto_comedia": "<string>",
+      "auto_force_port": "<string>",
+      "acl": "<string>",
+      "comedia": "<string>",
+      "description": "<string>",
+      "force_port": "<string>",
+      "realtime_device": "<string>",
+      "text_support": "<string>",
+      "video_support": "<string>",
+      
+      "tm_update": "<timestamp>",
+    }
+  }
+
+* ``peer``: Peer name.
+
+* ``status``: Peer's status. See detail :ref:`peer_status`.
+* ``address``: Registered peer's address. "<ip>:<port>"
+* ``monitor_status``: Peer monitoring status. See detail :ref:`peer_monitoring_status`.
+
+* ``dynamic``: Peer's dynamic option value.
+* ``auto_comedia``: Peer's auto_comedia option value.
+* ``auto_force_port``: Peer's auto_force_port option value.
+* ``acl``: Peer's dynamic acl value.
+* ``comedia``: Peer's comedia option value.
+* ``description``: Peer's description option value.
+* ``force_port``: Peer's force_port option value.
+* ``realtime_device``: Peer's realtime_device option value.
+* ``text_support``: Peer's text support option value.
+* ``video_support``: Peer's video support option value.
+
+* ``tm_update``: Updated timestamp.
+
+Example
++++++++
+::
+
+   $ curl -X GET saturn.pchero21.com:8081/peers/ -d '{"peer": "agent-01"}'
+  
+  {
+    "api_ver": "0.1",
+    "result": {
+      "acl": "no",
+      "address": "192.168.200.1:5060",
+      "auto_comedia": "yes",
+      "auto_force_port": "no",
+      "chan_object_type": "peer",
+      "channel_type": "SIP",
+      "comedia": "yes",
+      "description": "",
+      "dynamic": "yes",
+      "force_port": "no",
+      "monitor_status": "OK (22 ms)",
+      "peer": "SIP/agent-01",
+      "realtime_device": "no",
+      "status": "Registered",
+      "text_support": "no",
+      "tm_update": "2017-04-09T02:08:18.756977409Z",
+      "video_support": "no"
+    },
+    "statuscode": 200,
+    "timestamp": "2017-04-09T02:09:55.226677432Z"
+  }
+
 /registries
 ===========
 

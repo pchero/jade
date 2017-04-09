@@ -44,3 +44,34 @@ Device's state
    ONHOLD      Device is on hold.
    =========== ===========
 
+.. _peer_monitoring_status:
+
+Peer monitoring status
+----------------------
+Peer's monitoring status.
+
+.. table:: Peer monitoring sttus
+
+  ========== ==============
+  Status     Detail
+  ========== ==============
+  ========== ==============
+
+
+.. _peer_status:
+
+Peer status
+-----------
+Peer's status.
+
+.. table:: Peer status
+
+  ============ =============
+  Status       Detail
+  ============ =============
+  Unknow       Unknwon status.
+  Registered   Peer has been registered.
+  Unregistered Peer has been unregistered.
+  Rejected     Rejected.
+  Lagged       Lagged.
+  ============ =============
