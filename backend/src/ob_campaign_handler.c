@@ -484,13 +484,12 @@ json_t* update_ob_campaign(const json_t* j_camp)
   sfree(tmp);
 
   tmp = db_get_update_str(j_tmp);
+  json_decref(j_tmp);
   if(tmp == NULL) {
     slog(LOG_WARNING, "Could not get update str.");
-    json_decref(j_tmp);
     sfree(uuid);
     return NULL;
   }
-  json_decref(j_tmp);
 
   asprintf(&sql, "update ob_campaign set %s where uuid=\"%s\" and in_use=%d;", tmp, uuid, E_USE_OK);
   sfree(tmp);
