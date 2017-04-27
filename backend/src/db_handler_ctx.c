@@ -169,9 +169,18 @@ bool db_ctx_init(db_ctx_t* ctx, const char* name)
   slog(LOG_DEBUG, "Initiate db context. name[%s]", name);
 
   // initiate stmt if exists
-  db_ctx_free_stmt(ctx);
+  ret = db_ctx_free_stmt(ctx);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate ctx. Failed to initiate stmt.");
+    return false;
+  }
 
   // initiate db, if exists
+  ret = db_ctx_free_db(ctx);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate ctx. Failed to initiate db.");
+    return false;
+  }
 
   // connect db
   ret = db_ctx_connect(ctx, name);
