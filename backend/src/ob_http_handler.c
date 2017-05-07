@@ -18,7 +18,6 @@
 #include "utils.h"
 #include "http_handler.h"
 #include "ob_http_handler.h"
-#include "db_handler.h"
 #include "resource_handler.h"
 
 #include "ob_campaign_handler.h"

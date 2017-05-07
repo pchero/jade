@@ -20,7 +20,7 @@
 #include "ast_header.h"
 
 #include "ob_destination_handler.h"
-#include "db_handler.h"
+#include "db_ctx_handler.h"
 #include "ob_dl_handler.h"
 #include "ob_campaign_handler.h"
 
@@ -34,6 +34,8 @@ static int get_avail_cnt_app_park(void);
 static int get_avail_cnt_app_queue(const char* name);
 static int get_avail_cnt_app_queue_service_perf(const char* name);
 static int get_avail_cnt_app_queue_available_member(const char* name);
+
+extern db_ctx_t* g_db_ob;
 
 /**
  * Create destination.
@@ -66,7 +68,7 @@ json_t* create_ob_destination(json_t* j_dest)
       json_string_value(json_object_get(j_tmp, "uuid")),
       json_string_value(json_object_get(j_tmp, "name"))? : ""
       );
-  ret = db_insert("ob_destination", j_tmp);
+  ret = db_ctx_insert(g_db_ob, "ob_destination", j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     sfree(uuid);
@@ -131,12 +133,12 @@ json_t* delete_ob_destination(const char* uuid)
   json_object_set_new(j_tmp, "in_use", json_integer(E_USE_NO));
   sfree(tmp);
 
-  tmp = db_get_update_str(j_tmp);
+  tmp = db_ctx_get_update_str(j_tmp);
   json_decref(j_tmp);
   asprintf(&sql, "update ob_destination set %s where uuid=\"%s\";", tmp, uuid);
   sfree(tmp);
 
-  ret = db_exec(sql);
+  ret = db_ctx_exec(g_db_ob, sql);
   sfree(sql);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete ob_destination. uuid[%s]", uuid);
@@ -156,7 +158,7 @@ static json_t* get_ob_destination_use(const char* uuid, E_USE use)
 {
   char* sql;
   json_t* j_res;
-  db_res_t* db_res;
+  int ret;
 
   if(uuid == NULL) {
     slog(LOG_WARNING, "Invalid input parameters.");
@@ -166,15 +168,15 @@ static json_t* get_ob_destination_use(const char* uuid, E_USE use)
 
   asprintf(&sql, "select * from ob_destination where uuid=\"%s\" and in_use=%d;", uuid, use);
 
-  db_res = db_query(sql);
+  ret = db_ctx_query(g_db_ob, sql);
   sfree(sql);
-  if(db_res == NULL) {
+  if(ret == false) {
     slog(LOG_ERR, "Could not get ob_destination info. uuid[%s], use[%d]", uuid, use);
     return NULL;
   }
 
-  j_res = db_get_record(db_res);
-  db_free(db_res);
+  j_res = db_ctx_get_record(g_db_ob);
+  db_ctx_free(g_db_ob);
 
   return j_res;
 }
@@ -226,22 +228,22 @@ json_t* get_ob_destinations_all_uuid(void)
 {
 
   char* sql;
-  db_res_t* db_res;
+  int ret;
   json_t* j_res;
   json_t* j_res_tmp;
   json_t* j_tmp;
 
   asprintf(&sql, "select uuid from ob_destination where in_use=%d;", E_USE_OK);
-  db_res = db_query(sql);
+  ret = db_ctx_query(g_db_ob, sql);
   sfree(sql);
-  if(db_res == NULL) {
+  if(ret == false) {
     slog(LOG_WARNING, "Could not get correct ob_destination info.");
     return NULL;
   }
 
   j_res = json_array();
   while(1) {
-    j_tmp = db_get_record(db_res);
+    j_tmp = db_ctx_get_record(g_db_ob);
     if(j_tmp == NULL) {
       break;
     }
@@ -256,7 +258,7 @@ json_t* get_ob_destinations_all_uuid(void)
 
     json_array_append_new(j_res, j_res_tmp);
   }
-  db_free(db_res);
+  db_ctx_free(g_db_ob);
 
   return j_res;
 }
@@ -269,28 +271,28 @@ json_t* get_ob_destinations_all(void)
 {
 
   char* sql;
-  db_res_t* db_res;
+  int ret;
   json_t* j_res;
   json_t* j_tmp;
 
   asprintf(&sql, "select * from ob_destination where in_use=%d;", E_USE_OK);
-  db_res = db_query(sql);
+  ret = db_ctx_query(g_db_ob, sql);
   sfree(sql);
-  if(db_res == NULL) {
+  if(ret == false) {
     slog(LOG_WARNING, "Could not get correct ob_destination info.");
     return NULL;
   }
 
   j_res = json_array();
   while(1) {
-    j_tmp = db_get_record(db_res);
+    j_tmp = db_ctx_get_record(g_db_ob);
     if(j_tmp == NULL) {
       break;
     }
 
     json_array_append_new(j_res, j_tmp);
   }
-  db_free(db_res);
+  db_ctx_free(g_db_ob);
 
   return j_res;
 }
@@ -331,7 +333,7 @@ json_t* update_ob_destination(const json_t* j_dest)
   json_object_set_new(j_tmp, "tm_update", json_string(tmp));
   sfree(tmp);
 
-  tmp = db_get_update_str(j_tmp);
+  tmp = db_ctx_get_update_str(j_tmp);
   if(tmp == NULL) {
     slog(LOG_WARNING, "Could not get update str.");
     json_decref(j_tmp);
@@ -344,7 +346,7 @@ json_t* update_ob_destination(const json_t* j_dest)
   sfree(tmp);
 
   // update
-  ret = db_exec(sql);
+  ret = db_ctx_exec(g_db_ob, sql);
   sfree(sql);
   if(ret == false) {
     slog(LOG_ERR, "Could not update ob_destination info. uuid[%s]", uuid);
@@ -450,10 +452,9 @@ static int get_avail_cnt_app(json_t* j_dest)
 
 static int get_avail_cnt_app_queue_available_member(const char* name)
 {
-  char* sql;
-  db_res_t* db_res;
-  json_t* j_res;
   int ret;
+  char* sql;
+  json_t* j_res;
 
   if(name == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -470,15 +471,15 @@ static int get_avail_cnt_app_queue_available_member(const char* name)
       0
       );
 
-  db_res = db_query(sql);
+  ret = db_ctx_query(g_db_ob, sql);
   sfree(sql);
-  if(db_res == NULL) {
+  if(ret == false) {
     slog(LOG_ERR, "Could not get correct available queue member info. queue_name[%s]", name);
     return 0;
   }
 
-  j_res = db_get_record(db_res);
-  db_free(db_res);
+  j_res = db_ctx_get_record(g_db_ob);
+  db_ctx_free(g_db_ob);
   if(j_res == NULL) {
     slog(LOG_ERR, "Could not get correct available queue member count. queue_name[%s]", name);
     return 0;
@@ -491,11 +492,10 @@ static int get_avail_cnt_app_queue_available_member(const char* name)
 
 static int get_avail_cnt_app_queue_service_perf(const char* name)
 {
+  int ret;
   char* sql;
-  db_res_t* db_res;
   json_t* j_res;
   double service_perf;
-  int ret;
 
   if(name == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -507,15 +507,15 @@ static int get_avail_cnt_app_queue_service_perf(const char* name)
       name
       );
 
-  db_res = db_query(sql);
+  ret = db_ctx_query(g_db_ob, sql);
   sfree(sql);
-  if(db_res == NULL) {
+  if(ret == false) {
     slog(LOG_ERR, "Could not get correct queue performance info. queue_name[%s]", name);
     return 0;
   }
 
-  j_res = db_get_record(db_res);
-  db_free(db_res);
+  j_res = db_ctx_get_record(g_db_ob);
+  db_ctx_free(g_db_ob);
   if(j_res == NULL) {
     slog(LOG_ERR, "Could not get correct queue performance info. queue_name[%s]", name);
     return 0;
@@ -766,10 +766,9 @@ json_t* create_ob_dial_destination_info(json_t* j_dest)
  */
 bool is_exist_ob_destination(const char* uuid)
 {
-  char* sql;
-  db_res_t* db_res;
-  json_t* j_tmp;
   int ret;
+  char* sql;
+  json_t* j_tmp;
 
   if(uuid == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -778,15 +777,15 @@ bool is_exist_ob_destination(const char* uuid)
 
   asprintf(&sql, "select count(*) from ob_destination where uuid=\"%s\" and in_use=%d;", uuid, E_USE_OK);
 
-  db_res = db_query(sql);
+  ret = db_ctx_query(g_db_ob, sql);
   sfree(sql);
-  if(db_res == NULL) {
+  if(ret == false) {
     slog(LOG_ERR, "Could not get ob_destination info. uuid[%s]", uuid);
     return false;
   }
 
-  j_tmp = db_get_record(db_res);
-  db_free(db_res);
+  j_tmp = db_ctx_get_record(g_db_ob);
+  db_ctx_free(g_db_ob);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get correct ob_destination info. uuid[%s]", uuid);
     return false;

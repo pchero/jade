@@ -39,6 +39,10 @@ static bool db_insert_basic(const char* table, const json_t* j_data, int replace
 //static void db_sqlite3_msleep(unsigned long milisec);
 static int db_sqlite3_busy_handler(void *data, int retry);
 
+/**
+ * Init database
+ * @return
+ */
 bool db_init(void)
 {
 	int ret;

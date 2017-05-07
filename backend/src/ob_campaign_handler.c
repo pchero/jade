@@ -16,7 +16,8 @@
 #include "common.h"
 #include "slog.h"
 #include "utils.h"
-#include "db_handler.h"
+//#include "db_handler.h"
+#include "db_ctx_handler.h"
 #include "ob_campaign_handler.h"
 #include "ob_dl_handler.h"
 #include "ob_plan_handler.h"
@@ -36,6 +37,7 @@ static bool is_startable_campaign_schedule_check(json_t* j_camp, const char* cur
 static bool is_stopable_campaign_schedule_day_date_list(json_t* j_camp);
 static bool is_stoppable_campaign_schedule_check(json_t* j_camp, const char* cur_date, const char* cur_time, int cur_day);
 
+extern db_ctx_t* g_db_ob;
 
 static json_t* create_ob_campaign_default(void)
 {
@@ -107,7 +109,7 @@ json_t* create_ob_campaign(json_t* j_camp)
       json_string_value(json_object_get(j_tmp, "uuid")),
       json_string_value(json_object_get(j_tmp, "name"))
       );
-  ret = db_insert("ob_campaign", j_tmp);
+  ret = db_ctx_insert(g_db_ob, "ob_campaign", j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     sfree(uuid);
@@ -152,12 +154,12 @@ json_t* delete_ob_campaign(const char* uuid)
   json_object_set_new(j_tmp, "in_use", json_integer(E_USE_NO));
   sfree(tmp);
 
-  tmp = db_get_update_str(j_tmp);
+  tmp = db_ctx_get_update_str(j_tmp);
   json_decref(j_tmp);
   asprintf(&sql, "update ob_campaign set %s where uuid=\"%s\";", tmp, uuid);
   sfree(tmp);
 
-  ret = db_exec(sql);
+  ret = db_ctx_exec(g_db_ob, sql);
   sfree(sql);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete campaign. uuid[%s]", uuid);
@@ -175,9 +177,9 @@ json_t* delete_ob_campaign(const char* uuid)
 
 static json_t* get_ob_campaign_use(const char* uuid, E_USE use)
 {
+  int ret;
   char* sql;
   json_t* j_res;
-  db_res_t* db_res;
 
   if(uuid == NULL) {
     slog(LOG_WARNING, "Invalid input parameters.");
@@ -187,15 +189,14 @@ static json_t* get_ob_campaign_use(const char* uuid, E_USE use)
 
   asprintf(&sql, "select * from ob_campaign where uuid=\"%s\" and in_use=%d;", uuid, use);
 
-  db_res = db_query(sql);
-  sfree(sql);
-  if(db_res == NULL) {
+  ret = db_ctx_query(g_db_ob, sql);
+  if(ret == false) {
     slog(LOG_ERR, "Could not get ob_campaign info. uuid[%s], use[%d]", uuid, use);
     return NULL;
   }
+  j_res = db_ctx_get_record(g_db_ob);
 
-  j_res = db_get_record(db_res);
-  db_free(db_res);
+  db_ctx_free(g_db_ob);
 
   return j_res;
 }
@@ -251,30 +252,28 @@ static json_t* get_deleted_ob_campaign(const char* uuid)
  */
 json_t* get_ob_campaigns_all(void)
 {
-
+  int ret;
   char* sql;
-  db_res_t* db_res;
   json_t* j_res;
   json_t* j_tmp;
 
   asprintf(&sql, "select * from ob_campaign where in_use=%d;", E_USE_OK);
-  db_res = db_query(sql);
-  sfree(sql);
-  if(db_res == NULL) {
+  ret = db_ctx_query(g_db_ob, sql);
+  if(ret == false) {
     slog(LOG_WARNING, "Could not get correct ob_campaign.");
     return NULL;
   }
 
   j_res = json_array();
   while(1) {
-    j_tmp = db_get_record(db_res);
+    j_tmp = db_ctx_get_record(g_db_ob);
     if(j_tmp == NULL) {
       break;
     }
 
     json_array_append_new(j_res, j_tmp);
   }
-  db_free(db_res);
+  db_ctx_free(g_db_ob);
 
   return j_res;
 }
@@ -286,23 +285,22 @@ json_t* get_ob_campaigns_all(void)
  */
 json_t* get_ob_campaigns_all_uuid(void)
 {
+  int ret;
   char* sql;
-  db_res_t* db_res;
   json_t* j_res;
   json_t* j_res_tmp;
   json_t* j_tmp;
 
   asprintf(&sql, "select uuid from ob_campaign where in_use=%d;", E_USE_OK);
-  db_res = db_query(sql);
-  sfree(sql);
-  if(db_res == NULL) {
+  ret = db_ctx_query(g_db_ob, sql);
+  if(ret == false) {
     slog(LOG_WARNING, "Could not get correct ob_campaign.");
     return NULL;
   }
 
   j_res = json_array();
   while(1) {
-    j_tmp = db_get_record(db_res);
+    j_tmp = db_ctx_get_record(g_db_ob);
     if(j_tmp == NULL) {
       break;
     }
@@ -317,14 +315,14 @@ json_t* get_ob_campaigns_all_uuid(void)
 
     json_array_append_new(j_res, j_res_tmp);
   }
-  db_free(db_res);
+  db_ctx_free(g_db_ob);
 
   return j_res;
 }
 
 static json_t* get_campaigns_uuid_by_status_schedule(E_CAMP_STATUS_T status, E_CAMP_SCHEDULE_MODE mode)
 {
-  db_res_t* db_res;
+  int ret;
   json_t* j_res;
   json_t* j_tmp;
   char* sql;
@@ -335,16 +333,15 @@ static json_t* get_campaigns_uuid_by_status_schedule(E_CAMP_STATUS_T status, E_C
       mode
       );
 
-  db_res = db_query(sql);
-  sfree(sql);
-  if(db_res == NULL) {
+  ret = db_ctx_query(g_db_ob, sql);
+  if(ret == false) {
     return NULL;
   }
 
   j_res = json_array();
   while(1) {
 
-    j_tmp = db_get_record(db_res);
+    j_tmp = db_ctx_get_record(g_db_ob);
     if(j_tmp == NULL) {
       break;
     }
@@ -358,7 +355,7 @@ static json_t* get_campaigns_uuid_by_status_schedule(E_CAMP_STATUS_T status, E_C
     json_array_append_new(j_res, json_string(uuid));
     json_decref(j_tmp);
   }
-  db_free(db_res);
+  db_ctx_free(g_db_ob);
 
   return j_res;
 }
@@ -483,7 +480,7 @@ json_t* update_ob_campaign(const json_t* j_camp)
   json_object_set_new(j_tmp, "tm_update", json_string(tmp));
   sfree(tmp);
 
-  tmp = db_get_update_str(j_tmp);
+  tmp = db_ctx_get_update_str(j_tmp);
   json_decref(j_tmp);
   if(tmp == NULL) {
     slog(LOG_WARNING, "Could not get update str.");
@@ -495,7 +492,7 @@ json_t* update_ob_campaign(const json_t* j_camp)
   sfree(tmp);
 
   // update
-  db_exec(sql);
+  db_ctx_exec(g_db_ob, sql);
   sfree(sql);
 
   slog(LOG_DEBUG, "Getting updated campaign info. uuid[%s]", uuid);
@@ -564,9 +561,9 @@ bool update_ob_campaign_status(const char* uuid, E_CAMP_STATUS_T status)
 
 static json_t* get_ob_campaigns_uuid_by_status(E_CAMP_STATUS_T status)
 {
+  int ret;
   json_t* j_res;
   json_t* j_tmp;
-  db_res_t* db_res;
   char* sql;
   const char* uuid;
 
@@ -574,16 +571,16 @@ static json_t* get_ob_campaigns_uuid_by_status(E_CAMP_STATUS_T status)
       status, E_USE_OK
       );
 
-  db_res = db_query(sql);
+  ret = db_ctx_query(g_db_ob, sql);
   sfree(sql);
-  if(db_res == NULL) {
+  if(ret == false) {
     slog(LOG_WARNING, "Could not get ob_campaign info.");
     return NULL;
   }
 
   j_res = json_array();
   while(1) {
-    j_tmp = db_get_record(db_res);
+    j_tmp = db_ctx_get_record(g_db_ob);
     if(j_tmp == NULL) {
       break;
     }
@@ -597,7 +594,7 @@ static json_t* get_ob_campaigns_uuid_by_status(E_CAMP_STATUS_T status)
     json_array_append_new(j_res, json_string(uuid));
     json_decref(j_tmp);
   }
-  db_free(db_res);
+  db_ctx_free(g_db_ob);
 
   return j_res;
 }
@@ -638,10 +635,10 @@ json_t* get_ob_campaigns_by_status(E_CAMP_STATUS_T status)
  */
 json_t* get_ob_campaign_for_dialing(void)
 {
+  int ret;
   const char* uuid;
   json_t* j_res;
   json_t* j_tmp;
-  db_res_t* db_res;
   char* sql;
 
   // get "start" status campaign only.
@@ -651,15 +648,15 @@ json_t* get_ob_campaign_for_dialing(void)
       "random()"
       );
 
-  db_res = db_query(sql);
+  ret = db_ctx_query(g_db_ob, sql);
   sfree(sql);
-  if(db_res == NULL) {
+  if(ret == false) {
     slog(LOG_WARNING, "Could not get ob_campaign info.");
     return NULL;
   }
 
-  j_tmp = db_get_record(db_res);
-  db_free(db_res);
+  j_tmp = db_ctx_get_record(g_db_ob);
+  db_ctx_free(g_db_ob);
   if(j_tmp == NULL) {
     return NULL;
   }
@@ -780,10 +777,9 @@ bool is_startable_campgain(json_t* j_camp)
  */
 bool is_stoppable_campgain(json_t* j_camp)
 {
-  char* sql;
-  db_res_t* db_res;
-  json_t* j_tmp;
   int ret;
+  char* sql;
+  json_t* j_tmp;
 
   if(j_camp == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -798,15 +794,15 @@ bool is_stoppable_campgain(json_t* j_camp)
       json_string_value(json_object_get(j_camp, "uuid"))? : ""
       );
 
-  db_res = db_query(sql);
+  ret = db_ctx_query(g_db_ob, sql);
   sfree(sql);
-  if(db_res == NULL) {
+  if(ret == false) {
     slog(LOG_INFO, "Could not get correct stoppable campaign info.");
     return false;
   }
 
-  j_tmp = db_get_record(db_res);
-  db_free(db_res);
+  j_tmp = db_ctx_get_record(g_db_ob);
+  db_ctx_free(g_db_ob);
   if(j_tmp == NULL) {
     slog(LOG_INFO, "Could not get correct stoppable campaign info.");
     return false;
@@ -1003,10 +999,9 @@ static bool is_stoppable_campaign_schedule_check(json_t* j_camp, const char* cur
  */
 bool is_exist_ob_campaign(const char* uuid)
 {
-  char* sql;
-  db_res_t* db_res;
-  json_t* j_tmp;
   int ret;
+  char* sql;
+  json_t* j_tmp;
 
   if(uuid == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -1015,15 +1010,15 @@ bool is_exist_ob_campaign(const char* uuid)
 
   asprintf(&sql, "select count(*) from ob_campaign where uuid=\"%s\" and in_use=%d;", uuid, E_USE_OK);
 
-  db_res = db_query(sql);
+  ret = db_ctx_query(g_db_ob, sql);
   sfree(sql);
-  if(db_res == NULL) {
+  if(ret == false) {
     slog(LOG_ERR, "Could not get ob_campaign info. uuid[%s]", uuid);
     return false;
   }
 
-  j_tmp = db_get_record(db_res);
-  db_free(db_res);
+  j_tmp = db_ctx_get_record(g_db_ob);
+  db_ctx_free(g_db_ob);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get correct ob_campaign info. uuid[%s]", uuid);
     return false;
@@ -1073,10 +1068,9 @@ bool validate_ob_campaign(json_t* j_data)
  */
 bool is_referenced_destination_by_campaign(const char* uuid_dest)
 {
-  char* sql;
-  db_res_t* db_res;
-  json_t* j_tmp;
   int ret;
+  char* sql;
+  json_t* j_tmp;
 
   if(uuid_dest == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -1086,15 +1080,15 @@ bool is_referenced_destination_by_campaign(const char* uuid_dest)
 
   asprintf(&sql, "select count(*) from ob_campaign where dest=\"%s\" and in_use=%d;", uuid_dest, E_USE_OK);
 
-  db_res = db_query(sql);
+  ret = db_ctx_query(g_db_ob, sql);
   sfree(sql);
-  if(db_res == NULL) {
+  if(ret == false) {
     slog(LOG_ERR, "Could not get correct database result.");
     return false;
   }
 
-  j_tmp = db_get_record(db_res);
-  db_free(db_res);
+  j_tmp = db_ctx_get_record(g_db_ob);
+  db_ctx_free(g_db_ob);
   if(j_tmp == NULL) {
     return false;
   }
@@ -1115,10 +1109,9 @@ bool is_referenced_destination_by_campaign(const char* uuid_dest)
  */
 bool is_referenced_dlma_by_campaign(const char* uuid_dlma)
 {
-  char* sql;
-  db_res_t* db_res;
-  json_t* j_tmp;
   int ret;
+  char* sql;
+  json_t* j_tmp;
 
   if(uuid_dlma == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -1128,15 +1121,15 @@ bool is_referenced_dlma_by_campaign(const char* uuid_dlma)
 
   asprintf(&sql, "select count(*) from ob_campaign where dlma=\"%s\" and in_use=%d;", uuid_dlma, E_USE_OK);
 
-  db_res = db_query(sql);
+  ret = db_ctx_query(g_db_ob, sql);
   sfree(sql);
-  if(db_res == NULL) {
+  if(ret == false) {
     slog(LOG_ERR, "Could not get correct database result.");
     return false;
   }
 
-  j_tmp = db_get_record(db_res);
-  db_free(db_res);
+  j_tmp = db_ctx_get_record(g_db_ob);
+  db_ctx_free(g_db_ob);
   if(j_tmp == NULL) {
     return false;
   }
@@ -1158,9 +1151,8 @@ bool is_referenced_dlma_by_campaign(const char* uuid_dlma)
 bool is_referenced_plan_by_campaign(const char* uuid_plan)
 {
   char* sql;
-  db_res_t* db_res;
-  json_t* j_tmp;
   int ret;
+  json_t* j_tmp;
 
   if(uuid_plan == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -1170,15 +1162,15 @@ bool is_referenced_plan_by_campaign(const char* uuid_plan)
 
   asprintf(&sql, "select count(*) from ob_campaign where plan=\"%s\" and in_use=%d;", uuid_plan, E_USE_OK);
 
-  db_res = db_query(sql);
+  ret = db_ctx_query(g_db_ob, sql);
   sfree(sql);
-  if(db_res == NULL) {
+  if(ret == false) {
     slog(LOG_ERR, "Could not get correct database result.");
     return false;
   }
 
-  j_tmp = db_get_record(db_res);
-  db_free(db_res);
+  j_tmp = db_ctx_get_record(g_db_ob);
+  db_ctx_free(g_db_ob);
   if(j_tmp == NULL) {
     return false;
   }
@@ -1211,7 +1203,7 @@ bool clear_campaign_destination(const char* uuid_dest)
 
   asprintf(&sql, "update ob_campaign set dest=null where dest=\"%s\";", uuid_dest);
 
-  ret = db_exec(sql);
+  ret = db_ctx_exec(g_db_ob, sql);
   sfree(sql);
   if(ret == false) {
     return false;
@@ -1238,7 +1230,7 @@ bool clear_campaign_dlma(const char* uuid_dlma)
 
   asprintf(&sql, "update ob_campaign set dlma=null where dlma=\"%s\";", uuid_dlma);
 
-  ret = db_exec(sql);
+  ret = db_ctx_exec(g_db_ob, sql);
   sfree(sql);
   if(ret == false) {
     return false;
@@ -1265,7 +1257,7 @@ bool clear_campaign_plan(const char* uuid_plan)
 
   asprintf(&sql, "update ob_campaign set plan=null where plan=\"%s\";", uuid_plan);
 
-  ret = db_exec(sql);
+  ret = db_ctx_exec(g_db_ob, sql);
   sfree(sql);
   if(ret == false) {
     return false;

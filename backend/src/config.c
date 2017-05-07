@@ -25,6 +25,7 @@
 
 #define DEF_OB_DIALING_RESULT_FILENAME  "./outbound_result.json"
 #define DEF_OB_DIALING_TIMEOUT          "30"
+#define DEF_OB_DATABASE_NAME  "./outbound_database.db"
 
 extern app* g_app;
 
@@ -102,7 +103,8 @@ static bool load_config(void)
 
       "ob",
         "dialing_result_filename",  DEF_OB_DIALING_RESULT_FILENAME,
-        "dialing_timeout",          DEF_OB_DIALING_TIMEOUT
+        "dialing_timeout",          DEF_OB_DIALING_TIMEOUT,
+        "database_name",            DEF_OB_DATABASE_NAME
       );
   if(j_conf_def == NULL) {
     printf("Could not create default config.\n");
