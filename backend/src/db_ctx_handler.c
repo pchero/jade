@@ -5,10 +5,14 @@
  *      Author: pchero
  */
 
+#define _GNU_SOURCE
+
+#include "db_ctx_handler.h"
+
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
-#include "db_handler_ctx.h"
 #include "slog.h"
 #include "utils.h"
 
@@ -21,6 +25,7 @@ typedef struct {
 static bool db_ctx_connect(db_ctx_t* ctx, const char* filename);
 static db_ctx_t* db_ctx_create(void);
 static int db_ctx_busy_handler(void *data, int retry);
+static bool db_ctx_insert_basic(db_ctx_t* ctx, const char* table, const json_t* j_data, int replace);
 
 static db_ctx_t* db_ctx_create(void)
 {
@@ -343,3 +348,299 @@ json_t* db_ctx_get_record(db_ctx_t* ctx)
 
 	return j_res;
 }
+
+/**
+ * Insert j_data into table.
+ * @param table
+ * @param j_data
+ * @return
+ */
+bool db_ctx_insert(db_ctx_t* ctx, const char* table, const json_t* j_data)
+{
+  int ret;
+
+  if((ctx == NULL) || (table == NULL) || (j_data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired db_ctx_insert");
+
+  ret = db_ctx_insert_basic(ctx, table, j_data, false);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert data.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Insert or replace j_data into table.
+ * @param table
+ * @param j_data
+ * @return
+ */
+bool db_ctx_insert_or_replace(db_ctx_t* ctx, const char* table, const json_t* j_data)
+{
+  int ret;
+
+  if((ctx == NULL) || (ctx->db == NULL) || (table == NULL) || (j_data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired db_ctx_insert_or_replace");
+
+  ret = db_ctx_insert_basic(ctx, table, j_data, true);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert data.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Insert j_data into table.
+ * @param table
+ * @param j_data
+ * @return
+ */
+static bool db_ctx_insert_basic(db_ctx_t* ctx, const char* table, const json_t* j_data, int replace)
+{
+  char* sql;
+  json_t*     j_data_cp;
+  char*       tmp;
+  const char* key;
+  json_t*     j_val;
+  int         ret;
+  json_type   type;
+  char*       sql_keys;
+  char*       sql_values;
+  char*       tmp_sub;
+  char*       tmp_sqlite_buf; // sqlite3_mprintf
+
+  if((ctx == NULL) || (ctx->db == NULL) || (table == NULL) || (j_data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "db_ctx_insert_basic.");
+
+  // copy original.
+  j_data_cp = json_deep_copy(j_data);
+
+  tmp = NULL;
+  sql_keys  = NULL;
+  sql_values = NULL;
+  tmp_sub = NULL;
+  json_object_foreach(j_data_cp, key, j_val) {
+
+    // key
+    if(sql_keys == NULL) {
+      asprintf(&tmp, "%s", key);
+    }
+    else {
+      asprintf(&tmp, "%s, %s", sql_keys, key);
+    }
+    sfree(sql_keys);
+    asprintf(&sql_keys, "%s", tmp);
+    sfree(tmp);
+
+    // value
+    sfree(tmp_sub);
+
+    // get type.
+    type = json_typeof(j_val);
+    switch(type) {
+      // string
+      case JSON_STRING: {
+        asprintf(&tmp_sub, "\'%s\'", json_string_value(j_val));
+      }
+      break;
+
+      // numbers
+      case JSON_INTEGER: {
+        asprintf(&tmp_sub, "%lld", json_integer_value(j_val));
+      }
+      break;
+
+      case JSON_REAL: {
+        asprintf(&tmp_sub, "%f", json_real_value(j_val));
+      }
+      break;
+
+      // true
+      case JSON_TRUE: {
+        asprintf(&tmp_sub, "\"%s\"", "true");
+      }
+      break;
+
+      // false
+      case JSON_FALSE: {
+        asprintf(&tmp_sub, "\"%s\"", "false");
+      }
+      break;
+
+      case JSON_NULL: {
+        asprintf(&tmp_sub, "%s", "null");
+      }
+      break;
+
+      case JSON_ARRAY:
+      case JSON_OBJECT: {
+        tmp = json_dumps(j_val, JSON_ENCODE_ANY);
+        tmp_sqlite_buf = sqlite3_mprintf("%q", tmp);
+        sfree(tmp);
+
+        asprintf(&tmp_sub, "'%s'", tmp_sqlite_buf);
+        sqlite3_free(tmp_sqlite_buf);
+      }
+      break;
+
+      // object
+      // array
+      default: {
+        // Not done yet.
+
+        // we don't support another types.
+        slog(LOG_WARNING, "Wrong type input. We don't handle this.");
+        asprintf(&tmp_sub, "\"%s\"", "null");
+      }
+      break;
+    }
+
+    if(sql_values == NULL) {
+      asprintf(&tmp, "%s", tmp_sub);
+    }
+    else {
+      asprintf(&tmp, "%s, %s", sql_values, tmp_sub);
+    }
+    sfree(tmp_sub);
+    sfree(sql_values);
+    sql_values = strdup(tmp);
+    sfree(tmp);
+  }
+  json_decref(j_data_cp);
+
+  if(replace == true) {
+    asprintf(&sql, "insert or replace into %s(%s) values (%s);", table, sql_keys, sql_values);
+  }
+  else {
+    asprintf(&sql, "insert into %s(%s) values (%s);", table, sql_keys, sql_values);
+  }
+  sfree(sql_keys);
+  sfree(sql_values);
+
+  ret = db_ctx_exec(ctx, sql);
+  sfree(sql);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert data.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Return part of update sql.
+ * @param j_data
+ * @return
+ */
+char* db_ctx_get_update_str(const json_t* j_data)
+{
+  char*   res;
+  char*   tmp;
+  char*   tmp_sub;
+  char*   tmp_sqlite_buf;
+  json_t*  j_val;
+  json_t*  j_data_cp;
+  const char* key;
+  bool        is_first;
+  json_type   type;
+
+  // copy original data.
+  j_data_cp = json_deep_copy(j_data);
+
+  is_first = true;
+  res = NULL;
+  tmp = NULL;
+  tmp_sub = NULL;
+
+  json_object_foreach(j_data_cp, key, j_val) {
+
+    // create update string
+    type = json_typeof(j_val);
+    switch(type) {
+      // string
+      case JSON_STRING: {
+        asprintf(&tmp_sub, "%s = \'%s\'", key, json_string_value(j_val));
+      }
+      break;
+
+      // numbers
+      case JSON_INTEGER: {
+        asprintf(&tmp_sub, "%s = %lld", key, json_integer_value(j_val));
+      }
+      break;
+
+      case JSON_REAL: {
+        asprintf(&tmp_sub, "%s = %lf", key, json_real_value(j_val));
+      }
+      break;
+
+      // true
+      case JSON_TRUE: {
+        asprintf(&tmp_sub, "%s = \"%s\"", key, "true");
+      }
+      break;
+
+      // false
+      case JSON_FALSE: {
+        asprintf(&tmp_sub, "%s = \"%s\"", key, "false");
+      }
+      break;
+
+      case JSON_NULL: {
+        asprintf(&tmp_sub, "%s = %s", key, "null");
+      }
+      break;
+
+      case JSON_ARRAY:
+      case JSON_OBJECT: {
+        tmp = json_dumps(j_val, JSON_ENCODE_ANY);
+        tmp_sqlite_buf = sqlite3_mprintf("%q", tmp);
+        sfree(tmp);
+
+        asprintf(&tmp_sub, "%s = '%s'", key, tmp_sqlite_buf);
+        sqlite3_free(tmp_sqlite_buf);
+      }
+      break;
+
+      default: {
+        // Not done yet.
+        // we don't support another types.
+        slog(LOG_WARNING, "Wrong type input. We don't handle this.");
+        asprintf(&tmp_sub, "%s = %s", key, "null");
+      }
+      break;
+    }
+
+    // copy/set previous sql.
+    sfree(tmp);
+    if(is_first == true) {
+      asprintf(&tmp, "%s", tmp_sub);
+      is_first = false;
+    }
+    else {
+      asprintf(&tmp, "%s, %s", res, tmp_sub);
+    }
+    sfree(res);
+    sfree(tmp_sub);
+
+    res = strdup(tmp);
+    sfree(tmp);
+  }
+  json_decref(j_data_cp);
+
+  return res;
+}
+

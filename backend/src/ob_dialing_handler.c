@@ -15,7 +15,7 @@
 #include "common.h"
 #include "slog.h"
 #include "utils.h"
-#include "db_handler.h"
+#include "db_ctx_handler.h"
 #include "ast_header.h"
 #include "ami_handler.h"
 
@@ -24,7 +24,7 @@
 #include "ob_dl_handler.h"
 
 extern app* g_app;
-
+extern db_ctx_t* g_db_ob;
 
 #define DEF_MIN_DIALING_UPDATE_TIMEOUT  20  // minimum dialing tm_update timeout
 
@@ -305,7 +305,7 @@ bool update_ob_dialing_timestamp(const char* uuid)
       );
   sfree(timestamp);
 
-  tmp = db_get_update_str(j_tmp);
+  tmp = db_ctx_get_update_str(j_tmp);
   json_decref(j_tmp);
   if(tmp == NULL) {
     slog(LOG_ERR, "Could not create update sql.");
@@ -314,7 +314,7 @@ bool update_ob_dialing_timestamp(const char* uuid)
   asprintf(&sql, "update ob_dialing set %s where uuid=\"%s\";", tmp, uuid);
   sfree(tmp);
 
-  ret = db_exec(sql);
+  ret = db_ctx_exec(g_db_ob, sql);
   sfree(sql);
   if(ret == false) {
     slog(LOG_ERR, "Could not update ob_dialing status. uuid[%s]", uuid);
@@ -340,7 +340,7 @@ bool delete_ob_dialing(const char* uuid)
   }
 
   asprintf(&sql, "delete from ob_dialing where uuid=\"%s\";", uuid);
-  ret = db_exec(sql);
+  ret = db_ctx_exec(g_db_ob, sql);
   sfree(sql);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete ob_dialing info. uuid[%s]", uuid);
@@ -360,7 +360,7 @@ bool insert_ob_dialing(json_t* j_dialing)
   }
 
   // insert data
-  ret = db_insert("ob_dialing", j_dialing);
+  ret = db_ctx_insert(g_db_ob, "ob_dialing", j_dialing);
   if(ret == false) {
     slog(LOG_ERR, "Could not create ob_dialing info.");
     return false;
@@ -595,7 +595,7 @@ bool update_ob_dialing_status(const char* uuid, E_DIALING_STATUS_T status)
       );
   sfree(timestamp);
 
-  tmp = db_get_update_str(j_tmp);
+  tmp = db_ctx_get_update_str(j_tmp);
   json_decref(j_tmp);
   if(tmp == NULL) {
     slog(LOG_ERR, "Could not create update sql.");
@@ -604,7 +604,7 @@ bool update_ob_dialing_status(const char* uuid, E_DIALING_STATUS_T status)
   asprintf(&sql, "update ob_dialing set %s where uuid=\"%s\";", tmp, uuid);
   sfree(tmp);
 
-  ret = db_exec(sql);
+  ret = db_ctx_exec(g_db_ob, sql);
   sfree(sql);
   if(ret == false) {
     slog(LOG_ERR, "Could not update ob_dialing status. uuid[%s]", uuid);
@@ -651,7 +651,7 @@ bool update_ob_dialing_hangup(const char* uuid, int hangup, const char* hangup_d
   }
 
   // create update sql
-  tmp = db_get_update_str(j_tmp);
+  tmp = db_ctx_get_update_str(j_tmp);
   json_decref(j_tmp);
   if(tmp == NULL) {
     slog(LOG_ERR, "Could not create update sql.");
@@ -660,7 +660,7 @@ bool update_ob_dialing_hangup(const char* uuid, int hangup, const char* hangup_d
   asprintf(&sql, "update ob_dialing set %s where uuid=\"%s\";", tmp, uuid);
   sfree(tmp);
 
-  ret = db_exec(sql);
+  ret = db_ctx_exec(g_db_ob, sql);
   sfree(sql);
   if(ret == false) {
     slog(LOG_ERR, "Could not update ob_dialing status. uuid[%s]", uuid);
@@ -709,7 +709,7 @@ bool update_ob_dialing_res_dial(const char* uuid, bool success, int res_dial, co
   }
 
   // create update sql
-  tmp = db_get_update_str(j_tmp);
+  tmp = db_ctx_get_update_str(j_tmp);
   json_decref(j_tmp);
   if(tmp == NULL) {
     slog(LOG_ERR, "Could not create update sql.");
@@ -719,7 +719,7 @@ bool update_ob_dialing_res_dial(const char* uuid, bool success, int res_dial, co
   sfree(tmp);
 
   // update result
-  ret = db_exec(sql);
+  ret = db_ctx_exec(g_db_ob, sql);
   sfree(sql);
   if(ret == false) {
     slog(LOG_ERR, "Could not update ob_dialing originate response info.");
@@ -780,7 +780,7 @@ bool update_ob_dialing_res_dial(const char* uuid, bool success, int res_dial, co
 //  }
 //
 //  // create update sql
-//  tmp = db_get_update_str(j_tmp);
+//  tmp = db_ctx_get_update_str(j_tmp);
 //  json_decref(j_tmp);
 //  if(tmp == NULL) {
 //    slog(LOG_ERR, "Could not create update sql.");
@@ -789,7 +789,7 @@ bool update_ob_dialing_res_dial(const char* uuid, bool success, int res_dial, co
 //  asprintf(&sql, "update ob_dialing set %s where uuid=\"%s\";", tmp, uuid);
 //  sfree(tmp);
 //
-//  ret = db_exec(sql);
+//  ret = db_ctx_exec(g_db_ob, sql);
 //  sfree(sql);
 //  if(ret == false) {
 //    slog(LOG_ERR, "Could not update ob_dialing status. uuid[%s]", uuid);
@@ -857,7 +857,6 @@ rb_dialing* rb_dialing_find_chan_uuid(const char* uuid)
 int get_ob_dialing_count_by_camp_uuid(const char* camp_uuid)
 {
   char* sql;
-  db_res_t* db_res;
   json_t* j_res;
   int ret;
 
@@ -870,15 +869,15 @@ int get_ob_dialing_count_by_camp_uuid(const char* camp_uuid)
   // sql
   asprintf(&sql, "select count(*) from ob_dialing where uuid_camp = \"%s\";", camp_uuid);
 
-  db_res = db_query(sql);
+  ret = db_ctx_query(g_db_ob, sql);
   sfree(sql);
-  if(db_res == NULL) {
+  if(ret == false) {
     slog(LOG_ERR, "Could not get correct result.");
     return -1;
   }
 
-  j_res = db_get_record(db_res);
-  db_free(db_res);
+  j_res = db_ctx_get_record(g_db_ob);
+  db_ctx_free(g_db_ob);
 
   ret = json_integer_value(json_object_get(j_res, "count(*)"));
   json_decref(j_res);
@@ -894,7 +893,7 @@ int get_ob_dialing_count_by_camp_uuid(const char* camp_uuid)
 json_t* get_ob_dialing_by_action_id(const char* action_id)
 {
   char* sql;
-  db_res_t* db_res;
+  int ret;
   json_t* j_tmp;
   json_t* j_res;
   const char* uuid;
@@ -906,15 +905,15 @@ json_t* get_ob_dialing_by_action_id(const char* action_id)
 
   asprintf(&sql, "select uuid from ob_dialing where action_id=\"%s\";", action_id);
 
-  db_res = db_query(sql);
+  ret = db_ctx_query(g_db_ob, sql);
   sfree(sql);
-  if(db_res == NULL) {
+  if(ret == false) {
     slog(LOG_ERR, "Could not get correct ob_dialing record info.");
     return NULL;
   }
 
-  j_tmp = db_get_record(db_res);
-  db_free(db_res);
+  j_tmp = db_ctx_get_record(g_db_ob);
+  db_ctx_free(g_db_ob);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get correct dialing info by action id. action_id[%s]", action_id);
     return NULL;
@@ -941,7 +940,7 @@ json_t* get_ob_dialing_by_action_id(const char* action_id)
 json_t* get_ob_dialing(const char* uuid)
 {
   char* sql;
-  db_res_t* db_res;
+  int ret;
   json_t* j_res;
 
   if(uuid == NULL) {
@@ -952,15 +951,15 @@ json_t* get_ob_dialing(const char* uuid)
 
   asprintf(&sql, "select * from ob_dialing where uuid=\"%s\";", uuid);
 
-  db_res = db_query(sql);
+  ret = db_ctx_query(g_db_ob, sql);
   sfree(sql);
-  if(db_res == NULL) {
+  if(ret == false) {
     slog(LOG_ERR, "Could not get correct ob_dialing record info.");
     return NULL;
   }
 
-  j_res = db_get_record(db_res);
-  db_free(db_res);
+  j_res = db_ctx_get_record(g_db_ob);
+  db_ctx_free(g_db_ob);
   if(j_res == NULL) {
     slog(LOG_ERR, "Could not get correct dialing info by uuid. uuid[%s]", uuid);
     return NULL;
@@ -972,7 +971,7 @@ json_t* get_ob_dialing(const char* uuid)
 json_t* get_ob_dialings_uuid_timeout(void)
 {
   char* sql;
-  db_res_t* db_res;
+  int ret;
   json_t* j_res;
   json_t* j_tmp;
   int timeout;
@@ -988,16 +987,16 @@ json_t* get_ob_dialings_uuid_timeout(void)
       timeout
       );
 
-  db_res = db_query(sql);
+  ret = db_ctx_query(g_db_ob, sql);
   sfree(sql);
-  if(db_res == NULL) {
+  if(ret == false) {
     slog(LOG_ERR, "Could not get correct ob_dialing record info.");
     return NULL;
   }
 
   j_res = json_array();
   while(1) {
-    j_tmp = db_get_record(db_res);
+    j_tmp = db_ctx_get_record(g_db_ob);
     if(j_tmp == NULL) {
       break;
     }
@@ -1011,7 +1010,7 @@ json_t* get_ob_dialings_uuid_timeout(void)
     json_array_append_new(j_res, json_string(uuid));
     json_decref(j_tmp);
   }
-  db_free(db_res);
+  db_ctx_free(g_db_ob);
 
   return j_res;
 }
@@ -1055,23 +1054,23 @@ json_t* get_ob_dialings_timeout(void)
 static json_t* get_ob_dalings_uuid_error(void)
 {
   char* sql;
-  db_res_t* db_res;
+  int ret;
   json_t* j_res;
   json_t* j_tmp;
   const char* uuid;
 
   asprintf(&sql, "select uuid from ob_dialing where status > %d;", E_DIALING_ERROR_UNKNOWN);
 
-  db_res = db_query(sql);
+  ret = db_ctx_query(g_db_ob, sql);
   sfree(sql);
-  if(db_res == NULL) {
+  if(ret == false) {
     slog(LOG_ERR, "Could not get correct ob_dialing record info.");
     return NULL;
   }
 
   j_res = json_array();
   while(1) {
-    j_tmp = db_get_record(db_res);
+    j_tmp = db_ctx_get_record(g_db_ob);
     if(j_tmp == NULL) {
       break;
     }
@@ -1085,7 +1084,7 @@ static json_t* get_ob_dalings_uuid_error(void)
     json_array_append_new(j_res, json_string(uuid));
     json_decref(j_tmp);
   }
-  db_free(db_res);
+  db_ctx_free(g_db_ob);
 
   return j_res;
 }
@@ -1131,23 +1130,23 @@ json_t* get_ob_dialings_error(void)
 static json_t* get_ob_dialings_uuid_by_status(E_DIALING_STATUS_T status)
 {
   char* sql;
-  db_res_t* db_res;
+  int ret;
   json_t* j_res;
   json_t* j_tmp;
   const char* uuid;
 
   asprintf(&sql, "select uuid from ob_dialing where status=%d;", status);
 
-  db_res = db_query(sql);
+  ret = db_ctx_query(g_db_ob, sql);
   sfree(sql);
-  if(db_res == NULL) {
+  if(ret == false) {
     slog(LOG_ERR, "Could not get correct ob_dialing record info.");
     return NULL;
   }
 
   j_res = json_array();
   while(1) {
-    j_tmp = db_get_record(db_res);
+    j_tmp = db_ctx_get_record(g_db_ob);
     if(j_tmp == NULL) {
       break;
     }
@@ -1161,7 +1160,7 @@ static json_t* get_ob_dialings_uuid_by_status(E_DIALING_STATUS_T status)
     json_array_append_new(j_res, json_string(uuid));
     json_decref(j_tmp);
   }
-  db_free(db_res);
+  db_ctx_free(g_db_ob);
 
   return j_res;
 }
@@ -1212,7 +1211,7 @@ json_t* get_ob_dialings_hangup(void)
 json_t* get_ob_dialings_all(void)
 {
   char* sql;
-  db_res_t* db_res;
+  int ret;
   json_t* j_res;
   json_t* j_tmp;
 
@@ -1220,22 +1219,22 @@ json_t* get_ob_dialings_all(void)
 
   asprintf(&sql, "select * from ob_dialing;");
 
-  db_res = db_query(sql);
+  ret = db_ctx_query(g_db_ob, sql);
   sfree(sql);
-  if(db_res == NULL) {
+  if(ret == false) {
     slog(LOG_ERR, "Could not get correct ob_dialing record info.");
     return NULL;
   }
 
   j_res = json_array();
   while(1) {
-    j_tmp = db_get_record(db_res);
+    j_tmp = db_ctx_get_record(g_db_ob);
     if(j_tmp == NULL) {
       break;
     }
     json_array_append_new(j_res, j_tmp);
   }
-  db_free(db_res);
+  db_ctx_free(g_db_ob);
 
   return j_res;
 }
@@ -1248,10 +1247,9 @@ json_t* get_ob_dialings_all(void)
  */
 bool is_exist_ob_dialing(const char* uuid)
 {
-  char* sql;
-  db_res_t* db_res;
-  json_t* j_tmp;
   int ret;
+  char* sql;
+  json_t* j_tmp;
 
   if(uuid == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -1260,15 +1258,15 @@ bool is_exist_ob_dialing(const char* uuid)
 
   asprintf(&sql, "select count(*) from ob_dialing where uuid=\"%s\";", uuid);
 
-  db_res = db_query(sql);
+  ret = db_ctx_query(g_db_ob, sql);
   sfree(sql);
-  if(db_res == NULL) {
+  if(ret == false) {
     slog(LOG_ERR, "Could not get ob_dialing info. uuid[%s]", uuid);
     return false;
   }
 
-  j_tmp = db_get_record(db_res);
-  db_free(db_res);
+  j_tmp = db_ctx_get_record(g_db_ob);
+  db_ctx_free(g_db_ob);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get correct ob_plan record. uuid[%s]", uuid);
     return false;
@@ -1309,23 +1307,23 @@ static const char* get_res_dial_detail_string(int res_dial)
  */
 json_t* get_ob_dialings_uuid_all(void)
 {
+  int ret;
   char* sql;
-  db_res_t* db_res;
   json_t* j_res;
   json_t* j_res_tmp;
   json_t* j_tmp;
 
   asprintf(&sql, "select uuid from ob_dialing;");
-  db_res = db_query(sql);
+  ret = db_ctx_query(g_db_ob, sql);
   sfree(sql);
-  if(db_res == NULL) {
+  if(ret == false) {
     slog(LOG_WARNING, "Could not get correct ob_dialing.");
     return NULL;
   }
 
   j_res = json_array();
   while(1) {
-    j_tmp = db_get_record(db_res);
+    j_tmp = db_ctx_get_record(g_db_ob);
     if(j_tmp == NULL) {
       break;
     }
@@ -1340,7 +1338,7 @@ json_t* get_ob_dialings_uuid_all(void)
 
     json_array_append_new(j_res, j_res_tmp);
   }
-  db_free(db_res);
+  db_ctx_free(g_db_ob);
 
   return j_res;
 }

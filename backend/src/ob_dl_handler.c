@@ -15,7 +15,7 @@
 #include "common.h"
 #include "slog.h"
 #include "utils.h"
-#include "db_handler.h"
+#include "db_ctx_handler.h"
 #include "ob_event_handler.h"
 #include "ob_campaign_handler.h"
 #include "ob_dl_handler.h"
@@ -24,6 +24,7 @@
 #include "ob_dlma_handler.h"
 
 extern app* g_app;
+extern db_ctx_t* g_db_ob;
 
 #define DEF_DL_STATUS   E_DL_STATUS_IDLE
 
@@ -153,7 +154,7 @@ json_t* get_dl_available_predictive(json_t* j_dlma, json_t* j_plan)
 static bool check_more_dl_list(json_t* j_dlma, json_t* j_plan)
 {
   json_t* j_res;
-  db_res_t* db_res;
+  int ret;
   char* sql;
 
   asprintf(&sql, "select uuid from `%s` where ("
@@ -180,14 +181,14 @@ static bool check_more_dl_list(json_t* j_dlma, json_t* j_plan)
       AST_CONTROL_ANSWER
       );
 
-  db_res = db_query(sql);
+  ret = db_ctx_query(g_db_ob, sql);
   sfree(sql);
-  if(db_res == NULL) {
+  if(ret == false) {
     return false;
   }
 
-  j_res = db_get_record(db_res);
-  db_free(db_res);
+  j_res = db_ctx_get_record(g_db_ob);
+  db_ctx_free(g_db_ob);
 //  ast_log(LOG_DEBUG, "Get dial records. uuid[%s]", ast_json_string_get(ast_json_object_get(j_res, "uuid")));
   if(j_res == NULL) {
     return false;
@@ -258,7 +259,7 @@ json_t* update_ob_dl(json_t* j_dl)
   }
   uuid = strdup(tmp_const);
 
-  tmp = db_get_update_str(j_tmp);
+  tmp = db_ctx_get_update_str(j_tmp);
   if(tmp == NULL) {
     slog(LOG_ERR, "Could not get update sql.");
     sfree(uuid);
@@ -272,7 +273,7 @@ json_t* update_ob_dl(json_t* j_dl)
       );
   sfree(tmp);
 
-  ret = db_exec(sql);
+  ret = db_ctx_exec(g_db_ob, sql);
   sfree(sql);
   if(ret == false) {
     slog(LOG_ERR, "Could not update ob_dl_list info.");
@@ -298,10 +299,9 @@ json_t* update_ob_dl(json_t* j_dl)
  */
 int get_current_dialing_dl_cnt(const char* camp_uuid, const char* dl_table)
 {
-  char* sql;
-  db_res_t* db_res;
-  json_t* j_tmp;
   int ret;
+  char* sql;
+  json_t* j_tmp;
 
   if((camp_uuid == NULL) || (dl_table == NULL)) {
     slog(LOG_ERR, "Invalid input parameters.");
@@ -312,15 +312,15 @@ int get_current_dialing_dl_cnt(const char* camp_uuid, const char* dl_table)
       dl_table, camp_uuid, "dialing"
       );
 
-  db_res = db_query(sql);
+  ret = db_ctx_query(g_db_ob, sql);
   sfree(sql);
-  if(db_res == NULL) {
+  if(ret == false) {
     slog(LOG_ERR, "Could not get dialing count.");
     return 0;
   }
 
-  j_tmp = db_get_record(db_res);
-  db_free(db_res);
+  j_tmp = db_ctx_get_record(g_db_ob);
+  db_ctx_free(g_db_ob);
   if(j_tmp == NULL) {
     // shouldn't be reach to here.
     slog(LOG_ERR, "Could not get dialing count.");
@@ -402,7 +402,7 @@ int get_dial_try_cnt(json_t* j_dl_list, int dial_num_point)
 json_t* get_ob_dls_uuid_by_dlma_count(const char* dlma_uuid, int count)
 {
   char* sql;
-  db_res_t* db_res;
+  int ret;
   json_t* j_res_tmp;
   json_t* j_res;
   json_t* j_tmp;
@@ -427,16 +427,16 @@ json_t* get_ob_dls_uuid_by_dlma_count(const char* dlma_uuid, int count)
       );
   sfree(dl_table);
 
-  db_res = db_query(sql);
+  ret = db_ctx_query(g_db_ob, sql);
   sfree(sql);
-  if(db_res == NULL) {
+  if(ret == false) {
     slog(LOG_ERR, "Could not get dial list info.");
     return NULL;
   }
 
   j_res = json_array();
   while(1) {
-    j_tmp = db_get_record(db_res);
+    j_tmp = db_ctx_get_record(g_db_ob);
     if(j_tmp == NULL) {
       break;
     }
@@ -451,7 +451,7 @@ json_t* get_ob_dls_uuid_by_dlma_count(const char* dlma_uuid, int count)
 
     json_array_append_new(j_res, j_res_tmp);
   }
-  db_free(db_res);
+  db_ctx_free(g_db_ob);
 
   return j_res;
 }
@@ -499,7 +499,7 @@ json_t* get_ob_dls_by_dlma_count(const char* dlma_uuid, int count)
 static json_t* get_ob_dls_uuid_count(int count)
 {
   char* sql;
-  db_res_t* db_res;
+  int ret;
   json_t* j_res;
   json_t* j_tmp;
   const char* uuid;
@@ -514,16 +514,16 @@ static json_t* get_ob_dls_uuid_count(int count)
       count
       );
 
-  db_res = db_query(sql);
+  ret = db_ctx_query(g_db_ob, sql);
   sfree(sql);
-  if(db_res == NULL) {
+  if(ret == false) {
     slog(LOG_ERR, "Could not get ob_dl_list info.");
     return NULL;
   }
 
   j_res = json_array();
   while(1) {
-    j_tmp = db_get_record(db_res);
+    j_tmp = db_ctx_get_record(g_db_ob);
     if(j_tmp == NULL) {
       break;
     }
@@ -537,7 +537,7 @@ static json_t* get_ob_dls_uuid_count(int count)
     json_array_append_new(j_res, json_string(uuid));
     json_decref(j_tmp);
   }
-  db_free(db_res);
+  db_ctx_free(g_db_ob);
 
   return j_res;
 }
@@ -588,29 +588,29 @@ json_t* get_ob_dls_by_status(E_DL_STATUS_T status)
   json_t* j_res;
   json_t* j_tmp;
   char* sql;
-  db_res_t* db_res;
+  int ret;
 
   slog(LOG_DEBUG, "Fired get_ob_dls_by_status. status[%d]", status);
 
   asprintf(&sql, "select * from ob_dl_list where status=%d and in_use=%d;", status, E_USE_OK);
 
-  db_res = db_query(sql);
+  ret = db_ctx_query(g_db_ob, sql);
   sfree(sql);
-  if(db_res == NULL) {
+  if(ret == false) {
     slog(LOG_ERR, "Could not get ob_dl_list info. status[%d]", status);
     return NULL;
   }
 
   j_res = json_array();
   while(1) {
-    j_tmp = db_get_record(db_res);
+    j_tmp = db_ctx_get_record(g_db_ob);
     if(j_tmp == NULL) {
       break;
     }
 
     json_array_append_new(j_res, j_tmp);
   }
-  db_free(db_res);
+  db_ctx_free(g_db_ob);
 
   return j_res;
 }
@@ -622,7 +622,7 @@ json_t* get_ob_dls_by_status(E_DL_STATUS_T status)
  */
 json_t* get_ob_dls_error(void)
 {
-  db_res_t* db_res;
+  int ret;
   json_t* j_res;
   json_t* j_tmp;
   char* sql;
@@ -633,23 +633,23 @@ json_t* get_ob_dls_error(void)
       E_DL_STATUS_IDLE
       );
 
-  db_res = db_query(sql);
+  ret = db_ctx_query(g_db_ob, sql);
   sfree(sql);
-  if(db_res == NULL) {
+  if(ret == false) {
     slog(LOG_ERR, "Could not get ob_dl_list info for error.");
     return NULL;
   }
 
   j_res = json_array();
   while(1) {
-    j_tmp = db_get_record(db_res);
+    j_tmp = db_ctx_get_record(g_db_ob);
     if(j_tmp == NULL) {
       break;
     }
 
     json_array_append_new(j_res, j_tmp);
   }
-  db_free(db_res);
+  db_ctx_free(g_db_ob);
 
   return j_res;
 }
@@ -658,7 +658,7 @@ static json_t* get_ob_dl_use(const char* uuid, E_USE use)
 {
   char* sql;
   json_t* j_res;
-  db_res_t* db_res;
+  int ret;
 
   if(uuid == NULL) {
     slog(LOG_WARNING, "Invalid input parameters.");
@@ -668,15 +668,15 @@ static json_t* get_ob_dl_use(const char* uuid, E_USE use)
 
   asprintf(&sql, "select * from ob_dl_list where uuid=\"%s\" and in_use=%d;", uuid, use);
 
-  db_res = db_query(sql);
+  ret = db_ctx_query(g_db_ob, sql);
   sfree(sql);
-  if(db_res == NULL) {
+  if(ret == false) {
     slog(LOG_ERR, "Could not get ob_dl_list info. uuid[%s], use[%d]", uuid, use);
     return NULL;
   }
 
-  j_res = db_get_record(db_res);
-  db_free(db_res);
+  j_res = db_ctx_get_record(g_db_ob);
+  db_ctx_free(g_db_ob);
 
   return j_res;
 }
@@ -701,11 +701,10 @@ json_t* get_ob_dl(const char* uuid)
 
 int get_ob_dl_count_by_dlma_uuid(const char* dlma_uuid)
 {
+  int ret;
   char* sql;
   char* dl_table;
-  db_res_t* db_res;
   json_t* j_res;
-  int ret;
 
   if(dlma_uuid == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -722,11 +721,11 @@ int get_ob_dl_count_by_dlma_uuid(const char* dlma_uuid)
   asprintf(&sql, "select count(*) from %s where in_use=%d;",
       dl_table, E_USE_OK
       );
-  db_res = db_query(sql);
+  ret = db_ctx_query(g_db_ob, sql);
   sfree(sql);
 
-  j_res = db_get_record(db_res);
-  db_free(db_res);
+  j_res = db_ctx_get_record(g_db_ob);
+  db_ctx_free(g_db_ob);
 
   ret = json_integer_value(json_object_get(j_res, "count(*)"));
   json_decref(j_res);
@@ -757,10 +756,9 @@ int get_ob_dl_list_cnt_total(json_t* j_dlma)
  */
 int get_ob_dl_list_cnt_finshed(json_t* j_dlma, json_t* j_plan)
 {
-  char* sql;
-  db_res_t* db_res;
-  json_t* j_res;
   int ret;
+  char* sql;
+  json_t* j_res;
 
   asprintf(&sql, "select count(*)"
       " from `%s` where "
@@ -793,15 +791,15 @@ int get_ob_dl_list_cnt_finshed(json_t* j_dlma, json_t* j_plan)
       E_USE_OK
       );
 
-  db_res = db_query(sql);
+  ret = db_ctx_query(g_db_ob, sql);
   sfree(sql);
-  if(db_res == NULL) {
+  if(ret == false) {
     slog(LOG_ERR, "Could not get finished dial list count info.");
     return -1;
   }
 
-  j_res = db_get_record(db_res);
-  db_free(db_res);
+  j_res = db_ctx_get_record(g_db_ob);
+  db_ctx_free(g_db_ob);
   if(j_res == NULL) {
     return -1;
   }
@@ -819,9 +817,8 @@ int get_ob_dl_list_cnt_finshed(json_t* j_dlma, json_t* j_plan)
 int get_ob_dl_list_cnt_available(json_t* j_dlma, json_t* j_plan)
 {
   char* sql;
-  db_res_t* db_res;
-  json_t* j_res;
   int ret;
+  json_t* j_res;
 
   asprintf(&sql, "select count(*)"
       " from `%s` where "
@@ -855,15 +852,15 @@ int get_ob_dl_list_cnt_available(json_t* j_dlma, json_t* j_plan)
       E_USE_OK
       );
 
-  db_res = db_query(sql);
+  ret = db_ctx_query(g_db_ob, sql);
   sfree(sql);
-  if(db_res == NULL) {
+  if(ret == false) {
     slog(LOG_ERR, "Could not get finished dial list count info.");
     return -1;
   }
 
-  j_res = db_get_record(db_res);
-  db_free(db_res);
+  j_res = db_ctx_get_record(g_db_ob);
+  db_ctx_free(g_db_ob);
   if(j_res == NULL) {
     return -1;
   }
@@ -881,9 +878,8 @@ int get_ob_dl_list_cnt_available(json_t* j_dlma, json_t* j_plan)
 int get_ob_dl_list_cnt_dialing(json_t* j_dlma)
 {
   char* sql;
-  db_res_t* db_res;
-  json_t* j_res;
   int ret;
+  json_t* j_res;
 
   if(j_dlma == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -895,11 +891,11 @@ int get_ob_dl_list_cnt_dialing(json_t* j_dlma)
       E_DL_STATUS_IDLE,
       E_USE_OK
       );
-  db_res = db_query(sql);
+  ret = db_ctx_query(g_db_ob, sql);
   sfree(sql);
 
-  j_res = db_get_record(db_res);
-  db_free(db_res);
+  j_res = db_ctx_get_record(g_db_ob);
+  db_ctx_free(g_db_ob);
 
   ret = json_integer_value(json_object_get(j_res, "count(*)"));
   json_decref(j_res);
@@ -916,9 +912,8 @@ int get_ob_dl_list_cnt_dialing(json_t* j_dlma)
 int get_ob_dl_list_cnt_tried(json_t* j_dlma)
 {
   char* sql;
-  db_res_t* db_res;
-  json_t* j_res;
   int ret;
+  json_t* j_res;
 
   asprintf(&sql, "select "
       " sum(trycnt_1 + trycnt_2 + trycnt_3 + trycnt_4 + trycnt_5 + trycnt_6 + trycnt_7 + trycnt_8) as trycnt"
@@ -928,15 +923,15 @@ int get_ob_dl_list_cnt_tried(json_t* j_dlma)
       E_USE_OK
       );
 
-  db_res = db_query(sql);
+  ret = db_ctx_query(g_db_ob, sql);
   sfree(sql);
-  if(db_res == NULL) {
+  if(ret == false) {
     slog(LOG_ERR, "Could not get dial list info.");
     return -1;
   }
 
-  j_res = db_get_record(db_res);
-  db_free(db_res);
+  j_res = db_ctx_get_record(g_db_ob);
+  db_ctx_free(g_db_ob);
   if(j_res == NULL) {
     return -1;
   }
@@ -1236,7 +1231,7 @@ json_t* create_ob_dl(json_t* j_dl)
       json_string_value(json_object_get(j_tmp, "name"))
       );
 
-  ret = db_insert("ob_dl_list", j_tmp);
+  ret = db_ctx_insert(g_db_ob, "ob_dl_list", j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     sfree(uuid);
@@ -1277,12 +1272,12 @@ bool delete_dl_list(const char* uuid)
   json_object_set_new(j_tmp, "in_use", json_integer(E_USE_NO));
   sfree(tmp);
 
-  tmp = db_get_update_str(j_tmp);
+  tmp = db_ctx_get_update_str(j_tmp);
   json_decref(j_tmp);
   asprintf(&sql, "update ob_dl_list set %s where uuid=\"%s\";", tmp, uuid);
   sfree(tmp);
 
-  ret = db_exec(sql);
+  ret = db_ctx_exec(g_db_ob, sql);
   sfree(sql);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete ob_dl_list. uuid[%s]", uuid);
@@ -1415,7 +1410,7 @@ static bool is_over_retry_delay(json_t* j_dlma, json_t* j_dl, json_t* j_plan)
   const char* tm_last_hangup;
   int retry_delay;
   char* sql;
-  db_res_t* db_res;
+  int ret;
 
   if((j_dlma == NULL) || (j_dl == NULL) || (j_plan == NULL)) {
     slog(LOG_WARNING, "Wrong input parameters.");
@@ -1437,15 +1432,15 @@ static bool is_over_retry_delay(json_t* j_dlma, json_t* j_dl, json_t* j_plan)
       retry_delay
       );
 
-  db_res = db_query(sql);
+  ret = db_ctx_query(g_db_ob, sql);
   sfree(sql);
 
-  if(db_res == NULL) {
+  if(ret == false) {
     return false;
   }
 
-  j_tmp = db_get_record(db_res);
-  db_free(db_res);
+  j_tmp = db_ctx_get_record(g_db_ob);
+  db_ctx_free(g_db_ob);
   if(j_tmp == NULL) {
     return false;
   }
@@ -1458,7 +1453,7 @@ static json_t* get_dls_uuid_available(json_t* j_dlma, json_t* j_plan, int count)
 {
   char* sql;
   const char* uuid;
-  db_res_t* db_res;
+  int ret;
   json_t* j_res;
   json_t* j_tmp;
 
@@ -1493,16 +1488,16 @@ static json_t* get_dls_uuid_available(json_t* j_dlma, json_t* j_plan, int count)
       count
       );
 
-  db_res = db_query(sql);
+  ret = db_ctx_query(g_db_ob, sql);
   sfree(sql);
-  if(db_res == NULL) {
+  if(ret == false) {
     slog(LOG_ERR, "Could not get dial list info.");
     return NULL;
   }
 
   j_res = json_array();
   while(1) {
-    j_tmp = db_get_record(db_res);
+    j_tmp = db_ctx_get_record(g_db_ob);
     if(j_tmp == NULL) {
       break;
     }
@@ -1516,7 +1511,7 @@ static json_t* get_dls_uuid_available(json_t* j_dlma, json_t* j_plan, int count)
     json_array_append_new(j_res, json_string(uuid));
     json_decref(j_tmp);
   }
-  db_free(db_res);
+  db_ctx_free(g_db_ob);
 
   return j_res;
 }
@@ -1669,9 +1664,8 @@ bool update_dl_list_after_create_dialing_info_(rb_dialing* dialing)
 bool is_exist_ob_dlma(const char* uuid)
 {
   char* sql;
-  db_res_t* db_res;
-  json_t* j_tmp;
   int ret;
+  json_t* j_tmp;
 
   if(uuid == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -1680,15 +1674,15 @@ bool is_exist_ob_dlma(const char* uuid)
 
   asprintf(&sql, "select count(*) from ob_dl_list_ma where uuid=\"%s\" and in_use=%d;", uuid, E_USE_OK);
 
-  db_res = db_query(sql);
+  ret = db_ctx_query(g_db_ob, sql);
   sfree(sql);
-  if(db_res == NULL) {
+  if(ret == false) {
     slog(LOG_ERR, "Could not get ob_dlma info. uuid[%s]", uuid);
     return false;
   }
 
-  j_tmp = db_get_record(db_res);
-  db_free(db_res);
+  j_tmp = db_ctx_get_record(g_db_ob);
+  db_ctx_free(g_db_ob);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get correct ob_dlma info. uuid[%s]", uuid);
     return false;
@@ -1712,9 +1706,8 @@ bool is_exist_ob_dlma(const char* uuid)
 bool is_exist_ob_dl(const char* uuid)
 {
   char* sql;
-  db_res_t* db_res;
-  json_t* j_tmp;
   int ret;
+  json_t* j_tmp;
 
   if(uuid == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -1727,15 +1720,15 @@ bool is_exist_ob_dl(const char* uuid)
       E_USE_OK
       );
 
-  db_res = db_query(sql);
+  ret = db_ctx_query(g_db_ob, sql);
   sfree(sql);
-  if(db_res == NULL) {
+  if(ret == false) {
     slog(LOG_ERR, "Could not get ob_dl info. uuid[%s]", uuid);
     return false;
   }
 
-  j_tmp = db_get_record(db_res);
-  db_free(db_res);
+  j_tmp = db_ctx_get_record(g_db_ob);
+  db_ctx_free(g_db_ob);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get correct ob_dl info. uuid[%s]", uuid);
     return false;
@@ -1776,12 +1769,12 @@ bool delete_ob_dls_by_dlma_uuid(const char* dlma_uuid)
   json_object_set_new(j_tmp, "in_use", json_integer(E_USE_NO));
   sfree(timestamp);
 
-  tmp = db_get_update_str(j_tmp);
+  tmp = db_ctx_get_update_str(j_tmp);
   json_decref(j_tmp);
   asprintf(&sql, "update ob_dl_list set %s where dlma_uuid=\"%s\";", tmp, dlma_uuid);
   sfree(tmp);
 
-  ret = db_exec(sql);
+  ret = db_ctx_exec(g_db_ob, sql);
   sfree(sql);
   if(ret == false) {
     return false;
@@ -1815,12 +1808,12 @@ json_t* delete_ob_dl(const char* uuid)
   json_object_set_new(j_tmp, "in_use", json_integer(E_USE_NO));
   sfree(tmp);
 
-  tmp = db_get_update_str(j_tmp);
+  tmp = db_ctx_get_update_str(j_tmp);
   json_decref(j_tmp);
   asprintf(&sql, "update ob_dl_list set %s where uuid=\"%s\";", tmp, uuid);
   sfree(tmp);
 
-  ret = db_exec(sql);
+  ret = db_ctx_exec(g_db_ob, sql);
   sfree(sql);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete ob_dl_list. uuid[%s]", uuid);

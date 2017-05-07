@@ -14,7 +14,7 @@
 #include <jansson.h>
 
 #include "slog.h"
-#include "db_handler.h"
+#include "db_ctx_handler.h"
 #include "utils.h"
 
 #include "ob_dlma_handler.h"
@@ -25,6 +25,8 @@ static bool create_dlma_view(const char* uuid, const char* view_name);
 static json_t* create_ob_dlma_default(void);
 static json_t* get_ob_dlma_use(const char* uuid, E_USE use);
 static char* create_view_name(const char* uuid);
+
+extern db_ctx_t* g_db_ob;
 
 /**
  * Create dl_list_ma.
@@ -67,7 +69,7 @@ json_t* create_ob_dlma(json_t* j_dlma)
       json_string_value(json_object_get(j_tmp, "name"))
       );
 
-  ret = db_insert("ob_dl_list_ma", j_tmp);
+  ret = db_ctx_insert(g_db_ob, "ob_dl_list_ma", j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not create dlma info. uuid[%s]", uuid);
@@ -97,7 +99,7 @@ static bool create_dlma_view(const char* uuid, const char* view_name)
 
   asprintf(&sql, "create view `%s` as select * from ob_dl_list where dlma_uuid=\"%s\";", view_name, uuid);
 
-  ret = db_exec(sql);
+  ret = db_ctx_exec(g_db_ob, sql);
   sfree(sql);
   if(ret == false) {
     slog(LOG_WARNING, "Could not create view. uuid[%s], view_name[%s]", uuid, view_name);
@@ -150,12 +152,12 @@ json_t* delete_ob_dlma(const char* uuid)
   json_object_set_new(j_tmp, "in_use", json_integer(E_USE_NO));
   sfree(tmp);
 
-  tmp = db_get_update_str(j_tmp);
+  tmp = db_ctx_get_update_str(j_tmp);
   json_decref(j_tmp);
   asprintf(&sql, "update ob_dl_list_ma set %s where uuid=\"%s\";", tmp, uuid);
   sfree(tmp);
 
-  ret = db_exec(sql);
+  ret = db_ctx_exec(g_db_ob, sql);
   sfree(sql);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete ob_dlma. uuid[%s]", uuid);
@@ -176,7 +178,7 @@ static json_t* get_ob_dlma_use(const char* uuid, E_USE use)
 {
   char* sql;
   json_t* j_res;
-  db_res_t* db_res;
+  int ret;
 
   if(uuid == NULL) {
     slog(LOG_WARNING, "Invalid input parameters.");
@@ -185,15 +187,15 @@ static json_t* get_ob_dlma_use(const char* uuid, E_USE use)
 
   asprintf(&sql, "select * from ob_dl_list_ma where uuid=\"%s\" and in_use=%d;", uuid, use);
 
-  db_res = db_query(sql);
+  ret = db_ctx_query(g_db_ob, sql);
   sfree(sql);
-  if(db_res == NULL) {
+  if(ret == false) {
     slog(LOG_ERR, "Could not get ob_dl_list_ma info. uuid[%s], use[%d]", uuid, use);
     return NULL;
   }
 
-  j_res = db_get_record(db_res);
-  db_free(db_res);
+  j_res = db_ctx_get_record(g_db_ob);
+  db_ctx_free(g_db_ob);
 
   return j_res;
 }
@@ -308,7 +310,7 @@ json_t* update_ob_dlma(const json_t* j_dlma)
   json_object_set_new(j_tmp, "tm_update", json_string(tmp));
   sfree(tmp);
 
-  tmp = db_get_update_str(j_tmp);
+  tmp = db_ctx_get_update_str(j_tmp);
   json_decref(j_tmp);
   if(tmp == NULL) {
     slog(LOG_WARNING, "Could not get update str.");
@@ -319,7 +321,7 @@ json_t* update_ob_dlma(const json_t* j_dlma)
   asprintf(&sql, "update ob_dl_list_ma set %s where uuid=\"%s\";", tmp, uuid);
   sfree(tmp);
 
-  ret = db_exec(sql);
+  ret = db_ctx_exec(g_db_ob, sql);
   sfree(sql);
   if(ret == false) {
     slog(LOG_WARNING, "Could not get updated ob_dlma. uuid[%s]", uuid);
@@ -346,28 +348,28 @@ json_t* update_ob_dlma(const json_t* j_dlma)
 json_t* get_ob_dlmas_all(void)
 {
   char* sql;
-  db_res_t* db_res;
+  int ret;
   json_t* j_res;
   json_t* j_tmp;
 
   asprintf(&sql, "select * from ob_dl_list_ma where in_use=%d;", E_USE_OK);
-  db_res = db_query(sql);
+  ret = db_ctx_query(g_db_ob, sql);
   sfree(sql);
-  if(db_res == NULL) {
+  if(ret == false) {
     slog(LOG_WARNING, "Could not get correct ob_dlma info.");
     return NULL;
   }
 
   j_res = json_array();
   while(1) {
-    j_tmp = db_get_record(db_res);
+    j_tmp = db_ctx_get_record(g_db_ob);
     if(j_tmp == NULL) {
       break;
     }
 
     json_array_append_new(j_res, j_tmp);
   }
-  db_free(db_res);
+  db_ctx_free(g_db_ob);
 
   return j_res;
 }
@@ -379,22 +381,22 @@ json_t* get_ob_dlmas_all(void)
 json_t* get_ob_dlmas_all_uuid(void)
 {
   char* sql;
-  db_res_t* db_res;
+  int ret;
   json_t* j_res;
   json_t* j_res_tmp;
   json_t* j_tmp;
 
   asprintf(&sql, "select uuid from ob_dl_list_ma where in_use=%d;", E_USE_OK);
-  db_res = db_query(sql);
+  ret = db_ctx_query(g_db_ob, sql);
   sfree(sql);
-  if(db_res == NULL) {
+  if(ret == false) {
     slog(LOG_WARNING, "Could not get correct ob_dlma info.");
     return NULL;
   }
 
   j_res = json_array();
   while(1) {
-    j_tmp = db_get_record(db_res);
+    j_tmp = db_ctx_get_record(g_db_ob);
     if(j_tmp == NULL) {
       break;
     }
@@ -409,7 +411,7 @@ json_t* get_ob_dlmas_all_uuid(void)
 
     json_array_append_new(j_res, j_res_tmp);
   }
-  db_free(db_res);
+  db_ctx_free(g_db_ob);
 
   return j_res;
 }

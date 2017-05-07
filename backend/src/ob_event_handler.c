@@ -17,7 +17,7 @@
 #include "common.h"
 #include "slog.h"
 #include "utils.h"
-#include "db_handler.h"
+#include "db_ctx_handler.h"
 #include "ami_handler.h"
 #include "ast_header.h"
 #include "ob_db_sql_create.h"
@@ -40,6 +40,7 @@
 
 extern struct event_base*  g_base;
 extern app* g_app;
+db_ctx_t* g_db_ob = NULL;
 
 static bool init_ob_event_handler(void);
 static bool init_ob_database_handler(void);
@@ -157,45 +158,74 @@ static bool init_ob_event_handler(void)
 static bool init_ob_database_handler(void)
 {
   int ret;
+  const char* database_name;
 
-  ret = db_exec(g_sql_ob_destination);
+  // get database file name
+  database_name = json_string_value(json_object_get(json_object_get(g_app->j_conf, "ob"), "database_name"));
+  if(database_name == NULL) {
+    slog(LOG_ERR, "Could not get outbound database info.");
+    return false;
+  }
+  slog(LOG_INFO, "Outbound database name info. name[%s]", database_name);
+
+  if(g_db_ob != NULL) {
+    slog(LOG_INFO, "Outbound database context is not initiated. Initiate database context.");
+    db_ctx_term(g_db_ob);
+  }
+
+  // initiate database
+  g_db_ob = db_ctx_init(database_name);
+  if(g_db_ob == NULL) {
+    slog(LOG_ERR, "Could not initiate outbound database context.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Initiated outbound database context.");
+
+  // ob_destination
+  ret = db_ctx_exec(g_db_ob, g_sql_ob_destination);
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate outbound database. table[destination]");
     return false;
   }
 
-  ret = db_exec(g_sql_ob_dial_list);
+  // ob_dial_list
+  ret = db_ctx_exec(g_db_ob, g_sql_ob_dial_list);
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate outbound database. table[dial_list]");
     return false;
   }
 
-  ret = db_exec(g_sql_ob_dl_list_ma);
+  // ob_dial_list_ma
+  ret = db_ctx_exec(g_db_ob, g_sql_ob_dl_list_ma);
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate outbound database. table[dl_list_ma]");
     return false;
   }
 
-  ret = db_exec(g_sql_ob_plan);
+  // ob_plan
+  ret = db_ctx_exec(g_db_ob, g_sql_ob_plan);
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate outbound database. table[plan]");
     return false;
   }
 
-  ret = db_exec(g_sql_drop_ob_dialing);
-  ret = db_exec(g_sql_ob_dialing);
+  // ob_dialing
+  ret = db_ctx_exec(g_db_ob, g_sql_drop_ob_dialing);
+  ret = db_ctx_exec(g_db_ob, g_sql_ob_dialing);
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate outbound database. table[dialing]");
     return false;
   }
 
-  ret = db_exec(g_sql_ob_dl_result);
+  // ob_result
+  ret = db_ctx_exec(g_db_ob, g_sql_ob_dl_result);
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate outbound database. table[dl_result]");
     return false;
   }
 
-  ret = db_exec(g_sql_ob_campaign);
+  // ob_campaign
+  ret = db_ctx_exec(g_db_ob, g_sql_ob_campaign);
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate outbound database. table[campaign]");
     return false;
@@ -207,6 +237,8 @@ static bool init_ob_database_handler(void)
 bool init_outbound(void)
 {
   int ret;
+
+  slog(LOG_INFO, "initiate outbound module.");
 
   if(g_base == NULL) {
     slog(LOG_ERR, "Could not initiate libevent. err[%d:%s]", errno, strerror(errno));
