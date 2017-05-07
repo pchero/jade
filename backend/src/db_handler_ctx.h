@@ -15,26 +15,19 @@
 
 typedef struct _db_ctx_t
 {
-  static sqlite3* db;
+  struct sqlite3* db;
 
   struct sqlite3_stmt* stmt;
 } db_ctx_t;
 
-bool      db_init(void);
-void      db_term(void);
-db_res_t* db_query(const char* query);
-bool      db_exec(const char* query);
-void      db_free(db_res_t* ctx);
-bool      db_insert(const char* table, const struct json_t* j_data);
-bool      db_insert_or_replace(const char* table, const struct json_t* j_data);
-char*     db_get_update_str(const struct json_t* j_data);
-struct json_t*  db_get_record(db_res_t* ctx);
+db_ctx_t* db_ctx_init(const char* name);
+void db_ctx_term(db_ctx_t* ctx);
 
-// need ctx
+bool db_ctx_exec(db_ctx_t* ctx, const char* query);
+bool db_ctx_query(db_ctx_t* ctx, const char* query);
+json_t* db_ctx_get_record(db_ctx_t* ctx);
 
-#endif /* SRC_DB_SQLITE3_HANDLER_H_ */
-
-
+bool db_ctx_free(db_ctx_t* ctx);
 
 
 #endif /* BACKEND_SRC_DB_HANDLER_CTX_H_ */

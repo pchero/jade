@@ -5,8 +5,10 @@
  *      Author: pchero
  */
 
-#include "db_handler_ctx.h"
+#include <stdio.h>
+#include <stdlib.h>
 
+#include "db_handler_ctx.h"
 #include "slog.h"
 #include "utils.h"
 
@@ -18,7 +20,6 @@ typedef struct {
 
 static bool db_ctx_connect(db_ctx_t* ctx, const char* filename);
 static db_ctx_t* db_ctx_create(void);
-static void db_ctx_free_stmt(db_ctx_t* ctx);
 static int db_ctx_busy_handler(void *data, int retry);
 
 static db_ctx_t* db_ctx_create(void)
@@ -51,7 +52,7 @@ static bool db_ctx_connect(db_ctx_t* ctx, const char* filename)
   }
 
   if(ctx->db != NULL) {
-    slog(LOG_NOTICE, "Database is already connected.");
+    slog(LOG_INFO, "Database is already connected.");
     return true;
   }
 
@@ -69,7 +70,7 @@ static bool db_ctx_connect(db_ctx_t* ctx, const char* filename)
  * free ctx stmt
  * @param ctx
  */
-static bool db_ctx_free_stmt(db_ctx_t* ctx)
+bool db_ctx_free(db_ctx_t* ctx)
 {
   int ret;
 
@@ -88,34 +89,6 @@ static bool db_ctx_free_stmt(db_ctx_t* ctx)
     return false;
   }
   ctx->stmt = NULL;
-
-  return true;
-}
-
-/**
- * free ctx db.
- * @param ctx
- */
-static bool db_ctx_free_db(db_ctx_t* ctx)
-{
-  int ret;
-
-  if(ctx == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return false;
-  }
-
-  // check already freed
-  if(ctx->db == NULL) {
-    return true;
-  }
-
-  ret = sqlite3_close(ctx->db);
-  if(ret != SQLITE_OK) {
-    slog(LOG_WARNING, "Could not close the ctx database correctly. err[%s]", sqlite3_errmsg(ctx->db));
-    return false;
-  }
-  ctx->db = NULL;
 
   return true;
 }
@@ -158,38 +131,32 @@ static int db_ctx_busy_handler(void *data, int retry)
  * Init database
  * @return
  */
-bool db_ctx_init(db_ctx_t* ctx, const char* name)
+db_ctx_t* db_ctx_init(const char* name)
 {
   int ret;
+  db_ctx_t* db_ctx;
 
-  if((ctx == NULL) || (name == NULL)) {
+  if(name == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return NULL;
   }
   slog(LOG_DEBUG, "Initiate db context. name[%s]", name);
 
-  // initiate stmt if exists
-  ret = db_ctx_free_stmt(ctx);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not initiate ctx. Failed to initiate stmt.");
-    return false;
-  }
-
-  // initiate db, if exists
-  ret = db_ctx_free_db(ctx);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not initiate ctx. Failed to initiate db.");
-    return false;
-  }
-
-  // connect db
-  ret = db_ctx_connect(ctx, name);
-  if(ret == false) {
-    sfree(ctx);
+  // create new db_ctx
+  db_ctx = db_ctx_create();
+  if(db_ctx == NULL) {
+    slog(LOG_ERR, "Could not create db context.");
     return NULL;
   }
 
-  return ctx;
+  // connect db
+  ret = db_ctx_connect(db_ctx, name);
+  if(ret == false) {
+    sfree(db_ctx);
+    return NULL;
+  }
+
+  return db_ctx;
 }
 
 /**
@@ -203,15 +170,18 @@ void db_ctx_term(db_ctx_t* ctx)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
+  db_ctx_free(ctx);
 
   ret = sqlite3_close(ctx->db);
   if(ret != SQLITE_OK) {
-    slog(LOG_WARNING, "Could not close the database correctly. err[%s]", sqlite3_errmsg(ctx->db));
+    slog(LOG_ERR, "Could not close the database correctly. err[%s]", sqlite3_errmsg(ctx->db));
     return;
   }
 
-  slog(LOG_NOTICE, "Released database context.");
+  slog(LOG_DEBUG, "Released database context.");
   ctx->db = NULL;
+
+  sfree(ctx);
 }
 
 /**
@@ -230,7 +200,7 @@ bool db_ctx_query(db_ctx_t* ctx, const char* query)
   }
 
   // free ctx stmt if exists
-  db_ctx_free_stmt(ctx);
+  db_ctx_free(ctx);
 
   ret = sqlite3_prepare_v2(ctx->db, query, -1, &result, NULL);
   if(ret != SQLITE_OK) {
@@ -273,4 +243,103 @@ bool db_ctx_exec(db_ctx_t* ctx, const char* query)
   sqlite3_free(err);
 
   return true;
+}
+
+/**
+ * Return 1 record info by json.
+ * If there's no more record or error happened, it will return NULL.
+ * @param res
+ * @return  success:json_t*, fail:NULL
+ */
+json_t* db_ctx_get_record(db_ctx_t* ctx)
+{
+	int ret;
+	int cols;
+	int i;
+	json_t* j_res;
+	json_t* j_tmp;
+	int type;
+	const char* tmp_const;
+
+  if(ctx == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+	ret = sqlite3_step(ctx->stmt);
+	if(ret != SQLITE_ROW) {
+		if(ret != SQLITE_DONE) {
+		  slog(LOG_ERR, "Could not patch the result. ret[%d], err[%s]", ret, sqlite3_errmsg(ctx->db));
+		}
+		return NULL;
+	}
+
+	cols = sqlite3_column_count(ctx->stmt);
+	j_res = json_object();
+	for(i = 0; i < cols; i++) {
+		j_tmp = NULL;
+		type = sqlite3_column_type(ctx->stmt, i);
+		switch(type) {
+			case SQLITE_INTEGER: {
+				j_tmp = json_integer(sqlite3_column_int(ctx->stmt, i));
+			}
+			break;
+
+			case SQLITE_FLOAT: {
+				j_tmp = json_real(sqlite3_column_double(ctx->stmt, i));
+			}
+			break;
+
+			case SQLITE_NULL: {
+				j_tmp = json_null();
+			}
+			break;
+
+			case SQLITE3_TEXT:
+			{
+			  // if the text is loadable, create json object.
+			  tmp_const = (const char*)sqlite3_column_text(ctx->stmt, i);
+			  if(tmp_const == NULL) {
+			    j_tmp = json_null();
+			  }
+			  else {
+	        j_tmp = json_loads(tmp_const, JSON_DECODE_ANY, NULL);
+	        if(j_tmp == NULL) {
+	          j_tmp = json_string((const char*)sqlite3_column_text(ctx->stmt, i));
+	        }
+	        else {
+	          // check type
+            // the only array/object/string types are allowed
+	          // especially, we don't allow the JSON_NULL type at this point.
+	          // Cause the json_loads() consider the "null" string to JSON_NULL.
+	          // It's should be done at the above.
+            ret = json_typeof(j_tmp);
+            if((ret != JSON_ARRAY) && (ret != JSON_OBJECT) && (ret != JSON_STRING)) {
+              json_decref(j_tmp);
+              j_tmp = json_string((const char*)sqlite3_column_text(ctx->stmt, i));
+            }
+	        }
+			  }
+			}
+			break;
+
+			case SQLITE_BLOB:
+			default:
+			{
+				// not done yet.
+			  slog(LOG_NOTICE, "Not supported type. type[%d]", type);
+				j_tmp = json_null();
+			}
+			break;
+		}
+
+		if(j_tmp == NULL) {
+		  slog(LOG_ERR, "Could not parse result column. name[%s], type[%d]",
+					sqlite3_column_name(ctx->stmt, i), type);
+			j_tmp = json_null();
+		}
+		json_object_set_new(j_res, sqlite3_column_name(ctx->stmt, i), j_tmp);
+	}
+
+	return j_res;
 }
