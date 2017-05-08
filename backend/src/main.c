@@ -10,7 +10,7 @@
 #include "common.h"
 #include "slog.h"
 #include "config.h"
-#include "db_handler.h"
+#include "db_ctx_handler.h"
 #include "http_handler.h"
 #include "event_handler.h"
 #include "data_handler.h"
@@ -19,7 +19,9 @@
 
 
 app* g_app;
+db_ctx_t* g_db_ast;
 struct event_base*  g_base = NULL;
+
 
 static bool init_event(void);
 static bool option_parse(int argc, char** argv);
@@ -67,8 +69,9 @@ bool init(void)
   }
   slog(LOG_DEBUG, "Finished init_event.");
 
-  ret = db_init();
-  if(ret == false) {
+  // init database
+  g_db_ast = db_ctx_init(":memory:");
+  if(g_db_ast == NULL) {
     slog(LOG_WARNING, "Could not initiate db.");
     return false;
   }
@@ -109,7 +112,10 @@ bool terminate(void)
   slog(LOG_INFO, "Terimnating..");
 
   term_http_handler();
-  db_term();
+
+  // terminate database
+  db_ctx_term(g_db_ast);
+  g_db_ast = NULL;
 
   event_base_free(g_base);
 

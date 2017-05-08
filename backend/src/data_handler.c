@@ -21,7 +21,6 @@
 #include "common.h"
 #include "slog.h"
 #include "utils.h"
-#include "db_handler.h"
 #include "db_sql_create.h"
 #include "ami_handler.h"
 #include "ami_event_handler.h"
@@ -174,7 +173,7 @@ static void cb_ami_status_check(__attribute__((unused)) int fd, __attribute__((u
 
   // create initial info if need.
   asprintf(&sql, "insert or ignore into system(id) values(1)");
-  db_exec(sql);
+  db_ctx_exec(g_db_ast, sql);
   sfree(sql);
 
   //// CoreStatus
@@ -358,104 +357,104 @@ static bool init_ami_database(void)
   int ret;
 
   // action
-  db_exec(g_sql_drop_action);
-  ret = db_exec(g_sql_create_action);
+  db_ctx_exec(g_db_ast, g_sql_drop_action);
+  ret = db_ctx_exec(g_db_ast, g_sql_create_action);
   if(ret == false) {
     slog(LOG_ERR, "Could not create table. table[%s]", "action");
     return false;
   }
 
   // system
-  db_exec(g_sql_drop_system);
-  ret = db_exec(g_sql_create_system);
+  db_ctx_exec(g_db_ast, g_sql_drop_system);
+  ret = db_ctx_exec(g_db_ast, g_sql_create_system);
   if(ret == false) {
     slog(LOG_ERR, "Could not create table. table[%s]", "system");
     return false;
   }
 
   // channel
-  db_exec(g_sql_drop_channel);
-  ret = db_exec(g_sql_create_channel);
+  db_ctx_exec(g_db_ast, g_sql_drop_channel);
+  ret = db_ctx_exec(g_db_ast, g_sql_create_channel);
   if(ret == false) {
     slog(LOG_ERR, "Could not create table. table[%s]", "channel");
     return false;
   }
 
   // peer
-  db_exec(g_sql_drop_peer);
-  ret = db_exec(g_sql_create_peer);
+  db_ctx_exec(g_db_ast, g_sql_drop_peer);
+  ret = db_ctx_exec(g_db_ast, g_sql_create_peer);
   if(ret == false) {
     slog(LOG_ERR, "Could not create table. table[%s]", "peer");
     return false;
   }
 
   // queue_param
-  db_exec(g_sql_drop_queue_param);
-  ret = db_exec(g_sql_create_queue_param);
+  db_ctx_exec(g_db_ast, g_sql_drop_queue_param);
+  ret = db_ctx_exec(g_db_ast, g_sql_create_queue_param);
   if(ret == false) {
     slog(LOG_ERR, "Could not create table. table[%s]", "queue_param");
     return false;
   }
 
   // queue_member
-  db_exec(g_sql_drop_queue_member);
-  ret = db_exec(g_sql_create_queue_member);
+  db_ctx_exec(g_db_ast, g_sql_drop_queue_member);
+  ret = db_ctx_exec(g_db_ast, g_sql_create_queue_member);
   if(ret == false) {
     slog(LOG_ERR, "Could not create table. table[%s]", "queue_member");
     return false;
   }
 
   // queue_member
-  db_exec(g_sql_drop_queue_entry);
-  ret = db_exec(g_sql_create_queue_entry);
+  db_ctx_exec(g_db_ast, g_sql_drop_queue_entry);
+  ret = db_ctx_exec(g_db_ast, g_sql_create_queue_entry);
   if(ret == false) {
     slog(LOG_ERR, "Could not create table. table[%s]", "queue_entry");
     return false;
   }
 
   // database
-  db_exec(g_sql_drop_database);
-  ret = db_exec(g_sql_create_database);
+  db_ctx_exec(g_db_ast, g_sql_drop_database);
+  ret = db_ctx_exec(g_db_ast, g_sql_create_database);
   if(ret == false) {
     slog(LOG_ERR, "Could not create table. table[%s]", "database");
     return false;
   }
 
   // registry
-  db_exec(g_sql_drop_registry);
-  ret = db_exec(g_sql_create_registry);
+  db_ctx_exec(g_db_ast, g_sql_drop_registry);
+  ret = db_ctx_exec(g_db_ast, g_sql_create_registry);
   if(ret == false) {
     slog(LOG_ERR, "Could not create table. table[%s]", "registry");
     return false;
   }
 
   // agent
-  db_exec(g_sql_drop_agent);
-  ret = db_exec(g_sql_create_agent);
+  db_ctx_exec(g_db_ast, g_sql_drop_agent);
+  ret = db_ctx_exec(g_db_ast, g_sql_create_agent);
   if(ret == false) {
     slog(LOG_ERR, "Could not create table. table[%s]", "agent");
     return false;
   }
 
   // device_state
-  db_exec(g_sql_drop_device_state);
-  ret = db_exec(g_sql_create_device_state);
+  db_ctx_exec(g_db_ast, g_sql_drop_device_state);
+  ret = db_ctx_exec(g_db_ast, g_sql_create_device_state);
   if(ret == false) {
     slog(LOG_ERR, "Could not create table. table[%s]", "device_state");
     return false;
   }
 
   // parking_lot
-  db_exec(g_sql_drop_parking_lot);
-  ret = db_exec(g_sql_create_parking_lot);
+  db_ctx_exec(g_db_ast, g_sql_drop_parking_lot);
+  ret = db_ctx_exec(g_db_ast, g_sql_create_parking_lot);
   if(ret == false) {
     slog(LOG_ERR, "Could not create table. table[%s]", "parking_lot");
     return false;
   }
 
   // parked_call
-  db_exec(g_sql_drop_parked_call);
-  ret = db_exec(g_sql_create_parked_call);
+  db_ctx_exec(g_db_ast, g_sql_drop_parked_call);
+  ret = db_ctx_exec(g_db_ast, g_sql_create_parked_call);
   if(ret == false) {
     slog(LOG_ERR, "Could not create table. table[%s]", "parked_call");
     return false;

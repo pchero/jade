@@ -12,7 +12,7 @@
 
 #include "utils.h"
 #include "slog.h"
-#include "db_handler.h"
+#include "common.h"
 #include "ami_handler.h"
 #include "action_handler.h"
 #include "ami_response_handler.h"
@@ -300,7 +300,7 @@ static void ami_response_handler(json_t* j_msg)
 //
 //  // delete all database info.
 //  asprintf(&sql, "delete from database;");
-//  ret = db_exec(sql);
+//  ret = db_ctx_exec(g_db_ast, sql);
 //  sfree(sql);
 //  if(ret == false) {
 //    slog(LOG_ERR, "Could not clean up the database.");
@@ -332,7 +332,7 @@ static void ami_response_handler(json_t* j_msg)
 //        "value",  value
 //        );
 //
-//    ret = db_insert_or_replace("database", j_tmp);
+//    ret = db_ctx_insert_or_replace(g_db_ast, "database", j_tmp);
 //    json_decref(j_tmp);
 //    if(ret == false) {
 //      slog(LOG_ERR, "Could not insert/replace the database data. key[%s], value[%s]", key, value);
@@ -413,7 +413,7 @@ static void ami_event_peerentry(json_t* j_msg)
     return;
   }
 
-  ret = db_insert_or_replace("peer", j_tmp);
+  ret = db_ctx_insert_or_replace(g_db_ast, "peer", j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert destination.");
@@ -458,7 +458,7 @@ static void ami_event_peerstatus(json_t* j_msg)
   json_object_set(j_peer, "address", json_object_get(j_msg, "Address"));
   json_object_set(j_peer, "channel_type", json_object_get(j_msg, "ChannelType"));
 
-  ret = db_insert_or_replace("peer", j_peer);
+  ret = db_ctx_insert_or_replace(g_db_ast, "peer", j_peer);
   json_decref(j_peer);
   if(ret == false) {
     slog(LOG_ERR, "Could not update peer status info.");
@@ -515,7 +515,7 @@ static void ami_event_queueparams(json_t* j_msg)
     return;
   }
 
-  ret = db_insert_or_replace("queue_param", j_tmp);
+  ret = db_ctx_insert_or_replace(g_db_ast, "queue_param", j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert queue_param.");
@@ -576,7 +576,7 @@ static void ami_event_queuemember(json_t* j_msg)
     return;
   }
 
-  ret = db_insert_or_replace("queue_member", j_tmp);
+  ret = db_ctx_insert_or_replace(g_db_ast, "queue_member", j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert queue_member.");
@@ -638,7 +638,7 @@ static void ami_event_queuememberadded(json_t* j_msg)
     return;
   }
 
-  ret = db_insert_or_replace("queue_member", j_tmp);
+  ret = db_ctx_insert_or_replace(g_db_ast, "queue_member", j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert queue_member.");
@@ -700,7 +700,7 @@ static void ami_event_queuememberpause(json_t* j_msg)
     return;
   }
 
-  ret = db_insert_or_replace("queue_member", j_tmp);
+  ret = db_ctx_insert_or_replace(g_db_ast, "queue_member", j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert queue_member.");
@@ -762,7 +762,7 @@ static void ami_event_queuememberpenalty(json_t* j_msg)
     return;
   }
 
-  ret = db_insert_or_replace("queue_member", j_tmp);
+  ret = db_ctx_insert_or_replace(g_db_ast, "queue_member", j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert queue_member.");
@@ -794,7 +794,7 @@ static void ami_event_queuememberremoved(json_t* j_msg)
       json_string_value(json_object_get(j_msg, "MemberName"))? : ""
       );
 
-  ret = db_exec(sql);
+  ret = db_ctx_exec(g_db_ast, sql);
   sfree(sql);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete queue_member.");
@@ -856,7 +856,7 @@ static void ami_event_queuememberringinuse(json_t* j_msg)
     return;
   }
 
-  ret = db_insert_or_replace("queue_member", j_tmp);
+  ret = db_ctx_insert_or_replace(g_db_ast, "queue_member", j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert queue_member.");
@@ -912,7 +912,7 @@ static void ami_event_queueentry(json_t* j_msg)
     return;
   }
 
-  ret = db_insert_or_replace("queue_entry", j_tmp);
+  ret = db_ctx_insert_or_replace(g_db_ast, "queue_entry", j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert queue_member.");
@@ -944,7 +944,7 @@ static void ami_event_queuecallerabandon(json_t* j_msg)
       json_string_value(json_object_get(j_msg, "Channel"))? : ""
       );
 
-  ret = db_exec(sql);
+  ret = db_ctx_exec(g_db_ast, sql);
   sfree(sql);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete queue_entry.");
@@ -996,7 +996,7 @@ static void ami_event_queuecallerjoin(json_t* j_msg)
     return;
   }
 
-  ret = db_insert_or_replace("queue_entry", j_tmp);
+  ret = db_ctx_insert_or_replace(g_db_ast, "queue_entry", j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to queue_entry.");
@@ -1027,7 +1027,7 @@ static void ami_event_queuecallerleave(json_t* j_msg)
       json_string_value(json_object_get(j_msg, "Position"))? : ""
       );
 
-  ret = db_exec(sql);
+  ret = db_ctx_exec(g_db_ast, sql);
   sfree(sql);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete queue_entry.");
@@ -1093,7 +1093,7 @@ static void ami_event_queuememberstatus(json_t* j_msg)
       json_integer_value(json_object_get(j_tmp, "status"))
       );
 
-  ret = db_insert_or_replace("queue_member", j_tmp);
+  ret = db_ctx_insert_or_replace(g_db_ast, "queue_member", j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to queue_member.");
@@ -1214,7 +1214,7 @@ static void ami_event_hangup(json_t* j_msg)
       json_string_value(json_object_get(j_msg, "Uniqueid"))
       );
 
-  ret = db_exec(sql);
+  ret = db_ctx_exec(g_db_ast, sql);
   sfree(sql);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete channel.");
@@ -1294,7 +1294,7 @@ static void ami_event_newchannel(json_t* j_msg)
     return;
   }
 
-  ret = db_insert_or_replace("channel", j_tmp);
+  ret = db_ctx_insert_or_replace(g_db_ast, "channel", j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to channel.");
@@ -1354,7 +1354,7 @@ static void ami_event_registryentry(json_t* j_msg)
     return;
   }
 
-  ret = db_insert_or_replace("registry", j_tmp);
+  ret = db_ctx_insert_or_replace(g_db_ast, "registry", j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to registry.");
@@ -1426,7 +1426,7 @@ static void ami_event_agents(json_t* j_msg)
     return;
   }
 
-  ret = db_insert_or_replace("agent", j_tmp);
+  ret = db_ctx_insert_or_replace(g_db_ast, "agent", j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to agent.");
@@ -1498,7 +1498,7 @@ static void ami_event_agentlogin(json_t* j_msg)
     return;
   }
 
-  tmp = db_get_update_str(j_tmp);
+  tmp = db_ctx_get_update_str(j_tmp);
   json_decref(j_tmp);
   asprintf(&sql, "update agent set %s where id=\"%s\";",
       tmp,
@@ -1506,7 +1506,7 @@ static void ami_event_agentlogin(json_t* j_msg)
       );
   sfree(tmp);
 
-  ret = db_exec(sql);
+  ret = db_ctx_exec(g_db_ast, sql);
   sfree(sql);
   if(ret == false) {
     slog(LOG_WARNING, "Could not update agent info. agent[%s]", json_string_value(json_object_get(j_msg, "Agent")));
@@ -1578,7 +1578,7 @@ static void ami_event_agentlogoff(json_t* j_msg)
     return;
   }
 
-  tmp = db_get_update_str(j_tmp);
+  tmp = db_ctx_get_update_str(j_tmp);
   json_decref(j_tmp);
   asprintf(&sql, "update agent set %s where id=\"%s\";",
       tmp,
@@ -1586,7 +1586,7 @@ static void ami_event_agentlogoff(json_t* j_msg)
       );
   sfree(tmp);
 
-  ret = db_exec(sql);
+  ret = db_ctx_exec(g_db_ast, sql);
   sfree(sql);
   if(ret == false) {
     slog(LOG_WARNING, "Could not update agent info. agent[%s]", json_string_value(json_object_get(j_msg, "Agent")));
@@ -1642,7 +1642,7 @@ static void ami_event_parkinglot(json_t* j_msg)
     return;
   }
 
-  ret = db_insert_or_replace("parking_lot", j_tmp);
+  ret = db_ctx_insert_or_replace(g_db_ast, "parking_lot", j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to parking_lot.");
@@ -1724,7 +1724,7 @@ static void ami_event_parkedcall(json_t* j_msg)
     return;
   }
 
-  ret = db_insert_or_replace("parked_call", j_tmp);
+  ret = db_ctx_insert_or_replace(g_db_ast, "parked_call", j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to parked_call.");
@@ -1757,7 +1757,7 @@ static void ami_event_parkedcallswap(json_t* j_msg)
       json_string_value(json_object_get(j_msg, "ParkeeUniqueid"))? : ""
       );
 
-  ret = db_exec(sql);
+  ret = db_ctx_exec(g_db_ast, sql);
   sfree(sql);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete parked_call.");
@@ -1820,7 +1820,7 @@ static void ami_event_parkedcallswap(json_t* j_msg)
     return;
   }
 
-  ret = db_insert_or_replace("parked_call", j_tmp);
+  ret = db_ctx_insert_or_replace(g_db_ast, "parked_call", j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to parked_call.");
@@ -1850,7 +1850,7 @@ static void ami_event_parkedcalltimeout(json_t* j_msg)
       json_string_value(json_object_get(j_msg, "ParkeeUniqueid"))? : ""
       );
 
-  ret = db_exec(sql);
+  ret = db_ctx_exec(g_db_ast, sql);
   sfree(sql);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete parked_call.");
@@ -1879,7 +1879,7 @@ static void ami_event_unparkedcall(json_t* j_msg)
       json_string_value(json_object_get(j_msg, "ParkeeUniqueid"))? : ""
       );
 
-  ret = db_exec(sql);
+  ret = db_ctx_exec(g_db_ast, sql);
   sfree(sql);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete parked_call.");
@@ -1908,7 +1908,7 @@ static void ami_event_parkedcallgiveup(json_t* j_msg)
       json_string_value(json_object_get(j_msg, "ParkeeUniqueid"))? : ""
       );
 
-  ret = db_exec(sql);
+  ret = db_ctx_exec(g_db_ast, sql);
   sfree(sql);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete parked_call.");
@@ -1951,7 +1951,7 @@ static void ami_event_devicestatechange(json_t* j_msg)
     return;
   }
 
-  ret = db_insert_or_replace("device_state", j_tmp);
+  ret = db_ctx_insert_or_replace(g_db_ast, "device_state", j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to device_state.");
@@ -2025,7 +2025,7 @@ static void ami_event_varset(json_t* j_msg)
   json_object_set_new(j_chan, "tm_update", json_string(timestamp));
   sfree(timestamp);
 
-  ret = db_insert_or_replace("channel", j_chan);
+  ret = db_ctx_insert_or_replace(g_db_ast, "channel", j_chan);
   json_decref(j_chan);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to channel.");

@@ -16,7 +16,6 @@
 #include "slog.h"
 #include "utils.h"
 #include "http_handler.h"
-#include "db_handler.h"
 #include "resource_handler.h"
 
 #define API_VER "0.1"
