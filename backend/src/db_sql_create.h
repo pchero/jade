@@ -37,7 +37,7 @@ static const char* g_sql_create_channel =
 "   linked_id   varchar(255),"
 
 // channel info
-"   channel             varchar(255),"
+"   channel             varchar(255),"    ///< channel name
 "   channel_state       int,"
 "   channel_state_desc  varchar(255),"
 

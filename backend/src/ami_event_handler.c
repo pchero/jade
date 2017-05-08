@@ -55,6 +55,7 @@ static void ami_event_queuememberremoved(json_t* j_msg);
 static void ami_event_queuememberringinuse(json_t* j_msg);
 static void ami_event_queueparams(json_t* j_msg);
 static void ami_event_registryentry(json_t* j_msg);
+static void ami_event_rename(json_t* j_msg);
 static void ami_event_unparkedcall(json_t* j_msg);
 static void ami_event_varset(json_t* j_msg);
 
@@ -191,6 +192,9 @@ void ami_message_handler(const char* msg)
   }
   else if(strcasecmp(event, "RegistryEntry") == 0) {
     ami_event_registryentry(j_msg);
+  }
+  else if(strcasecmp(event, "Rename") == 0) {
+    ami_event_rename(j_msg);
   }
   else if(strcasecmp(event, "UnParkedCall") == 0) {
     ami_event_unparkedcall(j_msg);
@@ -449,7 +453,7 @@ static void ami_event_peerstatus(json_t* j_msg)
   // get peer info.
   j_peer = get_peer_detail(peer);
   if(j_peer == NULL) {
-    slog(LOG_ERR, "Coudl not get peer info.");
+    slog(LOG_ERR, "Could not get peer info.");
     return;
   }
 
@@ -1358,6 +1362,60 @@ static void ami_event_registryentry(json_t* j_msg)
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to registry.");
+    return;
+  }
+
+  return;
+}
+
+/**
+ * AMI event handler.
+ * Event: Rename
+ * @param j_msg
+ */
+static void ami_event_rename(json_t* j_msg)
+{
+  json_t* j_tmp;
+  int ret;
+  char* timestamp;
+  const char* unique_id;
+  const char* chan_name;
+
+  if(j_msg == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired ami_event_rename.");
+
+  // get update info
+  unique_id = json_string_value(json_object_get(j_msg, "Uniqueid"));
+  chan_name = json_string_value(json_object_get(j_msg, "Newname"));
+  if((unique_id == NULL) || (chan_name == NULL)) {
+    slog(LOG_NOTICE, "Could not get correct update info. unique_id[%s], chan_name[%s]",
+        unique_id? : "",
+        chan_name? : ""
+        );
+    return;
+  }
+
+  // get channel info
+  j_tmp = get_channel_info(unique_id);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get correct channel info.");
+    return;
+  }
+
+  // update new channel info
+  timestamp = get_utc_timestamp();
+  json_object_set_new(j_tmp, "channel", json_string(chan_name));
+  json_object_set_new(j_tmp, "tm_update", json_string(timestamp));
+  sfree(timestamp);
+
+  // update channel name
+  ret = db_ctx_insert_or_replace(g_db_ast, "channel", j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update correct channel info.");
     return;
   }
 
