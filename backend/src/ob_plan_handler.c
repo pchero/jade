@@ -13,6 +13,7 @@
 #include <stdbool.h>
 #include <jansson.h>
 
+#include "common.h"
 #include "utils.h"
 #include "ami_handler.h"
 #include "event_handler.h"

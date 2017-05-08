@@ -10,8 +10,7 @@
 
 #include <sqlite3.h>
 #include <stdbool.h>
-
-#include "common.h"
+#include <jansson.h>
 
 typedef struct _db_ctx_t
 {

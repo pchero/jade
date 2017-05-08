@@ -10,6 +10,8 @@
 
 #include <jansson.h>
 
+#include "db_ctx_handler.h"
+
 typedef struct _app {
   json_t* j_conf;
 } app;
@@ -20,6 +22,7 @@ typedef enum _E_USE
   E_USE_OK = 1,
 } E_USE;
 
+extern db_ctx_t* g_db_ast;  ///< sqlite3 database for asterisk.
 
 
 #endif /* BACKEND_SRC_COMMON_H_ */

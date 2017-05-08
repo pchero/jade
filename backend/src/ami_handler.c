@@ -28,7 +28,6 @@
 #include "utils.h"
 #include "ami_handler.h"
 #include "action_handler.h"
-#include "db_handler.h"
 #include "ob_ami_handler.h"
 #include "ob_dialing_handler.h"
 #include "ami_event_handler.h"

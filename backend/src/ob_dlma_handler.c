@@ -13,6 +13,7 @@
 #include <string.h>
 #include <jansson.h>
 
+#include "common.h"
 #include "slog.h"
 #include "db_ctx_handler.h"
 #include "utils.h"

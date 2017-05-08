@@ -13,7 +13,7 @@
 
 #include "slog.h"
 #include "utils.h"
-#include "db_handler.h"
+#include "common.h"
 #include "action_handler.h"
 
 
@@ -69,7 +69,7 @@ ACTION_RES ami_response_handler_corestatus(json_t* j_action, json_t* j_msg)
   sfree(timestamp);
 
 
-  tmp = db_get_update_str(j_tmp);
+  tmp = db_ctx_get_update_str(j_tmp);
   json_decref(j_tmp);
   asprintf(&sql, "update system set %s where id=\"%s\";",
       tmp,
@@ -77,7 +77,7 @@ ACTION_RES ami_response_handler_corestatus(json_t* j_action, json_t* j_msg)
       );
   sfree(tmp);
 
-  ret = db_exec(sql);
+  ret = db_ctx_exec(g_db_ast, sql);
   sfree(sql);
   if(ret == false) {
     slog(LOG_WARNING, "Could not update system info. id[%s]", json_string_value(json_object_get(json_object_get(j_action, "data"), "id")));
@@ -151,7 +151,7 @@ ACTION_RES ami_response_handler_coresettings(json_t* j_action, json_t* j_msg)
   sfree(timestamp);
 
 
-  tmp = db_get_update_str(j_tmp);
+  tmp = db_ctx_get_update_str(j_tmp);
   json_decref(j_tmp);
   asprintf(&sql, "update system set %s where id=\"%s\";",
       tmp,
@@ -159,7 +159,7 @@ ACTION_RES ami_response_handler_coresettings(json_t* j_action, json_t* j_msg)
       );
   sfree(tmp);
 
-  ret = db_exec(sql);
+  ret = db_ctx_exec(g_db_ast, sql);
   sfree(sql);
   if(ret == false) {
     slog(LOG_WARNING, "Could not update system info. id[%s]", json_string_value(json_object_get(json_object_get(j_action, "data"), "id")));

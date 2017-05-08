@@ -13,7 +13,6 @@
 #include "common.h"
 #include "slog.h"
 #include "utils.h"
-#include "db_handler.h"
 #include "action_handler.h"
 
 bool insert_action(const char* id, const char* type, const json_t* j_data)
@@ -43,7 +42,7 @@ bool insert_action(const char* id, const char* type, const json_t* j_data)
     sfree(tmp);
   }
 
-  ret = db_insert("action", j_tmp);
+  ret = db_ctx_insert(g_db_ast, "action", j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert action info.");
@@ -56,7 +55,7 @@ bool insert_action(const char* id, const char* type, const json_t* j_data)
 json_t* get_action(const char* id)
 {
   char* sql;
-  db_res_t* db_res;
+  int ret;
   json_t* j_res;
 
   if(id == NULL) {
@@ -66,15 +65,15 @@ json_t* get_action(const char* id)
 
   asprintf(&sql, "select * from action where id=\"%s\";", id);
 
-  db_res = db_query(sql);
+  ret = db_ctx_query(g_db_ast, sql);
   sfree(sql);
-  if(db_res == NULL) {
+  if(ret == false) {
     slog(LOG_ERR, "Could not get correct action info.");
     return NULL;
   }
 
-  j_res = db_get_record(db_res);
-  db_free(db_res);
+  j_res = db_ctx_get_record(g_db_ast);
+  db_ctx_free(g_db_ast);
   if(j_res == NULL) {
     // no result.
     return NULL;
@@ -95,7 +94,7 @@ bool delete_action(const char* id)
 
   asprintf(&sql, "delete from action where id=\"%s\";", id);
 
-  ret = db_exec(sql);
+  ret = db_ctx_exec(g_db_ast, sql);
   sfree(sql);
   if(ret == false) {
     return false;
