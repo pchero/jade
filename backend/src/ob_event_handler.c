@@ -36,11 +36,14 @@
 #define DEF_EVENT_TIME_FAST "100000"
 #define DEF_EVENT_TIME_SLOW "3000000"
 #define DEF_ONE_SEC_IN_MICRO_SEC  1000000
+#define DEF_MAX_EVENT_COUNT 128
 
 
 extern struct event_base*  g_base;
 extern app* g_app;
-db_ctx_t* g_db_ob = NULL;
+
+db_ctx_t* g_db_ob = NULL;                               ///< outbound database handler
+struct event* g_ev_ob[DEF_MAX_EVENT_COUNT] = { NULL };  ///< outbound events
 
 static bool init_ob_event_handler(void);
 static bool init_ob_database_handler(void);
@@ -79,6 +82,7 @@ static bool init_ob_event_handler(void)
   struct event* ev;
   struct timeval tm_fast;
   struct timeval tm_slow;
+  int cnt = -1;
 
   // event delay fast.
   tmp_const = json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "event_time_fast"));
@@ -107,50 +111,62 @@ static bool init_ob_event_handler(void)
   // check start.
   ev = event_new(g_base, -1, EV_TIMEOUT | EV_PERSIST, cb_campaign_start, NULL);
   event_add(ev, &tm_fast);
+  g_ev_ob[cnt++] = ev;
 
   // check starting
   ev = event_new(g_base, -1, EV_TIMEOUT | EV_PERSIST, cb_campaign_starting, NULL);
   event_add(ev, &tm_slow);
+  g_ev_ob[cnt++] = ev;
 
   // check stopping.
   ev = event_new(g_base, -1, EV_TIMEOUT | EV_PERSIST, cb_campaign_stopping, NULL);
   event_add(ev, &tm_slow);
+  g_ev_ob[cnt++] = ev;
 
   // check force stopping
   ev = event_new(g_base, -1, EV_TIMEOUT | EV_PERSIST, cb_campaign_stopping_force, NULL);
   event_add(ev, &tm_slow);
+  g_ev_ob[cnt++] = ev;
 
   // check dialing end
   ev = event_new(g_base, -1, EV_TIMEOUT | EV_PERSIST, cb_check_dialing_end, NULL);
   event_add(ev, &tm_fast);
+  g_ev_ob[cnt++] = ev;
 
   // check end
   ev = event_new(g_base, -1, EV_TIMEOUT | EV_PERSIST, cb_check_campaign_end, NULL);
   event_add(ev, &tm_slow);
+  g_ev_ob[cnt++] = ev;
 
   // check campaign scheduling start
   ev = event_new(g_base, -1, EV_TIMEOUT | EV_PERSIST, cb_check_campaign_schedule_start, NULL);
   event_add(ev, &tm_slow);
+  g_ev_ob[cnt++] = ev;
 
   // check campaign scheduling end
   ev = event_new(g_base, -1, EV_TIMEOUT | EV_PERSIST, cb_check_campaign_schedule_end, NULL);
   event_add(ev, &tm_slow);
+  g_ev_ob[cnt++] = ev;
 
   // refresh dialing
   ev = event_new(g_base, -1, EV_TIMEOUT | EV_PERSIST, cb_check_dialing_refresh, NULL);
   event_add(ev, &tm_slow);
+  g_ev_ob[cnt++] = ev;
 
   // check timeout dialing
   ev = event_new(g_base, -1, EV_TIMEOUT | EV_PERSIST, cb_check_dialing_timeout, NULL);
   event_add(ev, &tm_slow);
+  g_ev_ob[cnt++] = ev;
 
   // check error dialing
   ev = event_new(g_base, -1, EV_TIMEOUT | EV_PERSIST, cb_check_dialing_error, NULL);
   event_add(ev, &tm_slow);
+  g_ev_ob[cnt++] = ev;
 
   // check error dl
   ev = event_new(g_base, -1, EV_TIMEOUT | EV_PERSIST, cb_check_dl_error, NULL);
   event_add(ev, &tm_slow);
+  g_ev_ob[cnt++] = ev;
 
   return true;
 }
@@ -271,14 +287,23 @@ bool init_outbound(void)
   return true;
 }
 
-void stop_outbound(void)
+/**
+ * Terminate outbound module.
+ */
+void term_outbound(void)
 {
-  struct timeval sec;
+  int idx;
 
-  sec.tv_sec = 0;
-  sec.tv_usec = 0;
+  slog(LOG_NOTICE, "Fired stop_outbound.");
 
-  event_base_loopexit(g_base, &sec);
+  for(idx = 0; idx < DEF_MAX_EVENT_COUNT; idx++) {
+    if(g_ev_ob[idx] == NULL) {
+      continue;
+    }
+
+    event_free(g_ev_ob[idx]);
+    g_ev_ob[idx] = NULL;
+  }
 
   return;
 }

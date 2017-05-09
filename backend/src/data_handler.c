@@ -22,6 +22,7 @@
 #include "slog.h"
 #include "utils.h"
 #include "db_sql_create.h"
+#include "event_handler.h"
 #include "ami_handler.h"
 #include "ami_event_handler.h"
 #include "action_handler.h"
@@ -580,14 +581,17 @@ bool init_data_handler(void)
   // ami connect
   ev = event_new(g_base, -1, EV_TIMEOUT | EV_PERSIST, cb_ami_connect, NULL);
   event_add(ev, &tm_event);
+  add_event_handler(ev);
 
   // check ami connection
   ev = event_new(g_base, -1, EV_TIMEOUT | EV_PERSIST, cb_ami_connection_check, NULL);
   event_add(ev, &tm_event);
+  add_event_handler(ev);
 
   // check ami status
   ev = event_new(g_base, -1, EV_TIMEOUT | EV_PERSIST, cb_ami_status_check, NULL);
   event_add(ev, &tm_event);
+  add_event_handler(ev);
 
   return true;
 }

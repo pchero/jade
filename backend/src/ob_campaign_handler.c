@@ -188,6 +188,7 @@ static json_t* get_ob_campaign_use(const char* uuid, E_USE use)
   asprintf(&sql, "select * from ob_campaign where uuid=\"%s\" and in_use=%d;", uuid, use);
 
   ret = db_ctx_query(g_db_ob, sql);
+  sfree(sql);
   if(ret == false) {
     slog(LOG_ERR, "Could not get ob_campaign info. uuid[%s], use[%d]", uuid, use);
     return NULL;
@@ -257,6 +258,7 @@ json_t* get_ob_campaigns_all(void)
 
   asprintf(&sql, "select * from ob_campaign where in_use=%d;", E_USE_OK);
   ret = db_ctx_query(g_db_ob, sql);
+  sfree(sql);
   if(ret == false) {
     slog(LOG_WARNING, "Could not get correct ob_campaign.");
     return NULL;
@@ -291,6 +293,7 @@ json_t* get_ob_campaigns_all_uuid(void)
 
   asprintf(&sql, "select uuid from ob_campaign where in_use=%d;", E_USE_OK);
   ret = db_ctx_query(g_db_ob, sql);
+  sfree(sql);
   if(ret == false) {
     slog(LOG_WARNING, "Could not get correct ob_campaign.");
     return NULL;
@@ -332,6 +335,7 @@ static json_t* get_campaigns_uuid_by_status_schedule(E_CAMP_STATUS_T status, E_C
       );
 
   ret = db_ctx_query(g_db_ob, sql);
+  sfree(sql);
   if(ret == false) {
     return NULL;
   }

@@ -22,9 +22,11 @@
 
 #define DEF_PID_FILEPATH "/var/run/jade_backend.pid"
 #define DEF_PID_TIMEOUT_SEC 5
+#define DEF_MAX_EVENT_COUNT 128
 
 extern app* g_app;
 extern struct event_base*  g_base;
+struct event* g_ev_ast[DEF_MAX_EVENT_COUNT] = { NULL };  ///< asterisk events
 
 static void cb_signal_term(int sock, short which, void* arg);
 static void cb_signal_int(evutil_socket_t sig, short events, void *user_data);
@@ -54,6 +56,7 @@ bool init_event_handler(void)
     slog(LOG_ERR, "Could not add the signal handler. signal[%s]", "SIGTERM");
     return false;
   }
+  add_event_handler(ev);
 
   // sigint
   ev = evsignal_new(g_base, SIGINT, cb_signal_int, NULL);
@@ -66,6 +69,7 @@ bool init_event_handler(void)
     slog(LOG_ERR, "Could not add the signal handler. signal[%s]", "SIGINT");
     return false;
   }
+  add_event_handler(ev);
 
   // sigpipe
   ev = evsignal_new(g_base, SIGPIPE, cb_signal_pipe, NULL);
@@ -78,6 +82,7 @@ bool init_event_handler(void)
     slog(LOG_ERR, "Could not add the signal handler. signal[%s]", "SIGPIPE");
     return false;
   }
+  add_event_handler(ev);
 
   // sighup
   ev = evsignal_new(g_base, SIGHUP, cb_signal_hup, NULL);
@@ -90,6 +95,7 @@ bool init_event_handler(void)
     slog(LOG_ERR, "Could not add the signal handler. signal[%s]", "SIGHUP");
     return false;
   }
+  add_event_handler(ev);
 
   // add pid update
   tv.tv_sec = DEF_PID_TIMEOUT_SEC;
@@ -97,8 +103,25 @@ bool init_event_handler(void)
   ev_pid = calloc(sizeof(struct event), 1);
   event_assign(ev_pid, g_base, -1, 0, cb_pid_update, ev_pid);
   event_add(ev_pid, &tv);
+  add_event_handler(ev);
 
   return true;
+}
+
+void term_event_handler(void)
+{
+  int idx;
+
+  slog(LOG_NOTICE, "Fired term_event_handler.");
+
+  for(idx = 0; idx < DEF_MAX_EVENT_COUNT; idx++) {
+    if(g_ev_ast[idx] == NULL) {
+      continue;
+    }
+
+    event_free(g_ev_ast[idx]);
+    g_ev_ast[idx] = NULL;
+  }
 }
 
 /**
@@ -212,4 +235,24 @@ static bool pid_update(void)
   ret = pidfile_close(pfh);
 
   return true;
+}
+
+void add_event_handler(struct event* ev)
+{
+  int idx;
+
+  if(ev == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+
+  for(idx = 0; idx < DEF_MAX_EVENT_COUNT; idx++) {
+    if(g_ev_ast[idx] != NULL) {
+      continue;
+    }
+    g_ev_ast[idx] = ev;
+    break;
+  }
+
+  return;
 }

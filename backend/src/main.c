@@ -109,9 +109,15 @@ bool init(void)
 
 bool terminate(void)
 {
-  slog(LOG_INFO, "Terimnating..");
+  slog(LOG_INFO, "Terminating..");
 
   term_http_handler();
+
+  // terminate event handler
+  term_event_handler();
+
+  // terminate outbound module.
+  term_outbound();
 
   // terminate database
   db_ctx_term(g_db_ast);
