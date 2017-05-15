@@ -614,40 +614,57 @@ bool update_ob_dialing_status(const char* uuid, E_DIALING_STATUS_T status)
   return true;
 }
 
-bool update_ob_dialing_dialbegin(const char* uuid)
-{
-  int ret;
-  char* timestamp;
-  json_t* j_tmp;
-  json_t* j_dialing;
-
-  if(uuid == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return false;
-  }
-  slog(LOG_DEBUG, "Fired update_ob_dialing_dialbegin. uuid[%s]", uuid);
-
-  // check exist
-  ret = is_exist_ob_dialing(uuid);
-  if(ret == false) {
-    // not ob_dialing call
-    return false;
-  }
-
-  // get dialing info
-  j_dialing = get_ob_dialing(uuid);
-  if(j_dialing == NULL) {
-    slog(LOG_ERR, "Could not get correct dialing info. uuid[%s]", uuid);
-    return false;
-  }
-
-
-
-  timestamp = get_utc_timestamp();
-
-
-  return true;
-}
+///**
+// *
+// * @param uuid
+// * @return
+// */
+//bool update_ob_dialing_dialbegin(const char* uuid)
+//{
+//  int ret;
+//  const char* dl_uuid;
+//  int dial_index;
+//  json_t* j_dialing;
+//
+//  if(uuid == NULL) {
+//    slog(LOG_WARNING, "Wrong input parameter.");
+//    return false;
+//  }
+//  slog(LOG_DEBUG, "Fired update_ob_dialing_dialbegin. uuid[%s]", uuid);
+//
+//  // check exist
+//  ret = is_exist_ob_dialing(uuid);
+//  if(ret == false) {
+//    // not ob_dialing call
+//    return false;
+//  }
+//
+//  // get dialing info
+//  j_dialing = get_ob_dialing(uuid);
+//  if(j_dialing == NULL) {
+//    slog(LOG_ERR, "Could not get correct dialing info. uuid[%s]", uuid);
+//    return false;
+//  }
+//
+//  // get dl uuid
+//  dl_uuid = json_string_value(json_object_get(j_dialing, "uuid_dl_list"));
+//  if(dl_uuid == NULL) {
+//    slog(LOG_ERR, "Could not get correct dl_uuid info.");
+//    return false;
+//  }
+//
+//  // get dial try index
+//  dial_index = json_integer_value(json_object_get(j_dialing, "dial_index"));
+//
+//  // increase try count
+//  ret = increase_ob_dl_trycnt(dl_uuid, dial_index);
+//  if(ret == false) {
+//    slog(LOG_ERR, "Could not increase ob dl trycnt. dl_uuid[%s], dial_index[%d]", dl_uuid, dial_index);
+//    return false;
+//  }
+//
+//  return true;
+//}
 
 bool update_ob_dialing_hangup(const char* uuid, int hangup, const char* hangup_detail)
 {

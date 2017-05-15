@@ -13,7 +13,7 @@
 typedef enum _E_DIAL_MODE {
   E_DIAL_MODE_NONE = 0,       /// No dial mode
   E_DIAL_MODE_PREDICTIVE = 1,   ///
-  E_DIAL_MODE_DESKTOP = 2,    ///
+  E_DIAL_MODE_PREVIEW = 2,    ///
   E_DIAL_MODE_POWER = 3,      ///
   E_DIAL_MODE_ROBO = 4,       ///
   E_DIAL_MODE_REDIRECT = 5,     ///

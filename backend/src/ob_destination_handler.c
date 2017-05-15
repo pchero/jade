@@ -471,15 +471,15 @@ static int get_avail_cnt_app_queue_available_member(const char* name)
       0
       );
 
-  ret = db_ctx_query(g_db_ob, sql);
+  ret = db_ctx_query(g_db_ast, sql);
   sfree(sql);
   if(ret == false) {
     slog(LOG_ERR, "Could not get correct available queue member info. queue_name[%s]", name);
     return 0;
   }
 
-  j_res = db_ctx_get_record(g_db_ob);
-  db_ctx_free(g_db_ob);
+  j_res = db_ctx_get_record(g_db_ast);
+  db_ctx_free(g_db_ast);
   if(j_res == NULL) {
     slog(LOG_ERR, "Could not get correct available queue member count. queue_name[%s]", name);
     return 0;
@@ -507,15 +507,15 @@ static int get_avail_cnt_app_queue_service_perf(const char* name)
       name
       );
 
-  ret = db_ctx_query(g_db_ob, sql);
+  ret = db_ctx_query(g_db_ast, sql);
   sfree(sql);
   if(ret == false) {
     slog(LOG_ERR, "Could not get correct queue performance info. queue_name[%s]", name);
     return 0;
   }
 
-  j_res = db_ctx_get_record(g_db_ob);
-  db_ctx_free(g_db_ob);
+  j_res = db_ctx_get_record(g_db_ast);
+  db_ctx_free(g_db_ast);
   if(j_res == NULL) {
     slog(LOG_ERR, "Could not get correct queue performance info. queue_name[%s]", name);
     return 0;

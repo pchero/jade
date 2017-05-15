@@ -125,7 +125,7 @@ enum ast_control_frame_type {
  * \param j_plan
  * \return
  */
-json_t* get_dl_available_predictive(json_t* j_dlma, json_t* j_plan)
+json_t* get_dl_available_for_dial(json_t* j_dlma, json_t* j_plan)
 {
   json_t* j_dl;
   int ret;
@@ -1558,61 +1558,61 @@ static json_t* get_ob_dl_available(json_t* j_dlma, json_t* j_plan)
   return j_res;
 }
 
-/**
- * Increase given uuid dial list's try count.
- * @param uuid
- * @param idx
- * @return
- */
-bool increase_ob_dl_trycnt(const char* uuid, int idx)
-{
-  int ret;
-  int try_count;
-  char* try_count_field;
-  json_t* j_dl;
-  json_t* j_tmp;
+///**
+// * Increase given uuid dial list's try count.
+// * @param uuid
+// * @param idx
+// * @return
+// */
+//bool increase_ob_dl_trycnt(const char* uuid, int idx)
+//{
+//  int ret;
+//  int try_count;
+//  char* try_count_field;
+//  json_t* j_dl;
+//  json_t* j_tmp;
+//
+//  if(uuid == NULL) {
+//    slog(LOG_WARNING, "Wrong input parameter.");
+//    return false;
+//  }
+//  slog(LOG_DEBUG, "Fired increase_ob_dl_trycnt. uuid[%s], idx[%d]", uuid, idx);
+//
+//  // check exist
+//  ret = is_exist_ob_dl(uuid);
+//  if(ret == false) {
+//    slog(LOG_NOTICE, "Could not find correct ob_dl info. uuid[%s]", uuid);
+//    return false;
+//  }
+//
+//  // get ob_dl info
+//  j_dl = get_ob_dl(uuid);
+//  if(j_dl == NULL) {
+//    slog(LOG_ERR, "Could not get correct ob_dl info. uuid[%s]", uuid);
+//    return false;
+//  }
+//
+//  // create string
+//  asprintf(&try_count_field, "trycnt_%d", idx);
+//
+//  // get current try cnt
+//  try_count = json_integer_value(json_object_get(j_dl, try_count_field));
+//
+//  // increase try_count
+//  try_count++;
+//
+//  // update
+//  json_object_set(j_dl, try_count_field, json_integer(try_count));
+//  sfree(try_count_field);
+//
+//  j_tmp = update_ob_dl(j_dl);
+//  json_decref(j_dl);
+//  json_decref(j_tmp);
+//
+//  return true;
+//}
 
-  if(uuid == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return false;
-  }
-  slog(LOG_DEBUG, "Fired increase_ob_dl_trycnt. uuid[%s], idx[%d]", uuid, idx);
-
-  // check exist
-  ret = is_exist_ob_dl(uuid);
-  if(ret == false) {
-    slog(LOG_NOTICE, "Could not find correct ob_dl info. uuid[%s]", uuid);
-    return false;
-  }
-
-  // get ob_dl info
-  j_dl = get_ob_dl(uuid);
-  if(j_dl == NULL) {
-    slog(LOG_ERR, "Could not get correct ob_dl info. uuid[%s]", uuid);
-    return false;
-  }
-
-  // create string
-  asprintf(&try_count_field, "trycnt_%d", idx);
-
-  // get current try cnt
-  try_count = json_integer_value(json_object_get(j_dl, try_count_field));
-
-  // increase try_count
-  try_count++;
-
-  // update
-  json_object_set(j_dl, try_count_field, json_integer(try_count));
-  sfree(try_count_field);
-
-  j_tmp = update_ob_dl(j_dl);
-  json_decref(j_dl);
-  json_decref(j_tmp);
-
-  return true;
-}
-
-bool update_ob_dl_after_create_dialing_info(json_t* j_dialing)
+bool update_ob_dl_after_originate(json_t* j_dialing)
 {
   char* timestamp;
   const char* tmp_const;
@@ -1635,7 +1635,7 @@ bool update_ob_dl_after_create_dialing_info(json_t* j_dialing)
   // get timestamp
   timestamp = get_utc_timestamp();
 
-  // get
+  // create trycnt string
   asprintf(&try_count_field, "trycnt_%lld", json_integer_value(json_object_get(j_dialing, "dial_index")));
 
   // create update dl_list

@@ -50,14 +50,16 @@ int get_ob_dl_list_cnt_dialing(json_t* j_dlma);
 int get_ob_dl_list_cnt_tried(json_t* j_dlma);
 
 
-json_t* get_dl_available_predictive(json_t* j_dlma, json_t* j_plan);
+json_t* get_dl_available_for_dial(json_t* j_dlma, json_t* j_plan);
 bool is_endable_dl_list(json_t* j_dlma, json_t* j_plan);
 void clear_dl_list_dialing(const char* uuid);
 
 json_t* create_dial_info(json_t* j_plan, json_t* j_dl_list, json_t* j_dest);
 json_t* create_json_for_dl_result(json_t* j_dialing);
 
-bool update_ob_dl_after_create_dialing_info(json_t* dialing);
+//bool increase_ob_dl_trycnt(const char* uuid, int idx);
+
+bool update_ob_dl_after_originate(json_t* dialing);
 bool update_ob_dl_status(const char* uuid, E_DL_STATUS_T status);
 bool update_ob_dl_hangup(
     const char* uuid,
