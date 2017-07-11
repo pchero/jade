@@ -21,8 +21,6 @@
 #include "ob_ami_handler.h"
 #include "ob_dialing_handler.h"
 
-extern app* g_app;
-
 static void ami_response_handler(json_t* j_msg);
 
 
@@ -1136,6 +1134,7 @@ static void ami_event_dialbegin(json_t* j_msg)
 //  // update ob_dialing info
 //  uuid = json_string_value(json_object_get(j_msg, "DestUniqueid"));
 //  update_ob_dialing_status(uuid, E_DIALING_DIAL_BEGIN);
+
 
   return;
 }

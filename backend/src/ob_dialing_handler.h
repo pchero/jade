@@ -53,6 +53,7 @@ bool is_exist_ob_dialing(const char* uuid);
 
 bool update_ob_dialing_hangup(const char* uuid, int hangup, const char* hangup_detail);
 bool update_ob_dialing_res_dial(const char* uuid, bool success, int res_dial, const char* channel);
+//bool update_ob_dialing_dialbegin(const char* uuid);
 bool update_ob_dialing_status(const char* uuid, E_DIALING_STATUS_T status);
 bool update_ob_dialing_timestamp(const char* uuid);
 

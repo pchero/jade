@@ -198,6 +198,115 @@ ACTION_RES ob_ami_response_handler_status(json_t* j_action, json_t* j_msg)
  * @param name
  * @return
  */
+bool originate_to_exten_preview(json_t* j_dialing)
+{
+  json_t* j_cmd;
+  int ret;
+  char* tmp;
+  char* channel;
+
+  if(j_dialing == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired originate_to_exten_preview.");
+
+  // create channel
+  asprintf(&channel, "Local/%s@%s",
+      json_string_value(json_object_get(j_dialing, "dial_exten")),
+      json_string_value(json_object_get(j_dialing, "dial_context"))
+      );
+
+  //  Action: Originate
+  //  ActionID: <value>
+  //  Channel: <value>
+  //  Exten: <value>
+  //  Context: <value>
+  //  Priority: <value>
+  //  Application: <value>
+  //  Data: <value>
+  //  Timeout: <value>
+  //  CallerID: <value>
+  //  Variable: <value>
+  //  Account: <value>
+  //  EarlyMedia: <value>
+  //  Async: <value>
+  //  Codecs: <value>
+  //  ChannelId: <value>
+  //  OtherChannelId: <value>
+  j_cmd = json_pack("{s:s, s:s, s:s, s:s, s:s, s:s}",
+      "Action",       "Originate",
+      "ActionID",     json_string_value(json_object_get(j_dialing, "action_id"))? : "",
+      "Async",        "true",
+      "Channel",      channel,
+      "Application",  "Dial",
+      "Data",         json_string_value(json_object_get(j_dialing, "dial_channel"))
+      );
+  sfree(channel);
+
+  if(j_cmd == NULL) {
+    slog(LOG_ERR, "Could not create default originate request info.");
+    return false;
+  }
+
+  if(json_object_get(j_dialing, "dial_timeout") != NULL) {
+    json_object_set(j_cmd, "Timeout", json_object_get(j_dialing, "dial_timeout"));
+  }
+
+  if(json_object_get(j_dialing, "callerid") != NULL) {
+    json_object_set(j_cmd, "CallerID", json_object_get(j_dialing, "callerid"));
+  }
+
+  if(json_object_get(j_dialing, "account") != NULL) {
+    json_object_set(j_cmd, "Account", json_object_get(j_dialing, "account"));
+  }
+
+  if(json_object_get(j_dialing, "early_media") != NULL) {
+    json_object_set(j_cmd, "EarlyMedia", json_object_get(j_dialing, "early_media"));
+  }
+
+  if(json_object_get(j_dialing, "codecs") != NULL) {
+    json_object_set(j_cmd, "Codecs", json_object_get(j_dialing, "codecs"));
+  }
+
+  if(json_object_get(j_dialing, "channelid") != NULL) {
+    json_object_set(j_cmd, "ChannelId", json_object_get(j_dialing, "channelid"));
+  }
+
+  if(json_object_get(j_dialing, "otherchannelid") != NULL) {
+    json_object_set(j_cmd, "OtherChannelId", json_object_get(j_dialing, "otherchannelid"));
+  }
+
+  // Variables
+  if(json_object_get(j_dialing, "variables") != NULL) {
+    json_object_set(j_cmd, "Variables", json_object_get(j_dialing, "variables"));
+  }
+
+  // dump command string
+  if(j_cmd == NULL) {
+    slog(LOG_ERR, "Could not create ami json.");
+    return NULL;
+  }
+  tmp = json_dumps(j_cmd, JSON_ENCODE_ANY);
+  slog(LOG_DEBUG, "Dialing. tmp[%s]\n", tmp);
+  sfree(tmp);
+
+  ret = send_ami_cmd(j_cmd);
+  json_decref(j_cmd);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not send originate extension request.");
+    return false;
+  }
+  insert_action(json_string_value(json_object_get(j_dialing, "action_id")), "ob.originate", NULL);
+
+  return true;
+}
+
+/**
+ * Originate the call and send to extension.
+ * @param name
+ * @return
+ */
 bool originate_to_exten(json_t* j_dialing)
 {
   json_t* j_cmd;
