@@ -31,7 +31,7 @@ This module makes easy to managing the calls.
 * libssl
 
 ## Manual
-* https://rawgit.com/pchero/jade/master/backend/doc/build/html/index.html
+* https://rawgit.com/pchero/jade/master/doc/build/html/index.html
 
 ## Library issue
 * libevhtp
