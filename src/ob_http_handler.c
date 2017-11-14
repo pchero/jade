@@ -43,9 +43,11 @@ static void htp_delete_ob_destinations_uuid(evhtp_request_t *req, void *data);
 
 // ob/plans
 static void cb_htp_ob_plans(evhtp_request_t *req, void *data);
+static void cb_htp_ob_plans_all(evhtp_request_t *req, void *data);
 static void cb_htp_ob_plans_uuid(evhtp_request_t *req, void *data);
 static void htp_get_ob_plans(evhtp_request_t *req, void *data);
 static void htp_post_ob_plans(evhtp_request_t *req, void *data);
+static void htp_get_ob_plans_all(evhtp_request_t *req, void *data);
 static void htp_get_ob_plans_uuid(evhtp_request_t *req, void *data);
 static void htp_put_ob_plans_uuid(evhtp_request_t *req, void *data);
 static void htp_delete_ob_plans_uuid(evhtp_request_t *req, void *data);
@@ -96,6 +98,7 @@ bool init_ob_http_handler(void)
 
   // plans
   evhtp_set_regex_cb(g_htp, "/ob/plans/("DEF_REG_UUID")", cb_htp_ob_plans_uuid, NULL);
+  evhtp_set_regex_cb(g_htp, "/ob/plans/", cb_htp_ob_plans_all, NULL);
   evhtp_set_regex_cb(g_htp, "/ob/plans", cb_htp_ob_plans, NULL);
 
   // campaigns
@@ -244,6 +247,46 @@ static void cb_htp_ob_plans(evhtp_request_t *req, void *data)
   else {
     // should not reach to here.
     simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  }
+
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+
+  return;
+}
+
+/**
+ * http request handler.
+ * request : ^/ob/plans/
+ * @param req
+ * @param data
+ */
+static void cb_htp_ob_plans_all(evhtp_request_t *req, void *data)
+{
+  int method;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired cb_htp_ob_plans_all.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if(method != htp_method_GET) {
+    slog(LOG_ERR, "Wrong method request. method[%d]", method);
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  if(method == htp_method_GET) {
+    htp_get_ob_plans_all(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
   }
 
   // should not reach to here.
@@ -1098,6 +1141,42 @@ static void htp_get_ob_plans_uuid(evhtp_request_t *req, void *data)
   // create result
   j_res = create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", j_tmp);
+
+  // response
+  simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * htp request handler.
+ * request: GET ^/ob/plans/
+ * @param req
+ * @param data
+ */
+static void htp_get_ob_plans_all(evhtp_request_t *req, void *data)
+{
+  json_t* j_tmp;
+  json_t* j_res;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired htp_get_ob_plans_all.");
+
+  // get plan info
+  j_tmp = get_ob_plans_all();
+  if(j_tmp == NULL) {
+    simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", json_object());
+  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
 
   // response
   simple_response_normal(req, j_res);
