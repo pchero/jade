@@ -275,13 +275,6 @@ bool init_outbound(void)
     return false;
   }
 
-  // init http
-  ret = init_ob_http_handler();
-  if(ret == false) {
-    slog(LOG_ERR, "Could not initiate ob http handler.");
-    return false;
-  }
-
   slog(LOG_NOTICE, "Initiated outbound.");
 
   return true;

@@ -33,9 +33,6 @@ extern evhtp_t* g_htp;
 
 
 // ob/destinations
-static void cb_htp_ob_destinations(evhtp_request_t *req, void *data);
-static void cb_htp_ob_destinations_all(evhtp_request_t *req, void *data);
-static void cb_htp_ob_destinations_uuid(evhtp_request_t *req, void *data);
 static void htp_get_ob_destinations(evhtp_request_t *req, void *data);
 static void htp_post_ob_destinations(evhtp_request_t *req, void *data);
 static void htp_get_ob_destinations_all(evhtp_request_t *req, void *data);
@@ -44,9 +41,6 @@ static void htp_put_ob_destinations_uuid(evhtp_request_t *req, void *data);
 static void htp_delete_ob_destinations_uuid(evhtp_request_t *req, void *data);
 
 // ob/plans
-static void cb_htp_ob_plans(evhtp_request_t *req, void *data);
-static void cb_htp_ob_plans_all(evhtp_request_t *req, void *data);
-static void cb_htp_ob_plans_uuid(evhtp_request_t *req, void *data);
 static void htp_get_ob_plans(evhtp_request_t *req, void *data);
 static void htp_post_ob_plans(evhtp_request_t *req, void *data);
 static void htp_get_ob_plans_all(evhtp_request_t *req, void *data);
@@ -55,9 +49,6 @@ static void htp_put_ob_plans_uuid(evhtp_request_t *req, void *data);
 static void htp_delete_ob_plans_uuid(evhtp_request_t *req, void *data);
 
 // ob/campaigns
-static void cb_htp_ob_campaigns(evhtp_request_t *req, void *data);
-static void cb_htp_ob_campaigns_all(evhtp_request_t *req, void *data);
-static void cb_htp_ob_campaigns_uuid(evhtp_request_t *req, void *data);
 static void htp_get_ob_campaigns(evhtp_request_t *req, void *data);
 static void htp_post_ob_campaigns(evhtp_request_t *req, void *data);
 static void htp_get_ob_campaigns_all(evhtp_request_t *req, void *data);
@@ -66,9 +57,6 @@ static void htp_put_ob_campaigns_uuid(evhtp_request_t *req, void *data);
 static void htp_delete_ob_campaigns_uuid(evhtp_request_t *req, void *data);
 
 // ob/dlmas
-static void cb_htp_ob_dlmas(evhtp_request_t *req, void *data);
-static void cb_htp_ob_dlmas_all(evhtp_request_t *req, void *data);
-static void cb_htp_ob_dlmas_uuid(evhtp_request_t *req, void *data);
 static void htp_get_ob_dlmas(evhtp_request_t *req, void *data);
 static void htp_post_ob_dlmas(evhtp_request_t *req, void *data);
 static void htp_get_ob_dlmas_all(evhtp_request_t *req, void *data);
@@ -77,8 +65,6 @@ static void htp_put_ob_dlmas_uuid(evhtp_request_t *req, void *data);
 static void htp_delete_ob_dlmas_uuid(evhtp_request_t *req, void *data);
 
 // ob/dls
-static void cb_htp_ob_dls(evhtp_request_t *req, void *data);
-static void cb_htp_ob_dls_uuid(evhtp_request_t *req, void *data);
 static void htp_get_ob_dls(evhtp_request_t *req, void *data);
 static void htp_post_ob_dls(evhtp_request_t *req, void *data);
 static void htp_get_ob_dls_uuid(evhtp_request_t *req, void *data);
@@ -86,52 +72,10 @@ static void htp_put_ob_dls_uuid(evhtp_request_t *req, void *data);
 static void htp_delete_ob_dls_uuid(evhtp_request_t *req, void *data);
 
 // ob/dialings
-static void cb_htp_ob_dialings(evhtp_request_t *req, void *data);
-static void cb_htp_ob_dialings_all(evhtp_request_t *req, void *data);
-static void cb_htp_ob_dialings_uuid(evhtp_request_t *req, void *data);
 static void htp_get_ob_dialings(evhtp_request_t *req, void *data);
 static void htp_get_ob_dialings_all(evhtp_request_t *req, void *data);
 static void htp_get_ob_dialings_uuid(evhtp_request_t *req, void *data);
 static void htp_delete_ob_dialings_uuid(evhtp_request_t *req, void *data);
-
-bool init_ob_http_handler(void)
-{
-
-  ////// outbound modules
-  // destinations
-  evhtp_set_regex_cb(g_htp, "/ob/destinations/("DEF_REG_UUID")", cb_htp_ob_destinations_uuid, NULL);
-  evhtp_set_regex_cb(g_htp, "/ob/destinations/", cb_htp_ob_destinations_all, NULL);
-  evhtp_set_regex_cb(g_htp, "/ob/destinations", cb_htp_ob_destinations, NULL);
-
-  // plans
-  evhtp_set_regex_cb(g_htp, "/ob/plans/("DEF_REG_UUID")", cb_htp_ob_plans_uuid, NULL);
-  evhtp_set_regex_cb(g_htp, "/ob/plans/", cb_htp_ob_plans_all, NULL);
-  evhtp_set_regex_cb(g_htp, "/ob/plans", cb_htp_ob_plans, NULL);
-
-  // campaigns
-  evhtp_set_regex_cb(g_htp, "/ob/campaigns/("DEF_REG_UUID")", cb_htp_ob_campaigns_uuid, NULL);
-  evhtp_set_regex_cb(g_htp, "/ob/campaigns/", cb_htp_ob_campaigns_all, NULL);
-  evhtp_set_regex_cb(g_htp, "/ob/campaigns", cb_htp_ob_campaigns, NULL);
-
-  // dlmas
-  evhtp_set_regex_cb(g_htp, "/ob/dlmas/("DEF_REG_UUID")", cb_htp_ob_dlmas_uuid, NULL);
-  evhtp_set_regex_cb(g_htp, "/ob/dlmas/", cb_htp_ob_dlmas_all, NULL);
-  evhtp_set_regex_cb(g_htp, "/ob/dlmas", cb_htp_ob_dlmas, NULL);
-
-  // dls
-  evhtp_set_regex_cb(g_htp, "/ob/dls/("DEF_REG_UUID")", cb_htp_ob_dls_uuid, NULL);
-  evhtp_set_regex_cb(g_htp, "/ob/dls", cb_htp_ob_dls, NULL);
-
-  // dialings
-  evhtp_set_regex_cb(g_htp, "/ob/dialings/("DEF_REG_UUID")", cb_htp_ob_dialings_uuid, NULL);
-  evhtp_set_regex_cb(g_htp, "/ob/dialings/", cb_htp_ob_dialings_all, NULL);
-  evhtp_set_regex_cb(g_htp, "/ob/dialings", cb_htp_ob_dialings, NULL);
-
-  return true;
-
-  return true;
-}
-
 
 /**
  * http request handler.
@@ -139,7 +83,7 @@ bool init_ob_http_handler(void)
  * @param req
  * @param data
  */
-static void cb_htp_ob_destinations(evhtp_request_t *req, void *data)
+void cb_htp_ob_destinations(evhtp_request_t *req, void *data)
 {
   int method;
 
@@ -181,7 +125,7 @@ static void cb_htp_ob_destinations(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-static void cb_htp_ob_destinations_all(evhtp_request_t *req, void *data)
+void cb_htp_ob_destinations_all(evhtp_request_t *req, void *data)
 {
   int method;
 
@@ -220,7 +164,7 @@ static void cb_htp_ob_destinations_all(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-static void cb_htp_ob_destinations_uuid(evhtp_request_t *req, void *data)
+void cb_htp_ob_destinations_uuid(evhtp_request_t *req, void *data)
 {
   int method;
 
@@ -267,7 +211,7 @@ static void cb_htp_ob_destinations_uuid(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-static void cb_htp_ob_plans(evhtp_request_t *req, void *data)
+void cb_htp_ob_plans(evhtp_request_t *req, void *data)
 {
   int method;
 
@@ -309,7 +253,7 @@ static void cb_htp_ob_plans(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-static void cb_htp_ob_plans_all(evhtp_request_t *req, void *data)
+void cb_htp_ob_plans_all(evhtp_request_t *req, void *data)
 {
   int method;
 
@@ -349,7 +293,7 @@ static void cb_htp_ob_plans_all(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-static void cb_htp_ob_plans_uuid(evhtp_request_t *req, void *data)
+void cb_htp_ob_plans_uuid(evhtp_request_t *req, void *data)
 {
   int method;
 
@@ -397,7 +341,7 @@ static void cb_htp_ob_plans_uuid(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-static void cb_htp_ob_campaigns(evhtp_request_t *req, void *data)
+void cb_htp_ob_campaigns(evhtp_request_t *req, void *data)
 {
   int method;
 
@@ -439,7 +383,7 @@ static void cb_htp_ob_campaigns(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-static void cb_htp_ob_campaigns_uuid(evhtp_request_t *req, void *data)
+void cb_htp_ob_campaigns_uuid(evhtp_request_t *req, void *data)
 {
   int method;
   const char* uuid;
@@ -494,7 +438,7 @@ static void cb_htp_ob_campaigns_uuid(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-static void cb_htp_ob_campaigns_all(evhtp_request_t *req, void *data)
+void cb_htp_ob_campaigns_all(evhtp_request_t *req, void *data)
 {
   int method;
 
@@ -533,7 +477,7 @@ static void cb_htp_ob_campaigns_all(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-static void cb_htp_ob_dlmas(evhtp_request_t *req, void *data)
+void cb_htp_ob_dlmas(evhtp_request_t *req, void *data)
 {
   int method;
 
@@ -575,7 +519,7 @@ static void cb_htp_ob_dlmas(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-static void cb_htp_ob_dlmas_all(evhtp_request_t *req, void *data)
+void cb_htp_ob_dlmas_all(evhtp_request_t *req, void *data)
 {
   int method;
 
@@ -613,7 +557,7 @@ static void cb_htp_ob_dlmas_all(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-static void cb_htp_ob_dlmas_uuid(evhtp_request_t *req, void *data)
+void cb_htp_ob_dlmas_uuid(evhtp_request_t *req, void *data)
 {
   int method;
   const char* uuid;
@@ -668,7 +612,7 @@ static void cb_htp_ob_dlmas_uuid(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-static void cb_htp_ob_dls(evhtp_request_t *req, void *data)
+void cb_htp_ob_dls(evhtp_request_t *req, void *data)
 {
   int method;
 
@@ -710,7 +654,7 @@ static void cb_htp_ob_dls(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-static void cb_htp_ob_dls_uuid(evhtp_request_t *req, void *data)
+void cb_htp_ob_dls_uuid(evhtp_request_t *req, void *data)
 {
   int method;
   const char* uuid;
@@ -2478,7 +2422,7 @@ static void htp_delete_ob_dls_uuid(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-static void cb_htp_ob_dialings(evhtp_request_t *req, void *data)
+void cb_htp_ob_dialings(evhtp_request_t *req, void *data)
 {
   int method;
 
@@ -2516,7 +2460,7 @@ static void cb_htp_ob_dialings(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-static void cb_htp_ob_dialings_all(evhtp_request_t *req, void *data)
+void cb_htp_ob_dialings_all(evhtp_request_t *req, void *data)
 {
   int method;
 
@@ -2534,7 +2478,7 @@ static void cb_htp_ob_dialings_all(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    htp_get_ob_dialings(req, data);
+    htp_get_ob_dialings_all(req, data);
     return;
   }
   else {
@@ -2635,7 +2579,7 @@ static void htp_get_ob_dialings_all(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-static void cb_htp_ob_dialings_uuid(evhtp_request_t *req, void *data)
+void cb_htp_ob_dialings_uuid(evhtp_request_t *req, void *data)
 {
   int method;
   const char* uuid;

@@ -17,6 +17,7 @@
 #include "utils.h"
 #include "http_handler.h"
 #include "resource_handler.h"
+#include "ob_http_handler.h"
 
 #define API_VER "0.1"
 
@@ -142,6 +143,37 @@ bool init_http_handler(void)
   evhtp_set_regex_cb(g_htp, "/parked_calls/", cb_htp_parked_calls_detail, NULL);
   evhtp_set_regex_cb(g_htp, "/parked_calls", cb_htp_parked_calls, NULL);
 
+
+  ////// ^/ob/
+  ////// outbound modules
+  // destinations
+  evhtp_set_regex_cb(g_htp, "/ob/destinations/("DEF_REG_UUID")", cb_htp_ob_destinations_uuid, NULL);
+  evhtp_set_regex_cb(g_htp, "/ob/destinations/", cb_htp_ob_destinations_all, NULL);
+  evhtp_set_regex_cb(g_htp, "/ob/destinations", cb_htp_ob_destinations, NULL);
+
+  // plans
+  evhtp_set_regex_cb(g_htp, "/ob/plans/("DEF_REG_UUID")", cb_htp_ob_plans_uuid, NULL);
+  evhtp_set_regex_cb(g_htp, "/ob/plans/", cb_htp_ob_plans_all, NULL);
+  evhtp_set_regex_cb(g_htp, "/ob/plans", cb_htp_ob_plans, NULL);
+
+  // campaigns
+  evhtp_set_regex_cb(g_htp, "/ob/campaigns/("DEF_REG_UUID")", cb_htp_ob_campaigns_uuid, NULL);
+  evhtp_set_regex_cb(g_htp, "/ob/campaigns/", cb_htp_ob_campaigns_all, NULL);
+  evhtp_set_regex_cb(g_htp, "/ob/campaigns", cb_htp_ob_campaigns, NULL);
+
+  // dlmas
+  evhtp_set_regex_cb(g_htp, "/ob/dlmas/("DEF_REG_UUID")", cb_htp_ob_dlmas_uuid, NULL);
+  evhtp_set_regex_cb(g_htp, "/ob/dlmas/", cb_htp_ob_dlmas_all, NULL);
+  evhtp_set_regex_cb(g_htp, "/ob/dlmas", cb_htp_ob_dlmas, NULL);
+
+  // dls
+  evhtp_set_regex_cb(g_htp, "/ob/dls/("DEF_REG_UUID")", cb_htp_ob_dls_uuid, NULL);
+  evhtp_set_regex_cb(g_htp, "/ob/dls", cb_htp_ob_dls, NULL);
+
+  // dialings
+  evhtp_set_regex_cb(g_htp, "/ob/dialings/("DEF_REG_UUID")", cb_htp_ob_dialings_uuid, NULL);
+  evhtp_set_regex_cb(g_htp, "/ob/dialings/", cb_htp_ob_dialings_all, NULL);
+  evhtp_set_regex_cb(g_htp, "/ob/dialings", cb_htp_ob_dialings, NULL);
 
   return true;
 }
