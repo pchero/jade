@@ -52,9 +52,11 @@ static void htp_delete_ob_plans_uuid(evhtp_request_t *req, void *data);
 
 // ob/campaigns
 static void cb_htp_ob_campaigns(evhtp_request_t *req, void *data);
+static void cb_htp_ob_campaigns_all(evhtp_request_t *req, void *data);
 static void cb_htp_ob_campaigns_uuid(evhtp_request_t *req, void *data);
 static void htp_get_ob_campaigns(evhtp_request_t *req, void *data);
 static void htp_post_ob_campaigns(evhtp_request_t *req, void *data);
+static void htp_get_ob_campaigns_all(evhtp_request_t *req, void *data);
 static void htp_get_ob_campaigns_uuid(evhtp_request_t *req, void *data);
 static void htp_put_ob_campaigns_uuid(evhtp_request_t *req, void *data);
 static void htp_delete_ob_campaigns_uuid(evhtp_request_t *req, void *data);
@@ -98,6 +100,7 @@ bool init_ob_http_handler(void)
 
   // campaigns
   evhtp_set_regex_cb(g_htp, "/ob/campaigns/("DEF_REG_UUID")", cb_htp_ob_campaigns_uuid, NULL);
+  evhtp_set_regex_cb(g_htp, "/ob/campaigns/", cb_htp_ob_campaigns_all, NULL);
   evhtp_set_regex_cb(g_htp, "/ob/campaigns", cb_htp_ob_campaigns, NULL);
 
   // dlmas
@@ -380,6 +383,45 @@ static void cb_htp_ob_campaigns_uuid(evhtp_request_t *req, void *data)
   }
   else if(method == htp_method_DELETE) {
     htp_delete_ob_campaigns_uuid(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+
+  return;
+}
+
+/**
+ * http request handler.
+ * request : ^/ob/campaigns/
+ * @param req
+ * @param data
+ */
+static void cb_htp_ob_campaigns_all(evhtp_request_t *req, void *data)
+{
+  int method;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired cb_htp_ob_campaigns_all.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if(method != htp_method_GET) {
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  if(method == htp_method_GET) {
+    htp_get_ob_campaigns_all(req, data);
     return;
   }
   else {
@@ -1337,6 +1379,42 @@ static void htp_post_ob_campaigns(evhtp_request_t *req, void *data)
 
 /**
  * htp request handler.
+ * request: GET ^/ob/campaigns/
+ * @param req
+ * @param data
+ */
+static void htp_get_ob_campaigns_all(evhtp_request_t *req, void *data)
+{
+  json_t* j_tmp;
+  json_t* j_res;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired htp_get_ob_campaigns_all.");
+
+  // get all campaigns info
+  j_tmp = get_ob_campaigns_all();
+  if(j_tmp == NULL) {
+    simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", json_object());
+  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
+
+  // response
+  simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * htp request handler.
  * request: GET ^/ob/campaigns/<uuid>
  * @param req
  * @param data
@@ -1368,7 +1446,7 @@ static void htp_get_ob_campaigns_uuid(evhtp_request_t *req, void *data)
     return;
   }
 
-  // get plan info
+  // get campaign info
   j_tmp = get_ob_campaign(uuid);
   if(j_tmp == NULL) {
     simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
