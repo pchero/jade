@@ -2313,6 +2313,7 @@ static void htp_get_ob_dls_all(evhtp_request_t *req, void *data)
   if(dlma_uuid == NULL) {
     slog(LOG_ERR, "Could not get dlma_uuid info.");
     simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    json_decref(j_data);
     return;
   }
 
@@ -2325,7 +2326,8 @@ static void htp_get_ob_dls_all(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Check value. dlma_uuid[%s], count[%d]", dlma_uuid, count);
 
   // get info
-  j_tmp = get_ob_dls_uuid_by_dlma_count(dlma_uuid, count);
+  j_tmp = get_ob_dls_by_dlma_count(dlma_uuid, count);
+  json_decref(j_data);
   if(j_tmp == NULL) {
     simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;

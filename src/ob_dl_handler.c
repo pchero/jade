@@ -479,7 +479,7 @@ json_t* get_ob_dls_by_dlma_count(const char* dlma_uuid, int count)
 
   j_res = json_array();
   json_array_foreach(j_uuids, idx, j_val) {
-    uuid = json_string_value(j_val);
+    uuid = json_string_value(json_object_get(j_val, "uuid"));
     if(uuid == NULL) {
       continue;
     }
