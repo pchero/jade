@@ -67,6 +67,7 @@ static void htp_delete_ob_dlmas_uuid(evhtp_request_t *req, void *data);
 // ob/dls
 static void htp_get_ob_dls(evhtp_request_t *req, void *data);
 static void htp_post_ob_dls(evhtp_request_t *req, void *data);
+static void htp_get_ob_dls_all(evhtp_request_t *req, void *data);
 static void htp_get_ob_dls_uuid(evhtp_request_t *req, void *data);
 static void htp_put_ob_dls_uuid(evhtp_request_t *req, void *data);
 static void htp_delete_ob_dls_uuid(evhtp_request_t *req, void *data);
@@ -598,6 +599,44 @@ void cb_htp_ob_dlmas_uuid(evhtp_request_t *req, void *data)
     // should not reach to here.
     simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
+  }
+
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+
+  return;
+}
+
+/**
+ * http request handler.
+ * request : ^/ob/dls/
+ * @param req
+ * @param data
+ */
+void cb_htp_ob_dls_all(evhtp_request_t *req, void *data)
+{
+  int method;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired cb_htp_ob_dls_all.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if(method != htp_method_GET) {
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  if(method == htp_method_GET) {
+    htp_get_ob_dls_all(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   }
 
   // should not reach to here.
@@ -2222,6 +2261,80 @@ static void htp_post_ob_dls(evhtp_request_t *req, void *data)
   // create result
   j_res = create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", j_tmp);
+
+  // response
+  simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * htp request handler.
+ * request: GET ^/ob/dls/
+ * @param req
+ * @param data
+ */
+static void htp_get_ob_dls_all(evhtp_request_t *req, void *data)
+{
+  json_t* j_tmp;
+  json_t* j_res;
+  json_t* j_data;
+  const char* dlma_uuid;
+  const char* tmp_const;
+  char* tmp;
+  int count;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired htp_get_ob_dls_all.");
+
+  // get data
+  tmp_const = (char*)evbuffer_pullup(req->buffer_in, evbuffer_get_length(req->buffer_in));
+  if(tmp_const == NULL) {
+    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // create json
+  tmp = strndup(tmp_const, evbuffer_get_length(req->buffer_in));
+  slog(LOG_DEBUG, "Requested data. data[%s]", tmp);
+  j_data = json_loads(tmp, JSON_DECODE_ANY, NULL);
+  sfree(tmp);
+  if(j_data == NULL) {
+    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // get dlma uuid
+  dlma_uuid = json_string_value(json_object_get(j_data, "dlma_uuid"));
+  if(dlma_uuid == NULL) {
+    slog(LOG_ERR, "Could not get dlma_uuid info.");
+    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  count = json_integer_value(json_object_get(j_data, "count"));
+  if(count <= 0) {
+    // set default value
+    count = 1000;
+    slog(LOG_DEBUG, "Use default value. count[%d]", count);
+  }
+  slog(LOG_DEBUG, "Check value. dlma_uuid[%s], count[%d]", dlma_uuid, count);
+
+  // get info
+  j_tmp = get_ob_dls_uuid_by_dlma_count(dlma_uuid, count);
+  if(j_tmp == NULL) {
+    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", json_object());
+  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
 
   // response
   simple_response_normal(req, j_res);

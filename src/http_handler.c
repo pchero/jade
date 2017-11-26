@@ -168,6 +168,7 @@ bool init_http_handler(void)
 
   // dls
   evhtp_set_regex_cb(g_htp, "/ob/dls/("DEF_REG_UUID")", cb_htp_ob_dls_uuid, NULL);
+  evhtp_set_regex_cb(g_htp, "/ob/dls/", cb_htp_ob_dls_all, NULL);
   evhtp_set_regex_cb(g_htp, "/ob/dls", cb_htp_ob_dls, NULL);
 
   // dialings

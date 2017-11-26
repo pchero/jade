@@ -32,6 +32,7 @@ void cb_htp_ob_dlmas_uuid(evhtp_request_t *req, void *data);
 
 // dls
 void cb_htp_ob_dls(evhtp_request_t *req, void *data);
+void cb_htp_ob_dls_all(evhtp_request_t *req, void *data);
 void cb_htp_ob_dls_uuid(evhtp_request_t *req, void *data);
 
 // dialings
