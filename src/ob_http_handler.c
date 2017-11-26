@@ -2341,41 +2341,6 @@ static void htp_get_ob_dls_all(evhtp_request_t *req, void *data)
   json_decref(j_res);
 
   return;
-
-
-
-
-//  // get params
-//  dlma_uuid = evhtp_kv_find(req->uri->query, "dlma_uuid");
-//  if(dlma_uuid == NULL) {
-//    slog(LOG_NOTICE, "Could not get correct dlma_uuid.");
-//    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-//    return;
-//  }
-//
-//  count = 10000;  /// default count
-//  tmp_const = evhtp_kv_find(req->uri->query, "count");
-//  if(tmp_const != NULL) {
-//    count = atoi(tmp_const);
-//  }
-//
-//  // get info
-//  j_tmp = get_ob_dls_uuid_by_dlma_count(dlma_uuid, count);
-//  if(j_tmp == NULL) {
-//    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-//    return;
-//  }
-//
-//  // create result
-//  j_res = create_default_result(EVHTP_RES_OK);
-//  json_object_set_new(j_res, "result", json_object());
-//  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
-//
-//  // response
-//  simple_response_normal(req, j_res);
-//  json_decref(j_res);
-//
-//  return;
 }
 
 /**
