@@ -2279,10 +2279,8 @@ static void htp_get_ob_dls_all(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
-  json_t* j_data;
   const char* dlma_uuid;
   const char* tmp_const;
-  char* tmp;
   int count;
 
   if(req == NULL) {
@@ -2291,43 +2289,22 @@ static void htp_get_ob_dls_all(evhtp_request_t *req, void *data)
   }
   slog(LOG_DEBUG, "Fired htp_get_ob_dls_all.");
 
-  // get data
-  tmp_const = (char*)evbuffer_pullup(req->buffer_in, evbuffer_get_length(req->buffer_in));
-  if(tmp_const == NULL) {
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // create json
-  tmp = strndup(tmp_const, evbuffer_get_length(req->buffer_in));
-  slog(LOG_DEBUG, "Requested data. data[%s]", tmp);
-  j_data = json_loads(tmp, JSON_DECODE_ANY, NULL);
-  sfree(tmp);
-  if(j_data == NULL) {
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // get dlma uuid
-  dlma_uuid = json_string_value(json_object_get(j_data, "dlma_uuid"));
+  // get params
+  dlma_uuid = evhtp_kv_find(req->uri->query, "dlma_uuid");
   if(dlma_uuid == NULL) {
-    slog(LOG_ERR, "Could not get dlma_uuid info.");
+    slog(LOG_NOTICE, "Could not get correct dlma_uuid.");
     simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    json_decref(j_data);
     return;
   }
 
-  count = json_integer_value(json_object_get(j_data, "count"));
-  if(count <= 0) {
-    // set default value
-    count = 1000;
-    slog(LOG_DEBUG, "Use default value. count[%d]", count);
+  count = 10000;  // default count
+  tmp_const = evhtp_kv_find(req->uri->query, "count");
+  if(tmp_const != NULL) {
+    count = atoi(tmp_const);
   }
-  slog(LOG_DEBUG, "Check value. dlma_uuid[%s], count[%d]", dlma_uuid, count);
 
   // get info
   j_tmp = get_ob_dls_by_dlma_count(dlma_uuid, count);
-  json_decref(j_data);
   if(j_tmp == NULL) {
     simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
