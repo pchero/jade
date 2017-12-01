@@ -396,6 +396,272 @@ static const char* g_sql_create_parked_call =
 ");";
 
 
+// pjsip_contact_status
+static const char* g_sql_drop_pjsip_contact_status = "drop table if exist pjsip_contact_status";
+static const char* g_sql_create_pjsip_contact_status =
+"create table pjsip_contact_status("
+
+"   id              varchar(1023),"
+"   aor             varchar(1023),"
+"   uri             string,"
+"   endpoint_name   varchar(1023),"
+
+"   status  varchar(255),"
+
+"   round_trip_usec varchar(255),"
+"   user_agent      string,"
+"   reg_expire      int,"
+"   via_address     varchar(1023),"
+"   call_id         varchar(1023),"
+
+"   authentication_qualify  int,"
+"   outbound_proxy          varchar(1023),"
+"   path                    varchar(1023),"
+
+"   qualify_frequency   int,"
+"   qualify_timout      int,"
+
+"   primary key(id)"
+
+");";
+
+// pjsip_endpoint
+static const char* g_sql_drop_pjsip_endpoint = "drop table if exist pjsip_endpoint";
+static const char* g_sql_create_pjsip_endpoint =
+"create table pjsip_endpoint ("
+
+// basic info
+"   object_type     varchar(255),"
+"   object_name     varchar(1023),"
+"   auth            varchar(1023),"
+"   aors            varchar(1023),"
+
+// context
+"   context             varchar(255),"
+"   message_context     varchar(1023),"
+"   subscribe_context   varchar(1023),"
+
+// mailbox
+"   mailboxes               varchar(1023),"
+"   voicemail_extension     varchar(1023),"
+"   incoming_mwi_mailbox    varchar(1023),"
+
+// allow and disallow
+"   disallow        varchar(255),"
+"   allow           varchar(1023),"
+"   allow_subscribe     varchar(1023),"
+"   allow_overlap       varchar(1023),"
+"   allow_transfer      varchar(1023),"
+
+"   webrtc          varchar(255),"
+
+"   dtmf_mode       varchar(1023),"
+
+// rtp
+"   rtp_engine          varchar(1023),"
+"   rtp_ipv6            varchar(1023),"
+"   rtp_symmetric       varchar(1023),"
+"   rtp_keepalive       int,"
+"   rtp_timeout         int,"
+"   rtp_timeout_hold    int,"
+
+"   rtcp_mux        varchar(255),"
+
+"   ice_support     varchar(1023),"
+"   use_ptime       varchar(1023),"
+
+"   force_rport         varchar(1023),"
+"   rewrite_contact     varchar(1023),"
+"   transport           varchar(1023),"
+"   moh_suggest         varchar(1023),"
+
+"   100_rel                 varchar(1023),"
+
+// timers
+"   timers                  varchar(1023),"
+"   timers_min_se           varchar(1023),"
+"   timers_sess_expires     int,"
+
+// outbound
+"   outbound_proxy          varchar(1023),"
+"   outbound_auth           varchar(1023),"
+
+"   identify_by             varchar(1023),"
+
+"   redirect_method         varchar(1023),"
+
+// direct media
+"   direct_media                    varchar(1023),"
+"   direct_media_method             varchar(1023),"
+"   direct_media_glare_mitigation   varchar(1023),"
+"   disable_direct_media_on_nat     varchar(1023),"
+
+"   connected_line_method           varchar(1023),"
+
+// caller id
+"   caller_id               varchar(1023),"
+"   caller_id_privacy       varchar(1023),"
+"   caller_id_tag           varchar(1023),"
+
+"   trust_id_inbound        varchar(1023),"
+"   trust_id_outbound       varchar(1023),"
+
+"   send_pai                varchar(1023),"
+
+"   rpid_immediate          varchar(255),"
+"   send_rpid               varchar(1023),"
+"   send_diversion          varchar(1023),"
+
+"   aggregate_mwi           varchar(1023),"
+
+"   media_address           varchar(1023),"
+"   media_encryption                varchar(1023),"
+"   media_encryption_optimistic     varchar(1023),"
+"   media_use_received_transport    varchar(1023),"
+
+"   use_avpf                        varchar(1023),"
+"   force_avp                       varchar(1023),"
+
+"   one_touch_recording             varchar(1023),"
+
+"   inband_progress         varchar(1023),"
+"   refer_blind_progress    varchar(255),"
+
+// group
+"   call_group              varchar(1023),"
+"   pickup_group            varchar(1023),"
+"   named_call_group        varchar(1023),"
+"   named_pickup_group      varchar(1023),"
+
+"   device_state            varchar(1023),"
+"   device_state_busy_at    int,"
+
+// t38 fax
+"   fax_detect              varchar(1023),"
+"   t38_udptl               varchar(1023),"
+"   t38_udptl_ec            varchar(1023),"
+"   t38_udptl_maxdatagram   int,"
+"   t38_udptl_nat           varchar(1023),"
+"   t38_udptl_ipv6          varchar(1023),"
+
+"   tone_zone               varchar(1023),"
+"   language                varchar(1023),"
+
+"   record_on_feature       varchar(1023),"
+"   record_off_feature      varchar(1023),"
+
+"   user_eq_phone       varchar(1023),"
+"   moh_passthrough     varchar(1023),"
+
+"   sdp_owner       varchar(1023),"
+"   sdp_session     varchar(1023),"
+
+"   tos_audio       int,"
+"   tos_video       int,"
+"   cos_audio       int,"
+"   cos_video       int,"
+
+"   sub_min_expiry      varchar(1023),"
+"   from_user           varchar(1023),"
+"   from_domain         varchar(1023),"
+
+"   mwi_from_user                       varchar(1023),"
+"   mwi_subscribe_replaces_unsolicited  varchar(255),"
+
+// dtls
+"   dtls_verify         varchar(1023),"
+"   dtls_rekey          int,"
+"   dtls_cert_file      varchar(1023),"
+"   dtls_private_key    varchar(1023),"
+"   dtls_cipher         varchar(1023),"
+"   dtls_ca_file        varchar(1023),"
+"   dtls_ca_path        varchar(1023),"
+"   dtls_setup          varchar(1023),"
+"   dtls_fingerprint    varchar(1023),"
+
+"   srtp_tag32      varchar(1023),"
+
+"   set_var                 varchar(1023),"
+
+"   account_code            varchar(1023),"
+"   preferred_codec_only    varchar(1023),"
+
+"   active_channels     varchar(1023),"
+
+// etc
+"   acl                         varchar(1023),"
+"   g_726_non_standard          varchar(255),"
+"   notify_early_inuse_ringing  varchar(255),"
+"   bind_rtp_to_media_address   varchar(255),"
+"   bundle                      varchar(255),"
+"   max_audio_stream            int,"
+
+"   primary key(object_name)"
+
+");";
+
+// pjsip_aor
+static const char* g_sql_drop_pjsip_aor = "drop table if exist pjsip_aor";
+static const char* g_sql_create_pjsip_aor =
+"crate table pjsip_aor("
+
+// basic info
+"   object_type         varchar(255),"
+"   object_name         varchar(255),"
+"   endpoint_name       varchar(255),"
+
+// expiration
+"   minimum_expiration  int,"
+"   default_expiration  int,"
+"   maximum_expiration  int,"
+
+// qualify
+"   qualify_timeout     int,"
+"   qualify_frequency   int,"
+
+// contact
+"   contacts                    string,"
+"   max_contacts                int,"
+"   total_contacts              int,"
+"   contacts_registered         int,"
+"   remove_existing             varchar(255),"
+
+// etc
+"   mailboxes                   varchar(1023),"
+"   support_path                varchar(255),"
+"   voicemail_extension         varchar(1023),"
+"   authenticate_qualify        varchar(255),"
+"   outbound_proxy              varchar(1023),"
+
+"   primary  key(object_name)"
+
+");";
+
+// pjsip_aor
+static const char* g_sql_drop_pjsip_auth = "drop table if exist pjsip_auth";
+static const char* g_sql_create_pjsip_auth =
+"create table pjsip_auth("
+
+// basic info
+"   object_type         varchar(255),"
+"   object_name         varchar(1023),"
+"   username            varchar(1023),"
+"   endpoint_name       varchar(1023),"
+
+// credential
+"   auth_type           varchar(255),"
+"   password            varchar(1023),"
+"   md5_cred            varchar(1023),"
+
+// etc
+"   realm               varchar(255),"
+"   nonce_lifetime      int,"
+
+"   primary key(object_name)"
+
+");";
+
+
 
 
 #endif /* SRC_DB_SQL_CREATE_H_ */

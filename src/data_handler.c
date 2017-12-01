@@ -461,6 +461,38 @@ static bool init_ami_database(void)
     return false;
   }
 
+  // pjsip_contact_status
+  db_ctx_exec(g_db_ast, g_sql_drop_pjsip_contact_status);
+  ret = db_ctx_exec(g_db_ast, g_sql_create_pjsip_contact_status);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create table. table[%s]", "pjsip_contact_status");
+    return false;
+  }
+
+  // pjsip_endpoint
+  db_ctx_exec(g_db_ast, g_sql_drop_pjsip_endpoint);
+  ret = db_ctx_exec(g_db_ast, g_sql_create_pjsip_endpoint);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create table. table[%s]", "pjsip_endpoint");
+    return false;
+  }
+
+  // pjsip_aor
+  db_ctx_exec(g_db_ast, g_sql_drop_pjsip_aor);
+  ret = db_ctx_exec(g_db_ast, g_sql_create_pjsip_aor);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create table. table[%s]", "pjsip_aor");
+    return false;
+  }
+
+  // pjsip_auth
+  db_ctx_exec(g_db_ast, g_sql_drop_pjsip_auth);
+  ret = db_ctx_exec(g_db_ast, g_sql_create_pjsip_auth);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create table. table[%s]", "pjsip_auth");
+    return false;
+  }
+
   return true;
 }
 
