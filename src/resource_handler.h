@@ -56,5 +56,8 @@ json_t* get_parking_lot_info(const char* parkee_unique_id);
 json_t* get_parked_calls_all_parkee_unique_id(void);
 json_t* get_parked_call_info(const char* parkee_unique_id);
 
+// pjsip
+json_t* get_pjsip_contact_status_info(const char* uri);
+json_t* get_pjsip_endpoint_info(const char* name);
 
 #endif /* BACKEND_SRC_RESOURCE_HANDLER_H_ */

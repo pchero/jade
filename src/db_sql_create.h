@@ -401,15 +401,15 @@ static const char* g_sql_drop_pjsip_contact_status = "drop table if exist pjsip_
 static const char* g_sql_create_pjsip_contact_status =
 "create table pjsip_contact_status("
 
+"   uri             varchar(1023),"
 "   id              varchar(1023),"
 "   aor             varchar(1023),"
-"   uri             string,"
 "   endpoint_name   varchar(1023),"
 
 "   status  varchar(255),"
 
 "   round_trip_usec varchar(255),"
-"   user_agent      string,"
+"   user_agent      varchar(4095),"
 "   reg_expire      int,"
 "   via_address     varchar(1023),"
 "   call_id         varchar(1023),"
@@ -421,7 +421,10 @@ static const char* g_sql_create_pjsip_contact_status =
 "   qualify_frequency   int,"
 "   qualify_timout      int,"
 
-"   primary key(id)"
+// timestamp. UTC."
+"   tm_update         datetime(6),"   // update time."
+
+"   primary key(uri)"
 
 ");";
 
@@ -447,8 +450,8 @@ static const char* g_sql_create_pjsip_endpoint =
 "   incoming_mwi_mailbox    varchar(1023),"
 
 // allow and disallow
-"   disallow        varchar(255),"
-"   allow           varchar(1023),"
+"   disallow            varchar(255),"
+"   allow               varchar(1023),"
 "   allow_subscribe     varchar(1023),"
 "   allow_overlap       varchar(1023),"
 "   allow_transfer      varchar(1023),"
@@ -458,12 +461,13 @@ static const char* g_sql_create_pjsip_endpoint =
 "   dtmf_mode       varchar(1023),"
 
 // rtp
-"   rtp_engine          varchar(1023),"
-"   rtp_ipv6            varchar(1023),"
-"   rtp_symmetric       varchar(1023),"
-"   rtp_keepalive       int,"
-"   rtp_timeout         int,"
-"   rtp_timeout_hold    int,"
+"   rtp_engine            varchar(1023),"
+"   rtp_ipv6              varchar(1023),"
+"   rtp_symmetric         varchar(1023),"
+"   rtp_keepalive         int,"
+"   rtp_timeout           int,"
+"   rtp_timeout_hold      int,"
+"   asymmetric_rtp_codec  varchar(255),"
 
 "   rtcp_mux        varchar(255),"
 
@@ -503,6 +507,7 @@ static const char* g_sql_create_pjsip_endpoint =
 "   caller_id_privacy       varchar(1023),"
 "   caller_id_tag           varchar(1023),"
 
+// trust id
 "   trust_id_inbound        varchar(1023),"
 "   trust_id_outbound       varchar(1023),"
 
@@ -514,6 +519,7 @@ static const char* g_sql_create_pjsip_endpoint =
 
 "   aggregate_mwi           varchar(1023),"
 
+// media
 "   media_address           varchar(1023),"
 "   media_encryption                varchar(1023),"
 "   media_encryption_optimistic     varchar(1023),"
@@ -524,6 +530,7 @@ static const char* g_sql_create_pjsip_endpoint =
 
 "   one_touch_recording             varchar(1023),"
 
+// prgoress
 "   inband_progress         varchar(1023),"
 "   refer_blind_progress    varchar(255),"
 
@@ -538,6 +545,7 @@ static const char* g_sql_create_pjsip_endpoint =
 
 // t38 fax
 "   fax_detect              varchar(1023),"
+"   fax_detect_time         int,"
 "   t38_udptl               varchar(1023),"
 "   t38_udptl_ec            varchar(1023),"
 "   t38_udptl_maxdatagram   int,"
@@ -547,17 +555,22 @@ static const char* g_sql_create_pjsip_endpoint =
 "   tone_zone               varchar(1023),"
 "   language                varchar(1023),"
 
+// record
 "   record_on_feature       varchar(1023),"
 "   record_off_feature      varchar(1023),"
 
 "   user_eq_phone       varchar(1023),"
 "   moh_passthrough     varchar(1023),"
 
+// sdp
 "   sdp_owner       varchar(1023),"
 "   sdp_session     varchar(1023),"
 
+// tos
 "   tos_audio       int,"
 "   tos_video       int,"
+
+// cos
 "   cos_audio       int,"
 "   cos_video       int,"
 
@@ -565,6 +578,7 @@ static const char* g_sql_create_pjsip_endpoint =
 "   from_user           varchar(1023),"
 "   from_domain         varchar(1023),"
 
+// mwi
 "   mwi_from_user                       varchar(1023),"
 "   mwi_subscribe_replaces_unsolicited  varchar(255),"
 
@@ -588,13 +602,23 @@ static const char* g_sql_create_pjsip_endpoint =
 
 "   active_channels     varchar(1023),"
 
-// etc
+// max streams
+"   max_audio_streams           int,"
+"   max_video_streams           int,"
+
+// acl
 "   acl                         varchar(1023),"
+"   contact_acl                 varchar(1023),"
+
+// etc
 "   g_726_non_standard          varchar(255),"
 "   notify_early_inuse_ringing  varchar(255),"
 "   bind_rtp_to_media_address   varchar(255),"
 "   bundle                      varchar(255),"
-"   max_audio_stream            int,"
+
+
+// timestamp. UTC."
+"   tm_update         datetime(6),"   // update time."
 
 "   primary key(object_name)"
 
@@ -633,6 +657,9 @@ static const char* g_sql_create_pjsip_aor =
 "   authenticate_qualify        varchar(255),"
 "   outbound_proxy              varchar(1023),"
 
+// timestamp. UTC."
+"   tm_update         datetime(6),"   // update time."
+
 "   primary  key(object_name)"
 
 ");";
@@ -656,6 +683,9 @@ static const char* g_sql_create_pjsip_auth =
 // etc
 "   realm               varchar(255),"
 "   nonce_lifetime      int,"
+
+// timestamp. UTC."
+"   tm_update         datetime(6),"   // update time."
 
 "   primary key(object_name)"
 

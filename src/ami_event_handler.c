@@ -27,9 +27,15 @@ static void ami_response_handler(json_t* j_msg);
 static void ami_event_agentlogin(json_t* j_msg);
 static void ami_event_agentlogoff(json_t* j_msg);
 static void ami_event_agents(json_t* j_msg);
+static void ami_event_aordetail(json_t* j_msg);
+static void ami_event_authdetail(json_t* j_msg);
+static void ami_event_contactstatus(json_t* j_msg);
+static void ami_event_contactstatusdetail(json_t* j_msg);
 static void ami_event_devicestatechange(json_t* j_msg);
 static void ami_event_dialbegin(json_t* j_msg);
 static void ami_event_dialend(json_t* j_msg);
+static void ami_event_endpointdetail(json_t* j_msg);
+static void ami_event_endpointlist(json_t* j_msg);
 static void ami_event_hangup(json_t* j_msg);
 static void ami_event_newchannel(json_t* j_msg);
 static void ami_event_originateresponse(json_t* j_msg);
@@ -113,6 +119,18 @@ void ami_message_handler(const char* msg)
   else if(strcasecmp(event, "Agents") == 0) {
     ami_event_agents(j_msg);
   }
+  else if(strcasecmp(event, "AorDetail") == 0) {
+    ami_event_aordetail(j_msg);
+  }
+  else if(strcasecmp(event, "AuthDetail") == 0) {
+    ami_event_authdetail(j_msg);
+  }
+  else if(strcasecmp(event, "ContactStatus") == 0) {
+    ami_event_contactstatus(j_msg);
+  }
+  else if(strcasecmp(event, "ContactStatusDetail") == 0) {
+    ami_event_contactstatusdetail(j_msg);
+  }
   else if(strcasecmp(event, "DeviceStateChange") == 0) {
     ami_event_devicestatechange(j_msg);
   }
@@ -121,6 +139,12 @@ void ami_message_handler(const char* msg)
   }
   else if(strcasecmp(event, "DialEnd") == 0) {
     ami_event_dialend(j_msg);
+  }
+  else if(strcasecmp(event, "EndpointDetail") == 0) {
+    ami_event_endpointdetail(j_msg);
+  }
+  else if(strcasecmp(event, "EndpointList") == 0) {
+    ami_event_endpointlist(j_msg);
   }
   else if(strcasecmp(event, "Hangup") == 0) {
     ami_event_hangup(j_msg);
@@ -2092,4 +2116,658 @@ static void ami_event_varset(json_t* j_msg)
   return;
 }
 
+/**
+ * AMI event handler.
+ * Event: EndpointList
+ * @param j_msg
+ */
+static void ami_event_endpointlist(json_t* j_msg)
+{
+  json_t* j_data;
+  char* timestamp;
+  const char* tmp_const;
+  const char* name;
+  int ret;
+
+  if(j_msg == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired ami_event_endpointlist.");
+
+  name = json_string_value(json_object_get(j_msg, "ObjectName"));
+  if(name == NULL) {
+    slog(LOG_ERR, "Could not get URI info.");
+    return;
+  }
+
+  j_data = get_pjsip_endpoint_info(name);
+  if(j_data == NULL) {
+    j_data = json_pack("{s:s}", "object_name", name);
+  }
+
+  // type
+  tmp_const = json_string_value(json_object_get(j_msg, "ObjectType"));
+  if(tmp_const != NULL) {
+    json_object_set_new(j_data, "object_type", json_string(tmp_const));
+  }
+
+  // transport
+  tmp_const = json_string_value(json_object_get(j_msg, "Transport"));
+  if(tmp_const != NULL) {
+    json_object_set_new(j_data, "transport", json_string(tmp_const));
+  }
+
+  // aors
+  tmp_const = json_string_value(json_object_get(j_msg, "Aor"));
+  if(tmp_const != NULL) {
+    json_object_set_new(j_data, "aors", json_string(tmp_const));
+  }
+
+  // auth
+  tmp_const = json_string_value(json_object_get(j_msg, "Auths"));
+  if(tmp_const != NULL) {
+    json_object_set_new(j_data, "auth", json_string(tmp_const));
+  }
+
+  // outbound_auth
+  tmp_const = json_string_value(json_object_get(j_msg, "OutboundAuths"));
+  if(tmp_const != NULL) {
+    json_object_set_new(j_data, "outbound_auth", json_string(tmp_const));
+  }
+
+  timestamp = get_utc_timestamp();
+  json_object_set_new(j_data, "tm_update", json_string(timestamp));
+  sfree(timestamp);
+
+  ret = db_ctx_insert_or_replace(g_db_ast, "pjsip_endpoint", j_data);
+  json_decref(j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert to pjsip_endpoint.");
+    return;
+  }
+
+  return;
+}
+
+
+/**
+ * AMI event handler.
+ * Event: EndpointDetail
+ * @param j_msg
+ */
+static void ami_event_endpointdetail(json_t* j_msg)
+{
+  json_t* j_tmp;
+  int ret;
+  char* timestamp;
+
+  if(j_msg == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired ami_event_endpointdetail.");
+
+  timestamp = get_utc_timestamp();
+
+  // create
+  j_tmp = json_pack("{"
+      "s:s, s:s, s:s, s:s, "          // basic info
+      "s:s, s:s, s:s, "               // context
+      "s:s, s:s, s:s, "               // mailbox
+      "s:s, s:s, s:s, s:s, s:s, "     // allow and disallow
+      "s:s, "
+
+      "s:s, "
+      "s:s, s:s, s:s, s:i, s:i, s:i, s:s, "    // rtp
+      "s:s, "
+      "s:s, s:s, "
+      "s:s, s:s, s:s, s:s, "
+
+      "s:s, "
+      "s:s, s:s, s:i, "   // timers
+      "s:s, s:s, "        // outbound
+      "s:s, "
+      "s:s, "
+
+      "s:s, s:s, s:s, s:s, "    // direct media
+      "s:s, "
+      "s:s, s:s, s:s, "         // caller id
+      "s:s, s:s, "              // trust id
+      "s:s, "
+
+      "s:s, s:s, s:s, "
+      "s:s, "
+      "s:s, s:s, s:s, s:s, "    // media
+      "s:s, s:s, "
+      "s:s, "
+
+      "s:s, s:s, "                        // progress
+      "s:s, s:s, s:s, s:s, "              // group
+      "s:s, s:i, "                        // device
+      "s:s, s:i, s:s, s:s, s:i, s:s, s:s, "    // t38 fax
+      "s:s, s:s, "
+
+      "s:s, s:s, "        // record
+      "s:s, s:s, "
+      "s:s, s:s, "        // sdp
+      "s:i, s:i, s:i, s:i, "  // tos and cos
+      "s:s, s:s, s:s, "
+
+      "s:s, s:s, "                                    // mwi
+      "s:s, s:i, s:s, s:s, s:s, s:s, s:s, s:s, s:s, " // dtls
+      "s:s, "
+      "s:s, "
+      "s:s, s:s, "
+
+      "s:s, "
+      "s:i, s:i, "                      // max streams
+      "s:s, s:s, "                      // acl
+      "s:s, s:s, s:s, s:s, "  // etc
+
+      "s:s "  // timestamp
+      "}",
+
+      // basic info
+      "object_type",  json_string_value(json_object_get(j_msg, "ObjectType"))? : "",
+      "object_name",  json_string_value(json_object_get(j_msg, "ObjectName"))? : "",
+      "auth",         json_string_value(json_object_get(j_msg, "Auth"))? : "",
+      "aors",         json_string_value(json_object_get(j_msg, "Aors"))? : "",
+
+      // context
+      "context",            json_string_value(json_object_get(j_msg, "Context"))? : "",
+      "message_context",    json_string_value(json_object_get(j_msg, "MessageContext"))? : "",
+      "subscribe_context",  json_string_value(json_object_get(j_msg, "SubscribeContext"))? : "",
+
+      // mail box
+      "mailboxes",            json_string_value(json_object_get(j_msg, "Mailboxes"))? : "",
+      "voicemail_extension",  json_string_value(json_object_get(j_msg, "VoicemailExtension"))? : "",
+      "incoming_mwi_mailbox", json_string_value(json_object_get(j_msg, "IncomingMwiMailbox"))? : "",
+
+      // allow and disallow
+      "disallow",         json_string_value(json_object_get(j_msg, "Disallow"))? : "",
+      "allow",            json_string_value(json_object_get(j_msg, "Allow"))? : "",
+      "allow_subscribe",  json_string_value(json_object_get(j_msg, "AllowSubscribe"))? : "",
+      "allow_overlap",    json_string_value(json_object_get(j_msg, "AllowOverlap"))? : "",
+      "allow_transfer",   json_string_value(json_object_get(j_msg, "AllowTransfer"))? : "",
+
+      "webrtc",           json_string_value(json_object_get(j_msg, "Webrtc"))? : "",
+
+      "dtmf_mode",        json_string_value(json_object_get(j_msg, "DtmfMode"))? : "",
+
+      // rtp
+      "rtp_engine",           json_string_value(json_object_get(j_msg, "RtpEngine"))? : "",
+      "rtp_ipv6",             json_string_value(json_object_get(j_msg, "RtpIpv6"))? : "",
+      "rtp_symmetric",        json_string_value(json_object_get(j_msg, "RtpSymmetric"))? : "",
+      "rtp_keepalive",        json_string_value(json_object_get(j_msg, "RtpKeepalive"))? atoi(json_string_value(json_object_get(j_msg, "RtpKeepalive"))) : 0,
+      "rtp_timeout",          json_string_value(json_object_get(j_msg, "RtpTimeout"))? atoi(json_string_value(json_object_get(j_msg, "RtpTimeout"))) : 0,
+      "rtp_timeout_hold",     json_string_value(json_object_get(j_msg, "RtpTimeoutHold"))? atoi(json_string_value(json_object_get(j_msg, "RtpTimeoutHold"))) : 0,
+      "asymmetric_rtp_codec", json_string_value(json_object_get(j_msg, "AsymmetricRtpCodec")),
+
+      "rtcp_mux", json_string_value(json_object_get(j_msg, "RtcpMux"))? : "",
+
+      "ice_support",  json_string_value(json_object_get(j_msg, "IceSupport"))? : "",
+      "use_ptime",    json_string_value(json_object_get(j_msg, "UsePtime"))? : "",
+
+      "force_rport",      json_string_value(json_object_get(j_msg, "ForceRport"))? : "",
+      "rewrite_contact",  json_string_value(json_object_get(j_msg, "RewriteContact"))? : "",
+      "transport",        json_string_value(json_object_get(j_msg, "Transport"))? : "",
+      "moh_suggest",      json_string_value(json_object_get(j_msg, "MohSuggest"))? : "",
+
+      "100_rel",  json_string_value(json_object_get(j_msg, "100rel"))? : "",
+
+      // timers
+      "timers",               json_string_value(json_object_get(j_msg, "Timers"))? : "",
+      "timers_min_se",        json_string_value(json_object_get(j_msg, "TimersMinSe"))? : "",
+      "timers_sess_expires",  json_string_value(json_object_get(j_msg, "TimersSessExpires"))? atoi(json_string_value(json_object_get(j_msg, "TimersSessExpires"))) : 0,
+
+      // outbound
+      "outbound_proxy",   json_string_value(json_object_get(j_msg, "OutboundProxy"))? : "",
+      "outbound_auth",    json_string_value(json_object_get(j_msg, "OutboundAuth"))? : "",
+
+      "identify_by",  json_string_value(json_object_get(j_msg, "IdentifyBy"))? : "",
+
+      "redirect_method",  json_string_value(json_object_get(j_msg, "RedirectMethod"))? : "",
+
+      // direct media
+      "direct_media",                   json_string_value(json_object_get(j_msg, "DirectMedia"))? : "",
+      "direct_media_method",            json_string_value(json_object_get(j_msg, "DirectMediaMethod"))? : "",
+      "direct_media_glare_mitigation",  json_string_value(json_object_get(j_msg, "DirectMediaGlareMitigation"))? : "",
+      "disable_direct_media_on_nat",    json_string_value(json_object_get(j_msg, "DisableDirectMediaOnNat"))? : "",
+
+      "connected_line_method",  json_string_value(json_object_get(j_msg, "ConnectedLineMethod"))? : "",
+
+      // caller id
+      "caller_id",          json_string_value(json_object_get(j_msg, "Callerid"))? : "",
+      "caller_id_privacy",  json_string_value(json_object_get(j_msg, "CalleridPrivacy"))? : "",
+      "caller_id_tag",      json_string_value(json_object_get(j_msg, "CalleridTag"))? : "",
+
+      // trust id
+      "trust_id_inbound",   json_string_value(json_object_get(j_msg, "TrustIdInbound"))? : "",
+      "trust_id_outbound",  json_string_value(json_object_get(j_msg, "TrustIdOutbound"))? : "",
+
+      "send_pai", json_string_value(json_object_get(j_msg, "SendPai"))? : "",
+
+      "rpid_immediate",   json_string_value(json_object_get(j_msg, "RpidImmediate"))? : "",
+      "send_rpid",        json_string_value(json_object_get(j_msg, "SendRpid"))? : "",
+      "send_diversion",   json_string_value(json_object_get(j_msg, "SendDiversion"))? : "",
+
+      "aggregate_mwi",  json_string_value(json_object_get(j_msg, "AggregateMwi"))? : "",
+
+      // media
+      "media_address",                json_string_value(json_object_get(j_msg, "MediaAddress"))? : "",
+      "media_encryption",             json_string_value(json_object_get(j_msg, "MediaEncryption"))? : "",
+      "media_encryption_optimistic",  json_string_value(json_object_get(j_msg, "MediaEncryptionOptimistic"))? : "",
+      "media_use_received_transport", json_string_value(json_object_get(j_msg, "MediaUseReceivedTransport"))? : "",
+
+      "use_avpf",   json_string_value(json_object_get(j_msg, "UseAvpf"))? : "",
+      "force_avp",  json_string_value(json_object_get(j_msg, "ForceAvp"))? : "",
+
+      "one_touch_recording",  json_string_value(json_object_get(j_msg, "OneTouchRecording"))? : "",
+
+      // progress
+      "inband_progress",        json_string_value(json_object_get(j_msg, "InbandProgress"))? : "",
+      "refer_blind_progress",   json_string_value(json_object_get(j_msg, "ReferBlindProgress"))? : "",
+
+      // group
+      "call_group",           json_string_value(json_object_get(j_msg, "CallGroup"))? : "",
+      "pickup_group",         json_string_value(json_object_get(j_msg, "PickupGroup"))? : "",
+      "named_call_group",     json_string_value(json_object_get(j_msg, "NamedCallGroup"))? : "",
+      "named_pickup_group",   json_string_value(json_object_get(j_msg, "NamedPickupGroup"))? : "",
+
+      // device
+      "device_state",           json_string_value(json_object_get(j_msg, "DeviceState"))? : "",
+      "device_state_busy_at",   json_string_value(json_object_get(j_msg, "DeviceStateBusyAt"))? atoi(json_string_value(json_object_get(j_msg, "DeviceStateBusyAt"))) : 0,
+
+      // t38 fax
+      "fax_detect",             json_string_value(json_object_get(j_msg, "FaxDetect"))? : "",
+      "fax_detect_time",        json_string_value(json_object_get(j_msg, "FaxDetectTimeout"))? atoi(json_string_value(json_object_get(j_msg, "FaxDetectTimeout"))) : 0,
+      "t38_udptl",              json_string_value(json_object_get(j_msg, "T38Udptl"))? : "",
+      "t38_udptl_ec",           json_string_value(json_object_get(j_msg, "T38UdptlEc"))? : "",
+      "t38_udptl_maxdatagram",  json_string_value(json_object_get(j_msg, "T38UdptlMaxdatagram"))? atoi(json_string_value(json_object_get(j_msg, "T38UdptlMaxdatagram"))) : 0,
+      "t38_udptl_nat",          json_string_value(json_object_get(j_msg, "T38UdptlNat"))? : "",
+      "t38_udptl_ipv6",         json_string_value(json_object_get(j_msg, "T38UdptlIpv6"))? : "",
+
+      "tone_zone",  json_string_value(json_object_get(j_msg, "ToneZone"))? : "",
+      "language",   json_string_value(json_object_get(j_msg, "Language"))? : "",
+
+      // record
+      "record_on_feature",    json_string_value(json_object_get(j_msg, "RecordOnFeature"))? : "",
+      "record_off_feature",   json_string_value(json_object_get(j_msg, "RecordOffFeature"))? : "",
+
+      "user_eq_phone",    json_string_value(json_object_get(j_msg, "UserEqPhone"))? : "",
+      "moh_passthrough",  json_string_value(json_object_get(j_msg, "MohPassthrough"))? : "",
+
+      // sdp
+      "sdp_owner",    json_string_value(json_object_get(j_msg, "SdpOwner"))? : "",
+      "sdp_session",  json_string_value(json_object_get(j_msg, "SdpSession"))? : "",
+
+      // tos and cos
+      "tos_audio",  json_string_value(json_object_get(j_msg, "TosAudio"))? atoi(json_string_value(json_object_get(j_msg, "TosAudio"))) : 0,
+      "tos_video",  json_string_value(json_object_get(j_msg, "TosVideo"))? atoi(json_string_value(json_object_get(j_msg, "TosVideo"))) : 0,
+      "cos_audio",  json_string_value(json_object_get(j_msg, "CosAudio"))? atoi(json_string_value(json_object_get(j_msg, "CosAudio"))) : 0,
+      "cos_video",  json_string_value(json_object_get(j_msg, "CosVideo"))? atoi(json_string_value(json_object_get(j_msg, "CosVideo"))) : 0,
+
+      "sub_min_expiry",   json_string_value(json_object_get(j_msg, "SubMinExpiry"))? : "",
+      "from_user",        json_string_value(json_object_get(j_msg, "FromUser"))? : "",
+      "from_domain",      json_string_value(json_object_get(j_msg, "FromDomain"))? : "",
+
+      // mwi
+      "mwi_from_user",                      json_string_value(json_object_get(j_msg, "MwiFromUser"))? : "",
+      "mwi_subscribe_replaces_unsolicited", json_string_value(json_object_get(j_msg, "MwiSubscribeReplacesUnsolicited"))? : "",
+
+      // dtls
+      "dtls_verify",        json_string_value(json_object_get(j_msg, "DtlsVerify"))? : "",
+      "dtls_rekey",         json_string_value(json_object_get(j_msg, "DtlsRekey"))? atoi(json_string_value(json_object_get(j_msg, "DtlsRekey"))) : 0,
+      "dtls_cert_file",     json_string_value(json_object_get(j_msg, "DtlsCertFile"))? : "",
+      "dtls_private_key",   json_string_value(json_object_get(j_msg, "DtlsPrivateKey"))? : "",
+      "dtls_cipher",        json_string_value(json_object_get(j_msg, "DtlsCipher"))? : "",
+      "dtls_ca_file",       json_string_value(json_object_get(j_msg, "DtlsCaFile"))? : "",
+      "dtls_ca_path",       json_string_value(json_object_get(j_msg, "DtlsCaPath"))? : "",
+      "dtls_setup",         json_string_value(json_object_get(j_msg, "DtlsSetup"))? : "",
+      "dtls_fingerprint",   json_string_value(json_object_get(j_msg, "DtlsFingerprint"))? : "",
+
+      "srtp_tag32", json_string_value(json_object_get(j_msg, "SrtpTag32"))? : "",
+
+      "set_var",  json_string_value(json_object_get(j_msg, "SetVar"))? : "",
+
+      "account_code",           json_string_value(json_object_get(j_msg, "Accountcode"))? : "",
+      "preferred_codec_only",   json_string_value(json_object_get(j_msg, "PreferredCodecOnly"))? : "",
+
+      "active_channels",  json_string_value(json_object_get(j_msg, "ActiveChannels"))? : "",
+
+      // max streams
+      "max_audio_streams",            json_string_value(json_object_get(j_msg, "MaxAudioStreams"))? atoi(json_string_value(json_object_get(j_msg, "MaxAudioStreams"))) : 0,
+      "max_video_streams",            json_string_value(json_object_get(j_msg, "MaxVideoStreams"))? atoi(json_string_value(json_object_get(j_msg, "MaxVideoStreams"))) : 0,
+
+      // acl
+      "acl",                          json_string_value(json_object_get(j_msg, "Acl"))? : "",
+      "contact_acl",                  json_string_value(json_object_get(j_msg, "ContactAcl"))? : "",
+
+      // etc
+      "g_726_non_standard",           json_string_value(json_object_get(j_msg, "G726NonStandard"))? : "",
+      "notify_early_inuse_ringing",   json_string_value(json_object_get(j_msg, "NotifyEarlyInuseRinging"))? : "",
+      "bind_rtp_to_media_address",    json_string_value(json_object_get(j_msg, "BindRtpToMediaAddress"))? : "",
+      "bundle",                       json_string_value(json_object_get(j_msg, "Bundle"))? : "",
+
+      "tm_update",    timestamp
+      );
+  sfree(timestamp);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not create message.");
+    return;
+  }
+
+  // insert or replace
+  ret = db_ctx_insert_or_replace(g_db_ast, "pjsip_endpoint", j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert to pjsip_endpoint.");
+    return;
+  }
+
+  return;
+}
+
+/**
+ * AMI event handler.
+ * Event: ContactStatus
+ * @param j_msg
+ */
+static void ami_event_contactstatus(json_t* j_msg)
+{
+  json_t* j_data;
+  char* timestamp;
+  const char* uri;
+  const char* tmp_const;
+  int ret;
+
+  if(j_msg == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired ami_event_contactstatus.");
+
+  // get uri
+  uri = json_string_value(json_object_get(j_msg, "URI"));
+  if(uri == NULL) {
+    slog(LOG_ERR, "Could not get uri info.");
+    return;
+  }
+
+  // get contact status
+  // if not exist, create new.
+  j_data = get_pjsip_contact_status_info(uri);
+  if(j_data == NULL) {
+    j_data = json_pack("{s:s}", "uri", uri);
+  }
+
+  // status
+  tmp_const = json_string_value(json_object_get(j_msg, "ContactStatus"));
+  if(tmp_const != NULL) {
+    json_object_set_new(j_data, "status", json_string(tmp_const));
+  }
+
+  // aor
+  tmp_const = json_string_value(json_object_get(j_msg, "AOR"));
+  if(tmp_const != NULL) {
+    json_object_set_new(j_data, "aor", json_string(tmp_const));
+  }
+
+  // endpoint_name
+  tmp_const = json_string_value(json_object_get(j_msg, "EndpointName"));
+  if(tmp_const != NULL) {
+    json_object_set_new(j_data, "endpoint_name", json_string(tmp_const));
+  }
+
+  // round_trip_usec
+  tmp_const = json_string_value(json_object_get(j_msg, "RoundtripUsec"));
+  if(tmp_const != NULL) {
+    json_object_set_new(j_data, "round_trip_usec", json_integer(atoi(tmp_const)));
+  }
+
+  // user_agent
+  tmp_const = json_string_value(json_object_get(j_msg, "UserAgent"));
+  if(tmp_const != NULL) {
+    json_object_set_new(j_data, "tmp_const", json_string(tmp_const));
+  }
+
+  // reg_expire
+  tmp_const = json_string_value(json_object_get(j_msg, "RegExpire"));
+  if(tmp_const != NULL) {
+    json_object_set_new(j_data, "reg_expire", json_string(tmp_const));
+  }
+
+  // via_address
+  tmp_const = json_string_value(json_object_get(j_msg, "ViaAddress"));
+  if(tmp_const != NULL) {
+    json_object_set_new(j_data, "via_address", json_string(tmp_const));
+  }
+
+  // call_id
+  tmp_const = json_string_value(json_object_get(j_msg, "CallID"));
+  if(tmp_const != NULL) {
+    json_object_set_new(j_data, "call_id", json_string(tmp_const));
+  }
+
+  timestamp = get_utc_timestamp();
+  json_object_set_new(j_data, "tm_update", json_string(timestamp));
+  sfree(timestamp);
+
+  ret = db_ctx_insert_or_replace(g_db_ast, "pjsip_contact_status", j_data);
+  json_decref(j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert to pjsip_contact_status.");
+    return;
+  }
+
+  return;
+}
+
+/**
+ * AMI event handler.
+ * Event: ContactStatusDetail
+ * @param j_msg
+ */
+static void ami_event_contactstatusdetail(json_t* j_msg)
+{
+  json_t* j_data;
+  char* timestamp;
+  const char* tmp_const;
+  int ret;
+
+  if(j_msg == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired ami_event_contactstatusdetail.");
+
+  tmp_const = json_string_value(json_object_get(j_msg, "URI"));
+  if(tmp_const == NULL) {
+    slog(LOG_ERR, "Could not get URI info.");
+    return;
+  }
+
+  timestamp = get_utc_timestamp();
+  j_data = json_pack("{"
+      "s:s, s:s, s:s, s:s, "
+      "s:s, "
+      "s:s, s:s, s:i, s:s, s:s, "
+      "s:i, s:s, s:s, "
+      "s:i, s:i,"
+      "s:s "
+      "}",
+
+      "uri",            json_string_value(json_object_get(j_msg, "URI"))? : "",
+      "id",             json_string_value(json_object_get(j_msg, "ID"))? : "",
+      "aor",            json_string_value(json_object_get(j_msg, "AOR"))? : "",
+      "endpoint_name",  json_string_value(json_object_get(j_msg, "EndpointName"))? : "",
+
+      "status",   json_string_value(json_object_get(j_msg, "Status"))? : "",
+
+      "round_trip_usec",  json_string_value(json_object_get(j_msg, "RoundtripUsec"))? : "",
+      "user_agent",       json_string_value(json_object_get(j_msg, "UserAgent"))? : "",
+      "reg_expire",       json_string_value(json_object_get(j_msg, "RegExpire"))? atoi(json_string_value(json_object_get(j_msg, "RegExpire"))) : 0,
+      "via_address",      json_string_value(json_object_get(j_msg, "ViaAddress"))? : "",
+      "call_id",          json_string_value(json_object_get(j_msg, "CallID"))? : "",
+
+      "authentication_qualify", json_string_value(json_object_get(j_msg, "AuthenticateQualify"))? atoi(json_string_value(json_object_get(j_msg, "AuthenticateQualify"))) : 0,
+      "outbound_proxy",         json_string_value(json_object_get(j_msg, "OutboundProxy"))? : "",
+      "path",                   json_string_value(json_object_get(j_msg, "Path"))? : "",
+
+      "qualify_frequency",  json_string_value(json_object_get(j_msg, "QualifyFrequency"))? atoi(json_string_value(json_object_get(j_msg, "QualifyFrequency"))) : 0,
+      "qualify_timout",     json_string_value(json_object_get(j_msg, "QualifyTimeout"))? atoi(json_string_value(json_object_get(j_msg, "QualifyTimeout"))) : 0,
+
+      "tm_update", timestamp
+      );
+  sfree(timestamp);
+
+  ret = db_ctx_insert_or_replace(g_db_ast, "pjsip_contact_status", j_data);
+  json_decref(j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert to pjsip_contact_status.");
+    return;
+  }
+
+  return;
+}
+
+/**
+ * AMI event handler.
+ * Event: AorDetail
+ * @param j_msg
+ */
+static void ami_event_aordetail(json_t* j_msg)
+{
+  json_t* j_data;
+  char* timestamp;
+  const char* tmp_const;
+  int ret;
+
+  if(j_msg == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired ami_event_aordetail.");
+
+  tmp_const = json_string_value(json_object_get(j_msg, "URI"));
+  if(tmp_const == NULL) {
+    slog(LOG_ERR, "Could not get URI info.");
+    return;
+  }
+
+  timestamp = get_utc_timestamp();
+  j_data = json_pack("{"
+      "s:s, s:s, s:s, "
+      "s:i, s:i, s:i, "
+      "s:i, s:i, "
+      "s:s, s:i, s:i, s:i, s:s, "
+      "s:s, s:s, s:s, s:s, s:s, "
+      "s:s "
+      "}",
+
+      // basic info
+      "object_type",    json_string_value(json_object_get(j_msg, "ObjectType"))? : "",
+      "object_name",    json_string_value(json_object_get(j_msg, "ObjectName"))? : "",
+      "endpoint_name",  json_string_value(json_object_get(j_msg, "EndpointName"))? : "",
+
+      // expiration
+      "minimum_expiration", json_string_value(json_object_get(j_msg, "MinimumExpiration"))? atoi(json_string_value(json_object_get(j_msg, "MinimumExpiration"))): 0,
+      "default_expiration", json_string_value(json_object_get(j_msg, "DefaultExpiration"))? atoi(json_string_value(json_object_get(j_msg, "DefaultExpiration"))): 0,
+      "maximum_expiration", json_string_value(json_object_get(j_msg, "MaximumExpiration"))? atoi(json_string_value(json_object_get(j_msg, "MaximumExpiration"))): 0,
+
+      // qualify
+      "qualify_timeout",    json_string_value(json_object_get(j_msg, "QualifyTimeout"))? atoi(json_string_value(json_object_get(j_msg, "QualifyTimeout"))): 0,
+      "qualify_frequency",  json_string_value(json_object_get(j_msg, "QualifyFrequency"))? atoi(json_string_value(json_object_get(j_msg, "QualifyFrequency"))): 0,
+
+      // contact
+      "contacts",             json_string_value(json_object_get(j_msg, "Contacts"))? : "",
+      "max_contacts",         json_string_value(json_object_get(j_msg, "MaxContacts"))? atoi(json_string_value(json_object_get(j_msg, "MaxContacts"))): 0,
+      "total_contacts",       json_string_value(json_object_get(j_msg, "TotalContacts"))? atoi(json_string_value(json_object_get(j_msg, "TotalContacts"))): 0,
+      "contacts_registered",  json_string_value(json_object_get(j_msg, "ContactsRegistered"))? atoi(json_string_value(json_object_get(j_msg, "ContactsRegistered"))): 0,
+      "remove_existing",      json_string_value(json_object_get(j_msg, "RemoveExisting"))? : "",
+
+      // etc
+      "mailboxes",            json_string_value(json_object_get(j_msg, "Mailboxes"))? : "",
+      "support_path",         json_string_value(json_object_get(j_msg, "SupportPath"))? : "",
+      "voicemail_extension",  json_string_value(json_object_get(j_msg, "VoicemailExtension"))? : "",
+      "authenticate_qualify", json_string_value(json_object_get(j_msg, "AuthenticateQualify"))? : "",
+      "outbound_proxy",       json_string_value(json_object_get(j_msg, "OutboundProxy"))? : "",
+
+      // timestamp. UTC."
+      "tm_update",    timestamp
+      );
+  sfree(timestamp);
+
+  ret = db_ctx_insert_or_replace(g_db_ast, "pjsip_aor", j_data);
+  json_decref(j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert to pjsip_aor.");
+    return;
+  }
+
+  return;
+}
+
+/**
+ * AMI event handler.
+ * Event: AuthDetail
+ * @param j_msg
+ */
+static void ami_event_authdetail(json_t* j_msg)
+{
+  json_t* j_data;
+  char* timestamp;
+  const char* tmp_const;
+  int ret;
+
+  if(j_msg == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired ami_event_authdetail.");
+
+  tmp_const = json_string_value(json_object_get(j_msg, "ObjectName"));
+  if(tmp_const == NULL) {
+    slog(LOG_ERR, "Could not get ObjectName info.");
+    return;
+  }
+
+  timestamp = get_utc_timestamp();
+  j_data = json_pack("{"
+      "s:s, s:s, s:s, s:s, "
+      "s:s, s:s, s:s, "
+      "s:s, s:i, "
+      "s:s "
+      "}",
+
+      // basic info
+      "object_type",    json_string_value(json_object_get(j_msg, "ObjectType"))? : "",
+      "object_name",    json_string_value(json_object_get(j_msg, "ObjectName"))? : "",
+      "username",       json_string_value(json_object_get(j_msg, "Username"))? : "",
+      "endpoint_name",  json_string_value(json_object_get(j_msg, "EndpointName"))? : "",
+
+      // credential
+      "auth_type",  json_string_value(json_object_get(j_msg, "AuthType"))? : "",
+      "password",   json_string_value(json_object_get(j_msg, "Password"))? : "",
+      "md5_cred",   json_string_value(json_object_get(j_msg, "Md5Cred"))? : "",
+
+      // etc
+      "realm",          json_string_value(json_object_get(j_msg, "Realm"))? : "",
+      "nonce_lifetime", json_string_value(json_object_get(j_msg, "NonceLifetime"))? atoi(json_string_value(json_object_get(j_msg, "NonceLifetime"))): 0,
+
+      // timestamp. UTC."
+      "tm_update", timestamp
+      );
+  sfree(timestamp);
+
+  ret = db_ctx_insert_or_replace(g_db_ast, "pjsip_aor", j_data);
+  json_decref(j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert to pjsip_aor.");
+    return;
+  }
+
+  return;
+}
 

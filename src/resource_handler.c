@@ -804,4 +804,42 @@ json_t* get_parked_call_info(const char* parkee_unique_id)
   return j_res;
 }
 
+/**
+ * Get corresponding pjsip_contact_status info.
+ * @param uri
+ * @return
+ */
+json_t* get_pjsip_contact_status_info(const char* uri)
+{
+  json_t* j_res;
 
+  if(uri == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_pjsip_contact_status_info. uri[%s]", uri);
+
+  j_res = get_detail_item_key_string("pjsip_contact_status", "uri", uri);
+
+  return j_res;
+}
+
+/**
+ * Get corresponding pjsip_endpoint info.
+ * @param name
+ * @return
+ */
+json_t* get_pjsip_endpoint_info(const char* name)
+{
+  json_t* j_res;
+
+  if(name == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_pjsip_endpoint_info. object_name[%s]", name);
+
+  j_res = get_detail_item_key_string("pjsip_endpoint", "object_name", name);
+
+  return j_res;
+}
