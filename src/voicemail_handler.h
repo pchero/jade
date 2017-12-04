@@ -10,6 +10,6 @@
 
 #include <evhtp.h>
 
-void htp_get_voicemail_mailboxes(evhtp_request_t *req, void *data);
+void htp_get_voicemail_users(evhtp_request_t *req, void *data);
 
 #endif /* SRC_VOICEMAIL_HANDLER_H_ */

@@ -79,7 +79,7 @@ static void cb_htp_parked_calls_detail(evhtp_request_t *req, void *data);
 
 
 // ^/voicemail/
-static void cb_htp_voicemail_mailboxes(evhtp_request_t *req, void *data);
+static void cb_htp_voicemail_users(evhtp_request_t *req, void *data);
 
 
 bool init_http_handler(void)
@@ -182,7 +182,12 @@ bool init_http_handler(void)
 
   // voicemail
   // users
-  evhtp_set_regex_cb(g_htp, "/voicemail/users", cb_htp_voicemail_mailboxes, NULL);
+  evhtp_set_regex_cb(g_htp, "/voicemail/users", cb_htp_voicemail_users, NULL);
+
+  // vms
+  evhtp_set_regex_cb(g_htp, "/voicemail/vms", cb_htp_voicemail_vms, NULL);
+  evhtp_set_regex_cb(g_htp, "/voicemail/vms/*", cb_htp_voicemail_vms_message, NULL);
+
 
   return true;
 }
@@ -1746,11 +1751,11 @@ static void cb_htp_parked_calls_detail(evhtp_request_t *req, void *data)
 
 /**
  * http request handler
- * ^/voicemail/mailboxes
+ * ^/voicemail/users
  * @param req
  * @param data
  */
-static void cb_htp_voicemail_mailboxes(evhtp_request_t *req, void *data)
+static void cb_htp_voicemail_users(evhtp_request_t *req, void *data)
 {
   int method;
 
@@ -1758,7 +1763,7 @@ static void cb_htp_voicemail_mailboxes(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_INFO, "Fired cb_htp_voicemail_mailboxes.");
+  slog(LOG_INFO, "Fired cb_htp_voicemail_users.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -1768,7 +1773,7 @@ static void cb_htp_voicemail_mailboxes(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    htp_get_voicemail_mailboxes(req, NULL);
+    htp_get_voicemail_users(req, NULL);
     return;
   }
   else {
@@ -1780,8 +1785,42 @@ static void cb_htp_voicemail_mailboxes(evhtp_request_t *req, void *data)
   simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
 
   return;
+}
 
+/**
+ * http request handler
+ * ^/voicemail/vms
+ * @param req
+ * @param data
+ */
+static void cb_htp_voicemail_vms(evhtp_request_t *req, void *data)
+{
+  int method;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_voicemail_vms.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if(method != htp_method_GET) {
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  if(method == htp_method_GET) {
+    htp_get_voicemail_vms(req, NULL);
+    return;
+  }
+  else {
+    // should not reach to here.
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  }
+
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
 
   return;
 }
-

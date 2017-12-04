@@ -23,6 +23,8 @@
 #define DEF_GENERAL_EVENT_TIME_FAST "100000"
 #define DEF_GENERAL_EVENT_TIME_SLOW "3000000"
 
+#define DEF_VOICEMAIL_DIRECTORY "/var/spool/asterisk/voicemail"
+
 #define DEF_OB_DIALING_RESULT_FILENAME  "./outbound_result.json"
 #define DEF_OB_DIALING_TIMEOUT          "30"
 #define DEF_OB_DATABASE_NAME  "./outbound_database.db"
@@ -87,6 +89,7 @@ static bool load_config(void)
   // create default conf
   j_conf_def = json_pack("{"
       "s:{s:s, s:s, s:s, s:s, s:s, s:s, s:s, s:s, s:s, s:s},"
+      "s:{s:s}, "
       "s:{s:s, s:s, s:s}"
       "}",
       "general",
@@ -101,6 +104,9 @@ static bool load_config(void)
         "event_time_fast",  DEF_GENERAL_EVENT_TIME_FAST,
         "event_time_slow",  DEF_GENERAL_EVENT_TIME_SLOW,
 
+      "voicemail",
+        "dicretory",        DEF_VOICEMAIL_DIRECTORY,
+
       "ob",
         "dialing_result_filename",  DEF_OB_DIALING_RESULT_FILENAME,
         "dialing_timeout",          DEF_OB_DIALING_TIMEOUT,
@@ -114,8 +120,7 @@ static bool load_config(void)
   j_conf = json_load_file(g_config_filename, JSON_DECODE_ANY, NULL);
 
   // update conf
-  json_object_update(json_object_get(j_conf_def, "general"), json_object_get(j_conf, "general"));
-  json_object_update(json_object_get(j_conf_def, "ob"), json_object_get(j_conf, "ob"));
+  json_object_update(j_conf_def, j_conf);
   json_decref(j_conf);
 
   if(g_app->j_conf != NULL) {
