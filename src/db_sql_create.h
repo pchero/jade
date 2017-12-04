@@ -691,7 +691,56 @@ static const char* g_sql_create_pjsip_auth =
 
 ");";
 
+// voicemail_user
+static const char* g_sql_drop_voicemail_user = "drop table if exist voicemail_user";
+static const char* g_sql_create_voicemail_user =
+"crate table voicemail_user("
 
+// basic info
+"   context varchar(255),"
+"   mailbox varchar(255),"
+
+// user info
+"   full_name       varchar(1023),"
+"   email           varchar(1023),"
+"   pager           varchar(1023),"
+
+// mail setting
+"   server_email    varchar(1023),"
+"   from_string     varchar(1023),"
+"   mail_command    varchar(1023),"
+
+"   language        varchar(255),"
+"   timezone        varchar(255),"
+"   callback        varchar(255),"
+"   dialout         varchar(255),"
+"   unique_id       varchar(255),"
+"   exit_context    varchar(255),"
+
+"   say_duration_minimum    int,"
+"   say_envelope            varchar(255),"
+"   say_cid                 varchar(255),"
+
+"   attach_message          varchar(255),"
+"   attachement_format      varchar(255),"
+"   delete_message          varchar(255),"
+"   volume_gain             real,"
+"   can_review              varchar(255),"
+"   call_operator           varchar(255),"
+
+// message setting
+"   max_message_count       int,"
+"   max_message_length      int,"
+"   new_message_count       int,"
+"   old_message_count       int,"
+
+"   imap_user               int,"
+"   imap_server             varchar(255),"
+"   imap_port               varchar(255),"
+"   imap_flag               varchar(255),"
+
+"   primary key(context, mailbox)"
+");";
 
 
 #endif /* SRC_DB_SQL_CREATE_H_ */
