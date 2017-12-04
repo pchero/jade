@@ -8,6 +8,8 @@
 #ifndef BACKEND_SRC_RESOURCE_HANDLER_H_
 #define BACKEND_SRC_RESOURCE_HANDLER_H_
 
+#include <jansson.h>
+
 // peer
 json_t* get_peers_all_peer(void);
 json_t* get_peer_detail(const char* name);
@@ -59,5 +61,10 @@ json_t* get_parked_call_info(const char* parkee_unique_id);
 // pjsip
 json_t* get_pjsip_contact_status_info(const char* uri);
 json_t* get_pjsip_endpoint_info(const char* name);
+
+// voicemail
+json_t* get_voicemail_user_info(const char* context, const char* mailbox);
+json_t* get_voicemail_users_all();
+
 
 #endif /* BACKEND_SRC_RESOURCE_HANDLER_H_ */

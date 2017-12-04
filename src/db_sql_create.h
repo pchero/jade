@@ -397,7 +397,7 @@ static const char* g_sql_create_parked_call =
 
 
 // pjsip_contact_status
-static const char* g_sql_drop_pjsip_contact_status = "drop table if exist pjsip_contact_status";
+static const char* g_sql_drop_pjsip_contact_status = "drop table if exists pjsip_contact_status;";
 static const char* g_sql_create_pjsip_contact_status =
 "create table pjsip_contact_status("
 
@@ -429,7 +429,7 @@ static const char* g_sql_create_pjsip_contact_status =
 ");";
 
 // pjsip_endpoint
-static const char* g_sql_drop_pjsip_endpoint = "drop table if exist pjsip_endpoint";
+static const char* g_sql_drop_pjsip_endpoint = "drop table if exists pjsip_endpoint;";
 static const char* g_sql_create_pjsip_endpoint =
 "create table pjsip_endpoint ("
 
@@ -479,7 +479,7 @@ static const char* g_sql_create_pjsip_endpoint =
 "   transport           varchar(1023),"
 "   moh_suggest         varchar(1023),"
 
-"   100_rel                 varchar(1023),"
+"   rel_100                 varchar(1023),"
 
 // timers
 "   timers                  varchar(1023),"
@@ -625,9 +625,9 @@ static const char* g_sql_create_pjsip_endpoint =
 ");";
 
 // pjsip_aor
-static const char* g_sql_drop_pjsip_aor = "drop table if exist pjsip_aor";
+static const char* g_sql_drop_pjsip_aor = "drop table if exists pjsip_aor;";
 static const char* g_sql_create_pjsip_aor =
-"crate table pjsip_aor("
+"create table pjsip_aor("
 
 // basic info
 "   object_type         varchar(255),"
@@ -665,7 +665,7 @@ static const char* g_sql_create_pjsip_aor =
 ");";
 
 // pjsip_aor
-static const char* g_sql_drop_pjsip_auth = "drop table if exist pjsip_auth";
+static const char* g_sql_drop_pjsip_auth = "drop table if exists pjsip_auth;";
 static const char* g_sql_create_pjsip_auth =
 "create table pjsip_auth("
 
@@ -692,9 +692,9 @@ static const char* g_sql_create_pjsip_auth =
 ");";
 
 // voicemail_user
-static const char* g_sql_drop_voicemail_user = "drop table if exist voicemail_user";
+static const char* g_sql_drop_voicemail_user = "drop table if exists voicemail_user;";
 static const char* g_sql_create_voicemail_user =
-"crate table voicemail_user("
+"create table voicemail_user("
 
 // basic info
 "   context varchar(255),"
@@ -728,16 +728,20 @@ static const char* g_sql_create_voicemail_user =
 "   can_review              varchar(255),"
 "   call_operator           varchar(255),"
 
-// message setting
+// message info
 "   max_message_count       int,"
 "   max_message_length      int,"
 "   new_message_count       int,"
 "   old_message_count       int,"
 
-"   imap_user               int,"
+// imap info
+"   imap_user               varchar(255),"
 "   imap_server             varchar(255),"
 "   imap_port               varchar(255),"
 "   imap_flag               varchar(255),"
+
+// timestamp. UTC."
+"   tm_update         datetime(6),"   // update time."
 
 "   primary key(context, mailbox)"
 ");";

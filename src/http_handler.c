@@ -18,6 +18,7 @@
 #include "http_handler.h"
 #include "resource_handler.h"
 #include "ob_http_handler.h"
+#include "voicemail_handler.h"
 
 #define API_VER "0.1"
 
@@ -76,6 +77,9 @@ static void cb_htp_parking_lots_detail(evhtp_request_t *req, void *data);
 static void cb_htp_parked_calls(evhtp_request_t *req, void *data);
 static void cb_htp_parked_calls_detail(evhtp_request_t *req, void *data);
 
+
+// ^/voicemail/
+static void cb_htp_voicemail_mailboxes(evhtp_request_t *req, void *data);
 
 
 bool init_http_handler(void)
@@ -175,6 +179,10 @@ bool init_http_handler(void)
   evhtp_set_regex_cb(g_htp, "/ob/dialings/("DEF_REG_UUID")", cb_htp_ob_dialings_uuid, NULL);
   evhtp_set_regex_cb(g_htp, "/ob/dialings/", cb_htp_ob_dialings_all, NULL);
   evhtp_set_regex_cb(g_htp, "/ob/dialings", cb_htp_ob_dialings, NULL);
+
+  // voicemail
+  // users
+  evhtp_set_regex_cb(g_htp, "/voicemail/users", cb_htp_voicemail_mailboxes, NULL);
 
   return true;
 }
@@ -1736,4 +1744,44 @@ static void cb_htp_parked_calls_detail(evhtp_request_t *req, void *data)
   return;
 }
 
+/**
+ * http request handler
+ * ^/voicemail/mailboxes
+ * @param req
+ * @param data
+ */
+static void cb_htp_voicemail_mailboxes(evhtp_request_t *req, void *data)
+{
+  int method;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_voicemail_mailboxes.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if(method != htp_method_GET) {
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  if(method == htp_method_GET) {
+    htp_get_voicemail_mailboxes(req, NULL);
+    return;
+  }
+  else {
+    // should not reach to here.
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  }
+
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+
+  return;
+
+
+  return;
+}
 

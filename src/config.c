@@ -19,7 +19,7 @@
 #define DEF_GENERAL_HTTP_ADDR "0.0.0.0"
 #define DEF_GENERAL_HTTP_PORT "8081"
 #define DEF_GENERAL_LOGLEVEL  "5"
-#define DEF_GENERAL_DATABASE_NAME "./database.db"
+#define DEF_GENERAL_DATABASE_NAME ":memory:"
 #define DEF_GENERAL_EVENT_TIME_FAST "100000"
 #define DEF_GENERAL_EVENT_TIME_SLOW "3000000"
 
@@ -87,7 +87,7 @@ static bool load_config(void)
   // create default conf
   j_conf_def = json_pack("{"
       "s:{s:s, s:s, s:s, s:s, s:s, s:s, s:s, s:s, s:s, s:s},"
-      "s:{s:s, s:s}"
+      "s:{s:s, s:s, s:s}"
       "}",
       "general",
         "ami_serv_addr",    DEF_GENERAL_AMI_SERV_ADDR,
