@@ -54,7 +54,7 @@ bool init(void)
     printf("Failed initiate log.");
     return false;
   }
-  slog(LOG_DEBUG, "Finished init_log.");
+  slog(LOG_NOTICE, "Finished init_log.");
 
   ret = init_config();
   if(ret == false) {
@@ -67,7 +67,7 @@ bool init(void)
     slog(LOG_WARNING, "Could not initiate event.");
     return false;
   }
-  slog(LOG_DEBUG, "Finished init_event.");
+  slog(LOG_NOTICE, "Finished init_event.");
 
   // init database
   g_db_ast = db_ctx_init(":memory:");
@@ -75,7 +75,7 @@ bool init(void)
     slog(LOG_WARNING, "Could not initiate db.");
     return false;
   }
-  slog(LOG_DEBUG, "Finished db_init.");
+  slog(LOG_NOTICE, "Finished db_init.");
 
   ret = init_data_handler();
   if(ret == false) {

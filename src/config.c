@@ -135,6 +135,7 @@ static bool load_config(void)
   ret = atoi(tmp_const);
   update_log_level(ret);
 
+  slog(LOG_DEBUG, "load_config end.");
   return true;
 }
 

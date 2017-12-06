@@ -26,6 +26,8 @@ extern app* g_app;
 extern struct event_base* g_base;
 evhtp_t* g_htp = NULL;
 
+#define DEF_REG_MSGNAME "msg[0-9]{4}"
+
 // ping
 static void cb_htp_ping(evhtp_request_t *req, void *a);
 
@@ -80,6 +82,9 @@ static void cb_htp_parked_calls_detail(evhtp_request_t *req, void *data);
 
 // ^/voicemail/
 static void cb_htp_voicemail_users(evhtp_request_t *req, void *data);
+static void cb_htp_voicemail_vms(evhtp_request_t *req, void *data);
+static void cb_htp_voicemail_vms_msgname(evhtp_request_t *req, void *data);
+
 
 
 bool init_http_handler(void)
@@ -185,8 +190,8 @@ bool init_http_handler(void)
   evhtp_set_regex_cb(g_htp, "/voicemail/users", cb_htp_voicemail_users, NULL);
 
   // vms
+  evhtp_set_regex_cb(g_htp, "/voicemail/vms/("DEF_REG_MSGNAME")", cb_htp_voicemail_vms_msgname, NULL);
   evhtp_set_regex_cb(g_htp, "/voicemail/vms", cb_htp_voicemail_vms, NULL);
-  evhtp_set_regex_cb(g_htp, "/voicemail/vms/*", cb_htp_voicemail_vms_message, NULL);
 
 
   return true;
@@ -1812,6 +1817,48 @@ static void cb_htp_voicemail_vms(evhtp_request_t *req, void *data)
 
   if(method == htp_method_GET) {
     htp_get_voicemail_vms(req, NULL);
+    return;
+  }
+  else {
+    // should not reach to here.
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  }
+
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+
+  return;
+}
+
+/**
+ * http request handler
+ * ^/voicemail/vms/<msgname>
+ * @param req
+ * @param data
+ */
+static void cb_htp_voicemail_vms_msgname(evhtp_request_t *req, void *data)
+{
+  int method;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_voicemail_vms_msgname.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if((method != htp_method_GET) && (method != htp_method_DELETE)) {
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  if(method == htp_method_GET) {
+    htp_get_voicemail_vms_msgname(req, NULL);
+    return;
+  }
+  else if(method == htp_method_DELETE) {
+    htp_delete_voicemail_vms_msgname(req, NULL);
     return;
   }
   else {
