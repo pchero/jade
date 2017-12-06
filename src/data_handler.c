@@ -493,6 +493,14 @@ static bool init_ami_database(void)
     return false;
   }
 
+  // voicemail_user
+  db_ctx_exec(g_db_ast, g_sql_drop_voicemail_user);
+  ret = db_ctx_exec(g_db_ast, g_sql_create_voicemail_user);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create table. table[%s]", "voicemail_user");
+    return false;
+  }
+
   return true;
 }
 
@@ -592,6 +600,17 @@ static bool send_init_actions(void)
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not send ami action. action[%s]", "DeviceStateList");
+    return false;
+  }
+
+  // voicemail_user
+  j_tmp = json_pack("{s:s}",
+      "Action", "VoicemailUsersList"
+      );
+  ret = send_ami_cmd(j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not send ami action. action[%s]", "VoicemailUsersList");
     return false;
   }
 

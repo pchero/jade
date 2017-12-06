@@ -62,6 +62,8 @@ static void ami_event_registryentry(json_t* j_msg);
 static void ami_event_rename(json_t* j_msg);
 static void ami_event_unparkedcall(json_t* j_msg);
 static void ami_event_varset(json_t* j_msg);
+static void ami_event_voicemailuserentry(json_t* j_msg);
+
 
 // action response handlers
 //static ACTION_RES ami_response_handler_databaseshowall(json_t* j_action, json_t* j_msg);
@@ -223,6 +225,9 @@ void ami_message_handler(const char* msg)
   }
   else if(strcasecmp(event, "VarSet") == 0) {
     ami_event_varset(j_msg);
+  }
+  else if(strcasecmp(event, "VoicemailUserEntry") == 0) {
+    ami_event_voicemailuserentry(j_msg);
   }
   else {
     tmp = json_dumps(j_msg, JSON_ENCODE_ANY);
@@ -2314,7 +2319,7 @@ static void ami_event_endpointdetail(json_t* j_msg)
       "transport",        json_string_value(json_object_get(j_msg, "Transport"))? : "",
       "moh_suggest",      json_string_value(json_object_get(j_msg, "MohSuggest"))? : "",
 
-      "100_rel",  json_string_value(json_object_get(j_msg, "100rel"))? : "",
+      "rel_100",  json_string_value(json_object_get(j_msg, "100rel"))? : "",
 
       // timers
       "timers",               json_string_value(json_object_get(j_msg, "Timers"))? : "",
@@ -2771,3 +2776,112 @@ static void ami_event_authdetail(json_t* j_msg)
   return;
 }
 
+/**
+ * AMI event handler.
+ * Event: VoicemailUserEntry
+ * @param j_msg
+ */
+static void ami_event_voicemailuserentry(json_t* j_msg)
+{
+  json_t* j_data;
+  char* timestamp;
+  const char* context;
+  const char* mailbox;
+  int ret;
+
+  if(j_msg == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired ami_event_voicemailuserentry.");
+
+  context = json_string_value(json_object_get(j_msg, "VMContext"));
+  if(context == NULL) {
+    slog(LOG_ERR, "Could not get VMContext info.");
+    return;
+  }
+
+  mailbox = json_string_value(json_object_get(j_msg, "VoiceMailbox"));
+  if(mailbox == NULL) {
+    slog(LOG_ERR, "Could not get VoiceMailbox info.");
+    return;
+  }
+
+  timestamp = get_utc_timestamp();
+  j_data = json_pack("{"
+      "s:s, s:s, "        // basic info
+      "s:s, s:s, s:s, "   // user info
+      "s:s, s:s, s:s, "   // mail setting
+
+      "s:s, s:s, s:s, s:s, s:s, s:s, "
+      "s:i, s:s, s:s, "
+      "s:s, s:s, s:s, s:f, s:s, s:s, "
+
+      "s:i, s:i, s:i, s:i, "   // message info
+      "s:s, s:s, s:s, s:s, "    // imap info
+
+      "s:s "    // timestamp
+      "}",
+
+      // basic info
+      "context", context,
+      "mailbox", mailbox,
+
+      // user info
+      "full_name",    json_string_value(json_object_get(j_msg, "Fullname"))? : "",
+      "email",        json_string_value(json_object_get(j_msg, "Email"))? : "",
+      "pager",        json_string_value(json_object_get(j_msg, "Pager"))? : "",
+
+      // mail setting
+      "server_email",   json_string_value(json_object_get(j_msg, "ServerEmail"))? : "",
+      "from_string",    json_string_value(json_object_get(j_msg, "FromString"))? : "",
+      "mail_command",   json_string_value(json_object_get(j_msg, "MailCommand"))? : "",
+
+
+      "language",       json_string_value(json_object_get(j_msg, "Language"))? : "",
+      "timezone",       json_string_value(json_object_get(j_msg, "TimeZone"))? : "",
+      "callback",       json_string_value(json_object_get(j_msg, "Callback"))? : "",
+      "dialout",        json_string_value(json_object_get(j_msg, "Dialout"))? : "",
+      "unique_id",      json_string_value(json_object_get(j_msg, "UniqueID"))? : "",
+      "exit_context",   json_string_value(json_object_get(j_msg, "ExitContext"))? : "",
+
+      "say_duration_minimum",   json_string_value(json_object_get(j_msg, "SayDurationMinimum"))? atoi(json_string_value(json_object_get(j_msg, "SayDurationMinimum"))) : 0,
+      "say_envelope",           json_string_value(json_object_get(j_msg, "SayEnvelope"))? : "",
+      "say_cid",                json_string_value(json_object_get(j_msg, "SayCID"))? : "",
+
+      "attach_message",       json_string_value(json_object_get(j_msg, "AttachMessage"))? : "",
+      "attachement_format",   json_string_value(json_object_get(j_msg, "AttachmentFormat"))? : "",
+      "delete_message",       json_string_value(json_object_get(j_msg, "DeleteMessage"))? : "",
+      "volume_gain",          json_string_value(json_object_get(j_msg, "VolumeGain"))? atof(json_string_value(json_object_get(j_msg, "VolumeGain"))) : 0,
+      "can_review",           json_string_value(json_object_get(j_msg, "CanReview"))? : "",
+      "call_operator",        json_string_value(json_object_get(j_msg, "CallOperator"))? : "",
+
+
+      // message info
+      "max_message_count",    json_string_value(json_object_get(j_msg, "MaxMessageCount"))? atoi(json_string_value(json_object_get(j_msg, "MaxMessageCount"))) : 0,
+      "max_message_length",   json_string_value(json_object_get(j_msg, "MaxMessageLength"))? atoi(json_string_value(json_object_get(j_msg, "MaxMessageLength"))) : 0,
+      "new_message_count",    json_string_value(json_object_get(j_msg, "NewMessageCount"))? atoi(json_string_value(json_object_get(j_msg, "NewMessageCount"))) : 0,
+      "old_message_count",    json_string_value(json_object_get(j_msg, "OldMessageCount"))? atoi(json_string_value(json_object_get(j_msg, "OldMessageCount"))) : 0,
+
+      // imap info
+      "imap_user",      json_string_value(json_object_get(j_msg, "IMAPUser"))? : "",
+      "imap_server",    json_string_value(json_object_get(j_msg, "IMAPServer"))? : "",
+      "imap_port",      json_string_value(json_object_get(j_msg, "IMAPPort"))? : "",
+      "imap_flag",      json_string_value(json_object_get(j_msg, "IMAPFlags"))? : "",
+
+
+      // timestamp. UTC."
+      "tm_update", timestamp
+      );
+  sfree(timestamp);
+
+  // insert or replace
+  ret = db_ctx_insert_or_replace(g_db_ast, "voicemail_user", j_data);
+  json_decref(j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert to voicemail_user.");
+    return;
+  }
+
+  return;
+}

@@ -25,7 +25,7 @@ bool init_log(void)
   setlogmask(LOG_UPTO(DEF_LOGLEVEL));
 
   // set log
-  openlog (PROGNAME, LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
+  openlog(PROGNAME, LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
   printf("Complete init_log.\n");
 
   return true;

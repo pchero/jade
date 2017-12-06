@@ -29,9 +29,7 @@ static json_t* get_items(const char* table, const char* item)
 {
   int ret;
   json_t* j_res;
-  json_t* j_res_tmp;
   json_t* j_tmp;
-  json_t* j_val;
   char* sql;
 
   if((table == NULL) || (item == NULL)) {
@@ -55,18 +53,7 @@ static json_t* get_items(const char* table, const char* item)
       break;
     }
 
-    j_val = json_object_get(j_tmp, item);
-    if(j_val == NULL) {
-      json_decref(j_tmp);
-      continue;
-    }
-
-    j_res_tmp = json_pack("{s:O}", item, j_val);
-    json_decref(j_tmp);
-    if(j_res_tmp == NULL) {
-      continue;
-    }
-    json_array_append_new(j_res, j_res_tmp);
+    json_array_append(j_res, j_tmp);
   }
   db_ctx_free(g_db_ast);
 
@@ -840,6 +827,53 @@ json_t* get_pjsip_endpoint_info(const char* name)
   slog(LOG_DEBUG, "Fired get_pjsip_endpoint_info. object_name[%s]", name);
 
   j_res = get_detail_item_key_string("pjsip_endpoint", "object_name", name);
+
+  return j_res;
+}
+
+/**
+ * Get corresponding voicemail_user info.
+ * @param name
+ * @return
+ */
+json_t* get_voicemail_user_info(const char* context, const char* mailbox)
+{
+  json_t* j_res;
+  char* sql;
+  int ret;
+
+  if((context == NULL) || (mailbox == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_voicemail_user_info. context[%s], mailbox[%s]", context, mailbox);
+
+  asprintf(&sql, "select * from voicemail_user where context=\"%s\" and mailbox=\"%s\";", context, mailbox);
+  ret = db_ctx_query(g_db_ast, sql);
+  sfree(sql);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not get correct voicemail_user info.");
+    return NULL;
+  }
+
+  j_res = db_ctx_get_record(g_db_ast);
+  db_ctx_free(g_db_ast);
+  if(j_res == NULL) {
+    return NULL;
+  }
+  return j_res;
+}
+
+/**
+ * Get all voicemail_user info.
+ * @return
+ */
+json_t* get_voicemail_users_all()
+{
+  json_t* j_res;
+  slog(LOG_DEBUG, "Fired get_voicemail_users_all.");
+
+  j_res = get_items("voicemail_user", "*");
 
   return j_res;
 }
