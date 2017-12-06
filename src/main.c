@@ -24,6 +24,7 @@ struct event_base*  g_base = NULL;
 
 
 static bool init_event(void);
+static bool init_db(void);
 static bool option_parse(int argc, char** argv);
 static void print_help(void);
 
@@ -34,6 +35,27 @@ static bool init_event(void)
     printf("New event base.\n");
     g_base = event_base_new();
   }
+
+  return true;
+}
+
+static bool init_db(void)
+{
+  // init database
+  const char* tmp_const;
+
+  tmp_const = json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "database_name"));
+  if(tmp_const == NULL) {
+    slog(LOG_ERR, "Could not get database_name info.");
+    return false;
+  }
+
+  g_db_ast = db_ctx_init(tmp_const);
+  if(g_db_ast == NULL) {
+    slog(LOG_WARNING, "Could not initiate db.");
+    return false;
+  }
+  slog(LOG_NOTICE, "Finished db_init.");
 
   return true;
 }
@@ -64,43 +86,43 @@ bool init(void)
 
   ret = init_event();
   if(ret == false) {
-    slog(LOG_WARNING, "Could not initiate event.");
+    slog(LOG_ERR, "Could not initiate event.");
     return false;
   }
   slog(LOG_NOTICE, "Finished init_event.");
 
-  // init database
-  g_db_ast = db_ctx_init(":memory:");
-  if(g_db_ast == NULL) {
-    slog(LOG_WARNING, "Could not initiate db.");
+  // init db
+  ret = init_db();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate db.");
     return false;
   }
   slog(LOG_NOTICE, "Finished db_init.");
 
   ret = init_data_handler();
   if(ret == false) {
-    slog(LOG_WARNING, "Could not initiate ami_handle.");
+    slog(LOG_ERR, "Could not initiate ami_handle.");
     return false;
   }
   slog(LOG_DEBUG, "Finished init_ami_handler.");
 
   ret = init_http_handler();
   if(ret == false) {
-    slog(LOG_WARNING, "Could not initiate http_handler.");
+    slog(LOG_ERR, "Could not initiate http_handler.");
     return false;
   }
   slog(LOG_DEBUG, "Finished init_http_handler.");
   
   ret = init_event_handler();
   if(ret == false) {
-    slog(LOG_WARNING, "Could not initiate event_handler.");
+    slog(LOG_ERR, "Could not initiate event_handler.");
     return false;
   }
   slog(LOG_DEBUG, "Finished init_event_handler.");
 
   ret = init_outbound();
   if(ret == false) {
-    slog(LOG_WARNING, "Could not initiate ob_handler.");
+    slog(LOG_ERR, "Could not initiate ob_handler.");
     return false;
   }
 
