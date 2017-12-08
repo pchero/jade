@@ -182,7 +182,7 @@ bool init_http_handler(void)
 
   // dialings
   evhtp_set_regex_cb(g_htp, "/ob/dialings/("DEF_REG_UUID")", cb_htp_ob_dialings_uuid, NULL);
-  evhtp_set_regex_cb(g_htp, "/ob/dialings/", cb_htp_ob_dialings_all, NULL);
+//  evhtp_set_regex_cb(g_htp, "/ob/dialings/", cb_htp_ob_dialings_all, NULL);
   evhtp_set_regex_cb(g_htp, "/ob/dialings", cb_htp_ob_dialings, NULL);
 
   // voicemail

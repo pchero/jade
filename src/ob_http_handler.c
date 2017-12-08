@@ -760,7 +760,7 @@ static void htp_get_ob_destinations(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_ob_destinations.");
 
   // get info
-  j_tmp = get_ob_destinations_all_uuid();
+  j_tmp = get_ob_destinations_all();
   if(j_tmp == NULL) {
     simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
@@ -1110,7 +1110,7 @@ static void htp_get_ob_plans(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_ob_plans.");
 
   // get info
-  j_tmp = get_ob_plans_all_uuid();
+  j_tmp = get_ob_plans_all();
   if(j_tmp == NULL) {
     simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
@@ -1470,7 +1470,7 @@ static void htp_get_ob_campaigns(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_ob_campaigns.");
 
   // get info
-  j_tmp = get_ob_campaigns_all_uuid();
+  j_tmp = get_ob_campaigns_all();
   if(j_tmp == NULL) {
     simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
@@ -1793,7 +1793,7 @@ static void htp_get_ob_dlmas(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_ob_dlmas.");
 
   // get info
-  j_tmp = get_ob_dlmas_all_uuid();
+  j_tmp = get_ob_dlmas_all();
   if(j_tmp == NULL) {
     simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
@@ -2176,7 +2176,7 @@ static void htp_get_ob_dls(evhtp_request_t *req, void *data)
   }
 
   // get info
-  j_tmp = get_ob_dls_uuid_by_dlma_count(dlma_uuid, count);
+  j_tmp = get_ob_dls_by_dlma_count(dlma_uuid, count);
   if(j_tmp == NULL) {
     simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
@@ -2603,7 +2603,7 @@ static void htp_get_ob_dialings(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_ob_dialings.");
 
   // get info
-  j_tmp = get_ob_dialings_uuid_all();
+  j_tmp = get_ob_dialings_all();
   if(j_tmp == NULL) {
     simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
