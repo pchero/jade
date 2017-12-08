@@ -26,8 +26,8 @@
     <link rel="top" title="jade 0.0.1 documentation" href="#" />
     <link rel="next" title="Glossary" href="glossary.html" /> 
   </head>
-  <body role="document">
-    <div class="related" role="navigation" aria-label="related navigation">
+  <body>
+    <div class="related">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -36,14 +36,14 @@
         <li class="right" >
           <a href="glossary.html" title="Glossary"
              accesskey="N">next</a> |</li>
-        <li class="nav-item nav-item-0"><a href="#">jade 0.0.1 documentation</a> &raquo;</li> 
+        <li><a href="#">jade 0.0.1 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body" role="main">
+          <div class="body">
             
   <div class="section" id="welcome-to-jade-s-documentation">
 <h1>Welcome to jade&#8217;s documentation!<a class="headerlink" href="#welcome-to-jade-s-documentation" title="Permalink to this headline">¶</a></h1>
@@ -70,7 +70,7 @@
 <li class="toctree-l2"><a class="reference internal" href="api.html#api-description">API description</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="api.html#resources">Resources</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="api.html#apis">APIs</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="api.html#agents">/agents</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api.html#id5">/agents/</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api.html#channels">/channels</a></li>
@@ -93,6 +93,21 @@
 <li class="toctree-l2"><a class="reference internal" href="api.html#id104">/queue_members/</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api.html#queue-entries">/queue_entries</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api.html#id115">/queue_entries/</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#voicemail-users">/voicemail/users</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#voicemail-vms">/voicemail/vms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#voicemail-vms-msgname">/voicemail/vms/&lt;msgname&gt;</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#ob-plans">/ob/plans</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#ob-plans-uuid">/ob/plans/&lt;uuid&gt;</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#ob-destinations">/ob/destinations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#ob-destinations-uuid">/ob/destinations/&lt;uuid&gt;</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#ob-dlmas">/ob/dlmas</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#ob-dlmas-uuid">/ob/dlmas/&lt;uuid&gt;</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#ob-dls">/ob/dls</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#ob-dls-uuid">/ob/dls/&lt;uuid&gt;</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#ob-dialings">/ob/dialings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#ob-dialings-uuid">/ob/dialings/&lt;uuid&gt;</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#ob-campaigns">/ob/campaigns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#ob-campaigns-uuid">/ob/campaigns/&lt;uuid&gt;</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="ob_basic.html">Outbound Basic</a><ul>
@@ -114,21 +129,6 @@
 <li class="toctree-l2"><a class="reference internal" href="ob_structure.html#dialing">Dialing</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="ob_api.html">Outbound APIs</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="ob_api.html#ob-plans">/ob/plans</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ob_api.html#ob-plans-uuid">/ob/plans/&lt;uuid&gt;</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ob_api.html#ob-destinations">/ob/destinations</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ob_api.html#ob-destinations-uuid">/ob/destinations/&lt;uuid&gt;</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ob_api.html#ob-dlmas">/ob/dlmas</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ob_api.html#ob-dlmas-uuid">/ob/dlmas/&lt;uuid&gt;</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ob_api.html#ob-dls">/ob/dls</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ob_api.html#ob-dls-uuid">/ob/dls/&lt;uuid&gt;</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ob_api.html#ob-dialings">/ob/dialings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ob_api.html#ob-dialings-uuid">/ob/dialings/&lt;uuid&gt;</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ob_api.html#ob-campaigns">/ob/campaigns</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ob_api.html#ob-campaigns-uuid">/ob/campaigns/&lt;uuid&gt;</a></li>
-</ul>
-</li>
 <li class="toctree-l1"><a class="reference internal" href="ob_tutorial.html">Outbound tutorial</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="ob_tutorial.html#preparation">Preparation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ob_tutorial.html#basic-tutorial">Basic tutorial</a></li>
@@ -141,9 +141,9 @@
 <div class="section" id="indices-and-tables">
 <h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
 <ul class="simple">
-<li><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></li>
-<li><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></li>
-<li><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></li>
+<li><a class="reference internal" href="genindex.html"><em>Index</em></a></li>
+<li><a class="reference internal" href="py-modindex.html"><em>Module Index</em></a></li>
+<li><a class="reference internal" href="search.html"><em>Search Page</em></a></li>
 </ul>
 </div>
 
@@ -151,7 +151,7 @@
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+      <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
   <h3><a href="#">Table Of Contents</a></h3>
   <ul>
@@ -162,28 +162,29 @@
   <h4>Next topic</h4>
   <p class="topless"><a href="glossary.html"
                         title="next chapter">Glossary</a></p>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="_sources/index.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
-<div id="searchbox" style="display: none" role="search">
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/index.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related" role="navigation" aria-label="related navigation">
+    <div class="related">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -192,12 +193,12 @@
         <li class="right" >
           <a href="glossary.html" title="Glossary"
              >next</a> |</li>
-        <li class="nav-item nav-item-0"><a href="#">jade 0.0.1 documentation</a> &raquo;</li> 
+        <li><a href="#">jade 0.0.1 documentation</a> &raquo;</li> 
       </ul>
     </div>
-    <div class="footer" role="contentinfo">
+    <div class="footer">
         &copy; Copyright 2017, pchero.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.4.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>
 </html>
