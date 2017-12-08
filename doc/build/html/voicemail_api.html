@@ -1,0 +1,502 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>/voicemail/users &mdash; jade 0.0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="jade 0.0.1 documentation" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li><a href="index.html">jade 0.0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="voicemail-users">
+<span id="voicemail-api"></span><h1>/voicemail/users<a class="headerlink" href="#voicemail-users" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="methods">
+<h2>Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h2>
+<p>GET : Get list of all voicemail users.</p>
+</div>
+<div class="section" id="method-get">
+<h2>Method: GET<a class="headerlink" href="#method-get" title="Permalink to this headline">¶</a></h2>
+<p>Get list of all voicemail users.</p>
+<div class="section" id="call">
+<h3>Call<a class="headerlink" href="#call" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>GET ^/voicemail/users
+</pre></div>
+</div>
+</div>
+<div class="section" id="returns">
+<h3>Returns<a class="headerlink" href="#returns" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr,
+  &quot;reuslt&quot;: {
+    &quot;list&quot;: [
+      {
+         &quot;context&quot;: &quot;&lt;string&gt;&quot;,
+         &quot;mailbox&quot;: &quot;&lt;string&gt;&quot;,
+
+         &quot;email&quot;: &quot;&lt;string&gt;&quot;,
+         &quot;full_name&quot;: &quot;&lt;string&gt;&quot;,
+         &quot;pager&quot;: &quot;&lt;string&gt;&quot;,
+
+         &quot;server_email&quot;: &quot;&lt;string&gt;&quot;,
+         &quot;mail_command&quot;: &quot;&lt;string&gt;&quot;,
+         &quot;attach_message&quot;: &quot;&lt;string&gt;&quot;,
+         &quot;attachement_format&quot;: &quot;&lt;string&gt;&quot;,
+         &quot;delete_message&quot;: &quot;&lt;string&gt;&quot;,
+
+         &quot;call_operator&quot;: &quot;&lt;string&gt;&quot;,
+         &quot;callback&quot;: &quot;&lt;string&gt;&quot;,
+         &quot;can_review&quot;: &quot;&lt;string&gt;&quot;,
+
+         &quot;dialout&quot;: &quot;&lt;string&gt;&quot;,
+         &quot;exit_context&quot;: &quot;&lt;string&gt;&quot;,
+         &quot;from_string&quot;: &quot;&lt;string&gt;&quot;,
+         &quot;language&quot;: &quot;&lt;string&gt;&quot;,
+
+         &quot;max_message_count&quot;: &lt;integer&gt;,
+         &quot;max_message_length&quot;: &lt;integer&gt;,
+         &quot;new_message_count&quot;: &lt;integer&gt;,
+         &quot;old_message_count&quot;: &lt;integer&gt;,
+
+         &quot;imap_flag&quot;: &quot;&lt;string&gt;&quot;,
+         &quot;imap_port&quot;: &quot;&lt;string&gt;&quot;,
+         &quot;imap_server&quot;: &quot;&lt;string&gt;&quot;,
+         &quot;imap_user&quot;: &quot;&lt;string&gt;&quot;,
+
+
+         &quot;say_cid&quot;: &quot;&lt;string&gt;&quot;,
+         &quot;say_duration_minimum&quot;: &lt;integer&gt;,
+         &quot;say_envelope&quot;: &quot;&lt;string&gt;&quot;,
+
+         &quot;timezone&quot;: &quot;&lt;string&gt;&quot;,
+
+         &quot;unique_id&quot;: &quot;&lt;string&gt;&quot;,
+         &quot;volume_gain&quot;: &lt;real&gt;,
+
+         &quot;tm_update&quot;: &quot;&lt;string&gt;&quot;
+      },
+       ...
+    ]
+  }
+}
+</pre></div>
+</div>
+<p>Return parameters</p>
+<ul>
+<li><dl class="first docutils">
+<dt><tt class="docutils literal"><span class="pre">list</span></tt> <span class="classifier-delimiter">:</span> <span class="classifier">array of items.</span></dt>
+<dd><ul class="first last simple">
+<li><tt class="docutils literal"><span class="pre">context</span></tt>: Context name.</li>
+<li><tt class="docutils literal"><span class="pre">mailbox</span></tt>: Mailbox name.</li>
+<li><tt class="docutils literal"><span class="pre">email</span></tt>: Email address(mail receiver)</li>
+<li><tt class="docutils literal"><span class="pre">full_name</span></tt>: Full name</li>
+<li><tt class="docutils literal"><span class="pre">pager</span></tt>: Pager info</li>
+<li><tt class="docutils literal"><span class="pre">server_email</span></tt>: Server&#8217;s mail address.(mail sender)</li>
+<li><tt class="docutils literal"><span class="pre">mail_command</span></tt>: Mail sending command.</li>
+<li><tt class="docutils literal"><span class="pre">attach_message</span></tt>: Voicemail attachment.</li>
+<li><tt class="docutils literal"><span class="pre">attachement_format</span></tt>: Attached voicemail format.</li>
+<li><tt class="docutils literal"><span class="pre">delete_message</span></tt>: Delete voicemail after send to email or not.</li>
+<li><tt class="docutils literal"><span class="pre">call_operator</span></tt>:</li>
+<li><tt class="docutils literal"><span class="pre">callback</span></tt>:</li>
+<li><tt class="docutils literal"><span class="pre">can_review</span></tt>:</li>
+<li><tt class="docutils literal"><span class="pre">dialout</span></tt>:</li>
+<li><tt class="docutils literal"><span class="pre">exit_context</span></tt>:</li>
+<li><tt class="docutils literal"><span class="pre">from_string</span></tt>:</li>
+<li><tt class="docutils literal"><span class="pre">language</span></tt>:</li>
+<li><tt class="docutils literal"><span class="pre">max_message_count</span></tt>: Maximum message count.</li>
+<li><tt class="docutils literal"><span class="pre">max_message_length</span></tt>:  Maximum message length.</li>
+<li><tt class="docutils literal"><span class="pre">new_message_count</span></tt>: New message count.</li>
+<li><tt class="docutils literal"><span class="pre">old_message_count</span></tt>: Old message count.</li>
+<li><tt class="docutils literal"><span class="pre">imap_flag</span></tt>:</li>
+<li><tt class="docutils literal"><span class="pre">imap_port</span></tt>:</li>
+<li><tt class="docutils literal"><span class="pre">imap_server</span></tt>:</li>
+<li><tt class="docutils literal"><span class="pre">imap_user</span></tt>:</li>
+<li><tt class="docutils literal"><span class="pre">say_cid</span></tt>:</li>
+<li><tt class="docutils literal"><span class="pre">say_duration_minimum</span></tt>:</li>
+<li><tt class="docutils literal"><span class="pre">say_envelope</span></tt>:</li>
+<li><tt class="docutils literal"><span class="pre">timezone</span></tt>:</li>
+<li><tt class="docutils literal"><span class="pre">unique_id</span></tt>:</li>
+<li><tt class="docutils literal"><span class="pre">volume_gain</span></tt>:</li>
+<li><tt class="docutils literal"><span class="pre">tm_update</span></tt>:</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</div>
+<div class="section" id="example">
+<h3>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>curl -X GET 192.168.200.10:8081/voicemail/users
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;result&quot;: {
+      &quot;list&quot;: [
+          {
+              &quot;attach_message&quot;: &quot;Yes&quot;,
+              &quot;attachement_format&quot;: &quot;&quot;,
+              &quot;call_operator&quot;: &quot;No&quot;,
+              &quot;callback&quot;: &quot;&quot;,
+              &quot;can_review&quot;: &quot;No&quot;,
+              &quot;context&quot;: &quot;vm-demo&quot;,
+              &quot;delete_message&quot;: &quot;No&quot;,
+              &quot;dialout&quot;: &quot;&quot;,
+              &quot;email&quot;: &quot;pjagent-01@example.com&quot;,
+              &quot;exit_context&quot;: &quot;&quot;,
+              &quot;from_string&quot;: &quot;&quot;,
+              &quot;full_name&quot;: &quot;pjagent 01&quot;,
+              &quot;imap_flag&quot;: &quot;&quot;,
+              &quot;imap_port&quot;: &quot;&quot;,
+              &quot;imap_server&quot;: &quot;&quot;,
+              &quot;imap_user&quot;: &quot;&quot;,
+              &quot;language&quot;: &quot;&quot;,
+              &quot;mail_command&quot;: &quot;/usr/sbin/sendmail -t&quot;,
+              &quot;mailbox&quot;: &quot;pjagent-01&quot;,
+              &quot;max_message_count&quot;: 100,
+              &quot;max_message_length&quot;: 0,
+              &quot;new_message_count&quot;: 3,
+              &quot;old_message_count&quot;: 0,
+              &quot;pager&quot;: &quot;&quot;,
+              &quot;say_cid&quot;: &quot;No&quot;,
+              &quot;say_duration_minimum&quot;: 2,
+              &quot;say_envelope&quot;: &quot;Yes&quot;,
+              &quot;server_email&quot;: &quot;asterisk&quot;,
+              &quot;timezone&quot;: &quot;&quot;,
+              &quot;tm_update&quot;: &quot;2017-12-08T14:18:58.958489530Z&quot;,
+              &quot;unique_id&quot;: &quot;&quot;,
+              &quot;volume_gain&quot;: 0.0
+          }
+      ]
+  },
+  &quot;statuscode&quot;: 200,
+  &quot;timestamp&quot;: &quot;2017-12-08T15:17:16.293060721Z&quot;
+}
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="voicemail-vms">
+<h1>/voicemail/vms<a class="headerlink" href="#voicemail-vms" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id1">
+<h2>Methods<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>GET : Get list of all voicemail info of given user.</p>
+</div>
+<div class="section" id="id2">
+<h2>Method: GET<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<p>GET : Get list of all voicemail info of given user.</p>
+<div class="section" id="id3">
+<h3>Call<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>GET ^/voicemail/vms
+</pre></div>
+</div>
+</div>
+<div class="section" id="id4">
+<h3>Returns<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr,
+  &quot;reuslt&quot;: {
+    &quot;list&quot;: [
+      {
+         &quot;msgname&quot;: &quot;&lt;string&gt;&quot;,
+         &quot;msg_id&quot;: &quot;&lt;string&gt;&quot;,
+
+         &quot;status&quot;: &quot;&lt;string&gt;&quot;,
+         &quot;dir&quot;: &quot;&lt;string&gt;&quot;,
+
+         &quot;context&quot;: &quot;&lt;string&gt;&quot;,
+         &quot;exten&quot;: &quot;&lt;string&gt;&quot;,
+         &quot;priority&quot;: &quot;&lt;string&gt;&quot;,
+
+         &quot;callerchan&quot;: &quot;&lt;string&gt;&quot;,
+         &quot;callerid&quot;: &quot;&lt;string&gt;&quot;,
+         &quot;rdnis&quot;: &quot;&lt;string&gt;&quot;,
+
+         &quot;category&quot;: &quot;&lt;string&gt;&quot;,
+
+         &quot;flag&quot;: &quot;&lt;string&gt;&quot;,
+         &quot;macrocontext&quot;: &quot;&lt;string&gt;&quot;,
+
+         &quot;origdate&quot;: &quot;&lt;string&gt;&quot;,
+         &quot;origmailbox&quot;: &quot;&lt;string&gt;&quot;,
+         &quot;origtime&quot;: &quot;&lt;string&gt;&quot;,
+         &quot;duration&quot;: &quot;&lt;string&gt;&quot;
+      },
+       ...
+    ]
+  }
+}
+}
+</pre></div>
+</div>
+<p>Return parameters</p>
+<ul>
+<li><dl class="first docutils">
+<dt><tt class="docutils literal"><span class="pre">list</span></tt> <span class="classifier-delimiter">:</span> <span class="classifier">array of items.</span></dt>
+<dd><ul class="first last simple">
+<li><tt class="docutils literal"><span class="pre">msgname</span></tt>: Message name.</li>
+<li><tt class="docutils literal"><span class="pre">msg_id</span></tt>: Message id.</li>
+<li><tt class="docutils literal"><span class="pre">status</span></tt>: Message status.</li>
+<li><tt class="docutils literal"><span class="pre">dir</span></tt>: Message directory.</li>
+<li><tt class="docutils literal"><span class="pre">context</span></tt>: Message&#8217;s context. When it was reaved.</li>
+<li><tt class="docutils literal"><span class="pre">exten</span></tt>: Message&#8217;s exten. When it was reaved.</li>
+<li><tt class="docutils literal"><span class="pre">priority</span></tt>: Message&#8217;s priority. When it was reaved.</li>
+<li><tt class="docutils literal"><span class="pre">callerchan</span></tt>: Caller&#8217;s channel name.</li>
+<li><tt class="docutils literal"><span class="pre">callerid</span></tt>: Caller&#8217;s id.</li>
+<li><tt class="docutils literal"><span class="pre">rdnis</span></tt>:</li>
+<li><tt class="docutils literal"><span class="pre">category</span></tt>:</li>
+<li><tt class="docutils literal"><span class="pre">flag</span></tt>:</li>
+<li><tt class="docutils literal"><span class="pre">macrocontext</span></tt>:</li>
+<li><tt class="docutils literal"><span class="pre">origdate</span></tt>:</li>
+<li><tt class="docutils literal"><span class="pre">origmailbox</span></tt>:</li>
+<li><tt class="docutils literal"><span class="pre">origtime</span></tt>:</li>
+<li><tt class="docutils literal"><span class="pre">duration</span></tt>:</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</div>
+<div class="section" id="id5">
+<h3>Example<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/voicemail/vms\?context=vm-demo\&amp;mailbox=pjagent-01
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;result&quot;: {
+      &quot;list&quot;: [
+          {
+              &quot;callerchan&quot;: &quot;PJSIP/pjagent-02-0000000a&quot;,
+              &quot;callerid&quot;: &quot;pjagent-02&quot;,
+              &quot;category&quot;: &quot;&quot;,
+              &quot;context&quot;: &quot;voicemail-pjagent-01&quot;,
+              &quot;dir&quot;: &quot;INBOX&quot;,
+              &quot;duration&quot;: &quot;1&quot;,
+              &quot;exten&quot;: &quot;s&quot;,
+              &quot;flag&quot;: &quot;&quot;,
+              &quot;macrocontext&quot;: &quot;&quot;,
+              &quot;msg_id&quot;: &quot;1512659997-00000001&quot;,
+              &quot;msgname&quot;: &quot;msg0001&quot;,
+              &quot;origdate&quot;: &quot;Thu Dec  7 03:19:57 PM UTC 2017&quot;,
+              &quot;origmailbox&quot;: &quot;pjagent-01&quot;,
+              &quot;origtime&quot;: &quot;1512659997&quot;,
+              &quot;priority&quot;: &quot;2&quot;,
+              &quot;rdnis&quot;: &quot;unknown&quot;,
+              &quot;status&quot;: &quot;unread&quot;
+          }
+      ]
+  },
+  &quot;statuscode&quot;: 200,
+  &quot;timestamp&quot;: &quot;2017-12-08T15:31:37.267471272Z&quot;
+}
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="voicemail-vms-msgname">
+<h1>/voicemail/vms/&lt;msgname&gt;<a class="headerlink" href="#voicemail-vms-msgname" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id6">
+<h2>Methods<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
+<p>GET : Get binary of given voicemail.</p>
+<p>DELETE : Delete given voicemail</p>
+</div>
+<div class="section" id="id7">
+<h2>Method: GET<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
+<p>GET : Get binary of given voicemail.</p>
+<div class="section" id="id8">
+<h3>Call<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>GET ^/voicemail/vms/&lt;msgname&gt;?context=&lt;context&gt;&amp;mailbox=&lt;mailbox&gt;&amp;dir=&lt;dir&gt;
+</pre></div>
+</div>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">msgname</span></tt>: Message name.</li>
+<li><tt class="docutils literal"><span class="pre">context</span></tt>: Message&#8217;s context.</li>
+<li><tt class="docutils literal"><span class="pre">mailbox</span></tt>: Message&#8217;s mailbox.</li>
+<li><tt class="docutils literal"><span class="pre">dir</span></tt>: Message&#8217;s dir info.</li>
+</ul>
+</div>
+<div class="section" id="id9">
+<h3>Returns<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>Binary stream of given voicemail file.
+</pre></div>
+</div>
+</div>
+<div class="section" id="id10">
+<h3>Example<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -v -X GET 192.168.200.10:8081/voicemail/vms/msg0003\?context=vm-demo\&amp;mailbox=pjagent-01\&amp;dir=INBOX &gt; /tmp/tmp.wav
+
+  Note: Unnecessary use of -X or --request, GET is already inferred.
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                  Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0*   Trying 192.168.200.10...
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0* Connected to 192.168.200.10 (192.168.200.10) port 8081 (#0)
+  &gt; GET /voicemail/vms/msg0003?context=vm-demo&amp;mailbox=pjagent-01&amp;dir=INBOX HTTP/1.1
+  &gt; Host: 192.168.200.10:8081
+  &gt; User-Agent: curl/7.47.0
+  &gt; Accept: */*
+  &gt;
+  &lt; HTTP/1.1 200 OK
+  &lt; Content-Type: application/octet-stream
+  &lt; content-disposition: attachment; filename=msg0003.wav
+  &lt; Content-Length: 78444
+
+  $ file /tmp/tmp.wav
+  /tmp/tmp.wav: RIFF (little-endian) data, WAVE audio, Microsoft PCM, 16 bit, mono 8000 Hz
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="method-delete">
+<h2>Method: DELETE<a class="headerlink" href="#method-delete" title="Permalink to this headline">¶</a></h2>
+<p>DELETE : Delete given voicemail.</p>
+<div class="section" id="id11">
+<h3>Call<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>DELETE ^/voicemail/vms/&lt;msgname&gt;?context=&lt;context&gt;&amp;mailbox=&lt;mailbox&gt;&amp;dir=&lt;dir&gt;
+</pre></div>
+</div>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">msgname</span></tt>: Message name.</li>
+<li><tt class="docutils literal"><span class="pre">context</span></tt>: Message&#8217;s context.</li>
+<li><tt class="docutils literal"><span class="pre">mailbox</span></tt>: Message&#8217;s mailbox.</li>
+<li><tt class="docutils literal"><span class="pre">dir</span></tt>: Message&#8217;s dir info.</li>
+</ul>
+</div>
+<div class="section" id="id12">
+<h3>Returns<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr
+}
+</pre></div>
+</div>
+</div>
+<div class="section" id="id13">
+<h3>Example<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -v -X DELETE 192.168.200.10:8081/voicemail/vms/msg0003\?context=vm-demo\&amp;mailbox=pjagent-01\&amp;dir=INBOX
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;statuscode&quot;: 200,
+  &quot;timestamp&quot;: &quot;2017-12-08T21:13:14.145903468Z&quot;
+}
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">/voicemail/users</a><ul>
+<li><a class="reference internal" href="#methods">Methods</a></li>
+<li><a class="reference internal" href="#method-get">Method: GET</a><ul>
+<li><a class="reference internal" href="#call">Call</a></li>
+<li><a class="reference internal" href="#returns">Returns</a></li>
+<li><a class="reference internal" href="#example">Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#voicemail-vms">/voicemail/vms</a><ul>
+<li><a class="reference internal" href="#id1">Methods</a></li>
+<li><a class="reference internal" href="#id2">Method: GET</a><ul>
+<li><a class="reference internal" href="#id3">Call</a></li>
+<li><a class="reference internal" href="#id4">Returns</a></li>
+<li><a class="reference internal" href="#id5">Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#voicemail-vms-msgname">/voicemail/vms/&lt;msgname&gt;</a><ul>
+<li><a class="reference internal" href="#id6">Methods</a></li>
+<li><a class="reference internal" href="#id7">Method: GET</a><ul>
+<li><a class="reference internal" href="#id8">Call</a></li>
+<li><a class="reference internal" href="#id9">Returns</a></li>
+<li><a class="reference internal" href="#id10">Example</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#method-delete">Method: DELETE</a><ul>
+<li><a class="reference internal" href="#id11">Call</a></li>
+<li><a class="reference internal" href="#id12">Returns</a></li>
+<li><a class="reference internal" href="#id13">Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/voicemail_api.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li><a href="index.html">jade 0.0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2017, pchero.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

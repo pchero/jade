@@ -27,8 +27,8 @@
     <link rel="next" title="Outbound Structure" href="ob_structure.html" />
     <link rel="prev" title="API basics" href="api.html" /> 
   </head>
-  <body role="document">
-    <div class="related" role="navigation" aria-label="related navigation">
+  <body>
+    <div class="related">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -40,14 +40,14 @@
         <li class="right" >
           <a href="api.html" title="API basics"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">jade 0.0.1 documentation</a> &raquo;</li> 
+        <li><a href="index.html">jade 0.0.1 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body" role="main">
+          <div class="body">
             
   <div class="section" id="outbound-basic">
 <h1>Outbound Basic<a class="headerlink" href="#outbound-basic" title="Permalink to this headline">¶</a></h1>
@@ -56,9 +56,9 @@
 <div class="section" id="principle">
 <h3>Principle<a class="headerlink" href="#principle" title="Permalink to this headline">¶</a></h3>
 <p>The asterisk-outbound has a 5W1H principle.</p>
-<div class="figure align-center" id="id6">
+<div class="figure align-center">
 <img alt="_images/Basic_concept.png" src="_images/Basic_concept.png" />
-<p class="caption"><span class="caption-text">Basic concept</span></p>
+<p class="caption">Basic concept</p>
 </div>
 <ul class="simple">
 <li>Campaign : Determine why make a call(Why).</li>
@@ -152,11 +152,11 @@ And supports several types of numbers.</p>
 <p>Then the resources determine where/what/who/how/when make a call to the customer.</p>
 <div class="section" id="status">
 <h3>Status<a class="headerlink" href="#status" title="Permalink to this headline">¶</a></h3>
-<p>The campaign has a status. See detail <a class="reference internal" href="ob_structure.html#campaign-status"><span class="std std-ref">Campaign status</span></a>.</p>
+<p>The campaign has a status. See detail <a class="reference internal" href="ob_structure.html#campaign-status"><em>Campaign status</em></a>.</p>
 </div>
 <div class="section" id="scheduling">
 <h3>Scheduling<a class="headerlink" href="#scheduling" title="Permalink to this headline">¶</a></h3>
-<p>The user can sets scheduling for campaign. See detail <a class="reference internal" href="ob_structure.html#scheduling"><span class="std std-ref">Scheduling</span></a>.</p>
+<p>The user can sets scheduling for campaign. See detail <a class="reference internal" href="ob_structure.html#scheduling"><em>Scheduling</em></a>.</p>
 </div>
 </div>
 <div class="section" id="id2">
@@ -164,7 +164,7 @@ And supports several types of numbers.</p>
 <p>Determine how/when to make a call(How/When).</p>
 <div class="section" id="dial-mode">
 <h3>Dial mode<a class="headerlink" href="#dial-mode" title="Permalink to this headline">¶</a></h3>
-<p>The user can sets the dial mode. See detail <a class="reference internal" href="ob_structure.html#ob-dial-mode"><span class="std std-ref">Dial mode</span></a>.</p>
+<p>The user can sets the dial mode. See detail <a class="reference internal" href="ob_structure.html#ob-dial-mode"><em>Dial mode</em></a>.</p>
 <div class="section" id="predictive">
 <h4>Predictive<a class="headerlink" href="#predictive" title="Permalink to this headline">¶</a></h4>
 <ul class="simple">
@@ -198,15 +198,15 @@ And supports several types of numbers.</p>
 <div class="section" id="service-level">
 <h3>Service level<a class="headerlink" href="#service-level" title="Permalink to this headline">¶</a></h3>
 <p>Service level controling the amount of dailing.</p>
-<div class="highlight-default" id="id3"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">Max</span> <span class="n">available</span> <span class="n">outbound</span> <span class="n">call</span> <span class="n">count</span><span class="p">)</span> <span class="o">-</span> <span class="p">(</span><span class="n">Current</span> <span class="n">outbound</span> <span class="n">call</span> <span class="n">count</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">Service</span> <span class="n">level</span><span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">Available</span> <span class="n">call</span> <span class="n">count</span><span class="p">)</span>
+<div class="highlight-python" id="id3"><div class="highlight"><pre>(Max available outbound call count) - (Current outbound call count) + (Service level) = (Available call count)
 
-<span class="n">If</span> <span class="n">the</span> <span class="p">(</span><span class="n">Available</span> <span class="n">call</span> <span class="n">count</span><span class="p">)</span> <span class="ow">is</span> <span class="n">bigger</span> <span class="n">than</span> <span class="mi">0</span><span class="p">,</span> <span class="n">make</span> <span class="n">a</span> <span class="n">call</span><span class="o">.</span>
+If the (Available call count) is bigger than 0, make a call.
 </pre></div>
 </div>
 <div class="section" id="max-available-outbound-call-count">
 <h4>Max available outbound call count<a class="headerlink" href="#max-available-outbound-call-count" title="Permalink to this headline">¶</a></h4>
 <p>The max available outbound call count is depends on the destination.</p>
-<p>See detail <a class="reference internal" href="#id4"><span class="std std-ref">Destination</span></a>.</p>
+<p>See detail <a class="reference internal" href="#id4"><em>Destination</em></a>.</p>
 </div>
 </div>
 </div>
@@ -227,7 +227,7 @@ And supports several types of numbers.</p>
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+      <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
@@ -286,28 +286,29 @@ And supports several types of numbers.</p>
   <h4>Next topic</h4>
   <p class="topless"><a href="ob_structure.html"
                         title="next chapter">Outbound Structure</a></p>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="_sources/ob_basic.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
-<div id="searchbox" style="display: none" role="search">
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/ob_basic.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related" role="navigation" aria-label="related navigation">
+    <div class="related">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -319,12 +320,12 @@ And supports several types of numbers.</p>
         <li class="right" >
           <a href="api.html" title="API basics"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">jade 0.0.1 documentation</a> &raquo;</li> 
+        <li><a href="index.html">jade 0.0.1 documentation</a> &raquo;</li> 
       </ul>
     </div>
-    <div class="footer" role="contentinfo">
+    <div class="footer">
         &copy; Copyright 2017, pchero.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.4.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>
 </html>
