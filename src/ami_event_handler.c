@@ -2850,7 +2850,7 @@ static void ami_event_voicemailuserentry(json_t* j_msg)
       "say_cid",                json_string_value(json_object_get(j_msg, "SayCID"))? : "",
 
       "attach_message",       json_string_value(json_object_get(j_msg, "AttachMessage"))? : "",
-      "attachement_format",   json_string_value(json_object_get(j_msg, "AttachmentFormat"))? : "",
+      "attachment_format",   json_string_value(json_object_get(j_msg, "AttachmentFormat"))? : "",
       "delete_message",       json_string_value(json_object_get(j_msg, "DeleteMessage"))? : "",
       "volume_gain",          json_string_value(json_object_get(j_msg, "VolumeGain"))? atof(json_string_value(json_object_get(j_msg, "VolumeGain"))) : 0,
       "can_review",           json_string_value(json_object_get(j_msg, "CanReview"))? : "",

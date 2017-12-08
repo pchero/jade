@@ -722,7 +722,7 @@ static const char* g_sql_create_voicemail_user =
 "   say_cid                 varchar(255),"
 
 "   attach_message          varchar(255),"
-"   attachement_format      varchar(255),"
+"   attachment_format      varchar(255),"
 "   delete_message          varchar(255),"
 "   volume_gain             real,"
 "   can_review              varchar(255),"

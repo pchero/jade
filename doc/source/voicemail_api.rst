@@ -36,7 +36,7 @@ Returns
             "server_email": "<string>",
             "mail_command": "<string>",
             "attach_message": "<string>",
-            "attachement_format": "<string>",
+            "attachment_format": "<string>",
             "delete_message": "<string>",
 
             "call_operator": "<string>",
@@ -88,7 +88,7 @@ Return parameters
    * ``server_email``: Server's mail address.(mail sender)
    * ``mail_command``: Mail sending command.
    * ``attach_message``: Voicemail attachment.
-   * ``attachement_format``: Attached voicemail format.
+   * ``attachment_format``: Attached voicemail format.
    * ``delete_message``: Delete voicemail after send to email or not.
    
    * ``call_operator``: 
@@ -134,7 +134,7 @@ Example
         "list": [
             {
                 "attach_message": "Yes",
-                "attachement_format": "",
+                "attachment_format": "",
                 "call_operator": "No",
                 "callback": "",
                 "can_review": "No",
