@@ -27,8 +27,8 @@
     <link rel="next" title="Outbound APIs" href="ob_api.html" />
     <link rel="prev" title="Outbound Basic" href="ob_basic.html" /> 
   </head>
-  <body>
-    <div class="related">
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -40,14 +40,14 @@
         <li class="right" >
           <a href="ob_basic.html" title="Outbound Basic"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">jade 0.0.1 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">jade 0.0.1 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="outbound-structure">
 <h1>Outbound Structure<a class="headerlink" href="#outbound-structure" title="Permalink to this headline">¶</a></h1>
@@ -56,8 +56,8 @@
 <div class="section" id="use-flag">
 <span id="ob-use-flag"></span><h3>Use flag<a class="headerlink" href="#use-flag" title="Permalink to this headline">¶</a></h3>
 <p>Represent usable item.</p>
-<table border="1" class="docutils">
-<caption>Use flag</caption>
+<table border="1" class="docutils" id="id10">
+<caption><span class="caption-text">Use flag</span><a class="headerlink" href="#id10" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="14%" />
 <col width="86%" />
@@ -80,8 +80,8 @@
 <div class="section" id="force-option">
 <span id="ob-force-option"></span><h3>Force option<a class="headerlink" href="#force-option" title="Permalink to this headline">¶</a></h3>
 <p>Determine delete all the referenced items.</p>
-<table border="1" class="docutils">
-<caption>Force option</caption>
+<table border="1" class="docutils" id="id11">
+<caption><span class="caption-text">Force option</span><a class="headerlink" href="#id11" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="15%" />
 <col width="85%" />
@@ -106,8 +106,8 @@
 <h2>Destination<a class="headerlink" href="#destination" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="destination-type">
 <span id="ob-destination-type"></span><h3>Destination type<a class="headerlink" href="#destination-type" title="Permalink to this headline">¶</a></h3>
-<table border="1" class="docutils">
-<caption>Destination type</caption>
+<table border="1" class="docutils" id="id12">
+<caption><span class="caption-text">Destination type</span><a class="headerlink" href="#id12" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="18%" />
 <col width="82%" />
@@ -129,8 +129,8 @@
 </div>
 <div class="section" id="application-availability">
 <h3>Application availability<a class="headerlink" href="#application-availability" title="Permalink to this headline">¶</a></h3>
-<table border="1" class="docutils" id="id1">
-<caption>Application availability</caption>
+<table border="1" class="docutils" id="id13">
+<span id="id1"></span><caption><span class="caption-text">Application availability</span><a class="headerlink" href="#id13" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="31%" />
 <col width="69%" />
@@ -158,8 +158,8 @@
 <h2>Campaign<a class="headerlink" href="#campaign" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="campaign-status">
 <span id="id2"></span><h3>Campaign status<a class="headerlink" href="#campaign-status" title="Permalink to this headline">¶</a></h3>
-<table border="1" class="docutils">
-<caption>Campaign status</caption>
+<table border="1" class="docutils" id="id14">
+<caption><span class="caption-text">Campaign status</span><a class="headerlink" href="#id14" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="26%" />
 <col width="74%" />
@@ -199,8 +199,8 @@
 <p>The campaign can sets schedule. If the schedule sets, the campaign start and stop automatically on schedule.</p>
 <div class="section" id="scheduling-mode">
 <span id="id4"></span><h4>Scheduling mode<a class="headerlink" href="#scheduling-mode" title="Permalink to this headline">¶</a></h4>
-<table border="1" class="docutils">
-<caption>Scheduling mode</caption>
+<table border="1" class="docutils" id="id15">
+<caption><span class="caption-text">Scheduling mode</span><a class="headerlink" href="#id15" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="15%" />
 <col width="85%" />
@@ -223,7 +223,7 @@
 <div class="section" id="scheduling-time">
 <span id="id5"></span><h4>Scheduling time<a class="headerlink" href="#scheduling-time" title="Permalink to this headline">¶</a></h4>
 <p>Scheduling time. 24H</p>
-<div class="highlight-python"><div class="highlight"><pre>hh:mm:ss
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">hh</span><span class="p">:</span><span class="n">mm</span><span class="p">:</span><span class="n">ss</span>
 </pre></div>
 </div>
 <ul class="simple">
@@ -232,14 +232,14 @@
 <li>ss : Second. 00 ~ 59</li>
 </ul>
 <p>Example</p>
-<div class="highlight-python"><div class="highlight"><pre>15:00:00
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="mi">15</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mi">00</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="scheduling-date">
 <span id="id6"></span><h4>Scheduling date<a class="headerlink" href="#scheduling-date" title="Permalink to this headline">¶</a></h4>
 <p>Scheduling date.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">YYYY</span><span class="o">-</span><span class="n">MM</span><span class="o">-</span><span class="n">DD</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">YYYY</span><span class="o">-</span><span class="n">MM</span><span class="o">-</span><span class="n">DD</span>
 </pre></div>
 </div>
 <ul class="simple">
@@ -256,28 +256,28 @@
 <div class="section" id="scheduling-date-list">
 <span id="id7"></span><h4>Scheduling date list<a class="headerlink" href="#scheduling-date-list" title="Permalink to this headline">¶</a></h4>
 <p>List of scheduling date.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">YYYY</span><span class="o">-</span><span class="n">MM</span><span class="o">-</span><span class="n">DD</span><span class="p">,</span> <span class="n">YYYY</span><span class="o">-</span><span class="n">MM</span><span class="o">-</span><span class="n">DD</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">YYYY</span><span class="o">-</span><span class="n">MM</span><span class="o">-</span><span class="n">DD</span><span class="p">,</span> <span class="n">YYYY</span><span class="o">-</span><span class="n">MM</span><span class="o">-</span><span class="n">DD</span>
 </pre></div>
 </div>
 <p>Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="mi">2016</span><span class="o">-</span><span class="mi">11</span><span class="o">-</span><span class="mi">16</span><span class="p">,</span> <span class="mi">2016</span><span class="o">-</span><span class="mi">11</span><span class="o">-</span><span class="mi">17</span><span class="p">,</span> <span class="mi">2016</span><span class="o">-</span><span class="mi">11</span><span class="o">-</span><span class="mi">18</span><span class="p">,</span> <span class="o">...</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="mi">2016</span><span class="o">-</span><span class="mi">11</span><span class="o">-</span><span class="mi">16</span><span class="p">,</span> <span class="mi">2016</span><span class="o">-</span><span class="mi">11</span><span class="o">-</span><span class="mi">17</span><span class="p">,</span> <span class="mi">2016</span><span class="o">-</span><span class="mi">11</span><span class="o">-</span><span class="mi">18</span><span class="p">,</span> <span class="o">...</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="scheduling-day-list">
 <span id="id8"></span><h4>Scheduling day list<a class="headerlink" href="#scheduling-day-list" title="Permalink to this headline">¶</a></h4>
 <p>List of scheduling day.</p>
-<div class="highlight-python"><div class="highlight"><pre>0 : Sunday
-1 : Monday
-2 : Tuesday
-3 : Wednesday
-4 : Thursday
-5 : Friday
-6 : Satursay
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="mi">0</span> <span class="p">:</span> <span class="n">Sunday</span>
+<span class="mi">1</span> <span class="p">:</span> <span class="n">Monday</span>
+<span class="mi">2</span> <span class="p">:</span> <span class="n">Tuesday</span>
+<span class="mi">3</span> <span class="p">:</span> <span class="n">Wednesday</span>
+<span class="mi">4</span> <span class="p">:</span> <span class="n">Thursday</span>
+<span class="mi">5</span> <span class="p">:</span> <span class="n">Friday</span>
+<span class="mi">6</span> <span class="p">:</span> <span class="n">Satursay</span>
 </pre></div>
 </div>
 <p>Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span>
 </pre></div>
 </div>
 </div>
@@ -287,8 +287,8 @@
 <h2>Plan<a class="headerlink" href="#plan" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="dial-mode">
 <h3>Dial mode<a class="headerlink" href="#dial-mode" title="Permalink to this headline">¶</a></h3>
-<table border="1" class="docutils" id="ob-dial-mode">
-<caption>Dial mode</caption>
+<table border="1" class="docutils" id="id16">
+<span id="ob-dial-mode"></span><caption><span class="caption-text">Dial mode</span><a class="headerlink" href="#id16" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="18%" />
 <col width="82%" />
@@ -310,8 +310,8 @@
 </div>
 <div class="section" id="tech-name">
 <span id="ob-tech-name"></span><h3>Tech name<a class="headerlink" href="#tech-name" title="Permalink to this headline">¶</a></h3>
-<table border="1" class="docutils">
-<caption>Tech name</caption>
+<table border="1" class="docutils" id="id17">
+<caption><span class="caption-text">Tech name</span><a class="headerlink" href="#id17" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="18%" />
 <col width="82%" />
@@ -333,8 +333,8 @@
 </div>
 <div class="section" id="dial-list-end-handling">
 <h3>Dial list end handling<a class="headerlink" href="#dial-list-end-handling" title="Permalink to this headline">¶</a></h3>
-<table border="1" class="docutils" id="ob-dial-list-end-handling">
-<caption>Dail list end handling</caption>
+<table border="1" class="docutils" id="id18">
+<span id="ob-dial-list-end-handling"></span><caption><span class="caption-text">Dail list end handling</span><a class="headerlink" href="#id18" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="17%" />
 <col width="83%" />
@@ -363,8 +363,8 @@
 <h2>Dial list<a class="headerlink" href="#dial-list" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="dial-list-status">
 <h3>Dial list status<a class="headerlink" href="#dial-list-status" title="Permalink to this headline">¶</a></h3>
-<table border="1" class="docutils" id="ob-dial-list-status">
-<caption>Dial list status</caption>
+<table border="1" class="docutils" id="id19">
+<span id="ob-dial-list-status"></span><caption><span class="caption-text">Dial list status</span><a class="headerlink" href="#id19" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="17%" />
 <col width="83%" />
@@ -392,8 +392,8 @@
 <h2>Dialing<a class="headerlink" href="#dialing" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="dialing-status">
 <h3>Dialing status<a class="headerlink" href="#dialing-status" title="Permalink to this headline">¶</a></h3>
-<table border="1" class="docutils" id="ob-dialing-status">
-<caption>Dialing status</caption>
+<table border="1" class="docutils" id="id20">
+<span id="ob-dialing-status"></span><caption><span class="caption-text">Dialing status</span><a class="headerlink" href="#id20" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="9%" />
 <col width="91%" />
@@ -445,8 +445,8 @@
 </div>
 <div class="section" id="dial-result">
 <h3>Dial result<a class="headerlink" href="#dial-result" title="Permalink to this headline">¶</a></h3>
-<table border="1" class="docutils" id="ob-dial-result">
-<caption>Dial result</caption>
+<table border="1" class="docutils" id="id21">
+<span id="ob-dial-result"></span><caption><span class="caption-text">Dial result</span><a class="headerlink" href="#id21" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="5%" />
 <col width="95%" />
@@ -594,8 +594,8 @@
 </div>
 <div class="section" id="hangup-result">
 <h3>Hangup result<a class="headerlink" href="#hangup-result" title="Permalink to this headline">¶</a></h3>
-<table border="1" class="docutils" id="ob-hangup-result">
-<caption>Hangup result</caption>
+<table border="1" class="docutils" id="id22">
+<span id="ob-hangup-result"></span><caption><span class="caption-text">Hangup result</span><a class="headerlink" href="#id22" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="14%" />
 <col width="86%" />
@@ -766,7 +766,7 @@
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
@@ -820,29 +820,28 @@
   <h4>Next topic</h4>
   <p class="topless"><a href="ob_api.html"
                         title="next chapter">Outbound APIs</a></p>
-  <h3>This Page</h3>
-  <ul class="this-page-menu">
-    <li><a href="_sources/ob_structure.txt"
-           rel="nofollow">Show Source</a></li>
-  </ul>
-<div id="searchbox" style="display: none">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/ob_structure.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -854,12 +853,12 @@
         <li class="right" >
           <a href="ob_basic.html" title="Outbound Basic"
              >previous</a> |</li>
-        <li><a href="index.html">jade 0.0.1 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">jade 0.0.1 documentation</a> &raquo;</li> 
       </ul>
     </div>
-    <div class="footer">
+    <div class="footer" role="contentinfo">
         &copy; Copyright 2017, pchero.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.4.
     </div>
   </body>
 </html>

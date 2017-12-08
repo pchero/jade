@@ -27,8 +27,8 @@
     <link rel="next" title="Outbound Basic" href="ob_basic.html" />
     <link rel="prev" title="Structure" href="structure.html" /> 
   </head>
-  <body>
-    <div class="related">
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -40,14 +40,14 @@
         <li class="right" >
           <a href="structure.html" title="Structure"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">jade 0.0.1 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">jade 0.0.1 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="api-basics">
 <span id="api"></span><h1>API basics<a class="headerlink" href="#api-basics" title="Permalink to this headline">¶</a></h1>
@@ -73,22 +73,22 @@ It shown also added version.</p>
 <h4>Call<a class="headerlink" href="#call" title="Permalink to this headline">¶</a></h4>
 <p>Description of how to call this API. It will explain about method
 parameters and data parameters.</p>
-<div class="highlight-python"><div class="highlight"><pre>&lt;method&gt; &lt;call URI&gt;
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">method</span><span class="o">&gt;</span> <span class="o">&lt;</span><span class="n">call</span> <span class="n">URI</span><span class="o">&gt;</span>
 
-&lt;required data&gt;
+<span class="o">&lt;</span><span class="n">required</span> <span class="n">data</span><span class="o">&gt;</span>
 </pre></div>
 </div>
 <p>Method parameters
-* <tt class="docutils literal"><span class="pre">method</span></tt>: API calling method. i.e. GET, PUT, POST, ...
-* <tt class="docutils literal"><span class="pre">call</span> <span class="pre">URI</span></tt>: URI. Uniform Resource Identifier</p>
+* <code class="docutils literal"><span class="pre">method</span></code>: API calling method. i.e. GET, PUT, POST, ...
+* <code class="docutils literal"><span class="pre">call</span> <span class="pre">URI</span></code>: URI. Uniform Resource Identifier</p>
 <p>Data parameters
-* <tt class="docutils literal"><span class="pre">required</span> <span class="pre">data</span></tt>: Required data to call the API.</p>
+* <code class="docutils literal"><span class="pre">required</span> <span class="pre">data</span></code>: Required data to call the API.</p>
 </div>
 <div class="section" id="returns">
 <h4>Returns<a class="headerlink" href="#returns" title="Permalink to this headline">¶</a></h4>
 <p>Description of reply. Described in detail. These are common return
 objects. This objects will not be explain again.</p>
-<div class="highlight-python"><div class="highlight"><pre>{
+<div class="highlight-default"><div class="highlight"><pre><span></span>{
   $defhdr,
   &quot;result&quot;: {
     &quot;message&quot;: &quot;&lt;message-name&gt;&quot;,
@@ -99,9 +99,9 @@ objects. This objects will not be explain again.</p>
 </pre></div>
 </div>
 <ul class="simple">
-<li><tt class="docutils literal"><span class="pre">message</span></tt>: Represents message name. Fixed.</li>
-<li><tt class="docutils literal"><span class="pre">type</span></tt>: Represents message type. Fixed.</li>
-<li><tt class="docutils literal"><span class="pre">timestamp</span></tt> Denotes when the message has been created. See the <em class="xref std std-term">Timestamp</em>.</li>
+<li><code class="docutils literal"><span class="pre">message</span></code>: Represents message name. Fixed.</li>
+<li><code class="docutils literal"><span class="pre">type</span></code>: Represents message type. Fixed.</li>
+<li><code class="docutils literal"><span class="pre">timestamp</span></code> Denotes when the message has been created. See the <span class="xref std std-term">Timestamp</span>.</li>
 </ul>
 </div>
 <div class="section" id="example">
@@ -110,7 +110,7 @@ objects. This objects will not be explain again.</p>
 <p>Normally, to test the API curl is used. curl is a tool to transfer
 data from or to a server, using one of the supported protocols. See
 detail at link below.</p>
-<div class="highlight-python"><div class="highlight"><pre>https://curl.haxx.se/docs/manpage.html
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">curl</span><span class="o">.</span><span class="n">haxx</span><span class="o">.</span><span class="n">se</span><span class="o">/</span><span class="n">docs</span><span class="o">/</span><span class="n">manpage</span><span class="o">.</span><span class="n">html</span>
 </pre></div>
 </div>
 <p>Some of APIs requires a returned uuid for the request. But
@@ -133,13 +133,13 @@ sessions and are temporary.</p>
 <p>Get list of all agents info.</p>
 <div class="section" id="id2">
 <h4>Call<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">GET</span> <span class="o">/</span><span class="n">agents</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">GET</span> <span class="o">/</span><span class="n">agents</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="id3">
 <h4>Returns<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>{
+<div class="highlight-default"><div class="highlight"><pre><span></span>{
   $defhdr,
   &quot;reuslt&quot;: {
     &quot;list&quot;: [
@@ -154,9 +154,9 @@ sessions and are temporary.</p>
 </div>
 <ul>
 <li><dl class="first docutils">
-<dt><tt class="docutils literal"><span class="pre">list</span></tt> <span class="classifier-delimiter">:</span> <span class="classifier">array of agents id.</span></dt>
-<dd><ul class="first last simple">
-<li><tt class="docutils literal"><span class="pre">id</span></tt>: agent id.</li>
+<dt><code class="docutils literal"><span class="pre">list</span></code></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">array of agents id.</span><dd><ul class="first last simple">
+<li><code class="docutils literal"><span class="pre">id</span></code>: agent id.</li>
 </ul>
 </dd>
 </dl>
@@ -165,7 +165,7 @@ sessions and are temporary.</p>
 </div>
 <div class="section" id="id4">
 <h4>Example<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/agents
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ curl -X GET 192.168.200.10:8081/agents
 
 {
   &quot;api_ver&quot;: &quot;0.1&quot;,
@@ -198,21 +198,21 @@ sessions and are temporary.</p>
 <p>Get agent&#8217;s detail info of given agent id.</p>
 <div class="section" id="id8">
 <h4>Call<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>GET /agents/
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">GET</span> <span class="o">/</span><span class="n">agents</span><span class="o">/</span>
 
-{
-  &quot;id&quot;: &quot;&lt;string&gt;&quot;
-}
+<span class="p">{</span>
+  <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;string&gt;&quot;</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p>Data parameters</p>
 <ul class="simple">
-<li><tt class="docutils literal"><span class="pre">id</span></tt>: agent id.</li>
+<li><code class="docutils literal"><span class="pre">id</span></code>: agent id.</li>
 </ul>
 </div>
 <div class="section" id="id9">
 <h4>Returns<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>{
+<div class="highlight-default"><div class="highlight"><pre><span></span>{
   $defhdr,
   &quot;reuslt&quot;: {
     &quot;id&quot;: &quot;&lt;string&gt;&quot;,
@@ -247,33 +247,33 @@ sessions and are temporary.</p>
 </div>
 <p>Return parameters</p>
 <ul class="simple">
-<li><tt class="docutils literal"><span class="pre">id</span></tt>: Agent id.</li>
-<li><tt class="docutils literal"><span class="pre">name</span></tt>: Agent name.</li>
-<li><tt class="docutils literal"><span class="pre">status</span></tt>: Agent status. See detail <a class="reference internal" href="structure.html#agent-status"><em>Agent status</em></a>.</li>
-<li><tt class="docutils literal"><span class="pre">logged_in_time</span></tt>: Logged in time.</li>
-<li><tt class="docutils literal"><span class="pre">channel_name</span></tt>: Agent channel&#8217;s name.</li>
-<li><tt class="docutils literal"><span class="pre">channel_state</span></tt>: Agent channel&#8217;s state.</li>
-<li><tt class="docutils literal"><span class="pre">channel_state_desc</span></tt>: Agent channel&#8217;s state description.</li>
-<li><tt class="docutils literal"><span class="pre">caller_id_name</span></tt>: Caller&#8217;s id name.</li>
-<li><tt class="docutils literal"><span class="pre">caller_id_num</span></tt>: Caller&#8217;s id number.</li>
-<li><tt class="docutils literal"><span class="pre">connected_line_name</span></tt>: Connected line name.</li>
-<li><tt class="docutils literal"><span class="pre">connected_line_num</span></tt>: Connected line number.</li>
-<li><tt class="docutils literal"><span class="pre">context</span></tt>: Context.</li>
-<li><tt class="docutils literal"><span class="pre">exten</span></tt>: Extension.</li>
-<li><tt class="docutils literal"><span class="pre">priority</span></tt>: Priority</li>
-<li><tt class="docutils literal"><span class="pre">caller_id_name</span></tt>: Caller&#8217;s id name.</li>
-<li><tt class="docutils literal"><span class="pre">caller_id_num</span></tt>: Caller&#8217;s id number.</li>
-<li><tt class="docutils literal"><span class="pre">connected_line_name</span></tt>: Caller&#8217;s line name.</li>
-<li><tt class="docutils literal"><span class="pre">connected_line_num</span></tt>: Caller&#8217;s line number.</li>
-<li><tt class="docutils literal"><span class="pre">account_code</span></tt>: Account code.</li>
-<li><tt class="docutils literal"><span class="pre">language</span></tt>: Language.</li>
-<li><tt class="docutils literal"><span class="pre">unique_id</span></tt>: Channel&#8217;s unique id.</li>
-<li><tt class="docutils literal"><span class="pre">linked_id</span></tt>: Channel&#8217;s linked id.</li>
+<li><code class="docutils literal"><span class="pre">id</span></code>: Agent id.</li>
+<li><code class="docutils literal"><span class="pre">name</span></code>: Agent name.</li>
+<li><code class="docutils literal"><span class="pre">status</span></code>: Agent status. See detail <a class="reference internal" href="structure.html#agent-status"><span class="std std-ref">Agent status</span></a>.</li>
+<li><code class="docutils literal"><span class="pre">logged_in_time</span></code>: Logged in time.</li>
+<li><code class="docutils literal"><span class="pre">channel_name</span></code>: Agent channel&#8217;s name.</li>
+<li><code class="docutils literal"><span class="pre">channel_state</span></code>: Agent channel&#8217;s state.</li>
+<li><code class="docutils literal"><span class="pre">channel_state_desc</span></code>: Agent channel&#8217;s state description.</li>
+<li><code class="docutils literal"><span class="pre">caller_id_name</span></code>: Caller&#8217;s id name.</li>
+<li><code class="docutils literal"><span class="pre">caller_id_num</span></code>: Caller&#8217;s id number.</li>
+<li><code class="docutils literal"><span class="pre">connected_line_name</span></code>: Connected line name.</li>
+<li><code class="docutils literal"><span class="pre">connected_line_num</span></code>: Connected line number.</li>
+<li><code class="docutils literal"><span class="pre">context</span></code>: Context.</li>
+<li><code class="docutils literal"><span class="pre">exten</span></code>: Extension.</li>
+<li><code class="docutils literal"><span class="pre">priority</span></code>: Priority</li>
+<li><code class="docutils literal"><span class="pre">caller_id_name</span></code>: Caller&#8217;s id name.</li>
+<li><code class="docutils literal"><span class="pre">caller_id_num</span></code>: Caller&#8217;s id number.</li>
+<li><code class="docutils literal"><span class="pre">connected_line_name</span></code>: Caller&#8217;s line name.</li>
+<li><code class="docutils literal"><span class="pre">connected_line_num</span></code>: Caller&#8217;s line number.</li>
+<li><code class="docutils literal"><span class="pre">account_code</span></code>: Account code.</li>
+<li><code class="docutils literal"><span class="pre">language</span></code>: Language.</li>
+<li><code class="docutils literal"><span class="pre">unique_id</span></code>: Channel&#8217;s unique id.</li>
+<li><code class="docutils literal"><span class="pre">linked_id</span></code>: Channel&#8217;s linked id.</li>
 </ul>
 </div>
 <div class="section" id="id10">
 <h4>Example<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/agents/ -d &#39;{&quot;id&quot;: &quot;1001&quot;}&#39;
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ curl -X GET 192.168.200.10:8081/agents/ -d &#39;{&quot;id&quot;: &quot;1001&quot;}&#39;
 
 {
   &quot;api_ver&quot;: &quot;0.1&quot;,
@@ -317,13 +317,13 @@ sessions and are temporary.</p>
 <p>Get list of all channels info.</p>
 <div class="section" id="id13">
 <h4>Call<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">GET</span> <span class="o">/</span><span class="n">channels</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">GET</span> <span class="o">/</span><span class="n">channels</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="id14">
 <h4>Returns<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>{
+<div class="highlight-default"><div class="highlight"><pre><span></span>{
   $defhdr,
   &quot;reuslt&quot;: {
     &quot;list&quot;: [
@@ -338,9 +338,9 @@ sessions and are temporary.</p>
 </div>
 <ul>
 <li><dl class="first docutils">
-<dt><tt class="docutils literal"><span class="pre">list</span></tt> <span class="classifier-delimiter">:</span> <span class="classifier">array of channels.</span></dt>
-<dd><ul class="first last simple">
-<li><tt class="docutils literal"><span class="pre">unique_id</span></tt>: unique id.</li>
+<dt><code class="docutils literal"><span class="pre">list</span></code></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">array of channels.</span><dd><ul class="first last simple">
+<li><code class="docutils literal"><span class="pre">unique_id</span></code>: unique id.</li>
 </ul>
 </dd>
 </dl>
@@ -349,7 +349,7 @@ sessions and are temporary.</p>
 </div>
 <div class="section" id="id15">
 <h4>Example<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/channels
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ curl -X GET 192.168.200.10:8081/channels
 
 {
   &quot;api_ver&quot;: &quot;0.1&quot;,
@@ -379,21 +379,21 @@ sessions and are temporary.</p>
 <p>Get channel&#8217;s detail info of given channel info.</p>
 <div class="section" id="id19">
 <h4>Call<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>GET /channels/
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">GET</span> <span class="o">/</span><span class="n">channels</span><span class="o">/</span>
 
-{
-  &quot;unique_id&quot;: &quot;&lt;string&gt;&quot;
-}
+<span class="p">{</span>
+  <span class="s2">&quot;unique_id&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;string&gt;&quot;</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p>Data parameters</p>
 <ul class="simple">
-<li><tt class="docutils literal"><span class="pre">unique_id</span></tt>: unique id.</li>
+<li><code class="docutils literal"><span class="pre">unique_id</span></code>: unique id.</li>
 </ul>
 </div>
 <div class="section" id="id20">
 <h4>Returns<a class="headerlink" href="#id20" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>{
+<div class="highlight-default"><div class="highlight"><pre><span></span>{
   $defhdr,
   &quot;reuslt&quot;: {
     &quot;unique_id&quot;: &quot;&lt;string&gt;&quot;,
@@ -425,26 +425,26 @@ sessions and are temporary.</p>
 </div>
 <p>Return parameters</p>
 <ul class="simple">
-<li><tt class="docutils literal"><span class="pre">unique_id</span></tt>: Channel&#8217;s unique id.</li>
-<li><tt class="docutils literal"><span class="pre">linked_id</span></tt>: Channel&#8217;s linked id.</li>
-<li><tt class="docutils literal"><span class="pre">channel</span></tt>: Channel&#8217;s name.</li>
-<li><tt class="docutils literal"><span class="pre">channel_state</span></tt>: Channel&#8217;s state.</li>
-<li><tt class="docutils literal"><span class="pre">channel_state_desc</span></tt>: Channel&#8217;s state description.</li>
-<li><tt class="docutils literal"><span class="pre">context</span></tt>: Context.</li>
-<li><tt class="docutils literal"><span class="pre">exten</span></tt>: Extension.</li>
-<li><tt class="docutils literal"><span class="pre">priority</span></tt>: Priority</li>
-<li><tt class="docutils literal"><span class="pre">caller_id_name</span></tt>: Caller&#8217;s id name.</li>
-<li><tt class="docutils literal"><span class="pre">caller_id_num</span></tt>: Caller&#8217;s id number.</li>
-<li><tt class="docutils literal"><span class="pre">connected_line_name</span></tt>: Caller&#8217;s line name.</li>
-<li><tt class="docutils literal"><span class="pre">connected_line_num</span></tt>: Caller&#8217;s line number.</li>
-<li><tt class="docutils literal"><span class="pre">account_code</span></tt>: Account code.</li>
-<li><tt class="docutils literal"><span class="pre">language</span></tt>: Language.</li>
-<li><tt class="docutils literal"><span class="pre">variables</span></tt>: List of channel&#8217;s variables.</li>
+<li><code class="docutils literal"><span class="pre">unique_id</span></code>: Channel&#8217;s unique id.</li>
+<li><code class="docutils literal"><span class="pre">linked_id</span></code>: Channel&#8217;s linked id.</li>
+<li><code class="docutils literal"><span class="pre">channel</span></code>: Channel&#8217;s name.</li>
+<li><code class="docutils literal"><span class="pre">channel_state</span></code>: Channel&#8217;s state.</li>
+<li><code class="docutils literal"><span class="pre">channel_state_desc</span></code>: Channel&#8217;s state description.</li>
+<li><code class="docutils literal"><span class="pre">context</span></code>: Context.</li>
+<li><code class="docutils literal"><span class="pre">exten</span></code>: Extension.</li>
+<li><code class="docutils literal"><span class="pre">priority</span></code>: Priority</li>
+<li><code class="docutils literal"><span class="pre">caller_id_name</span></code>: Caller&#8217;s id name.</li>
+<li><code class="docutils literal"><span class="pre">caller_id_num</span></code>: Caller&#8217;s id number.</li>
+<li><code class="docutils literal"><span class="pre">connected_line_name</span></code>: Caller&#8217;s line name.</li>
+<li><code class="docutils literal"><span class="pre">connected_line_num</span></code>: Caller&#8217;s line number.</li>
+<li><code class="docutils literal"><span class="pre">account_code</span></code>: Account code.</li>
+<li><code class="docutils literal"><span class="pre">language</span></code>: Language.</li>
+<li><code class="docutils literal"><span class="pre">variables</span></code>: List of channel&#8217;s variables.</li>
 </ul>
 </div>
 <div class="section" id="id21">
 <h4>Example<a class="headerlink" href="#id21" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET saturn.pchero21.com:8081/channels/ -d \
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ curl -X GET saturn.pchero21.com:8081/channels/ -d \
  &#39;{&quot;unique_id&quot;: &quot;1491687461.63&quot;}&#39;
 
 {
@@ -490,13 +490,13 @@ sessions and are temporary.</p>
 <p>Get list of all device_state device info.</p>
 <div class="section" id="id24">
 <h4>Call<a class="headerlink" href="#id24" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">GET</span> <span class="o">/</span><span class="n">device_states</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">GET</span> <span class="o">/</span><span class="n">device_states</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="id25">
 <h4>Returns<a class="headerlink" href="#id25" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>{
+<div class="highlight-default"><div class="highlight"><pre><span></span>{
   $defhdr,
   &quot;reuslt&quot;: {
     &quot;list&quot;: [
@@ -512,9 +512,9 @@ sessions and are temporary.</p>
 <p>Return parameters</p>
 <ul>
 <li><dl class="first docutils">
-<dt><tt class="docutils literal"><span class="pre">list</span></tt> <span class="classifier-delimiter">:</span> <span class="classifier">array of channels.</span></dt>
-<dd><ul class="first last simple">
-<li><tt class="docutils literal"><span class="pre">device</span></tt>: device name.</li>
+<dt><code class="docutils literal"><span class="pre">list</span></code></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">array of channels.</span><dd><ul class="first last simple">
+<li><code class="docutils literal"><span class="pre">device</span></code>: device name.</li>
 </ul>
 </dd>
 </dl>
@@ -523,7 +523,7 @@ sessions and are temporary.</p>
 </div>
 <div class="section" id="id26">
 <h4>Example<a class="headerlink" href="#id26" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET example.com:8081/device_states
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ curl -X GET example.com:8081/device_states
 
 {
   &quot;api_ver&quot;: &quot;0.1&quot;,
@@ -552,21 +552,21 @@ sessions and are temporary.</p>
 <p>Get device_state&#8217;s detail info of given info.</p>
 <div class="section" id="id30">
 <h4>Call<a class="headerlink" href="#id30" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>GET /device_states/
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">GET</span> <span class="o">/</span><span class="n">device_states</span><span class="o">/</span>
 
-{
-  &quot;device&quot;: &quot;&lt;string&gt;&quot;
-}
+<span class="p">{</span>
+  <span class="s2">&quot;device&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;string&gt;&quot;</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p>Data parameters</p>
 <ul class="simple">
-<li><tt class="docutils literal"><span class="pre">device</span></tt>: unique id.</li>
+<li><code class="docutils literal"><span class="pre">device</span></code>: unique id.</li>
 </ul>
 </div>
 <div class="section" id="id31">
 <h4>Returns<a class="headerlink" href="#id31" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>{
+<div class="highlight-default"><div class="highlight"><pre><span></span>{
   $defhdr,
   &quot;reuslt&quot;: {
     &quot;device&quot;: &quot;&lt;string&gt;&quot;,
@@ -579,13 +579,13 @@ sessions and are temporary.</p>
 </div>
 <p>Return parameters</p>
 <ul class="simple">
-<li><tt class="docutils literal"><span class="pre">device</span></tt>: Device name.</li>
-<li><tt class="docutils literal"><span class="pre">state</span></tt>: Device state. See detail <a class="reference internal" href="structure.html#device-state"><em>Device state</em></a>.</li>
+<li><code class="docutils literal"><span class="pre">device</span></code>: Device name.</li>
+<li><code class="docutils literal"><span class="pre">state</span></code>: Device state. See detail <a class="reference internal" href="structure.html#device-state"><span class="std std-ref">Device state</span></a>.</li>
 </ul>
 </div>
 <div class="section" id="id32">
 <h4>Example<a class="headerlink" href="#id32" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET example.com/device_states/ -d \
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ curl -X GET example.com/device_states/ -d \
 &#39;{&quot;device&quot;: &quot;Agent:1001&quot;}&#39;
 
 {
@@ -614,13 +614,13 @@ sessions and are temporary.</p>
 <p>Get list of all parked_call&#8217;s parkee_unique_id info.</p>
 <div class="section" id="id35">
 <h4>Call<a class="headerlink" href="#id35" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">GET</span> <span class="o">/</span><span class="n">parked_calls</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">GET</span> <span class="o">/</span><span class="n">parked_calls</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="id36">
 <h4>Returns<a class="headerlink" href="#id36" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>{
+<div class="highlight-default"><div class="highlight"><pre><span></span>{
   $defhdr,
   &quot;reuslt&quot;: {
     &quot;list&quot;: [
@@ -636,9 +636,9 @@ sessions and are temporary.</p>
 <p>Return parameters</p>
 <ul>
 <li><dl class="first docutils">
-<dt><tt class="docutils literal"><span class="pre">list</span></tt> <span class="classifier-delimiter">:</span> <span class="classifier">array of itmes.</span></dt>
-<dd><ul class="first last simple">
-<li><tt class="docutils literal"><span class="pre">parkee_unique_id</span></tt>: parked call&#8217;s unique id.</li>
+<dt><code class="docutils literal"><span class="pre">list</span></code></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">array of itmes.</span><dd><ul class="first last simple">
+<li><code class="docutils literal"><span class="pre">parkee_unique_id</span></code>: parked call&#8217;s unique id.</li>
 </ul>
 </dd>
 </dl>
@@ -647,7 +647,7 @@ sessions and are temporary.</p>
 </div>
 <div class="section" id="id37">
 <h4>Example<a class="headerlink" href="#id37" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET example.com:8081/parked_calls
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ curl -X GET example.com:8081/parked_calls
 
 {
   &quot;api_ver&quot;: &quot;0.1&quot;,
@@ -677,21 +677,21 @@ sessions and are temporary.</p>
 <p>Get parked_call&#8217;s detail info of given info.</p>
 <div class="section" id="id41">
 <h4>Call<a class="headerlink" href="#id41" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>GET /device_states/
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">GET</span> <span class="o">/</span><span class="n">device_states</span><span class="o">/</span>
 
-{
-  &quot;parkee_unique_id&quot;: &quot;&lt;string&gt;&quot;
-}
+<span class="p">{</span>
+  <span class="s2">&quot;parkee_unique_id&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;string&gt;&quot;</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p>Data parameters</p>
 <ul class="simple">
-<li><tt class="docutils literal"><span class="pre">parkee_unique_id</span></tt>: unique id.</li>
+<li><code class="docutils literal"><span class="pre">parkee_unique_id</span></code>: unique id.</li>
 </ul>
 </div>
 <div class="section" id="id42">
 <h4>Returns<a class="headerlink" href="#id42" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>{
+<div class="highlight-default"><div class="highlight"><pre><span></span>{
   $defhdr,
   &quot;reuslt&quot;: {
     &quot;parkee_unique_id&quot;: &quot;&lt;string&gt;&quot;,
@@ -726,29 +726,29 @@ sessions and are temporary.</p>
 </div>
 <p>Return parameters</p>
 <ul class="simple">
-<li><tt class="docutils literal"><span class="pre">parkee_unique_id</span></tt>: Parkee&#8217;s unique id.</li>
-<li><tt class="docutils literal"><span class="pre">parkee_linked_id</span></tt>: Parkee&#8217;s linked id.</li>
-<li><tt class="docutils literal"><span class="pre">parkee_channel</span></tt>: Parkee&#8217;s channel name.</li>
-<li><tt class="docutils literal"><span class="pre">parkee_channel_state</span></tt>: Parkee&#8217;s channele state.</li>
-<li><tt class="docutils literal"><span class="pre">parkee_channel_state_desc</span></tt>: Parkee&#8217;s channel state description.</li>
-<li><tt class="docutils literal"><span class="pre">parkee_caller_id_name</span></tt>: Parkee&#8217;s caller id name.</li>
-<li><tt class="docutils literal"><span class="pre">parkee_caller_id_num</span></tt>: Parkee&#8217;s caller id number.</li>
-<li><tt class="docutils literal"><span class="pre">parkee_connected_line_name</span></tt>: Parkee&#8217;s connected line name.</li>
-<li><tt class="docutils literal"><span class="pre">parkee_connected_line_num</span></tt>: Parkee&#8217;s connected line number.</li>
-<li><tt class="docutils literal"><span class="pre">parkee_account_code</span></tt>: Parkee&#8217;s account code.</li>
-<li><tt class="docutils literal"><span class="pre">parkee_context</span></tt>: Parkee&#8217;s current context.</li>
-<li><tt class="docutils literal"><span class="pre">parkee_exten</span></tt>: Parkee&#8217;s current exten.</li>
-<li><tt class="docutils literal"><span class="pre">parkee_priority</span></tt>: Parkee&#8217;s current priority.</li>
-<li><tt class="docutils literal"><span class="pre">parker_dial_string</span></tt>: Dial String that can be used to call back the parker on ParkingTimeout.</li>
-<li><tt class="docutils literal"><span class="pre">parking_duration</span></tt>: Time the parkee has been in the parking bridge since tm_update(in seconds).</li>
-<li><tt class="docutils literal"><span class="pre">parking_lot</span></tt>: Name of the parking lot that the parkee is parked in.</li>
-<li><tt class="docutils literal"><span class="pre">parking_space</span></tt>: Parking Space that the parkee is parked in.</li>
-<li><tt class="docutils literal"><span class="pre">parking_timeout</span></tt>: Time remaining until the parkee is forcefully removed from parking in seconds since tm_update.</li>
+<li><code class="docutils literal"><span class="pre">parkee_unique_id</span></code>: Parkee&#8217;s unique id.</li>
+<li><code class="docutils literal"><span class="pre">parkee_linked_id</span></code>: Parkee&#8217;s linked id.</li>
+<li><code class="docutils literal"><span class="pre">parkee_channel</span></code>: Parkee&#8217;s channel name.</li>
+<li><code class="docutils literal"><span class="pre">parkee_channel_state</span></code>: Parkee&#8217;s channele state.</li>
+<li><code class="docutils literal"><span class="pre">parkee_channel_state_desc</span></code>: Parkee&#8217;s channel state description.</li>
+<li><code class="docutils literal"><span class="pre">parkee_caller_id_name</span></code>: Parkee&#8217;s caller id name.</li>
+<li><code class="docutils literal"><span class="pre">parkee_caller_id_num</span></code>: Parkee&#8217;s caller id number.</li>
+<li><code class="docutils literal"><span class="pre">parkee_connected_line_name</span></code>: Parkee&#8217;s connected line name.</li>
+<li><code class="docutils literal"><span class="pre">parkee_connected_line_num</span></code>: Parkee&#8217;s connected line number.</li>
+<li><code class="docutils literal"><span class="pre">parkee_account_code</span></code>: Parkee&#8217;s account code.</li>
+<li><code class="docutils literal"><span class="pre">parkee_context</span></code>: Parkee&#8217;s current context.</li>
+<li><code class="docutils literal"><span class="pre">parkee_exten</span></code>: Parkee&#8217;s current exten.</li>
+<li><code class="docutils literal"><span class="pre">parkee_priority</span></code>: Parkee&#8217;s current priority.</li>
+<li><code class="docutils literal"><span class="pre">parker_dial_string</span></code>: Dial String that can be used to call back the parker on ParkingTimeout.</li>
+<li><code class="docutils literal"><span class="pre">parking_duration</span></code>: Time the parkee has been in the parking bridge since tm_update(in seconds).</li>
+<li><code class="docutils literal"><span class="pre">parking_lot</span></code>: Name of the parking lot that the parkee is parked in.</li>
+<li><code class="docutils literal"><span class="pre">parking_space</span></code>: Parking Space that the parkee is parked in.</li>
+<li><code class="docutils literal"><span class="pre">parking_timeout</span></code>: Time remaining until the parkee is forcefully removed from parking in seconds since tm_update.</li>
 </ul>
 </div>
 <div class="section" id="id43">
 <h4>Example<a class="headerlink" href="#id43" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET example.com/parked_calls/ \
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ curl -X GET example.com/parked_calls/ \
  -d &#39;{&quot;parkee_unique_id&quot;: &quot;1491607645.29&quot;}&#39;
 
 {
@@ -793,13 +793,13 @@ sessions and are temporary.</p>
 <p>Get list of all parking lot&#8217;s name info.</p>
 <div class="section" id="id46">
 <h4>Call<a class="headerlink" href="#id46" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">GET</span> <span class="o">/</span><span class="n">parking_lots</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">GET</span> <span class="o">/</span><span class="n">parking_lots</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="id47">
 <h4>Returns<a class="headerlink" href="#id47" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>{
+<div class="highlight-default"><div class="highlight"><pre><span></span>{
   $defhdr,
   &quot;reuslt&quot;: {
     &quot;list&quot;: [
@@ -815,9 +815,9 @@ sessions and are temporary.</p>
 <p>Return parameters</p>
 <ul>
 <li><dl class="first docutils">
-<dt><tt class="docutils literal"><span class="pre">list</span></tt> <span class="classifier-delimiter">:</span> <span class="classifier">array of itmes.</span></dt>
-<dd><ul class="first last simple">
-<li><tt class="docutils literal"><span class="pre">name</span></tt>: parking lot&#8217;s name</li>
+<dt><code class="docutils literal"><span class="pre">list</span></code></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">array of itmes.</span><dd><ul class="first last simple">
+<li><code class="docutils literal"><span class="pre">name</span></code>: parking lot&#8217;s name</li>
 </ul>
 </dd>
 </dl>
@@ -826,7 +826,7 @@ sessions and are temporary.</p>
 </div>
 <div class="section" id="id48">
 <h4>Example<a class="headerlink" href="#id48" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET example.com:8081/parking_lots
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ curl -X GET example.com:8081/parking_lots
 
 {
   &quot;api_ver&quot;: &quot;0.1&quot;,
@@ -856,21 +856,21 @@ sessions and are temporary.</p>
 <p>Get parking lot&#8217;s detail info of given info.</p>
 <div class="section" id="id52">
 <h4>Call<a class="headerlink" href="#id52" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>GET /parking_lots/
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">GET</span> <span class="o">/</span><span class="n">parking_lots</span><span class="o">/</span>
 
-{
-  &quot;name&quot;: &quot;&lt;string&gt;&quot;
-}
+<span class="p">{</span>
+  <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;string&gt;&quot;</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p>Data parameters</p>
 <ul class="simple">
-<li><tt class="docutils literal"><span class="pre">name</span></tt>: parking lot&#8217;s name.</li>
+<li><code class="docutils literal"><span class="pre">name</span></code>: parking lot&#8217;s name.</li>
 </ul>
 </div>
 <div class="section" id="id53">
 <h4>Returns<a class="headerlink" href="#id53" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>{
+<div class="highlight-default"><div class="highlight"><pre><span></span>{
   $defhdr,
   &quot;reuslt&quot;: {
     &quot;name&quot;: &quot;&lt;string&gt;&quot;,
@@ -887,15 +887,15 @@ sessions and are temporary.</p>
 </div>
 <p>Return parameters</p>
 <ul class="simple">
-<li><tt class="docutils literal"><span class="pre">name</span></tt>: Parking lot&#8217;s name.</li>
-<li><tt class="docutils literal"><span class="pre">start_space</span></tt>: Parking lot&#8217;s start space.</li>
-<li><tt class="docutils literal"><span class="pre">stop_spcae</span></tt>: Parking lot&#8217;s stop space.</li>
-<li><tt class="docutils literal"><span class="pre">timeout</span></tt>: Timeout second in the parking lot.</li>
+<li><code class="docutils literal"><span class="pre">name</span></code>: Parking lot&#8217;s name.</li>
+<li><code class="docutils literal"><span class="pre">start_space</span></code>: Parking lot&#8217;s start space.</li>
+<li><code class="docutils literal"><span class="pre">stop_spcae</span></code>: Parking lot&#8217;s stop space.</li>
+<li><code class="docutils literal"><span class="pre">timeout</span></code>: Timeout second in the parking lot.</li>
 </ul>
 </div>
 <div class="section" id="id54">
 <h4>Example<a class="headerlink" href="#id54" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET example.com/parking_lots/ \
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ curl -X GET example.com/parking_lots/ \
  -d &#39;{&quot;name&quot;: &quot;default&quot;}&#39;
 
 {
@@ -926,13 +926,13 @@ sessions and are temporary.</p>
 <p>Get list of all peer info.</p>
 <div class="section" id="id57">
 <h4>Call<a class="headerlink" href="#id57" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">GET</span> <span class="o">/</span><span class="n">peers</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">GET</span> <span class="o">/</span><span class="n">peers</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="id58">
 <h4>Returns<a class="headerlink" href="#id58" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>{
+<div class="highlight-default"><div class="highlight"><pre><span></span>{
   $defhdr,
   &quot;reuslt&quot;: {
     &quot;list&quot;: [
@@ -945,9 +945,9 @@ sessions and are temporary.</p>
 </div>
 <ul>
 <li><dl class="first docutils">
-<dt><tt class="docutils literal"><span class="pre">list</span></tt> <span class="classifier-delimiter">:</span> <span class="classifier">array of peer entry info.</span></dt>
-<dd><ul class="first last simple">
-<li><tt class="docutils literal"><span class="pre">peer</span></tt>: Peer entry info.</li>
+<dt><code class="docutils literal"><span class="pre">list</span></code></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">array of peer entry info.</span><dd><ul class="first last simple">
+<li><code class="docutils literal"><span class="pre">peer</span></code>: Peer entry info.</li>
 </ul>
 </dd>
 </dl>
@@ -956,7 +956,7 @@ sessions and are temporary.</p>
 </div>
 <div class="section" id="id59">
 <h4>Example<a class="headerlink" href="#id59" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET saturn.pchero21.com:8081/peers
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ curl -X GET saturn.pchero21.com:8081/peers
 
 {
   &quot;api_ver&quot;: &quot;0.1&quot;,
@@ -987,21 +987,21 @@ sessions and are temporary.</p>
 <p>Get peer detail info of given peer info.</p>
 <div class="section" id="id63">
 <h4>Call<a class="headerlink" href="#id63" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>GET /peers/
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">GET</span> <span class="o">/</span><span class="n">peers</span><span class="o">/</span>
 
-{
-  &quot;peer&quot;: &quot;&lt;string&gt;&quot;
-}
+<span class="p">{</span>
+  <span class="s2">&quot;peer&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;string&gt;&quot;</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p>Data parameters</p>
 <ul class="simple">
-<li><tt class="docutils literal"><span class="pre">peer</span></tt>: peer info.</li>
+<li><code class="docutils literal"><span class="pre">peer</span></code>: peer info.</li>
 </ul>
 </div>
 <div class="section" id="id64">
 <h4>Returns<a class="headerlink" href="#id64" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>{
+<div class="highlight-default"><div class="highlight"><pre><span></span>{
   $defhdr,
   &quot;reuslt&quot;: {
     &quot;peer&quot;: &quot;&lt;string&gt;&quot;,
@@ -1030,26 +1030,26 @@ sessions and are temporary.</p>
 </pre></div>
 </div>
 <ul class="simple">
-<li><tt class="docutils literal"><span class="pre">peer</span></tt>: Peer name.</li>
-<li><tt class="docutils literal"><span class="pre">status</span></tt>: Peer&#8217;s status. See detail <a class="reference internal" href="structure.html#peer-status"><em>Peer status</em></a>.</li>
-<li><tt class="docutils literal"><span class="pre">address</span></tt>: Registered peer&#8217;s address. &#8220;&lt;ip&gt;:&lt;port&gt;&#8221;</li>
-<li><tt class="docutils literal"><span class="pre">monitor_status</span></tt>: Peer monitoring status. See detail <a class="reference internal" href="structure.html#peer-monitoring-status"><em>Peer monitoring status</em></a>.</li>
-<li><tt class="docutils literal"><span class="pre">dynamic</span></tt>: Peer&#8217;s dynamic option value.</li>
-<li><tt class="docutils literal"><span class="pre">auto_comedia</span></tt>: Peer&#8217;s auto_comedia option value.</li>
-<li><tt class="docutils literal"><span class="pre">auto_force_port</span></tt>: Peer&#8217;s auto_force_port option value.</li>
-<li><tt class="docutils literal"><span class="pre">acl</span></tt>: Peer&#8217;s dynamic acl value.</li>
-<li><tt class="docutils literal"><span class="pre">comedia</span></tt>: Peer&#8217;s comedia option value.</li>
-<li><tt class="docutils literal"><span class="pre">description</span></tt>: Peer&#8217;s description option value.</li>
-<li><tt class="docutils literal"><span class="pre">force_port</span></tt>: Peer&#8217;s force_port option value.</li>
-<li><tt class="docutils literal"><span class="pre">realtime_device</span></tt>: Peer&#8217;s realtime_device option value.</li>
-<li><tt class="docutils literal"><span class="pre">text_support</span></tt>: Peer&#8217;s text support option value.</li>
-<li><tt class="docutils literal"><span class="pre">video_support</span></tt>: Peer&#8217;s video support option value.</li>
-<li><tt class="docutils literal"><span class="pre">tm_update</span></tt>: Updated timestamp.</li>
+<li><code class="docutils literal"><span class="pre">peer</span></code>: Peer name.</li>
+<li><code class="docutils literal"><span class="pre">status</span></code>: Peer&#8217;s status. See detail <a class="reference internal" href="structure.html#peer-status"><span class="std std-ref">Peer status</span></a>.</li>
+<li><code class="docutils literal"><span class="pre">address</span></code>: Registered peer&#8217;s address. &#8220;&lt;ip&gt;:&lt;port&gt;&#8221;</li>
+<li><code class="docutils literal"><span class="pre">monitor_status</span></code>: Peer monitoring status. See detail <a class="reference internal" href="structure.html#peer-monitoring-status"><span class="std std-ref">Peer monitoring status</span></a>.</li>
+<li><code class="docutils literal"><span class="pre">dynamic</span></code>: Peer&#8217;s dynamic option value.</li>
+<li><code class="docutils literal"><span class="pre">auto_comedia</span></code>: Peer&#8217;s auto_comedia option value.</li>
+<li><code class="docutils literal"><span class="pre">auto_force_port</span></code>: Peer&#8217;s auto_force_port option value.</li>
+<li><code class="docutils literal"><span class="pre">acl</span></code>: Peer&#8217;s dynamic acl value.</li>
+<li><code class="docutils literal"><span class="pre">comedia</span></code>: Peer&#8217;s comedia option value.</li>
+<li><code class="docutils literal"><span class="pre">description</span></code>: Peer&#8217;s description option value.</li>
+<li><code class="docutils literal"><span class="pre">force_port</span></code>: Peer&#8217;s force_port option value.</li>
+<li><code class="docutils literal"><span class="pre">realtime_device</span></code>: Peer&#8217;s realtime_device option value.</li>
+<li><code class="docutils literal"><span class="pre">text_support</span></code>: Peer&#8217;s text support option value.</li>
+<li><code class="docutils literal"><span class="pre">video_support</span></code>: Peer&#8217;s video support option value.</li>
+<li><code class="docutils literal"><span class="pre">tm_update</span></code>: Updated timestamp.</li>
 </ul>
 </div>
 <div class="section" id="id65">
 <h4>Example<a class="headerlink" href="#id65" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre> $ curl -X GET saturn.pchero21.com:8081/peers/ -d &#39;{&quot;peer&quot;: &quot;agent-01&quot;}&#39;
+<div class="highlight-default"><div class="highlight"><pre><span></span> $ curl -X GET saturn.pchero21.com:8081/peers/ -d &#39;{&quot;peer&quot;: &quot;agent-01&quot;}&#39;
 
 {
   &quot;api_ver&quot;: &quot;0.1&quot;,
@@ -1091,13 +1091,13 @@ sessions and are temporary.</p>
 <p>Get list of all registry accounts info.</p>
 <div class="section" id="id68">
 <h4>Call<a class="headerlink" href="#id68" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">GET</span> <span class="o">/</span><span class="n">registries</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">GET</span> <span class="o">/</span><span class="n">registries</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="id69">
 <h4>Returns<a class="headerlink" href="#id69" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>{
+<div class="highlight-default"><div class="highlight"><pre><span></span>{
   $defhdr,
   &quot;reuslt&quot;: {
     &quot;list&quot;: [
@@ -1110,9 +1110,9 @@ sessions and are temporary.</p>
 </div>
 <ul>
 <li><dl class="first docutils">
-<dt><tt class="docutils literal"><span class="pre">list</span></tt> <span class="classifier-delimiter">:</span> <span class="classifier">array of registry account.</span></dt>
-<dd><ul class="first last simple">
-<li><tt class="docutils literal"><span class="pre">account</span></tt>: Registry account info.</li>
+<dt><code class="docutils literal"><span class="pre">list</span></code></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">array of registry account.</span><dd><ul class="first last simple">
+<li><code class="docutils literal"><span class="pre">account</span></code>: Registry account info.</li>
 </ul>
 </dd>
 </dl>
@@ -1121,7 +1121,7 @@ sessions and are temporary.</p>
 </div>
 <div class="section" id="id70">
 <h4>Example<a class="headerlink" href="#id70" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/registries
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ curl -X GET 192.168.200.10:8081/registries
 
 {
   &quot;api_ver&quot;: &quot;0.1&quot;,
@@ -1150,21 +1150,21 @@ sessions and are temporary.</p>
 <p>Get registry detail info of given account info.</p>
 <div class="section" id="id74">
 <h4>Call<a class="headerlink" href="#id74" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>GET /registries/
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">GET</span> <span class="o">/</span><span class="n">registries</span><span class="o">/</span>
 
-{
-  &quot;account&quot;: &quot;&lt;string&gt;&quot;
-}
+<span class="p">{</span>
+  <span class="s2">&quot;account&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;string&gt;&quot;</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p>Data parameters</p>
 <ul class="simple">
-<li><tt class="docutils literal"><span class="pre">account</span></tt>: account info.</li>
+<li><code class="docutils literal"><span class="pre">account</span></code>: account info.</li>
 </ul>
 </div>
 <div class="section" id="id75">
 <h4>Returns<a class="headerlink" href="#id75" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>{
+<div class="highlight-default"><div class="highlight"><pre><span></span>{
   $defhdr,
   &quot;reuslt&quot;: {
     &quot;account&quot;: &quot;&lt;string&gt;&quot;,
@@ -1185,21 +1185,21 @@ sessions and are temporary.</p>
 </pre></div>
 </div>
 <ul class="simple">
-<li><tt class="docutils literal"><span class="pre">account</span></tt>: Registry&#8217;s account info.</li>
-<li><tt class="docutils literal"><span class="pre">state</span></tt>: state info.</li>
-<li><tt class="docutils literal"><span class="pre">username</span></tt>: Registry&#8217;s username.</li>
-<li><tt class="docutils literal"><span class="pre">domain</span></tt>: Registry&#8217;s domain info.</li>
-<li><tt class="docutils literal"><span class="pre">domain_port</span></tt>: Registry&#8217;s domain port.</li>
-<li><tt class="docutils literal"><span class="pre">host</span></tt>: Registry&#8217;s host info.</li>
-<li><tt class="docutils literal"><span class="pre">port</span></tt>: Registry&#8217;s port info.</li>
-<li><tt class="docutils literal"><span class="pre">refresh</span></tt>: Refresh.</li>
-<li><tt class="docutils literal"><span class="pre">registration_time</span></tt>: registration time.</li>
-<li><tt class="docutils literal"><span class="pre">tm_update</span></tt>: Updated timestamp.</li>
+<li><code class="docutils literal"><span class="pre">account</span></code>: Registry&#8217;s account info.</li>
+<li><code class="docutils literal"><span class="pre">state</span></code>: state info.</li>
+<li><code class="docutils literal"><span class="pre">username</span></code>: Registry&#8217;s username.</li>
+<li><code class="docutils literal"><span class="pre">domain</span></code>: Registry&#8217;s domain info.</li>
+<li><code class="docutils literal"><span class="pre">domain_port</span></code>: Registry&#8217;s domain port.</li>
+<li><code class="docutils literal"><span class="pre">host</span></code>: Registry&#8217;s host info.</li>
+<li><code class="docutils literal"><span class="pre">port</span></code>: Registry&#8217;s port info.</li>
+<li><code class="docutils literal"><span class="pre">refresh</span></code>: Refresh.</li>
+<li><code class="docutils literal"><span class="pre">registration_time</span></code>: registration time.</li>
+<li><code class="docutils literal"><span class="pre">tm_update</span></code>: Updated timestamp.</li>
 </ul>
 </div>
 <div class="section" id="id76">
 <h4>Example<a class="headerlink" href="#id76" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/registries/ -d &#39;{&quot;account&quot;: &quot;2345@sip_proxy&quot;}&#39;
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ curl -X GET 192.168.200.10:8081/registries/ -d &#39;{&quot;account&quot;: &quot;2345@sip_proxy&quot;}&#39;
 
 {
   &quot;api_ver&quot;: &quot;0.1&quot;,
@@ -1234,13 +1234,13 @@ sessions and are temporary.</p>
 <p>Get list of all system&#8217;s id info</p>
 <div class="section" id="id79">
 <h4>Call<a class="headerlink" href="#id79" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">GET</span> <span class="o">/</span><span class="n">systems</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">GET</span> <span class="o">/</span><span class="n">systems</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="id80">
 <h4>Returns<a class="headerlink" href="#id80" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>{
+<div class="highlight-default"><div class="highlight"><pre><span></span>{
   $defhdr,
   &quot;reuslt&quot;: {
     &quot;list&quot;: [
@@ -1252,12 +1252,12 @@ sessions and are temporary.</p>
 </pre></div>
 </div>
 <ul class="simple">
-<li><tt class="docutils literal"><span class="pre">list</span></tt> : array of system id.</li>
+<li><code class="docutils literal"><span class="pre">list</span></code> : array of system id.</li>
 </ul>
 </div>
 <div class="section" id="id81">
 <h4>Example<a class="headerlink" href="#id81" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/queue_params
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ curl -X GET 192.168.200.10:8081/queue_params
 
 {
   &quot;api_ver&quot;: &quot;0.1&quot;,
@@ -1287,21 +1287,21 @@ sessions and are temporary.</p>
 <p>Get detail info of given system id.</p>
 <div class="section" id="id85">
 <h4>Call<a class="headerlink" href="#id85" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>GET /systems/
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">GET</span> <span class="o">/</span><span class="n">systems</span><span class="o">/</span>
 
-{
-  &quot;id&quot;: &quot;&lt;string&gt;&quot;
-}
+<span class="p">{</span>
+  <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;string&gt;&quot;</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p>Data parameters</p>
 <ul class="simple">
-<li><tt class="docutils literal"><span class="pre">id</span></tt>: System id.</li>
+<li><code class="docutils literal"><span class="pre">id</span></code>: System id.</li>
 </ul>
 </div>
 <div class="section" id="id86">
 <h4>Returns<a class="headerlink" href="#id86" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>{
+<div class="highlight-default"><div class="highlight"><pre><span></span>{
   $defhdr,
   &quot;reuslt&quot;: {
     &quot;id&quot;: &quot;&lt;string&gt;&quot;,
@@ -1335,28 +1335,28 @@ sessions and are temporary.</p>
 </div>
 <p>Return parameters</p>
 <ul class="simple">
-<li><tt class="docutils literal"><span class="pre">id</span></tt> : system id.</li>
-<li><tt class="docutils literal"><span class="pre">ami_version</span></tt>: ami version.</li>
-<li><tt class="docutils literal"><span class="pre">ast_version</span></tt>: asterisk version.</li>
-<li><tt class="docutils literal"><span class="pre">system_name</span></tt>: system name.</li>
-<li><tt class="docutils literal"><span class="pre">max_calls</span></tt>: Max call count.</li>
-<li><tt class="docutils literal"><span class="pre">max_file_handles</span></tt>: Max file handle cont.</li>
-<li><tt class="docutils literal"><span class="pre">max_load_avg</span></tt>: Max load average.</li>
-<li><tt class="docutils literal"><span class="pre">reload_date</span></tt>: Reloaded date.</li>
-<li><tt class="docutils literal"><span class="pre">reload_time</span></tt>: Reloaded time.</li>
-<li><tt class="docutils literal"><span class="pre">run_group</span></tt>: Process running group.</li>
-<li><tt class="docutils literal"><span class="pre">run_user</span></tt>: Process running user.</li>
-<li><tt class="docutils literal"><span class="pre">startup_date</span></tt>: Started date.</li>
-<li><tt class="docutils literal"><span class="pre">startup_time</span></tt>: Started time.</li>
-<li><tt class="docutils literal"><span class="pre">current_calls</span></tt>: Current call count.</li>
-<li><tt class="docutils literal"><span class="pre">cdr_enabled</span></tt>: Cdr enanbled or not. If enabled &#8220;Yes&#8221;.</li>
-<li><tt class="docutils literal"><span class="pre">http_enabled</span></tt>: http enabled or not. If enabled &#8220;Yes&#8221;.</li>
-<li><tt class="docutils literal"><span class="pre">real_time_enabled</span></tt>: real time enabled or not. If enabled &#8220;Yes&#8221;.</li>
+<li><code class="docutils literal"><span class="pre">id</span></code> : system id.</li>
+<li><code class="docutils literal"><span class="pre">ami_version</span></code>: ami version.</li>
+<li><code class="docutils literal"><span class="pre">ast_version</span></code>: asterisk version.</li>
+<li><code class="docutils literal"><span class="pre">system_name</span></code>: system name.</li>
+<li><code class="docutils literal"><span class="pre">max_calls</span></code>: Max call count.</li>
+<li><code class="docutils literal"><span class="pre">max_file_handles</span></code>: Max file handle cont.</li>
+<li><code class="docutils literal"><span class="pre">max_load_avg</span></code>: Max load average.</li>
+<li><code class="docutils literal"><span class="pre">reload_date</span></code>: Reloaded date.</li>
+<li><code class="docutils literal"><span class="pre">reload_time</span></code>: Reloaded time.</li>
+<li><code class="docutils literal"><span class="pre">run_group</span></code>: Process running group.</li>
+<li><code class="docutils literal"><span class="pre">run_user</span></code>: Process running user.</li>
+<li><code class="docutils literal"><span class="pre">startup_date</span></code>: Started date.</li>
+<li><code class="docutils literal"><span class="pre">startup_time</span></code>: Started time.</li>
+<li><code class="docutils literal"><span class="pre">current_calls</span></code>: Current call count.</li>
+<li><code class="docutils literal"><span class="pre">cdr_enabled</span></code>: Cdr enanbled or not. If enabled &#8220;Yes&#8221;.</li>
+<li><code class="docutils literal"><span class="pre">http_enabled</span></code>: http enabled or not. If enabled &#8220;Yes&#8221;.</li>
+<li><code class="docutils literal"><span class="pre">real_time_enabled</span></code>: real time enabled or not. If enabled &#8220;Yes&#8221;.</li>
 </ul>
 </div>
 <div class="section" id="id87">
 <h4>Example<a class="headerlink" href="#id87" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/queue_params
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ curl -X GET 192.168.200.10:8081/queue_params
 
 {
   &quot;api_ver&quot;: &quot;0.1&quot;,
@@ -1399,13 +1399,13 @@ sessions and are temporary.</p>
 <p>Get list of all queue param info</p>
 <div class="section" id="id90">
 <h4>Call<a class="headerlink" href="#id90" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">GET</span> <span class="o">/</span><span class="n">queue_params</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">GET</span> <span class="o">/</span><span class="n">queue_params</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="id91">
 <h4>Returns<a class="headerlink" href="#id91" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>{
+<div class="highlight-default"><div class="highlight"><pre><span></span>{
   $defhdr,
   &quot;reuslt&quot;: {
     &quot;list&quot;: [
@@ -1417,12 +1417,12 @@ sessions and are temporary.</p>
 </pre></div>
 </div>
 <ul class="simple">
-<li><tt class="docutils literal"><span class="pre">list</span></tt> : array of registry account.</li>
+<li><code class="docutils literal"><span class="pre">list</span></code> : array of registry account.</li>
 </ul>
 </div>
 <div class="section" id="id92">
 <h4>Example<a class="headerlink" href="#id92" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/queue_params
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ curl -X GET 192.168.200.10:8081/queue_params
 
 {
   &quot;api_ver&quot;: &quot;0.1&quot;,
@@ -1452,21 +1452,21 @@ sessions and are temporary.</p>
 <p>Get queue param detail info of given queue info.</p>
 <div class="section" id="id96">
 <h4>Call<a class="headerlink" href="#id96" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>GET /queue_params/
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">GET</span> <span class="o">/</span><span class="n">queue_params</span><span class="o">/</span>
 
-{
-  &quot;name&quot;: &quot;&lt;string&gt;&quot;
-}
+<span class="p">{</span>
+  <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;string&gt;&quot;</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p>Data parameters</p>
 <ul class="simple">
-<li><tt class="docutils literal"><span class="pre">account</span></tt>: account info.</li>
+<li><code class="docutils literal"><span class="pre">account</span></code>: account info.</li>
 </ul>
 </div>
 <div class="section" id="id97">
 <h4>Returns<a class="headerlink" href="#id97" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>{
+<div class="highlight-default"><div class="highlight"><pre><span></span>{
   $defhdr,
   &quot;reuslt&quot;: {
     &quot;name&quot;: &quot;&lt;string&gt;&quot;,
@@ -1491,22 +1491,22 @@ sessions and are temporary.</p>
 </div>
 <p>Return parameters</p>
 <ul class="simple">
-<li><tt class="docutils literal"><span class="pre">name</span></tt>: Queue name.</li>
-<li><tt class="docutils literal"><span class="pre">strategy</span></tt>: Call distribution.</li>
-<li><tt class="docutils literal"><span class="pre">max</span></tt>: Max waiting call count.</li>
-<li><tt class="docutils literal"><span class="pre">weight</span></tt>: Queue priority.</li>
-<li><tt class="docutils literal"><span class="pre">calls</span></tt>: Waiting call count.</li>
-<li><tt class="docutils literal"><span class="pre">completed</span></tt>: Completed call count.</li>
-<li><tt class="docutils literal"><span class="pre">abandoned</span></tt>: Abandoned call count.</li>
-<li><tt class="docutils literal"><span class="pre">hold_time</span></tt>: Average waiting time.</li>
-<li><tt class="docutils literal"><span class="pre">talk_time</span></tt>: Average talk time.</li>
-<li><tt class="docutils literal"><span class="pre">service_level</span></tt>: Service_level_perf interval time.</li>
-<li><tt class="docutils literal"><span class="pre">service_leve_perf</span></tt>: Service level performance.</li>
+<li><code class="docutils literal"><span class="pre">name</span></code>: Queue name.</li>
+<li><code class="docutils literal"><span class="pre">strategy</span></code>: Call distribution.</li>
+<li><code class="docutils literal"><span class="pre">max</span></code>: Max waiting call count.</li>
+<li><code class="docutils literal"><span class="pre">weight</span></code>: Queue priority.</li>
+<li><code class="docutils literal"><span class="pre">calls</span></code>: Waiting call count.</li>
+<li><code class="docutils literal"><span class="pre">completed</span></code>: Completed call count.</li>
+<li><code class="docutils literal"><span class="pre">abandoned</span></code>: Abandoned call count.</li>
+<li><code class="docutils literal"><span class="pre">hold_time</span></code>: Average waiting time.</li>
+<li><code class="docutils literal"><span class="pre">talk_time</span></code>: Average talk time.</li>
+<li><code class="docutils literal"><span class="pre">service_level</span></code>: Service_level_perf interval time.</li>
+<li><code class="docutils literal"><span class="pre">service_leve_perf</span></code>: Service level performance.</li>
 </ul>
 </div>
 <div class="section" id="id98">
 <h4>Example<a class="headerlink" href="#id98" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/queue_params/ -d &#39;{&quot;name&quot;: &quot;sales_1&quot;}&#39;
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ curl -X GET 192.168.200.10:8081/queue_params/ -d &#39;{&quot;name&quot;: &quot;sales_1&quot;}&#39;
 
 {
   &quot;api_ver&quot;: &quot;0.1&quot;,
@@ -1543,13 +1543,13 @@ sessions and are temporary.</p>
 <p>Get list of all queue member info.</p>
 <div class="section" id="id101">
 <h4>Call<a class="headerlink" href="#id101" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">GET</span> <span class="o">/</span><span class="n">queue_members</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">GET</span> <span class="o">/</span><span class="n">queue_members</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="id102">
 <h4>Returns<a class="headerlink" href="#id102" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>{
+<div class="highlight-default"><div class="highlight"><pre><span></span>{
   $defhdr,
   &quot;reuslt&quot;: {
     &quot;list&quot;: [
@@ -1565,10 +1565,10 @@ sessions and are temporary.</p>
 </div>
 <ul>
 <li><dl class="first docutils">
-<dt><tt class="docutils literal"><span class="pre">list</span></tt> <span class="classifier-delimiter">:</span> <span class="classifier">array of registry account.</span></dt>
-<dd><ul class="first last simple">
-<li><tt class="docutils literal"><span class="pre">name</span></tt>: Member name.</li>
-<li><tt class="docutils literal"><span class="pre">queue_name</span></tt>: Queue name.</li>
+<dt><code class="docutils literal"><span class="pre">list</span></code></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">array of registry account.</span><dd><ul class="first last simple">
+<li><code class="docutils literal"><span class="pre">name</span></code>: Member name.</li>
+<li><code class="docutils literal"><span class="pre">queue_name</span></code>: Queue name.</li>
 </ul>
 </dd>
 </dl>
@@ -1577,7 +1577,7 @@ sessions and are temporary.</p>
 </div>
 <div class="section" id="id103">
 <h4>Example<a class="headerlink" href="#id103" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/queue_params
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ curl -X GET 192.168.200.10:8081/queue_params
 
 {
   &quot;api_ver&quot;: &quot;0.1&quot;,
@@ -1616,21 +1616,21 @@ sessions and are temporary.</p>
 <p>Get queue member detail info of given queue member info.</p>
 <div class="section" id="id107">
 <h4>Call<a class="headerlink" href="#id107" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>GET /queue_params/
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">GET</span> <span class="o">/</span><span class="n">queue_params</span><span class="o">/</span>
 
-{
-  &quot;name&quot;: &quot;&lt;string&gt;&quot;,
-  &quot;queue_name&quot;: &quot;&lt;string&gt;&quot;
-}
+<span class="p">{</span>
+  <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;string&gt;&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;queue_name&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;string&gt;&quot;</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p>Data parameters</p>
 <ul>
 <li><dl class="first docutils">
-<dt><tt class="docutils literal"><span class="pre">account</span></tt>: Account info.</dt>
+<dt><code class="docutils literal"><span class="pre">account</span></code>: Account info.</dt>
 <dd><ul class="first last simple">
-<li><tt class="docutils literal"><span class="pre">name</span></tt>: Queue member name.</li>
-<li><tt class="docutils literal"><span class="pre">queue_name</span></tt>: Queue name.</li>
+<li><code class="docutils literal"><span class="pre">name</span></code>: Queue member name.</li>
+<li><code class="docutils literal"><span class="pre">queue_name</span></code>: Queue name.</li>
 </ul>
 </dd>
 </dl>
@@ -1639,7 +1639,7 @@ sessions and are temporary.</p>
 </div>
 <div class="section" id="id108">
 <h4>Returns<a class="headerlink" href="#id108" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>{
+<div class="highlight-default"><div class="highlight"><pre><span></span>{
   $defhdr,
   &quot;reuslt&quot;: {
     &quot;name&quot;: &quot;&lt;string&gt;&quot;,
@@ -1669,25 +1669,25 @@ sessions and are temporary.</p>
 </div>
 <p>Return parameters</p>
 <ul class="simple">
-<li><tt class="docutils literal"><span class="pre">name</span></tt>: The name of the queue member.</li>
-<li><tt class="docutils literal"><span class="pre">queue_name</span></tt>: The name of the queue.</li>
-<li><tt class="docutils literal"><span class="pre">status</span></tt>: The numeric device state status of the queue member.</li>
-<li><tt class="docutils literal"><span class="pre">membership</span></tt>: Membership of queue member.</li>
-<li><tt class="docutils literal"><span class="pre">state_interface</span></tt>: Channel technology or location from which to read device state changes.</li>
-<li><tt class="docutils literal"><span class="pre">location</span></tt>: The queue member&#8217;s channel technology or location.</li>
-<li><tt class="docutils literal"><span class="pre">paused</span></tt>: Paused.</li>
-<li><tt class="docutils literal"><span class="pre">paused_reason</span></tt>: If set when paused, the reason the queue member was paused.</li>
-<li><tt class="docutils literal"><span class="pre">penalty</span></tt>: The penalty associated with the queue member.</li>
-<li><tt class="docutils literal"><span class="pre">calls_taken</span></tt>: The number of calls this queue member has serviced.</li>
-<li><tt class="docutils literal"><span class="pre">in_call</span></tt>: Set to 1 if member is in call. Set to 0 after LastCall time is updated.</li>
-<li><tt class="docutils literal"><span class="pre">last_call</span></tt>: The time this member last took a call, expressed in seconds since 00:00, Jan 1, 1970 UTC.</li>
-<li><tt class="docutils literal"><span class="pre">last_pause</span></tt>: The time when started last paused the queue member.</li>
-<li><tt class="docutils literal"><span class="pre">ring_inuse</span></tt>: Ring in use option.</li>
+<li><code class="docutils literal"><span class="pre">name</span></code>: The name of the queue member.</li>
+<li><code class="docutils literal"><span class="pre">queue_name</span></code>: The name of the queue.</li>
+<li><code class="docutils literal"><span class="pre">status</span></code>: The numeric device state status of the queue member.</li>
+<li><code class="docutils literal"><span class="pre">membership</span></code>: Membership of queue member.</li>
+<li><code class="docutils literal"><span class="pre">state_interface</span></code>: Channel technology or location from which to read device state changes.</li>
+<li><code class="docutils literal"><span class="pre">location</span></code>: The queue member&#8217;s channel technology or location.</li>
+<li><code class="docutils literal"><span class="pre">paused</span></code>: Paused.</li>
+<li><code class="docutils literal"><span class="pre">paused_reason</span></code>: If set when paused, the reason the queue member was paused.</li>
+<li><code class="docutils literal"><span class="pre">penalty</span></code>: The penalty associated with the queue member.</li>
+<li><code class="docutils literal"><span class="pre">calls_taken</span></code>: The number of calls this queue member has serviced.</li>
+<li><code class="docutils literal"><span class="pre">in_call</span></code>: Set to 1 if member is in call. Set to 0 after LastCall time is updated.</li>
+<li><code class="docutils literal"><span class="pre">last_call</span></code>: The time this member last took a call, expressed in seconds since 00:00, Jan 1, 1970 UTC.</li>
+<li><code class="docutils literal"><span class="pre">last_pause</span></code>: The time when started last paused the queue member.</li>
+<li><code class="docutils literal"><span class="pre">ring_inuse</span></code>: Ring in use option.</li>
 </ul>
 </div>
 <div class="section" id="id109">
 <h4>Example<a class="headerlink" href="#id109" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/queue_members/ -d &#39;{&quot;name&quot;: &quot;sip/agent-01&quot;, &quot;queue_name&quot;:&quot;sales_1&quot;}&#39;
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ curl -X GET 192.168.200.10:8081/queue_members/ -d &#39;{&quot;name&quot;: &quot;sip/agent-01&quot;, &quot;queue_name&quot;:&quot;sales_1&quot;}&#39;
 
 {
   &quot;api_ver&quot;: &quot;0.1&quot;,
@@ -1727,13 +1727,13 @@ sessions and are temporary.</p>
 <p>Get list of all queue entries info.</p>
 <div class="section" id="id112">
 <h4>Call<a class="headerlink" href="#id112" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">GET</span> <span class="o">/</span><span class="n">queue_entries</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">GET</span> <span class="o">/</span><span class="n">queue_entries</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="id113">
 <h4>Returns<a class="headerlink" href="#id113" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>{
+<div class="highlight-default"><div class="highlight"><pre><span></span>{
   $defhdr,
   &quot;reuslt&quot;: {
     &quot;list&quot;: [
@@ -1749,10 +1749,10 @@ sessions and are temporary.</p>
 </div>
 <ul>
 <li><dl class="first docutils">
-<dt><tt class="docutils literal"><span class="pre">list</span></tt> <span class="classifier-delimiter">:</span> <span class="classifier">array of queue entries.</span></dt>
-<dd><ul class="first last simple">
-<li><tt class="docutils literal"><span class="pre">unique_id</span></tt>: unique id.</li>
-<li><tt class="docutils literal"><span class="pre">queue_name</span></tt>: Queue name.</li>
+<dt><code class="docutils literal"><span class="pre">list</span></code></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">array of queue entries.</span><dd><ul class="first last simple">
+<li><code class="docutils literal"><span class="pre">unique_id</span></code>: unique id.</li>
+<li><code class="docutils literal"><span class="pre">queue_name</span></code>: Queue name.</li>
 </ul>
 </dd>
 </dl>
@@ -1761,7 +1761,7 @@ sessions and are temporary.</p>
 </div>
 <div class="section" id="id114">
 <h4>Example<a class="headerlink" href="#id114" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/queue_entries
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ curl -X GET 192.168.200.10:8081/queue_entries
 
 {
   &quot;api_ver&quot;: &quot;0.1&quot;,
@@ -1792,21 +1792,21 @@ sessions and are temporary.</p>
 <p>Get queue entry detail info of given queue entry info.</p>
 <div class="section" id="id118">
 <h4>Call<a class="headerlink" href="#id118" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>GET /queue_entries/
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">GET</span> <span class="o">/</span><span class="n">queue_entries</span><span class="o">/</span>
 
-{
-  &quot;unique_id&quot;: &quot;&lt;string&gt;&quot;,
-  &quot;queue_name&quot;: &quot;&lt;string&gt;&quot;
-}
+<span class="p">{</span>
+  <span class="s2">&quot;unique_id&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;string&gt;&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;queue_name&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;string&gt;&quot;</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p>Data parameters</p>
 <ul>
 <li><dl class="first docutils">
-<dt><tt class="docutils literal"><span class="pre">account</span></tt>: Account info.</dt>
+<dt><code class="docutils literal"><span class="pre">account</span></code>: Account info.</dt>
 <dd><ul class="first last simple">
-<li><tt class="docutils literal"><span class="pre">channel</span></tt>: Queue entry channel name.</li>
-<li><tt class="docutils literal"><span class="pre">queue_name</span></tt>: Queue name.</li>
+<li><code class="docutils literal"><span class="pre">channel</span></code>: Queue entry channel name.</li>
+<li><code class="docutils literal"><span class="pre">queue_name</span></code>: Queue name.</li>
 </ul>
 </dd>
 </dl>
@@ -1815,7 +1815,7 @@ sessions and are temporary.</p>
 </div>
 <div class="section" id="id119">
 <h4>Returns<a class="headerlink" href="#id119" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>{
+<div class="highlight-default"><div class="highlight"><pre><span></span>{
   $defhdr,
   &quot;reuslt&quot;: {
     &quot;unique_id&quot;: &quot;5086b7ea-0072-4a2d-a632-4bc1477e6060&quot;,
@@ -1837,20 +1837,20 @@ sessions and are temporary.</p>
 </div>
 <p>Return parameters</p>
 <ul class="simple">
-<li><tt class="docutils literal"><span class="pre">unique_id</span></tt>: Unique id of channel.</li>
-<li><tt class="docutils literal"><span class="pre">caller_id_num</span></tt>: The name of the queue.</li>
-<li><tt class="docutils literal"><span class="pre">channel</span></tt>: Channel name.</li>
-<li><tt class="docutils literal"><span class="pre">caller_id_name</span></tt>: Caller&#8217;s name.</li>
-<li><tt class="docutils literal"><span class="pre">caller_id_num</span></tt>: Caller&#8217;s number.</li>
-<li><tt class="docutils literal"><span class="pre">connected_line_name</span></tt>: Connected line&#8217;s name.</li>
-<li><tt class="docutils literal"><span class="pre">connected_line_num</span></tt>: Connected line&#8217;s number.</li>
-<li><tt class="docutils literal"><span class="pre">position</span></tt>: Position in the queue.</li>
-<li><tt class="docutils literal"><span class="pre">wait</span></tt>: If set when paused, the reason the queue member was paused.</li>
+<li><code class="docutils literal"><span class="pre">unique_id</span></code>: Unique id of channel.</li>
+<li><code class="docutils literal"><span class="pre">caller_id_num</span></code>: The name of the queue.</li>
+<li><code class="docutils literal"><span class="pre">channel</span></code>: Channel name.</li>
+<li><code class="docutils literal"><span class="pre">caller_id_name</span></code>: Caller&#8217;s name.</li>
+<li><code class="docutils literal"><span class="pre">caller_id_num</span></code>: Caller&#8217;s number.</li>
+<li><code class="docutils literal"><span class="pre">connected_line_name</span></code>: Connected line&#8217;s name.</li>
+<li><code class="docutils literal"><span class="pre">connected_line_num</span></code>: Connected line&#8217;s number.</li>
+<li><code class="docutils literal"><span class="pre">position</span></code>: Position in the queue.</li>
+<li><code class="docutils literal"><span class="pre">wait</span></code>: If set when paused, the reason the queue member was paused.</li>
 </ul>
 </div>
 <div class="section" id="id120">
 <h4>Example<a class="headerlink" href="#id120" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/queue_entries/ -d \
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ curl -X GET 192.168.200.10:8081/queue_entries/ -d \
 &#39;{&quot;channel&quot;: &quot;SIP/300-000001d6&quot;, &quot;queue_name&quot;: &quot;sales_1&quot;}&#39;
 
 {
@@ -1881,7 +1881,7 @@ sessions and are temporary.</p>
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
@@ -2131,29 +2131,28 @@ sessions and are temporary.</p>
   <h4>Next topic</h4>
   <p class="topless"><a href="ob_basic.html"
                         title="next chapter">Outbound Basic</a></p>
-  <h3>This Page</h3>
-  <ul class="this-page-menu">
-    <li><a href="_sources/api.txt"
-           rel="nofollow">Show Source</a></li>
-  </ul>
-<div id="searchbox" style="display: none">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/api.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -2165,12 +2164,12 @@ sessions and are temporary.</p>
         <li class="right" >
           <a href="structure.html" title="Structure"
              >previous</a> |</li>
-        <li><a href="index.html">jade 0.0.1 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">jade 0.0.1 documentation</a> &raquo;</li> 
       </ul>
     </div>
-    <div class="footer">
+    <div class="footer" role="contentinfo">
         &copy; Copyright 2017, pchero.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.4.
     </div>
   </body>
 </html>
