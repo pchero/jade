@@ -224,6 +224,7 @@ void htp_get_voicemail_vms_msgname(evhtp_request_t *req, void *data)
 
   // reply
   evhtp_headers_add_header(req->headers_out, evhtp_header_new("Content-Type", "application/octet-stream", 0, 0));
+  evhtp_headers_add_header(req->headers_out, evhtp_header_new("Access-Control-Allow-Origin", "*", 0, 0));
   asprintf(&tmp, "attachment; filename=%s.wav", msgname);
   evhtp_headers_add_header(req->headers_out, evhtp_header_new("content-disposition", tmp, 0, 0));
   evhtp_send_reply(req, EVHTP_RES_OK);
