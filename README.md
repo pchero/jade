@@ -27,7 +27,7 @@ This module makes easy to managing the calls.
 * libevent2
 * libbsd
 * libjansson
-* libevhtp(https://github.com/ellzey/libevhtp)
+* libevhtp(https://github.com/criticalstack/libevhtp)
 * libssl
 
 ## Manual
@@ -35,6 +35,7 @@ This module makes easy to managing the calls.
 
 ## Library issue
 * libevhtp
+  * The libevhtp repository has been changed(https://github.com/criticalstack/libevhtp).
   * The libevhtp-v1.2.10, v1.2.11, v1.2.11n has memory leak problem(https://github.com/ellzey/libevhtp/issues/177).
   * It was fixed in develop branch. Recommand use the newst develop branch(https://github.com/ellzey/libevhtp.git).
 
