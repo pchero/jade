@@ -305,6 +305,35 @@ json_t* create_default_result(int code)
   return j_res;
 }
 
+json_t* get_json_from_request_data(evhtp_request_t* req)
+{
+	const char* tmp_const;
+	char* tmp;
+	json_t* j_data;
+
+	if(req == NULL) {
+		slog(LOG_WARNING, "Wrong input parameter.");
+		return NULL;
+	}
+
+  // get data
+  tmp_const = (char*)evbuffer_pullup(req->buffer_in, evbuffer_get_length(req->buffer_in));
+  if(tmp_const == NULL) {
+    return NULL;
+  }
+
+  // create json
+  tmp = strndup(tmp_const, evbuffer_get_length(req->buffer_in));
+  slog(LOG_DEBUG, "Requested data. data[%s]", tmp);
+  j_data = json_loads(tmp, JSON_DECODE_ANY, NULL);
+  sfree(tmp);
+  if(j_data == NULL) {
+    return NULL;
+  }
+
+  return j_data;
+}
+
 /**
  * http request handler
  * ^/ping
@@ -1779,14 +1808,18 @@ static void cb_htp_voicemail_users(evhtp_request_t *req, void *data)
 
   // method check
   method = evhtp_request_get_method(req);
-  if(method != htp_method_GET) {
+  if((method != htp_method_GET) && (method != htp_method_POST)) {
     simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   if(method == htp_method_GET) {
-    htp_get_voicemail_users(req, NULL);
+    htp_get_voicemail_users(req, data);
     return;
+  }
+  else if(method == htp_method_POST) {
+  	htp_post_voicemail_users(req, data);
+  	return;
   }
   else {
     // should not reach to here.
