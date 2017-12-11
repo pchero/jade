@@ -19,18 +19,20 @@
 #include "http_handler.h"
 #include "ami_handler.h"
 
-#include "ini.h"
+//#include "ini.h"
+#include "minIni.h"
 #include "voicemail_handler.h"
 
 extern app* g_app;
 
 
-static json_t* get_vms_status(const char* directory, const char* status, const char* dir);
+static json_t* get_vm_info(const char* filename);
 static json_t* get_vms_info_all(const char* context, const char* mailbox);
-static int vm_info_parser(void* data, const char* section, const char* name, const char* value);
+static json_t* get_vms_status(const char* directory, const char* status, const char* dir);
 static void strip_ext(char *fname);
 static char* get_vm_filename(const char* context, const char* mailbox, const char* dir, const char* msgname);
 static bool remove_vm(const char* context, const char* mailbox, const char* dir, const char* msgname);
+
 
 /**
  * GET ^/voicemail/users request handler.
@@ -329,28 +331,81 @@ static char* get_vm_filename(const char* context, const char* mailbox, const cha
   return res;
 }
 
-/**
- * Voicemail status file parser
- * @param data
- * @param section
- * @param name
- * @param value
- * @return
- */
-static int vm_info_parser(
-    void* data,
-    const char* section,
-    const char* name,
-    const char* value
-    )
+static json_t* get_vm_info(const char* filename)
 {
-  json_t* j_data;
+  json_t* j_res;
+  json_t* j_tmp;
+  int idx;
+  char tmp_data[2048];
+  const char* tmp_const;
+  json_t* j_message_items;
 
-  j_data = (json_t*)data;
+  if(filename == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
 
-  json_object_set_new(j_data, name, json_string(value));
-  return 1;
+  /**
+   * voicemail [message] section items.
+   */
+  j_message_items = json_pack(
+      "["
+        "s, s, s, s, s, "
+        "s, s, s, s, s, "
+        "s, s, s, s"
+      "]",
+
+      "origmailbox",
+      "context",
+      "macrocontext",
+      "exten",
+      "rdnis",
+
+      "priority",
+      "callerchan",
+      "callerid",
+      "origdate",
+      "origtime",
+
+      "category",
+      "msg_id",
+      "flag",
+      "duration"
+      );
+
+  // get [message] info.
+  j_res = json_object();
+  json_array_foreach(j_message_items, idx, j_tmp) {
+    tmp_const = json_string_value(j_tmp);
+    ini_gets("message", tmp_const, "", tmp_data, sizeof(tmp_data), filename);
+    json_object_set_new(j_res, tmp_const, json_string(tmp_data));
+  }
+
+  return j_res;
 }
+
+///**
+// * Voicemail status file parser
+// * @param data
+// * @param section
+// * @param name
+// * @param value
+// * @return
+// */
+//static int vm_info_parser(
+//    void* data,
+//    const char* section,
+//    const char* name,
+//    const char* value
+//    )
+//{
+//  json_t* j_data;
+//
+//  j_data = (json_t*)data;
+//
+//  json_object_set_new(j_data, name, json_string(value));
+//  return 1;
+//}
 
 /**
  @brief strip extension
@@ -502,7 +557,6 @@ static json_t* get_vms_status(const char* directory, const char* status, const c
 {
   json_t* j_res;
   json_t* j_tmp;
-  int ret;
   char* filename;
   char* msgname;
   DIR* d_dir;
@@ -537,15 +591,22 @@ static json_t* get_vms_status(const char* directory, const char* status, const c
     // create filename
     asprintf(&filename, "%s/%s", directory, ent->d_name);
 
-    // parse
-    j_tmp = json_object();
-    ret = ini_parse(filename, vm_info_parser, j_tmp);
+    // get vm info
+    j_tmp = get_vm_info(filename);
     sfree(filename);
-    if(ret != 0) {
-      slog(LOG_ERR, "Could not parse the file correctly. err[%d:%s]", errno, strerror(errno));
-      json_decref(j_tmp);
+    if(j_tmp == NULL) {
+      slog(LOG_ERR, "Could not parse the voicemail info. err[%d:%s]", errno, strerror(errno));
       continue;
     }
+
+//    j_tmp = json_object();
+//    ret = ini_parse(filename, vm_info_parser, j_tmp);
+//    sfree(filename);
+//    if(ret != 0) {
+//      slog(LOG_ERR, "Could not parse the file correctly. err[%d:%s]", errno, strerror(errno));
+//      json_decref(j_tmp);
+//      continue;
+//    }
 
     // set status
     json_object_set_new(j_tmp, "status", json_string(status));

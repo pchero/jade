@@ -102,96 +102,103 @@ bool init_http_handler(void)
   evhtp_bind_socket(g_htp, http_addr, http_port, 1024);
 
   // register callback
-  evhtp_set_regex_cb(g_htp, "/ping", cb_htp_ping, NULL);
+  evhtp_set_cb(g_htp, "/ping", cb_htp_ping, NULL);
 
   // peers
-  evhtp_set_regex_cb(g_htp, "/peers/", cb_htp_peers_detail, NULL);
-  evhtp_set_regex_cb(g_htp, "/peers", cb_htp_peers, NULL);
+  evhtp_set_cb(g_htp, "/peers/", cb_htp_peers_detail, NULL);
+  evhtp_set_cb(g_htp, "/peers", cb_htp_peers, NULL);
 
   // databases - deprecated
-  evhtp_set_regex_cb(g_htp, "/databases/", cb_htp_databases_key, NULL);
-  evhtp_set_regex_cb(g_htp, "/databases", cb_htp_databases, NULL);
+  evhtp_set_cb(g_htp, "/databases/", cb_htp_databases_key, NULL);
+  evhtp_set_cb(g_htp, "/databases", cb_htp_databases, NULL);
 
   // registres
-  evhtp_set_regex_cb(g_htp, "/registries/", cb_htp_registries_detail, NULL);
-  evhtp_set_regex_cb(g_htp, "/registries", cb_htp_registries, NULL);
+  evhtp_set_cb(g_htp, "/registries/", cb_htp_registries_detail, NULL);
+  evhtp_set_cb(g_htp, "/registries", cb_htp_registries, NULL);
 
   // queue_params
-  evhtp_set_regex_cb(g_htp, "/queue_params/", cb_htp_queue_params_detail, NULL);
-  evhtp_set_regex_cb(g_htp, "/queue_params", cb_htp_queue_params, NULL);
+  evhtp_set_cb(g_htp, "/queue_params/", cb_htp_queue_params_detail, NULL);
+  evhtp_set_cb(g_htp, "/queue_params", cb_htp_queue_params, NULL);
 
   // queue_members
-  evhtp_set_regex_cb(g_htp, "/queue_members/", cb_htp_queue_members_detail, NULL);
-  evhtp_set_regex_cb(g_htp, "/queue_members", cb_htp_queue_members, NULL);
+  evhtp_set_cb(g_htp, "/queue_members/", cb_htp_queue_members_detail, NULL);
+  evhtp_set_cb(g_htp, "/queue_members", cb_htp_queue_members, NULL);
 
   // queue_entries
-  evhtp_set_regex_cb(g_htp, "/queue_entries/", cb_htp_queue_entries_detail, NULL);
-  evhtp_set_regex_cb(g_htp, "/queue_entries", cb_htp_queue_entries, NULL);
+  evhtp_set_cb(g_htp, "/queue_entries/", cb_htp_queue_entries_detail, NULL);
+  evhtp_set_cb(g_htp, "/queue_entries", cb_htp_queue_entries, NULL);
 
   // queue_entries
-  evhtp_set_regex_cb(g_htp, "/channels/", cb_htp_channels_detail, NULL);
-  evhtp_set_regex_cb(g_htp, "/channels", cb_htp_channels, NULL);
+  evhtp_set_cb(g_htp, "/channels/", cb_htp_channels_detail, NULL);
+  evhtp_set_cb(g_htp, "/channels", cb_htp_channels, NULL);
 
   // agents
-  evhtp_set_regex_cb(g_htp, "/agents/", cb_htp_agents_detail, NULL);
-  evhtp_set_regex_cb(g_htp, "/agents", cb_htp_agents, NULL);
+  evhtp_set_cb(g_htp, "/agents/", cb_htp_agents_detail, NULL);
+  evhtp_set_cb(g_htp, "/agents", cb_htp_agents, NULL);
 
   // systems
-  evhtp_set_regex_cb(g_htp, "/systems/", cb_htp_systems_detail, NULL);
-  evhtp_set_regex_cb(g_htp, "/systems", cb_htp_systems, NULL);
+  evhtp_set_cb(g_htp, "/systems/", cb_htp_systems_detail, NULL);
+  evhtp_set_cb(g_htp, "/systems", cb_htp_systems, NULL);
 
   // device_states
-  evhtp_set_regex_cb(g_htp, "/device_states/", cb_htp_device_states_detail, NULL);
-  evhtp_set_regex_cb(g_htp, "/device_states", cb_htp_device_states, NULL);
+  evhtp_set_cb(g_htp, "/device_states/", cb_htp_device_states_detail, NULL);
+  evhtp_set_cb(g_htp, "/device_states", cb_htp_device_states, NULL);
 
   // parking_lots
-  evhtp_set_regex_cb(g_htp, "/parking_lots/", cb_htp_parking_lots_detail, NULL);
-  evhtp_set_regex_cb(g_htp, "/parking_lots", cb_htp_parking_lots, NULL);
+  evhtp_set_cb(g_htp, "/parking_lots/", cb_htp_parking_lots_detail, NULL);
+  evhtp_set_cb(g_htp, "/parking_lots", cb_htp_parking_lots, NULL);
 
   // parked_calls
-  evhtp_set_regex_cb(g_htp, "/parked_calls/", cb_htp_parked_calls_detail, NULL);
-  evhtp_set_regex_cb(g_htp, "/parked_calls", cb_htp_parked_calls, NULL);
+  evhtp_set_cb(g_htp, "/parked_calls/", cb_htp_parked_calls_detail, NULL);
+  evhtp_set_cb(g_htp, "/parked_calls", cb_htp_parked_calls, NULL);
 
 
   ////// ^/ob/
   ////// outbound modules
   // destinations
-  evhtp_set_regex_cb(g_htp, "/ob/destinations/("DEF_REG_UUID")", cb_htp_ob_destinations_uuid, NULL);
-  evhtp_set_regex_cb(g_htp, "/ob/destinations/", cb_htp_ob_destinations_all, NULL);
-  evhtp_set_regex_cb(g_htp, "/ob/destinations", cb_htp_ob_destinations, NULL);
+//  evhtp_set_cb(g_htp, "/ob/destinations/("DEF_REG_UUID")", cb_htp_ob_destinations_uuid, NULL);
+//  evhtp_set_cb(g_htp, "/ob/destinations/", cb_htp_ob_destinations_all, NULL);
+  evhtp_set_cb(g_htp, "/ob/destinations/", cb_htp_ob_destinations_uuid, NULL);
+  evhtp_set_cb(g_htp, "/ob/destinations", cb_htp_ob_destinations, NULL);
 
   // plans
-  evhtp_set_regex_cb(g_htp, "/ob/plans/("DEF_REG_UUID")", cb_htp_ob_plans_uuid, NULL);
-  evhtp_set_regex_cb(g_htp, "/ob/plans/", cb_htp_ob_plans_all, NULL);
-  evhtp_set_regex_cb(g_htp, "/ob/plans", cb_htp_ob_plans, NULL);
+//  evhtp_set_cb(g_htp, "/ob/plans/("DEF_REG_UUID")", cb_htp_ob_plans_uuid, NULL);
+//  evhtp_set_cb(g_htp, "/ob/plans/", cb_htp_ob_plans_all, NULL);
+  evhtp_set_cb(g_htp, "/ob/plans/", cb_htp_ob_plans_uuid, NULL);
+  evhtp_set_cb(g_htp, "/ob/plans", cb_htp_ob_plans, NULL);
 
   // campaigns
-  evhtp_set_regex_cb(g_htp, "/ob/campaigns/("DEF_REG_UUID")", cb_htp_ob_campaigns_uuid, NULL);
-  evhtp_set_regex_cb(g_htp, "/ob/campaigns/", cb_htp_ob_campaigns_all, NULL);
-  evhtp_set_regex_cb(g_htp, "/ob/campaigns", cb_htp_ob_campaigns, NULL);
+//  evhtp_set_cb(g_htp, "/ob/campaigns/("DEF_REG_UUID")", cb_htp_ob_campaigns_uuid, NULL);
+//  evhtp_set_cb(g_htp, "/ob/campaigns/", cb_htp_ob_campaigns_all, NULL);
+  evhtp_set_cb(g_htp, "/ob/campaigns/", cb_htp_ob_campaigns_uuid, NULL);
+  evhtp_set_cb(g_htp, "/ob/campaigns", cb_htp_ob_campaigns, NULL);
 
   // dlmas
-  evhtp_set_regex_cb(g_htp, "/ob/dlmas/("DEF_REG_UUID")", cb_htp_ob_dlmas_uuid, NULL);
-  evhtp_set_regex_cb(g_htp, "/ob/dlmas/", cb_htp_ob_dlmas_all, NULL);
-  evhtp_set_regex_cb(g_htp, "/ob/dlmas", cb_htp_ob_dlmas, NULL);
+//  evhtp_set_cb(g_htp, "/ob/dlmas/("DEF_REG_UUID")", cb_htp_ob_dlmas_uuid, NULL);
+//  evhtp_set_cb(g_htp, "/ob/dlmas/", cb_htp_ob_dlmas_all, NULL);
+  evhtp_set_cb(g_htp, "/ob/dlmas/", cb_htp_ob_dlmas_uuid, NULL);
+  evhtp_set_cb(g_htp, "/ob/dlmas", cb_htp_ob_dlmas, NULL);
 
   // dls
-  evhtp_set_regex_cb(g_htp, "/ob/dls/("DEF_REG_UUID")", cb_htp_ob_dls_uuid, NULL);
-  evhtp_set_regex_cb(g_htp, "/ob/dls/", cb_htp_ob_dls_all, NULL);
-  evhtp_set_regex_cb(g_htp, "/ob/dls", cb_htp_ob_dls, NULL);
+//  evhtp_set_cb(g_htp, "/ob/dls/("DEF_REG_UUID")", cb_htp_ob_dls_uuid, NULL);
+//  evhtp_set_cb(g_htp, "/ob/dls/", cb_htp_ob_dls_all, NULL);
+  evhtp_set_cb(g_htp, "/ob/dls/", cb_htp_ob_dls_uuid, NULL);
+  evhtp_set_cb(g_htp, "/ob/dls", cb_htp_ob_dls, NULL);
 
   // dialings
-  evhtp_set_regex_cb(g_htp, "/ob/dialings/("DEF_REG_UUID")", cb_htp_ob_dialings_uuid, NULL);
+//  evhtp_set_cb(g_htp, "/ob/dialings/("DEF_REG_UUID")", cb_htp_ob_dialings_uuid, NULL);
 //  evhtp_set_regex_cb(g_htp, "/ob/dialings/", cb_htp_ob_dialings_all, NULL);
-  evhtp_set_regex_cb(g_htp, "/ob/dialings", cb_htp_ob_dialings, NULL);
+  evhtp_set_cb(g_htp, "/ob/dialings/", cb_htp_ob_dialings_uuid, NULL);
+  evhtp_set_cb(g_htp, "/ob/dialings", cb_htp_ob_dialings, NULL);
 
   // voicemail
   // users
-  evhtp_set_regex_cb(g_htp, "/voicemail/users", cb_htp_voicemail_users, NULL);
+  evhtp_set_cb(g_htp, "/voicemail/users", cb_htp_voicemail_users, NULL);
 
   // vms
-  evhtp_set_regex_cb(g_htp, "/voicemail/vms/("DEF_REG_MSGNAME")", cb_htp_voicemail_vms_msgname, NULL);
-  evhtp_set_regex_cb(g_htp, "/voicemail/vms", cb_htp_voicemail_vms, NULL);
+//  evhtp_set_cb(g_htp, "/voicemail/vms/("DEF_REG_MSGNAME")", cb_htp_voicemail_vms_msgname, NULL);
+  evhtp_set_cb(g_htp, "/voicemail/vms/", cb_htp_voicemail_vms_msgname, NULL);
+  evhtp_set_cb(g_htp, "/voicemail/vms", cb_htp_voicemail_vms, NULL);
 
 
   return true;
