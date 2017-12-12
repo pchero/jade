@@ -113,6 +113,22 @@ json_t* get_peers_all_peer(void)
 }
 
 /**
+ * Get all peers array
+ * @return
+ */
+json_t* get_peers_all(void)
+{
+  json_t* j_res;
+
+  slog(LOG_DEBUG, "Fired get_peers_all.");
+
+  j_res = get_items("peer", "*");
+
+  return j_res;
+}
+
+
+/**
  * Get given peer's detail info.
  * @return
  */
@@ -279,6 +295,19 @@ json_t* get_registry_info(const char* account)
   }
   return j_tmp;
 }
+
+/**
+ * Get all registries array
+ * @return
+ */
+json_t* get_registries_all(void)
+{
+  json_t* j_res;
+
+  j_res = get_items("registry", "*");
+  return j_res;
+}
+
 
 /**
  * Get all registry account array
@@ -518,7 +547,18 @@ json_t* get_channels_all_unique_id(void)
 
   asprintf(&sql, "select * from channel;");
   ret = db_ctx_query(g_db_ast, sql);
-  sfree(sql);
+  sfree(sql);/**
+   * Get all channel's array
+   * @return
+   */
+  json_t* get_channels_all(void)
+  {
+    json_t* j_res;
+
+    j_res = get_items("channel", "*");
+    return j_res;
+  }
+
   if(ret == false) {
     slog(LOG_WARNING, "Could not get correct channel info.");
     return NULL;
@@ -543,6 +583,18 @@ json_t* get_channels_all_unique_id(void)
   }
   db_ctx_free(g_db_ast);
 
+  return j_res;
+}
+
+/**
+ * Get all channel's array
+ * @return
+ */
+json_t* get_channels_all(void)
+{
+  json_t* j_res;
+
+  j_res = get_items("channel", "*");
   return j_res;
 }
 
@@ -623,6 +675,22 @@ json_t* get_agents_all_id(void)
 }
 
 /**
+ * Get all agents array
+ * @return
+ */
+json_t* get_agents_all(void)
+{
+  json_t* j_res;
+
+  slog(LOG_DEBUG, "Fired get_agents_all.");
+
+  j_res = get_items("agent", "*");
+
+  return j_res;
+}
+
+
+/**
  * Get corresponding agent detail info.
  * @return
  */
@@ -668,6 +736,22 @@ json_t* get_systems_all_id(void)
 
   return j_res;
 }
+
+/**
+ * Get all system's array
+ * @return
+ */
+json_t* get_systems_all(void)
+{
+  json_t* j_res;
+
+  slog(LOG_DEBUG, "Fired get_systems_all.");
+
+  j_res = get_items("system", "*");
+
+  return j_res;
+}
+
 
 /**
  * Get corresponding system detail info.
