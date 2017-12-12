@@ -22,8 +22,10 @@
 #define DEF_GENERAL_DATABASE_NAME ":memory:"
 #define DEF_GENERAL_EVENT_TIME_FAST "100000"
 #define DEF_GENERAL_EVENT_TIME_SLOW "3000000"
+#define DEF_GENERAL_DIR_CONF	"/etc/asterisk"
 
 #define DEF_VOICEMAIL_DIRECTORY "/var/spool/asterisk/voicemail"
+#define DEF_VOICEMAIL_CONFNAME "voicemail.conf"
 
 #define DEF_OB_DIALING_RESULT_FILENAME  "./outbound_result.json"
 #define DEF_OB_DIALING_TIMEOUT          "30"
@@ -83,14 +85,20 @@ static bool load_config(void)
   int ret;
   json_t* j_conf_def;
   json_t* j_conf;
+  const char* key;
+  json_t* j_tmp;
 
   slog(LOG_INFO, "Load configuration file. filename[%s]", g_config_filename);
 
   // create default conf
   j_conf_def = json_pack("{"
-      "s:{s:s, s:s, s:s, s:s, s:s, s:s, s:s, s:s, s:s, s:s},"
-      "s:{s:s}, "
-      "s:{s:s, s:s, s:s}"
+      "s:{"
+      	"s:s, s:s, s:s, s:s, s:s, "
+      	"s:s, s:s, s:s, s:s, s:s, "
+      	"s:s"
+			"},"	// general
+      "s:{s:s, s:s}, "	// voicemail
+      "s:{s:s, s:s, s:s}"	// ob
       "}",
       "general",
         "ami_serv_addr",    DEF_GENERAL_AMI_SERV_ADDR,
@@ -98,14 +106,18 @@ static bool load_config(void)
         "ami_username",     "",
         "ami_password",     "",
         "loglevel",         DEF_GENERAL_LOGLEVEL,
+
         "database_name",    DEF_GENERAL_DATABASE_NAME,
         "http_addr",        DEF_GENERAL_HTTP_ADDR,
         "http_port",        DEF_GENERAL_HTTP_PORT,
         "event_time_fast",  DEF_GENERAL_EVENT_TIME_FAST,
         "event_time_slow",  DEF_GENERAL_EVENT_TIME_SLOW,
 
+				"directory_conf",		DEF_GENERAL_DIR_CONF,
+
       "voicemail",
         "dicretory",        DEF_VOICEMAIL_DIRECTORY,
+				"conf_name",				DEF_VOICEMAIL_CONFNAME,
 
       "ob",
         "dialing_result_filename",  DEF_OB_DIALING_RESULT_FILENAME,
@@ -120,7 +132,9 @@ static bool load_config(void)
   j_conf = json_load_file(g_config_filename, JSON_DECODE_ANY, NULL);
 
   // update conf
-  json_object_update(j_conf_def, j_conf);
+  json_object_foreach(j_conf_def, key, j_tmp) {
+  	json_object_update(j_tmp, json_object_get(j_conf, key));
+  }
   json_decref(j_conf);
 
   if(g_app->j_conf != NULL) {
