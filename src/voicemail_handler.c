@@ -23,6 +23,8 @@
 #include "minIni.h"
 #include "voicemail_handler.h"
 
+#define DEF_SETTING_CONTEXT "general"
+
 extern app* g_app;
 
 static json_t* get_vm_info(const char* filename);
@@ -30,10 +32,20 @@ static json_t* get_vms_info_all(const char* context, const char* mailbox);
 static json_t* get_vms_status(const char* directory, const char* status, const char* dir);
 static void strip_ext(char *fname);
 static char* get_vm_filename(const char* context, const char* mailbox, const char* dir, const char* msgname);
+
+static int delete_voicemail_user(const char* context, const char* mailbox);
 static bool remove_vm(const char* context, const char* mailbox, const char* dir, const char* msgname);
 static int create_voicemail_user(json_t* j_data);
+static int update_voicemail_user(json_t* j_data);
 
 static char* create_voicemail_confname(void);
+
+static bool is_exist_voicemail_user(const char* context, const char* mailbox);
+static bool is_setting_context(const char* context);
+
+static int remove_voicemail_user_info(const char* context, const char* mailbox);
+static int write_voicemail_user_info(json_t* j_data);
+
 
 /**
  * GET ^/voicemail/users request handler.
@@ -113,6 +125,160 @@ void htp_post_voicemail_users(evhtp_request_t *req, void *data)
   return;
 }
 
+/**
+ * GET ^/voicemail/users/?context=<context>&mailbox=<mailbox> request handler.
+ * @param req
+ * @param data
+ */
+void htp_get_voicemail_users_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_tmp;
+  json_t* j_res;
+  const char* context;
+  const char* mailbox;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired htp_get_voicemail_users_detail.");
+
+  context = evhtp_kv_find(req->uri->query, "context");
+  if(context == NULL) {
+    slog(LOG_ERR, "Could not get context info.");
+    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  mailbox = evhtp_kv_find(req->uri->query, "mailbox");
+  if(mailbox == NULL) {
+  	slog(LOG_ERR, "Could not get mailbox info.");
+		simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+		return;
+  }
+
+  // get info
+  j_tmp = get_voicemail_user_info(context, mailbox);
+  if(j_tmp == NULL) {
+    simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", j_tmp);
+
+  // response
+  simple_response_normal(req, j_res);
+  json_decref(j_res);
+}
+
+/**
+ * PUT ^/voicemail/users/?context=<context>&mailbox=<mailbox> request handler.
+ * @param req
+ * @param data
+ */
+void htp_put_voicemail_users_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_data;
+  const char* context;
+  const char* mailbox;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired htp_get_voicemail_users_detail.");
+
+  context = evhtp_kv_find(req->uri->query, "context");
+  if(context == NULL) {
+    slog(LOG_ERR, "Could not get context info.");
+    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  mailbox = evhtp_kv_find(req->uri->query, "mailbox");
+  if(mailbox == NULL) {
+  	slog(LOG_ERR, "Could not get mailbox info.");
+		simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+		return;
+  }
+
+  // get data
+  j_data = get_json_from_request_data(req);
+  if(j_data == NULL) {
+  	// no request data
+  	simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+  	return;
+  }
+
+  // update info
+  ret = update_voicemail_user(j_data);
+  json_decref(j_data);
+  if(ret == false) {
+  	slog(LOG_NOTICE, "Could not update voicemail user info.");
+  	simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+  	return;
+  }
+
+  // create result
+  j_res = create_default_result(EVHTP_RES_OK);
+
+  // response
+  simple_response_normal(req, j_res);
+  json_decref(j_res);
+}
+
+/**
+ * DELETE ^/voicemail/users/?context=<context>&mailbox=<mailbox> request handler.
+ * @param req
+ * @param data
+ */
+void htp_delete_voicemail_users_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  const char* context;
+  const char* mailbox;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired htp_delete_voicemail_users_detail.");
+
+  context = evhtp_kv_find(req->uri->query, "context");
+  if(context == NULL) {
+    slog(LOG_ERR, "Could not get context info.");
+    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  mailbox = evhtp_kv_find(req->uri->query, "mailbox");
+  if(mailbox == NULL) {
+  	slog(LOG_ERR, "Could not get mailbox info.");
+		simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+		return;
+  }
+
+  ret = delete_voicemail_user(context, mailbox);
+  if(ret == false) {
+  	slog(LOG_ERR, "Could not delete voicemail user info.");
+  	simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+  	return;
+  }
+
+  // create result
+  j_res = create_default_result(EVHTP_RES_OK);
+
+  // response
+  simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
 
 /**
  * GET ^/voicemail/vms request handler.
@@ -142,7 +308,7 @@ void htp_get_voicemail_vms(evhtp_request_t *req, void *data)
 
   // get mailbox
   mailbox = evhtp_kv_find(req->uri->query, "mailbox");
-  if(context == NULL) {
+  if(mailbox == NULL) {
     slog(LOG_ERR, "Could not get mailbox info.");
     simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
@@ -785,16 +951,180 @@ static char* create_voicemail_user_info_string(json_t* j_data)
   return res;
 }
 
+static bool is_exist_voicemail_user(const char* context, const char* mailbox)
+{
+	json_t* j_tmp;
+
+	if((context == NULL) || (mailbox == NULL)) {
+		slog(LOG_WARNING, "Wrong input parameter.");
+		return false;
+	}
+
+	j_tmp = get_voicemail_user_info(context, mailbox);
+	if(j_tmp == NULL) {
+		return false;
+	}
+	json_decref(j_tmp);
+
+	return true;
+}
+
+static bool is_setting_context(const char* context)
+{
+	int ret;
+
+	if(context == NULL) {
+		slog(LOG_WARNING, "Wrong input parameter.");
+		return false;
+	}
+
+	ret = strcmp(context, DEF_SETTING_CONTEXT);
+	if(ret == 0) {
+		return true;
+	}
+
+	return false;
+}
+
 /**
- * Get all voicemail_user info.
+ * Write given voicemail user info to the voicemail configuration file.
+ * @param j_data
+ * @return
+ */
+static int write_voicemail_user_info(json_t* j_data)
+{
+	char* user_info;
+	char* confname;
+	const char* context;
+	const char* mailbox;
+	int ret;
+
+	if(j_data == NULL) {
+		slog(LOG_WARNING, "Wrong input parameter.");
+		return false;
+	}
+
+  // get madatory item
+  context = json_string_value(json_object_get(j_data, "context"));
+  mailbox = json_string_value(json_object_get(j_data, "mailbox"));
+  if((mailbox == NULL) || (context == NULL)) {
+    slog(LOG_ERR, "Could not get mailbox info.");
+    return false;
+  }
+
+  // is setting context?
+	ret = is_setting_context(context);
+	if(ret == true) {
+		slog(LOG_NOTICE, "Given context is setting context.");
+		return false;
+	}
+
+	// create user string
+  user_info = create_voicemail_user_info_string(j_data);
+  if(user_info == NULL) {
+  	slog(LOG_ERR, "Could not create user string.");
+  	return false;
+  }
+
+  confname = create_voicemail_confname();
+  if(confname == NULL) {
+  	slog(LOG_ERR, "Could not create voicemail configuration filename.");
+  	return false;
+  }
+
+  ini_puts(context, mailbox, user_info, confname);
+  sfree(user_info);
+  sfree(confname);
+
+  return true;
+}
+
+/**
+ * Revmoe given voicemail user info from the voicemail configuration file.
+ * @param j_data
+ * @return
+ */
+static int remove_voicemail_user_info(const char* context, const char* mailbox)
+{
+	char* confname;
+	int ret;
+
+	if((context == NULL) || (mailbox == NULL)) {
+		slog(LOG_WARNING, "Wrong input parameter.");
+		return false;
+	}
+
+	// is setting context?
+	ret = is_setting_context(context);
+	if(ret == true) {
+		slog(LOG_NOTICE, "Given context is setting context.");
+		return false;
+	}
+
+  confname = create_voicemail_confname();
+  if(confname == NULL) {
+  	slog(LOG_ERR, "Could not create voicemail configuration filename.");
+  	return false;
+  }
+
+  // remove it!
+  ini_puts(context, mailbox, NULL, confname);
+  sfree(confname);
+
+  return true;
+}
+
+
+/**
+ * Update voicemail user info.
+ *
+ * @param j_data
+ * @return
+ */
+static int update_voicemail_user(json_t* j_data)
+{
+	int ret;
+	const char* context;
+	const char* mailbox;
+
+	if(j_data == NULL) {
+		slog(LOG_WARNING, "Wrong input parameter.");
+		return false;
+	}
+
+	context = json_string_value(json_object_get(j_data, "context"));
+	mailbox = json_string_value(json_object_get(j_data, "mailbox"));
+	if((context == NULL) || (mailbox == NULL)) {
+		slog(LOG_ERR, "Could not get context or malbox info.");
+		return false;
+	}
+
+	// check existence
+	ret = is_exist_voicemail_user(context, mailbox);
+	if(ret != true) {
+		slog(LOG_NOTICE, "The given voicemail user info is not exist. context[%s], malbox[%s]", context, mailbox);
+		return false;
+	}
+
+	// update
+	ret = write_voicemail_user_info(j_data);
+	if(ret == false) {
+		slog(LOG_ERR, "Could not update voicemail user info.");
+		return false;
+	}
+
+	return true;
+}
+
+/**
+ * Create voicemail_user info.
  * @return
  */
 static int create_voicemail_user(json_t* j_data)
 {
-  char* user_info;
   const char* context;
   const char* mailbox;
-  char* confname;
+  int ret;
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter\n");
@@ -810,21 +1140,53 @@ static int create_voicemail_user(json_t* j_data)
     return false;
   }
 
-  user_info = create_voicemail_user_info_string(j_data);
-  if(user_info == NULL) {
-  	slog(LOG_ERR, "Could not create user string.");
-  	return false;
-  }
+	// check existence
+	ret = is_exist_voicemail_user(context, mailbox);
+	if(ret != false) {
+		slog(LOG_NOTICE, "The given voicemail user info is already exist. context[%s], malbox[%s]", context, mailbox);
+		return false;
+	}
 
-  confname = create_voicemail_confname();
-  if(confname == NULL) {
-  	slog(LOG_ERR, "Could not create voicemail configuration filename.");
-  	return false;
-  }
-
-  ini_puts(context, mailbox, user_info, confname);
+	// create
+	ret = write_voicemail_user_info(j_data);
+	if(ret == false) {
+		slog(LOG_ERR, "Could not update voicemail user info.");
+		return false;
+	}
 
   return true;
+}
+
+/**
+ * Delete voicemail user info.
+ *
+ * @param j_data
+ * @return
+ */
+static int delete_voicemail_user(const char* context, const char* mailbox)
+{
+	int ret;
+
+	if((context == NULL) || (mailbox == NULL)) {
+		slog(LOG_WARNING, "Wrong input parameter.");
+		return false;
+	}
+
+	// check existence
+	ret = is_exist_voicemail_user(context, mailbox);
+	if(ret != true) {
+		slog(LOG_NOTICE, "The given voicemail user info is not exist. context[%s], malbox[%s]", context, mailbox);
+		return false;
+	}
+
+	// remove it!
+	ret = remove_voicemail_user_info(context, mailbox);
+	if(ret == false) {
+		slog(LOG_ERR, "Could not remove voicemail user info.");
+		return false;
+	}
+
+	return true;
 }
 
 static char* create_voicemail_confname(void)

@@ -82,6 +82,7 @@ static void cb_htp_parked_calls_detail(evhtp_request_t *req, void *data);
 
 // ^/voicemail/
 static void cb_htp_voicemail_users(evhtp_request_t *req, void *data);
+static void cb_htp_voicemail_users_detail(evhtp_request_t *req, void *data);
 static void cb_htp_voicemail_vms(evhtp_request_t *req, void *data);
 static void cb_htp_voicemail_vms_msgname(evhtp_request_t *req, void *data);
 
@@ -193,6 +194,7 @@ bool init_http_handler(void)
 
   // voicemail
   // users
+  evhtp_set_cb(g_htp, "/voicemail/users/", cb_htp_voicemail_users_detail, NULL);
   evhtp_set_cb(g_htp, "/voicemail/users", cb_htp_voicemail_users, NULL);
 
   // vms
@@ -1242,9 +1244,13 @@ static void cb_htp_agents(evhtp_request_t *req, void *data)
   else {
     // should not reach to here.
     simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
   }
 
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   return;
+
 }
 
 /**
@@ -1313,8 +1319,11 @@ static void cb_htp_agents_detail(evhtp_request_t *req, void *data)
   else {
     // should not reach to here.
     simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
   }
 
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   return;
 }
 
@@ -1361,9 +1370,13 @@ static void cb_htp_systems(evhtp_request_t *req, void *data)
   else {
     // should not reach to here.
     simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
   }
 
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   return;
+
 }
 
 /**
@@ -1432,8 +1445,11 @@ static void cb_htp_systems_detail(evhtp_request_t *req, void *data)
   else {
     // should not reach to here.
     simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
   }
 
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   return;
 }
 
@@ -1480,8 +1496,11 @@ static void cb_htp_device_states(evhtp_request_t *req, void *data)
   else {
     // should not reach to here.
     simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
   }
 
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   return;
 }
 
@@ -1551,6 +1570,7 @@ static void cb_htp_device_states_detail(evhtp_request_t *req, void *data)
   else {
     // should not reach to here.
     simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
   }
 
   return;
@@ -1599,6 +1619,7 @@ static void cb_htp_parking_lots(evhtp_request_t *req, void *data)
   else {
     // should not reach to here.
     simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
   }
 
   return;
@@ -1668,6 +1689,7 @@ static void cb_htp_parking_lots_detail(evhtp_request_t *req, void *data)
   else {
     // should not reach to here.
     simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
   }
 
   return;
@@ -1716,6 +1738,7 @@ static void cb_htp_parked_calls(evhtp_request_t *req, void *data)
   else {
     // should not reach to here.
     simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
   }
 
   return;
@@ -1785,6 +1808,7 @@ static void cb_htp_parked_calls_detail(evhtp_request_t *req, void *data)
   else {
     // should not reach to here.
     simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
   }
 
   return;
@@ -1824,6 +1848,7 @@ static void cb_htp_voicemail_users(evhtp_request_t *req, void *data)
   else {
     // should not reach to here.
     simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
   }
 
   // should not reach to here.
@@ -1831,6 +1856,54 @@ static void cb_htp_voicemail_users(evhtp_request_t *req, void *data)
 
   return;
 }
+
+/**
+ * http request handler
+ * ^/voicemail/users/<context>/<mailbox>
+ * @param req
+ * @param data
+ */
+static void cb_htp_voicemail_users_detail(evhtp_request_t *req, void *data)
+{
+  int method;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_voicemail_users_context_mailbox.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if((method != htp_method_GET) && (method != htp_method_PUT) && (method != htp_method_DELETE)) {
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  if(method == htp_method_GET) {
+  	htp_get_voicemail_users_detail(req, data);
+    return;
+  }
+  else if(method == htp_method_PUT) {
+  	htp_put_voicemail_users_detail(req, data);
+  	return;
+  }
+  else if(method == htp_method_DELETE) {
+  	htp_delete_voicemail_users_detail(req, data);
+  	return;
+  }
+  else {
+    // should not reach to here.
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+
+  return;
+}
+
 
 /**
  * http request handler

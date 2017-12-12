@@ -85,6 +85,8 @@ static bool load_config(void)
   int ret;
   json_t* j_conf_def;
   json_t* j_conf;
+  const char* key;
+  json_t* j_tmp;
 
   slog(LOG_INFO, "Load configuration file. filename[%s]", g_config_filename);
 
@@ -130,9 +132,9 @@ static bool load_config(void)
   j_conf = json_load_file(g_config_filename, JSON_DECODE_ANY, NULL);
 
   // update conf
-  json_object_update(json_object_get(j_conf_def, "general"), json_object_get(j_conf, "general"));
-  json_object_update(json_object_get(j_conf_def, "voicemail"), json_object_get(j_conf, "voicemail"));
-	json_object_update(json_object_get(j_conf_def, "ob"), json_object_get(j_conf, "general"));
+  json_object_foreach(j_conf_def, key, j_tmp) {
+  	json_object_update(j_tmp, json_object_get(j_conf, key));
+  }
   json_decref(j_conf);
 
   if(g_app->j_conf != NULL) {
