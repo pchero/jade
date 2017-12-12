@@ -1,5 +1,5 @@
 TARGET = jade_backend
-LIBS = -ljansson -levhtp -levent -levent_openssl -lssl -lcrypto -lpthread -luuid -lsqlite3 -lbsd
+LIBS = -ljansson -levhtp -levent -levent_openssl -lssl -lcrypto -lpthread -luuid -lsqlite3 -lbsd -lonig
 CC = gcc
 CFLAGS = -g -Wall -I/usr/local/include/evhtp
 

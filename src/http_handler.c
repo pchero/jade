@@ -98,6 +98,7 @@ bool init_http_handler(void)
   const char* tmp_const;
   const char* http_addr;
   int http_port;
+  int ret;
 
   g_htp = evhtp_new(g_base, NULL);
 
@@ -105,7 +106,12 @@ bool init_http_handler(void)
   tmp_const = json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "http_port"));
   http_port = atoi(tmp_const);
 
-  evhtp_bind_socket(g_htp, http_addr, http_port, 1024);
+  slog(LOG_INFO, "The http server info. addr[%s], port[%d]", http_addr, http_port);
+  ret = evhtp_bind_socket(g_htp, http_addr, http_port, 1024);
+  if(ret != 0) {
+    slog(LOG_ERR, "Could not open the http server.");
+    return false;
+  }
 
   // register callback
   evhtp_set_cb(g_htp, "/ping", cb_htp_ping, NULL);
@@ -159,6 +165,8 @@ bool init_http_handler(void)
   evhtp_set_cb(g_htp, "/parked_calls", cb_htp_parked_calls, NULL);
 
 
+
+
   //// ^/agent/
   // agents
   evhtp_set_cb(g_htp, "/agent/agents/", cb_htp_agent_agents_detail, NULL);
@@ -168,11 +176,11 @@ bool init_http_handler(void)
 
   //// ^/core/
   // channels
-  evhtp_set_regex_cb(g_htp, "/core/channels/", cb_htp_core_channels_detail, NULL);
+  evhtp_set_regex_cb(g_htp, "/core/channels/(*)", cb_htp_core_channels_detail, NULL);
   evhtp_set_regex_cb(g_htp, "/core/channel", cb_htp_core_channels, NULL);
 
   // systems
-  evhtp_set_regex_cb(g_htp, "/core/systems/*", cb_htp_core_systems_detail, NULL);
+  evhtp_set_regex_cb(g_htp, "/core/systems/(*)", cb_htp_core_systems_detail, NULL);
   evhtp_set_regex_cb(g_htp, "/core/systems", cb_htp_core_systems, NULL);
 
 
@@ -184,11 +192,11 @@ bool init_http_handler(void)
   evhtp_set_regex_cb(g_htp, "/ob/destinations", cb_htp_ob_destinations, NULL);
 
   // plans
-  evhtp_set_regex_cb(g_htp, "/ob/plans/", cb_htp_ob_plans_uuid, NULL);
+  evhtp_set_regex_cb(g_htp, "/ob/plans/("DEF_REG_UUID")", cb_htp_ob_plans_uuid, NULL);
   evhtp_set_regex_cb(g_htp, "/ob/plans", cb_htp_ob_plans, NULL);
 
   // campaigns
-  evhtp_set_regex_cb(g_htp, "/ob/campaigns/", cb_htp_ob_campaigns_uuid, NULL);
+  evhtp_set_regex_cb(g_htp, "/ob/campaigns/("DEF_REG_UUID")", cb_htp_ob_campaigns_uuid, NULL);
   evhtp_set_regex_cb(g_htp, "/ob/campaigns", cb_htp_ob_campaigns, NULL);
 
   // dlmas
@@ -207,17 +215,18 @@ bool init_http_handler(void)
 
   //// ^/sip/
   // peers
-  evhtp_set_regex_cb(g_htp, "/sip/peers/*", cb_htp_sip_peers_detail, NULL);
+  evhtp_set_regex_cb(g_htp, "/sip/peers/(*)", cb_htp_sip_peers_detail, NULL);
   evhtp_set_regex_cb(g_htp, "/sip/peers", cb_htp_sip_peers, NULL);
 
   // registries
-  evhtp_set_regex_cb(g_htp, "/sip/registries/*", cb_htp_sip_registries_detail, NULL);
+  evhtp_set_regex_cb(g_htp, "/sip/registries/(*)", cb_htp_sip_registries_detail, NULL);
   evhtp_set_regex_cb(g_htp, "/sip/registries", cb_htp_sip_registries, NULL);
+
 
 
   //// ^/voicemail/
   // users
-  evhtp_set_regex_cb(g_htp, "/voicemail/users/*", cb_htp_voicemail_users_detail, NULL);
+  evhtp_set_regex_cb(g_htp, "/voicemail/users/(*)", cb_htp_voicemail_users_detail, NULL);
   evhtp_set_regex_cb(g_htp, "/voicemail/users", cb_htp_voicemail_users, NULL);
 
   // vms
