@@ -309,14 +309,14 @@ json_t* create_default_result(int code)
 
 json_t* get_json_from_request_data(evhtp_request_t* req)
 {
-	const char* tmp_const;
-	char* tmp;
-	json_t* j_data;
+  const char* tmp_const;
+  char* tmp;
+  json_t* j_data;
 
-	if(req == NULL) {
-		slog(LOG_WARNING, "Wrong input parameter.");
-		return NULL;
-	}
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
 
   // get data
   tmp_const = (char*)evbuffer_pullup(req->buffer_in, evbuffer_get_length(req->buffer_in));
@@ -1842,8 +1842,8 @@ static void cb_htp_voicemail_users(evhtp_request_t *req, void *data)
     return;
   }
   else if(method == htp_method_POST) {
-  	htp_post_voicemail_users(req, data);
-  	return;
+    htp_post_voicemail_users(req, data);
+    return;
   }
   else {
     // should not reach to here.
@@ -1881,16 +1881,16 @@ static void cb_htp_voicemail_users_detail(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-  	htp_get_voicemail_users_detail(req, data);
+    htp_get_voicemail_users_detail(req, data);
     return;
   }
   else if(method == htp_method_PUT) {
-  	htp_put_voicemail_users_detail(req, data);
-  	return;
+    htp_put_voicemail_users_detail(req, data);
+    return;
   }
   else if(method == htp_method_DELETE) {
-  	htp_delete_voicemail_users_detail(req, data);
-  	return;
+    htp_delete_voicemail_users_detail(req, data);
+    return;
   }
   else {
     // should not reach to here.
