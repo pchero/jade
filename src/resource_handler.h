@@ -12,6 +12,7 @@
 
 // peer
 json_t* get_peers_all_peer(void);
+json_t* get_peers_all(void);
 json_t* get_peer_detail(const char* name);
 
 // database
@@ -20,6 +21,7 @@ json_t* get_database_info(const char* key);
 
 // registry
 json_t* get_registries_all_account(void);
+json_t* get_registries_all(void);
 json_t* get_registry_info(const char* account);
 
 // queue param
@@ -36,14 +38,17 @@ json_t* get_queue_entry_info(const char* channel, const char* queue_name);
 
 // channel
 json_t* get_channels_all_unique_id(void);
+json_t* get_channels_all(void);
 json_t* get_channel_info(const char* unique_id);
 
 // agent
 json_t* get_agents_all_id(void);
+json_t* get_agents_all(void);
 json_t* get_agent_info(const char* id);
 
 // system
 json_t* get_systems_all_id(void);
+json_t* get_systems_all(void);
 json_t* get_system_info(const char* id);
 
 // device_state

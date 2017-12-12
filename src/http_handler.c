@@ -19,6 +19,11 @@
 #include "resource_handler.h"
 #include "ob_http_handler.h"
 #include "voicemail_handler.h"
+#include "core_handler.h"
+#include "agent_handler.h"
+#include "sip_handler.h"
+
+
 
 #define API_VER "0.1"
 
@@ -32,16 +37,16 @@ evhtp_t* g_htp = NULL;
 static void cb_htp_ping(evhtp_request_t *req, void *a);
 
 // peers
-static void cb_htp_peers(evhtp_request_t *req, void *data);
-static void cb_htp_peers_detail(evhtp_request_t *req, void *data);
+static void cb_htp_sip_peers(evhtp_request_t *req, void *data);
+static void cb_htp_sip_peers_detail(evhtp_request_t *req, void *data);
 
 // databases
 static void cb_htp_databases(evhtp_request_t *req, void *data);
 static void cb_htp_databases_key(evhtp_request_t *req, void *data);
 
 // registries
-static void cb_htp_registries(evhtp_request_t *req, void *data);
-static void cb_htp_registries_detail(evhtp_request_t *req, void *data);
+static void cb_htp_sip_registries(evhtp_request_t *req, void *data);
+static void cb_htp_sip_registries_detail(evhtp_request_t *req, void *data);
 
 // queue_params
 static void cb_htp_queue_params(evhtp_request_t *req, void *data);
@@ -56,16 +61,16 @@ static void cb_htp_queue_entries(evhtp_request_t *req, void *data);
 static void cb_htp_queue_entries_detail(evhtp_request_t *req, void *data);
 
 // channels
-static void cb_htp_channels(evhtp_request_t *req, void *data);
-static void cb_htp_channels_detail(evhtp_request_t *req, void *data);
+static void cb_htp_core_channels(evhtp_request_t *req, void *data);
+static void cb_htp_core_channels_detail(evhtp_request_t *req, void *data);
 
 // agents
-static void cb_htp_agents(evhtp_request_t *req, void *data);
-static void cb_htp_agents_detail(evhtp_request_t *req, void *data);
+static void cb_htp_agent_agents(evhtp_request_t *req, void *data);
+static void cb_htp_agent_agents_detail(evhtp_request_t *req, void *data);
 
 // systems
-static void cb_htp_systems(evhtp_request_t *req, void *data);
-static void cb_htp_systems_detail(evhtp_request_t *req, void *data);
+static void cb_htp_core_systems(evhtp_request_t *req, void *data);
+static void cb_htp_core_systems_detail(evhtp_request_t *req, void *data);
 
 // device_states
 static void cb_htp_device_states(evhtp_request_t *req, void *data);
@@ -106,16 +111,16 @@ bool init_http_handler(void)
   evhtp_set_cb(g_htp, "/ping", cb_htp_ping, NULL);
 
   // peers
-  evhtp_set_cb(g_htp, "/peers/", cb_htp_peers_detail, NULL);
-  evhtp_set_cb(g_htp, "/peers", cb_htp_peers, NULL);
+  evhtp_set_cb(g_htp, "/peers/", cb_htp_sip_peers_detail, NULL);
+  evhtp_set_cb(g_htp, "/peers", cb_htp_sip_peers, NULL);
 
   // databases - deprecated
   evhtp_set_cb(g_htp, "/databases/", cb_htp_databases_key, NULL);
   evhtp_set_cb(g_htp, "/databases", cb_htp_databases, NULL);
 
   // registres
-  evhtp_set_cb(g_htp, "/registries/", cb_htp_registries_detail, NULL);
-  evhtp_set_cb(g_htp, "/registries", cb_htp_registries, NULL);
+  evhtp_set_cb(g_htp, "/registries/", cb_htp_sip_registries_detail, NULL);
+  evhtp_set_cb(g_htp, "/registries", cb_htp_sip_registries, NULL);
 
   // queue_params
   evhtp_set_cb(g_htp, "/queue_params/", cb_htp_queue_params_detail, NULL);
@@ -130,16 +135,16 @@ bool init_http_handler(void)
   evhtp_set_cb(g_htp, "/queue_entries", cb_htp_queue_entries, NULL);
 
   // queue_entries
-  evhtp_set_cb(g_htp, "/channels/", cb_htp_channels_detail, NULL);
-  evhtp_set_cb(g_htp, "/channels", cb_htp_channels, NULL);
+  evhtp_set_cb(g_htp, "/channels/", cb_htp_core_channels_detail, NULL);
+  evhtp_set_cb(g_htp, "/channels", cb_htp_core_channels, NULL);
 
   // agents
-  evhtp_set_cb(g_htp, "/agents/", cb_htp_agents_detail, NULL);
-  evhtp_set_cb(g_htp, "/agents", cb_htp_agents, NULL);
+  evhtp_set_cb(g_htp, "/agents/", cb_htp_agent_agents_detail, NULL);
+  evhtp_set_cb(g_htp, "/agents", cb_htp_agent_agents, NULL);
 
   // systems
-  evhtp_set_cb(g_htp, "/systems/", cb_htp_systems_detail, NULL);
-  evhtp_set_cb(g_htp, "/systems", cb_htp_systems, NULL);
+  evhtp_set_cb(g_htp, "/systems/", cb_htp_core_systems_detail, NULL);
+  evhtp_set_cb(g_htp, "/systems", cb_htp_core_systems, NULL);
 
   // device_states
   evhtp_set_cb(g_htp, "/device_states/", cb_htp_device_states_detail, NULL);
@@ -154,53 +159,70 @@ bool init_http_handler(void)
   evhtp_set_cb(g_htp, "/parked_calls", cb_htp_parked_calls, NULL);
 
 
+  //// ^/agent/
+  // agents
+  evhtp_set_cb(g_htp, "/agent/agents/", cb_htp_agent_agents_detail, NULL);
+  evhtp_set_cb(g_htp, "/agent/agents", cb_htp_agent_agents, NULL);
+
+
+
+  //// ^/core/
+  // channels
+  evhtp_set_regex_cb(g_htp, "/core/channels/", cb_htp_core_channels_detail, NULL);
+  evhtp_set_regex_cb(g_htp, "/core/channel", cb_htp_core_channels, NULL);
+
+  // systems
+  evhtp_set_regex_cb(g_htp, "/core/systems/*", cb_htp_core_systems_detail, NULL);
+  evhtp_set_regex_cb(g_htp, "/core/systems", cb_htp_core_systems, NULL);
+
+
+
   ////// ^/ob/
   ////// outbound modules
   // destinations
-//  evhtp_set_cb(g_htp, "/ob/destinations/("DEF_REG_UUID")", cb_htp_ob_destinations_uuid, NULL);
-//  evhtp_set_cb(g_htp, "/ob/destinations/", cb_htp_ob_destinations_all, NULL);
-  evhtp_set_cb(g_htp, "/ob/destinations/", cb_htp_ob_destinations_uuid, NULL);
-  evhtp_set_cb(g_htp, "/ob/destinations", cb_htp_ob_destinations, NULL);
+  evhtp_set_regex_cb(g_htp, "/ob/destinations/("DEF_REG_UUID")", cb_htp_ob_destinations_uuid, NULL);
+  evhtp_set_regex_cb(g_htp, "/ob/destinations", cb_htp_ob_destinations, NULL);
 
   // plans
-//  evhtp_set_cb(g_htp, "/ob/plans/("DEF_REG_UUID")", cb_htp_ob_plans_uuid, NULL);
-//  evhtp_set_cb(g_htp, "/ob/plans/", cb_htp_ob_plans_all, NULL);
-  evhtp_set_cb(g_htp, "/ob/plans/", cb_htp_ob_plans_uuid, NULL);
-  evhtp_set_cb(g_htp, "/ob/plans", cb_htp_ob_plans, NULL);
+  evhtp_set_regex_cb(g_htp, "/ob/plans/", cb_htp_ob_plans_uuid, NULL);
+  evhtp_set_regex_cb(g_htp, "/ob/plans", cb_htp_ob_plans, NULL);
 
   // campaigns
-//  evhtp_set_cb(g_htp, "/ob/campaigns/("DEF_REG_UUID")", cb_htp_ob_campaigns_uuid, NULL);
-//  evhtp_set_cb(g_htp, "/ob/campaigns/", cb_htp_ob_campaigns_all, NULL);
-  evhtp_set_cb(g_htp, "/ob/campaigns/", cb_htp_ob_campaigns_uuid, NULL);
-  evhtp_set_cb(g_htp, "/ob/campaigns", cb_htp_ob_campaigns, NULL);
+  evhtp_set_regex_cb(g_htp, "/ob/campaigns/", cb_htp_ob_campaigns_uuid, NULL);
+  evhtp_set_regex_cb(g_htp, "/ob/campaigns", cb_htp_ob_campaigns, NULL);
 
   // dlmas
-//  evhtp_set_cb(g_htp, "/ob/dlmas/("DEF_REG_UUID")", cb_htp_ob_dlmas_uuid, NULL);
-//  evhtp_set_cb(g_htp, "/ob/dlmas/", cb_htp_ob_dlmas_all, NULL);
-  evhtp_set_cb(g_htp, "/ob/dlmas/", cb_htp_ob_dlmas_uuid, NULL);
-  evhtp_set_cb(g_htp, "/ob/dlmas", cb_htp_ob_dlmas, NULL);
+  evhtp_set_regex_cb(g_htp, "/ob/dlmas/("DEF_REG_UUID")", cb_htp_ob_dlmas_uuid, NULL);
+  evhtp_set_regex_cb(g_htp, "/ob/dlmas", cb_htp_ob_dlmas, NULL);
 
   // dls
-//  evhtp_set_cb(g_htp, "/ob/dls/("DEF_REG_UUID")", cb_htp_ob_dls_uuid, NULL);
-//  evhtp_set_cb(g_htp, "/ob/dls/", cb_htp_ob_dls_all, NULL);
-  evhtp_set_cb(g_htp, "/ob/dls/", cb_htp_ob_dls_uuid, NULL);
-  evhtp_set_cb(g_htp, "/ob/dls", cb_htp_ob_dls, NULL);
+  evhtp_set_regex_cb(g_htp, "/ob/dls/("DEF_REG_UUID")", cb_htp_ob_dls_uuid, NULL);
+  evhtp_set_regex_cb(g_htp, "/ob/dls", cb_htp_ob_dls, NULL);
 
   // dialings
-//  evhtp_set_cb(g_htp, "/ob/dialings/("DEF_REG_UUID")", cb_htp_ob_dialings_uuid, NULL);
-//  evhtp_set_regex_cb(g_htp, "/ob/dialings/", cb_htp_ob_dialings_all, NULL);
-  evhtp_set_cb(g_htp, "/ob/dialings/", cb_htp_ob_dialings_uuid, NULL);
-  evhtp_set_cb(g_htp, "/ob/dialings", cb_htp_ob_dialings, NULL);
+  evhtp_set_regex_cb(g_htp, "/ob/dialings/("DEF_REG_UUID")", cb_htp_ob_dialings_uuid, NULL);
+  evhtp_set_regex_cb(g_htp, "/ob/dialings", cb_htp_ob_dialings, NULL);
 
-  // voicemail
+
+
+  //// ^/sip/
+  // peers
+  evhtp_set_regex_cb(g_htp, "/sip/peers/*", cb_htp_sip_peers_detail, NULL);
+  evhtp_set_regex_cb(g_htp, "/sip/peers", cb_htp_sip_peers, NULL);
+
+  // registries
+  evhtp_set_regex_cb(g_htp, "/sip/registries/*", cb_htp_sip_registries_detail, NULL);
+  evhtp_set_regex_cb(g_htp, "/sip/registries", cb_htp_sip_registries, NULL);
+
+
+  //// ^/voicemail/
   // users
-  evhtp_set_cb(g_htp, "/voicemail/users/", cb_htp_voicemail_users_detail, NULL);
-  evhtp_set_cb(g_htp, "/voicemail/users", cb_htp_voicemail_users, NULL);
+  evhtp_set_regex_cb(g_htp, "/voicemail/users/*", cb_htp_voicemail_users_detail, NULL);
+  evhtp_set_regex_cb(g_htp, "/voicemail/users", cb_htp_voicemail_users, NULL);
 
   // vms
-//  evhtp_set_cb(g_htp, "/voicemail/vms/("DEF_REG_MSGNAME")", cb_htp_voicemail_vms_msgname, NULL);
-  evhtp_set_cb(g_htp, "/voicemail/vms/", cb_htp_voicemail_vms_msgname, NULL);
-  evhtp_set_cb(g_htp, "/voicemail/vms", cb_htp_voicemail_vms, NULL);
+  evhtp_set_regex_cb(g_htp, "/voicemail/vms/("DEF_REG_MSGNAME")", cb_htp_voicemail_vms_msgname, NULL);
+  evhtp_set_regex_cb(g_htp, "/voicemail/vms", cb_htp_voicemail_vms, NULL);
 
 
   return true;
@@ -370,21 +392,19 @@ static void cb_htp_ping(evhtp_request_t *req, void *a)
 
 /**
  * http request handler
- * ^/peers
+ * ^/sip/peers
  * @param req
  * @param data
  */
-static void cb_htp_peers(evhtp_request_t *req, void *data)
+static void cb_htp_sip_peers(evhtp_request_t *req, void *data)
 {
   int method;
-  json_t* j_res;
-  json_t* j_tmp;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_INFO, "Fired cb_htp_peers.");
+  slog(LOG_INFO, "Fired cb_htp_sip_peers.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -394,24 +414,17 @@ static void cb_htp_peers(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    j_tmp = get_peers_all_peer();
-    if(j_tmp == NULL) {
-      simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-      return;
-    }
-
-    // create result
-    j_res = create_default_result(EVHTP_RES_OK);
-    json_object_set_new(j_res, "result", json_object());
-    json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
-
-    simple_response_normal(req, j_res);
-    json_decref(j_res);
+    htp_get_sip_peers(req, data);
+    return;
   }
   else {
     // should not reach to here.
     simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
   }
+
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
 
   return;
 }
@@ -422,20 +435,15 @@ static void cb_htp_peers(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-static void cb_htp_peers_detail(evhtp_request_t *req, void *data)
+static void cb_htp_sip_peers_detail(evhtp_request_t *req, void *data)
 {
   int method;
-  json_t* j_data;
-  json_t* j_res;
-  json_t* j_tmp;
-  const char* tmp_const;
-  char* tmp;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_INFO, "Fired cb_htp_peers_detail.");
+  slog(LOG_INFO, "Fired cb_htp_sip_peers_detail.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -445,42 +453,17 @@ static void cb_htp_peers_detail(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    // get data
-    tmp_const = (char*)evbuffer_pullup(req->buffer_in, evbuffer_get_length(req->buffer_in));
-    if(tmp_const == NULL) {
-      simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-      return;
-    }
-
-    // create json
-    tmp = strndup(tmp_const, evbuffer_get_length(req->buffer_in));
-    slog(LOG_DEBUG, "Requested data. data[%s]", tmp);
-    j_data = json_loads(tmp, JSON_DECODE_ANY, NULL);
-    sfree(tmp);
-    if(j_data == NULL) {
-      simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-      return;
-    }
-
-    // get value
-    j_tmp = get_peer_detail(json_string_value(json_object_get(j_data, "peer")));
-    json_decref(j_data);
-    if(j_tmp == NULL) {
-      simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-      return;
-    }
-
-    // create result
-    j_res = create_default_result(EVHTP_RES_OK);
-    json_object_set_new(j_res, "result", j_tmp);
-
-    simple_response_normal(req, j_res);
-    json_decref(j_res);
+    htp_get_sip_peers_detail(req, data);
+    return;
   }
   else {
     // should not reach to here.
     simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
   }
+
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
 
   return;
 }
@@ -614,17 +597,15 @@ static void cb_htp_databases_key(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-static void cb_htp_registries(evhtp_request_t *req, void *data)
+static void cb_htp_sip_registries(evhtp_request_t *req, void *data)
 {
   int method;
-  json_t* j_res;
-  json_t* j_tmp;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_INFO, "Fired cb_htp_registries.");
+  slog(LOG_INFO, "Fired cb_htp_sip_registries.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -634,25 +615,17 @@ static void cb_htp_registries(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    j_tmp = get_registries_all_account();
-    if(j_tmp == NULL) {
-      simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-      return;
-    }
-
-    // create result
-    j_res = create_default_result(EVHTP_RES_OK);
-    json_object_set_new(j_res, "result", json_object());
-    json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
-
-    simple_response_normal(req, j_res);
-    json_decref(j_res);
+    htp_get_sip_registries(req, data);
+    return;
   }
   else {
     // should not reach to here.
     simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
   }
 
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   return;
 }
 
@@ -662,20 +635,15 @@ static void cb_htp_registries(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-static void cb_htp_registries_detail(evhtp_request_t *req, void *data)
+static void cb_htp_sip_registries_detail(evhtp_request_t *req, void *data)
 {
   int method;
-  json_t* j_data;
-  json_t* j_res;
-  json_t* j_tmp;
-  const char* tmp_const;
-  char* tmp;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_INFO, "Fired cb_htp_registries_account.");
+  slog(LOG_INFO, "Fired cb_htp_sip_registries_detail.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -685,43 +653,17 @@ static void cb_htp_registries_detail(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    // get data
-    tmp_const = (char*)evbuffer_pullup(req->buffer_in, evbuffer_get_length(req->buffer_in));
-    if(tmp_const == NULL) {
-      simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-      return;
-    }
-
-    // create json
-    tmp = strndup(tmp_const, evbuffer_get_length(req->buffer_in));
-    slog(LOG_DEBUG, "Requested data. data[%s]", tmp);
-    j_data = json_loads(tmp, JSON_DECODE_ANY, NULL);
-    sfree(tmp);
-    if(j_data == NULL) {
-      simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-      return;
-    }
-
-    // get value
-    j_tmp = get_registry_info(json_string_value(json_object_get(j_data, "account")));
-    json_decref(j_data);
-    if(j_tmp == NULL) {
-      simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-      return;
-    }
-
-    // create result
-    j_res = create_default_result(EVHTP_RES_OK);
-    json_object_set_new(j_res, "result", j_tmp);
-
-    simple_response_normal(req, j_res);
-    json_decref(j_res);
+    htp_get_sip_registries_detail(req, data);
+    return;
   }
   else {
     // should not reach to here.
     simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
   }
 
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   return;
 }
 
@@ -1084,21 +1026,19 @@ static void cb_htp_queue_entries_detail(evhtp_request_t *req, void *data)
 
 /**
  * http request handler
- * ^/channels
+ * ^/core/channels
  * @param req
  * @param data
  */
-static void cb_htp_channels(evhtp_request_t *req, void *data)
+static void cb_htp_core_channels(evhtp_request_t *req, void *data)
 {
   int method;
-  json_t* j_res;
-  json_t* j_tmp;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_INFO, "Fired cb_htp_channels.");
+  slog(LOG_INFO, "Fired cb_htp_core_channels.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -1108,48 +1048,36 @@ static void cb_htp_channels(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    j_tmp = get_channels_all_unique_id();
-    if(j_tmp == NULL) {
-      simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-      return;
-    }
-
-    // create result
-    j_res = create_default_result(EVHTP_RES_OK);
-    json_object_set_new(j_res, "result", json_object());
-    json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
-
-    simple_response_normal(req, j_res);
-    json_decref(j_res);
+    htp_get_core_channels(req, data);
+    return;
   }
   else {
     // should not reach to here.
     simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
   }
+
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
 
   return;
 }
 
 /**
  * http request handler
- * ^/channels/
+ * ^/core/channels/
  * @param req
  * @param data
  */
-static void cb_htp_channels_detail(evhtp_request_t *req, void *data)
+static void cb_htp_core_channels_detail(evhtp_request_t *req, void *data)
 {
   int method;
-  json_t* j_data;
-  json_t* j_res;
-  json_t* j_tmp;
-  const char* tmp_const;
-  char* tmp;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_INFO, "Fired cb_htp_queue_entries_detail.");
+  slog(LOG_INFO, "Fired cb_htp_core_channels_detail.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -1159,44 +1087,17 @@ static void cb_htp_channels_detail(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    // get data
-    tmp_const = (char*)evbuffer_pullup(req->buffer_in, evbuffer_get_length(req->buffer_in));
-    if(tmp_const == NULL) {
-      simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-      return;
-    }
-
-    // create json
-    tmp = strndup(tmp_const, evbuffer_get_length(req->buffer_in));
-    slog(LOG_DEBUG, "Requested data. data[%s]", tmp);
-    j_data = json_loads(tmp, JSON_DECODE_ANY, NULL);
-    sfree(tmp);
-    if(j_data == NULL) {
-      simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-      return;
-    }
-
-    // get value
-    j_tmp = get_channel_info(
-        json_string_value(json_object_get(j_data, "unique_id"))
-        );
-    json_decref(j_data);
-    if(j_tmp == NULL) {
-      simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-      return;
-    }
-
-    // create result
-    j_res = create_default_result(EVHTP_RES_OK);
-    json_object_set_new(j_res, "result", j_tmp);
-
-    simple_response_normal(req, j_res);
-    json_decref(j_res);
+    htp_get_core_channels_detail(req, data);
+    return;
   }
   else {
     // should not reach to here.
     simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
   }
+
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
 
   return;
 }
@@ -1207,11 +1108,9 @@ static void cb_htp_channels_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-static void cb_htp_agents(evhtp_request_t *req, void *data)
+static void cb_htp_agent_agents(evhtp_request_t *req, void *data)
 {
   int method;
-  json_t* j_res;
-  json_t* j_tmp;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -1227,19 +1126,8 @@ static void cb_htp_agents(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    j_tmp = get_agents_all_id();
-    if(j_tmp == NULL) {
-      simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-      return;
-    }
-
-    // create result
-    j_res = create_default_result(EVHTP_RES_OK);
-    json_object_set_new(j_res, "result", json_object());
-    json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
-
-    simple_response_normal(req, j_res);
-    json_decref(j_res);
+    htp_get_agent_agents(req, data);
+    return;
   }
   else {
     // should not reach to here.
@@ -1255,18 +1143,13 @@ static void cb_htp_agents(evhtp_request_t *req, void *data)
 
 /**
  * http request handler
- * ^/agents/
+ * ^/agent/agents/(id)
  * @param req
  * @param data
  */
-static void cb_htp_agents_detail(evhtp_request_t *req, void *data)
+static void cb_htp_agent_agents_detail(evhtp_request_t *req, void *data)
 {
   int method;
-  json_t* j_data;
-  json_t* j_res;
-  json_t* j_tmp;
-  const char* tmp_const;
-  char* tmp;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -1282,39 +1165,8 @@ static void cb_htp_agents_detail(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    // get data
-    tmp_const = (char*)evbuffer_pullup(req->buffer_in, evbuffer_get_length(req->buffer_in));
-    if(tmp_const == NULL) {
-      simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-      return;
-    }
-
-    // create json
-    tmp = strndup(tmp_const, evbuffer_get_length(req->buffer_in));
-    slog(LOG_DEBUG, "Requested data. data[%s]", tmp);
-    j_data = json_loads(tmp, JSON_DECODE_ANY, NULL);
-    sfree(tmp);
-    if(j_data == NULL) {
-      simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-      return;
-    }
-
-    // get value
-    j_tmp = get_agent_info(
-        json_string_value(json_object_get(j_data, "id"))
-        );
-    json_decref(j_data);
-    if(j_tmp == NULL) {
-      simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-      return;
-    }
-
-    // create result
-    j_res = create_default_result(EVHTP_RES_OK);
-    json_object_set_new(j_res, "result", j_tmp);
-
-    simple_response_normal(req, j_res);
-    json_decref(j_res);
+    htp_get_agent_agents_detail(req, data);
+    return;
   }
   else {
     // should not reach to here.
@@ -1329,21 +1181,19 @@ static void cb_htp_agents_detail(evhtp_request_t *req, void *data)
 
 /**
  * http request handler
- * ^/systems
+ * ^/core/systems
  * @param req
  * @param data
  */
-static void cb_htp_systems(evhtp_request_t *req, void *data)
+static void cb_htp_core_systems(evhtp_request_t *req, void *data)
 {
   int method;
-  json_t* j_res;
-  json_t* j_tmp;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_INFO, "Fired cb_htp_systems.");
+  slog(LOG_INFO, "Fired cb_htp_core_systems.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -1353,19 +1203,8 @@ static void cb_htp_systems(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    j_tmp = get_systems_all_id();
-    if(j_tmp == NULL) {
-      simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-      return;
-    }
-
-    // create result
-    j_res = create_default_result(EVHTP_RES_OK);
-    json_object_set_new(j_res, "result", json_object());
-    json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
-
-    simple_response_normal(req, j_res);
-    json_decref(j_res);
+    htp_get_core_systems(req, data);
+    return;
   }
   else {
     // should not reach to here.
@@ -1381,24 +1220,19 @@ static void cb_htp_systems(evhtp_request_t *req, void *data)
 
 /**
  * http request handler
- * ^/systems/
+ * ^/core/systems/
  * @param req
  * @param data
  */
-static void cb_htp_systems_detail(evhtp_request_t *req, void *data)
+static void cb_htp_core_systems_detail(evhtp_request_t *req, void *data)
 {
   int method;
-  json_t* j_data;
-  json_t* j_res;
-  json_t* j_tmp;
-  const char* tmp_const;
-  char* tmp;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_INFO, "Fired cb_htp_systems_detail.");
+  slog(LOG_INFO, "Fired cb_htp_core_systems_detail.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -1408,39 +1242,8 @@ static void cb_htp_systems_detail(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    // get data
-    tmp_const = (char*)evbuffer_pullup(req->buffer_in, evbuffer_get_length(req->buffer_in));
-    if(tmp_const == NULL) {
-      simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-      return;
-    }
-
-    // create json
-    tmp = strndup(tmp_const, evbuffer_get_length(req->buffer_in));
-    slog(LOG_DEBUG, "Requested data. data[%s]", tmp);
-    j_data = json_loads(tmp, JSON_DECODE_ANY, NULL);
-    sfree(tmp);
-    if(j_data == NULL) {
-      simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-      return;
-    }
-
-    // get value
-    j_tmp = get_system_info(
-        json_string_value(json_object_get(j_data, "id"))
-        );
-    json_decref(j_data);
-    if(j_tmp == NULL) {
-      simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-      return;
-    }
-
-    // create result
-    j_res = create_default_result(EVHTP_RES_OK);
-    json_object_set_new(j_res, "result", j_tmp);
-
-    simple_response_normal(req, j_res);
-    json_decref(j_res);
+    htp_get_core_systems_detail(req, data);
+    return;
   }
   else {
     // should not reach to here.
