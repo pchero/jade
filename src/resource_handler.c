@@ -876,11 +876,11 @@ json_t* get_parked_call_info(const char* parkee_unique_id)
 }
 
 /**
- * Get corresponding pjsip_contact_status info.
+ * Get corresponding pjsip_contact info.
  * @param uri
  * @return
  */
-json_t* get_pjsip_contact_status_info(const char* uri)
+json_t* get_pjsip_contact_info(const char* uri)
 {
   json_t* j_res;
 
@@ -888,9 +888,9 @@ json_t* get_pjsip_contact_status_info(const char* uri)
     slog(LOG_WARNING, "Wrong input parameter.");
     return NULL;
   }
-  slog(LOG_DEBUG, "Fired get_pjsip_contact_status_info. uri[%s]", uri);
+  slog(LOG_DEBUG, "Fired get_pjsip_contact_info. uri[%s]", uri);
 
-  j_res = get_detail_item_key_string("pjsip_contact_status", "uri", uri);
+  j_res = get_detail_item_key_string("pjsip_contact", "uri", uri);
 
   return j_res;
 }

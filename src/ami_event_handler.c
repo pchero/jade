@@ -2515,7 +2515,7 @@ static void ami_event_contactstatus(json_t* j_msg)
 
   // get contact status
   // if not exist, create new.
-  j_data = get_pjsip_contact_status_info(uri);
+  j_data = get_pjsip_contact_info(uri);
   if(j_data == NULL) {
     j_data = json_pack("{s:s}", "uri", uri);
   }
@@ -2572,10 +2572,10 @@ static void ami_event_contactstatus(json_t* j_msg)
   json_object_set_new(j_data, "tm_update", json_string(timestamp));
   sfree(timestamp);
 
-  ret = db_ctx_insert_or_replace(g_db_ast, "pjsip_contact_status", j_data);
+  ret = db_ctx_insert_or_replace(g_db_ast, "pjsip_contact", j_data);
   json_decref(j_data);
   if(ret == false) {
-    slog(LOG_ERR, "Could not insert to pjsip_contact_status.");
+    slog(LOG_ERR, "Could not insert to pjsip_contact.");
     return;
   }
 
@@ -2640,10 +2640,10 @@ static void ami_event_contactstatusdetail(json_t* j_msg)
       );
   sfree(timestamp);
 
-  ret = db_ctx_insert_or_replace(g_db_ast, "pjsip_contact_status", j_data);
+  ret = db_ctx_insert_or_replace(g_db_ast, "pjsip_contact", j_data);
   json_decref(j_data);
   if(ret == false) {
-    slog(LOG_ERR, "Could not insert to pjsip_contact_status.");
+    slog(LOG_ERR, "Could not insert to pjsip_contact.");
     return;
   }
 

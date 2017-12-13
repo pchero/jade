@@ -64,7 +64,7 @@ json_t* get_parked_calls_all_parkee_unique_id(void);
 json_t* get_parked_call_info(const char* parkee_unique_id);
 
 // pjsip
-json_t* get_pjsip_contact_status_info(const char* uri);
+json_t* get_pjsip_contact_info(const char* uri);
 json_t* get_pjsip_endpoints_all(void);
 json_t* get_pjsip_endpoint_info(const char* name);
 json_t* get_pjsip_aors_all(void);
