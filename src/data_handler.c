@@ -461,11 +461,11 @@ static bool init_ami_database(void)
     return false;
   }
 
-  // pjsip_contact_status
-  db_ctx_exec(g_db_ast, g_sql_drop_pjsip_contact_status);
-  ret = db_ctx_exec(g_db_ast, g_sql_create_pjsip_contact_status);
+  // pjsip_contact
+  db_ctx_exec(g_db_ast, g_sql_drop_pjsip_contact);
+  ret = db_ctx_exec(g_db_ast, g_sql_create_pjsip_contact);
   if(ret == false) {
-    slog(LOG_ERR, "Could not create table. table[%s]", "pjsip_contact_status");
+    slog(LOG_ERR, "Could not create table. table[%s]", "pjsip_contact");
     return false;
   }
 
@@ -600,6 +600,17 @@ static bool send_init_actions(void)
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not send ami action. action[%s]", "DeviceStateList");
+    return false;
+  }
+
+  // pjsip
+  j_tmp = json_pack("{s:s}",
+      "Action", "PJSIPShowEndpoints"
+      );
+  ret = send_ami_cmd(j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not send ami action. action[%s]", "PJSIPShowEndpoints");
     return false;
   }
 

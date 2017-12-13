@@ -396,10 +396,10 @@ static const char* g_sql_create_parked_call =
 ");";
 
 
-// pjsip_contact_status
-static const char* g_sql_drop_pjsip_contact_status = "drop table if exists pjsip_contact_status;";
-static const char* g_sql_create_pjsip_contact_status =
-"create table pjsip_contact_status("
+// pjsip_contact
+static const char* g_sql_drop_pjsip_contact = "drop table if exists pjsip_contact;";
+static const char* g_sql_create_pjsip_contact =
+"create table pjsip_contact("
 
 "   uri             varchar(1023),"
 "   id              varchar(1023),"

@@ -876,26 +876,6 @@ json_t* get_parked_call_info(const char* parkee_unique_id)
 }
 
 /**
- * Get corresponding pjsip_contact_status info.
- * @param uri
- * @return
- */
-json_t* get_pjsip_contact_status_info(const char* uri)
-{
-  json_t* j_res;
-
-  if(uri == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return NULL;
-  }
-  slog(LOG_DEBUG, "Fired get_pjsip_contact_status_info. uri[%s]", uri);
-
-  j_res = get_detail_item_key_string("pjsip_contact_status", "uri", uri);
-
-  return j_res;
-}
-
-/**
  * Get corresponding pjsip_endpoint info.
  * @param name
  * @return
@@ -914,6 +894,131 @@ json_t* get_pjsip_endpoint_info(const char* name)
 
   return j_res;
 }
+
+/**
+ * Get all list of pjsip_endpoint info.
+ * @param name
+ * @return
+ */
+json_t* get_pjsip_endpoints_all(void)
+{
+  json_t* j_res;
+
+  slog(LOG_DEBUG, "Fired get_pjsip_endpoints_all.");
+
+  j_res = get_items("pjsip_endpoint", "*");
+
+  return j_res;
+}
+
+/**
+ * Get all list of pjsip_aor info.
+ * @param name
+ * @return
+ */
+json_t* get_pjsip_aors_all(void)
+{
+  json_t* j_res;
+
+  slog(LOG_DEBUG, "Fired pjsip_aor.");
+
+  j_res = get_items("pjsip_aor", "*");
+
+  return j_res;
+}
+
+/**
+ * Get detail info of given pjsip_aor key.
+ * @param name
+ * @return
+ */
+json_t* get_pjsip_aor_info(const char* key)
+{
+  json_t* j_res;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_pjsip_aors_info.");
+
+  j_res = get_detail_item_key_string("pjsip_aor", "object_name", key);
+
+  return j_res;
+}
+
+/**
+ * Get all list of pjsip_auth info.
+ * @param name
+ * @return
+ */
+json_t* get_pjsip_auths_all(void)
+{
+  json_t* j_res;
+
+  slog(LOG_DEBUG, "Fired get_pjsip_auths_all.");
+
+  j_res = get_items("pjsip_auth", "*");
+
+  return j_res;
+}
+
+/**
+ * Get detail info of given pjsip_auth key.
+ * @param name
+ * @return
+ */
+json_t* get_pjsip_auth_info(const char* key)
+{
+  json_t* j_res;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_pjsip_auth_info.");
+
+  j_res = get_detail_item_key_string("pjsip_auth", "object_name", key);
+
+  return j_res;
+}
+
+/**
+ * Get all list of pjsip_contact info.
+ * @param name
+ * @return
+ */
+json_t* get_pjsip_contacts_all(void)
+{
+  json_t* j_res;
+
+  slog(LOG_DEBUG, "Fired get_pjsip_contacts_all.");
+
+  j_res = get_items("pjsip_contact", "*");
+
+  return j_res;
+}
+
+/**
+ * Get detail info of given pjsip_contact key.
+ * @param name
+ * @return
+ */
+json_t* get_pjsip_contact_info(const char* key)
+{
+  json_t* j_res;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_pjsip_contact_info.");
+
+  j_res = get_detail_item_key_string("pjsip_contact", "uri", key);
+
+  return j_res;
+}
+
 
 /**
  * Get corresponding voicemail_user info.

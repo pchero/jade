@@ -2129,6 +2129,7 @@ static void ami_event_varset(json_t* j_msg)
 static void ami_event_endpointlist(json_t* j_msg)
 {
   json_t* j_data;
+  json_t* j_tmp;
   char* timestamp;
   const char* tmp_const;
   const char* name;
@@ -2189,6 +2190,18 @@ static void ami_event_endpointlist(json_t* j_msg)
   json_decref(j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to pjsip_endpoint.");
+    return;
+  }
+
+  // send request for detail info
+  j_tmp = json_pack("{s:s, s:s}",
+      "Action", "PJSIPShowEndpoint",
+      "Endpoint", name
+      );
+  ret = send_ami_cmd(j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not send ami action. action[%s]", "PJSIPShowEndpoint");
     return;
   }
 
@@ -2502,7 +2515,7 @@ static void ami_event_contactstatus(json_t* j_msg)
 
   // get contact status
   // if not exist, create new.
-  j_data = get_pjsip_contact_status_info(uri);
+  j_data = get_pjsip_contact_info(uri);
   if(j_data == NULL) {
     j_data = json_pack("{s:s}", "uri", uri);
   }
@@ -2559,10 +2572,10 @@ static void ami_event_contactstatus(json_t* j_msg)
   json_object_set_new(j_data, "tm_update", json_string(timestamp));
   sfree(timestamp);
 
-  ret = db_ctx_insert_or_replace(g_db_ast, "pjsip_contact_status", j_data);
+  ret = db_ctx_insert_or_replace(g_db_ast, "pjsip_contact", j_data);
   json_decref(j_data);
   if(ret == false) {
-    slog(LOG_ERR, "Could not insert to pjsip_contact_status.");
+    slog(LOG_ERR, "Could not insert to pjsip_contact.");
     return;
   }
 
@@ -2627,10 +2640,10 @@ static void ami_event_contactstatusdetail(json_t* j_msg)
       );
   sfree(timestamp);
 
-  ret = db_ctx_insert_or_replace(g_db_ast, "pjsip_contact_status", j_data);
+  ret = db_ctx_insert_or_replace(g_db_ast, "pjsip_contact", j_data);
   json_decref(j_data);
   if(ret == false) {
-    slog(LOG_ERR, "Could not insert to pjsip_contact_status.");
+    slog(LOG_ERR, "Could not insert to pjsip_contact.");
     return;
   }
 
@@ -2655,9 +2668,9 @@ static void ami_event_aordetail(json_t* j_msg)
   }
   slog(LOG_DEBUG, "Fired ami_event_aordetail.");
 
-  tmp_const = json_string_value(json_object_get(j_msg, "URI"));
+  tmp_const = json_string_value(json_object_get(j_msg, "ObjectName"));
   if(tmp_const == NULL) {
-    slog(LOG_ERR, "Could not get URI info.");
+    slog(LOG_ERR, "Could not get ObjectName info.");
     return;
   }
 
@@ -2766,7 +2779,7 @@ static void ami_event_authdetail(json_t* j_msg)
       );
   sfree(timestamp);
 
-  ret = db_ctx_insert_or_replace(g_db_ast, "pjsip_aor", j_data);
+  ret = db_ctx_insert_or_replace(g_db_ast, "pjsip_auth", j_data);
   json_decref(j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to pjsip_aor.");

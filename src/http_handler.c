@@ -22,6 +22,7 @@
 #include "core_handler.h"
 #include "agent_handler.h"
 #include "sip_handler.h"
+#include "pjsip_handler.h"
 
 
 
@@ -36,17 +37,48 @@ evhtp_t* g_htp = NULL;
 // ping
 static void cb_htp_ping(evhtp_request_t *req, void *a);
 
-// peers
+
+// agent
+static void cb_htp_agent_agents(evhtp_request_t *req, void *data);
+static void cb_htp_agent_agents_detail(evhtp_request_t *req, void *data);
+
+
+// core
+static void cb_htp_core_channels(evhtp_request_t *req, void *data);
+static void cb_htp_core_channels_detail(evhtp_request_t *req, void *data);
+static void cb_htp_core_systems(evhtp_request_t *req, void *data);
+static void cb_htp_core_systems_detail(evhtp_request_t *req, void *data);
+
+
+// sip
 static void cb_htp_sip_peers(evhtp_request_t *req, void *data);
 static void cb_htp_sip_peers_detail(evhtp_request_t *req, void *data);
+static void cb_htp_sip_registries(evhtp_request_t *req, void *data);
+static void cb_htp_sip_registries_detail(evhtp_request_t *req, void *data);
+
+
+// pjsip
+static void cb_htp_pjsip_endpoints(evhtp_request_t *req, void *data);
+static void cb_htp_pjsip_endpoints_detail(evhtp_request_t *req, void *data);
+static void cb_htp_pjsip_aors(evhtp_request_t *req, void *data);
+static void cb_htp_pjsip_aors_detail(evhtp_request_t *req, void *data);
+static void cb_htp_pjsip_auths(evhtp_request_t *req, void *data);
+static void cb_htp_pjsip_auths_detail(evhtp_request_t *req, void *data);
+static void cb_htp_pjsip_contacts(evhtp_request_t *req, void *data);
+static void cb_htp_pjsip_contacts_detail(evhtp_request_t *req, void *data);
+
+
+// voicemail/
+static void cb_htp_voicemail_users(evhtp_request_t *req, void *data);
+static void cb_htp_voicemail_users_detail(evhtp_request_t *req, void *data);
+static void cb_htp_voicemail_vms(evhtp_request_t *req, void *data);
+static void cb_htp_voicemail_vms_msgname(evhtp_request_t *req, void *data);
+
 
 // databases
 static void cb_htp_databases(evhtp_request_t *req, void *data);
 static void cb_htp_databases_key(evhtp_request_t *req, void *data);
 
-// registries
-static void cb_htp_sip_registries(evhtp_request_t *req, void *data);
-static void cb_htp_sip_registries_detail(evhtp_request_t *req, void *data);
 
 // queue_params
 static void cb_htp_queue_params(evhtp_request_t *req, void *data);
@@ -60,18 +92,6 @@ static void cb_htp_queue_members_detail(evhtp_request_t *req, void *data);
 static void cb_htp_queue_entries(evhtp_request_t *req, void *data);
 static void cb_htp_queue_entries_detail(evhtp_request_t *req, void *data);
 
-// channels
-static void cb_htp_core_channels(evhtp_request_t *req, void *data);
-static void cb_htp_core_channels_detail(evhtp_request_t *req, void *data);
-
-// agents
-static void cb_htp_agent_agents(evhtp_request_t *req, void *data);
-static void cb_htp_agent_agents_detail(evhtp_request_t *req, void *data);
-
-// systems
-static void cb_htp_core_systems(evhtp_request_t *req, void *data);
-static void cb_htp_core_systems_detail(evhtp_request_t *req, void *data);
-
 // device_states
 static void cb_htp_device_states(evhtp_request_t *req, void *data);
 static void cb_htp_device_states_detail(evhtp_request_t *req, void *data);
@@ -84,12 +104,6 @@ static void cb_htp_parking_lots_detail(evhtp_request_t *req, void *data);
 static void cb_htp_parked_calls(evhtp_request_t *req, void *data);
 static void cb_htp_parked_calls_detail(evhtp_request_t *req, void *data);
 
-
-// ^/voicemail/
-static void cb_htp_voicemail_users(evhtp_request_t *req, void *data);
-static void cb_htp_voicemail_users_detail(evhtp_request_t *req, void *data);
-static void cb_htp_voicemail_vms(evhtp_request_t *req, void *data);
-static void cb_htp_voicemail_vms_msgname(evhtp_request_t *req, void *data);
 
 
 
@@ -169,69 +183,86 @@ bool init_http_handler(void)
 
   //// ^/agent/
   // agents
-  evhtp_set_cb(g_htp, "/agent/agents/", cb_htp_agent_agents_detail, NULL);
-  evhtp_set_cb(g_htp, "/agent/agents", cb_htp_agent_agents, NULL);
+  evhtp_set_regex_cb(g_htp, "^/agent/agents/(.*)", cb_htp_agent_agents_detail, NULL);
+  evhtp_set_regex_cb(g_htp, "^/agent/agents$", cb_htp_agent_agents, NULL);
 
 
 
   //// ^/core/
   // channels
-  evhtp_set_regex_cb(g_htp, "/core/channels/(*)", cb_htp_core_channels_detail, NULL);
-  evhtp_set_regex_cb(g_htp, "/core/channel", cb_htp_core_channels, NULL);
+  evhtp_set_regex_cb(g_htp, "^/core/channels/(.*)", cb_htp_core_channels_detail, NULL);
+  evhtp_set_regex_cb(g_htp, "^/core/channel$", cb_htp_core_channels, NULL);
 
   // systems
-  evhtp_set_regex_cb(g_htp, "/core/systems/(*)", cb_htp_core_systems_detail, NULL);
-  evhtp_set_regex_cb(g_htp, "/core/systems", cb_htp_core_systems, NULL);
+  evhtp_set_regex_cb(g_htp, "^/core/systems/(.*)", cb_htp_core_systems_detail, NULL);
+  evhtp_set_regex_cb(g_htp, "^/core/systems$", cb_htp_core_systems, NULL);
 
 
 
   ////// ^/ob/
   ////// outbound modules
   // destinations
-  evhtp_set_regex_cb(g_htp, "/ob/destinations/("DEF_REG_UUID")", cb_htp_ob_destinations_uuid, NULL);
-  evhtp_set_regex_cb(g_htp, "/ob/destinations", cb_htp_ob_destinations, NULL);
+  evhtp_set_regex_cb(g_htp, "^/ob/destinations/("DEF_REG_UUID")", cb_htp_ob_destinations_uuid, NULL);
+  evhtp_set_regex_cb(g_htp, "^/ob/destinations$", cb_htp_ob_destinations, NULL);
 
   // plans
-  evhtp_set_regex_cb(g_htp, "/ob/plans/("DEF_REG_UUID")", cb_htp_ob_plans_uuid, NULL);
-  evhtp_set_regex_cb(g_htp, "/ob/plans", cb_htp_ob_plans, NULL);
+  evhtp_set_regex_cb(g_htp, "^/ob/plans/("DEF_REG_UUID")", cb_htp_ob_plans_uuid, NULL);
+  evhtp_set_regex_cb(g_htp, "^/ob/plans$", cb_htp_ob_plans, NULL);
 
   // campaigns
-  evhtp_set_regex_cb(g_htp, "/ob/campaigns/("DEF_REG_UUID")", cb_htp_ob_campaigns_uuid, NULL);
-  evhtp_set_regex_cb(g_htp, "/ob/campaigns", cb_htp_ob_campaigns, NULL);
+  evhtp_set_regex_cb(g_htp, "^/ob/campaigns/(/"DEF_REG_UUID")", cb_htp_ob_campaigns_uuid, NULL);
+  evhtp_set_regex_cb(g_htp, "^/ob/campaigns$", cb_htp_ob_campaigns, NULL);
 
   // dlmas
-  evhtp_set_regex_cb(g_htp, "/ob/dlmas/("DEF_REG_UUID")", cb_htp_ob_dlmas_uuid, NULL);
-  evhtp_set_regex_cb(g_htp, "/ob/dlmas", cb_htp_ob_dlmas, NULL);
+  evhtp_set_regex_cb(g_htp, "^/ob/dlmas/("DEF_REG_UUID")", cb_htp_ob_dlmas_uuid, NULL);
+  evhtp_set_regex_cb(g_htp, "^/ob/dlmas$", cb_htp_ob_dlmas, NULL);
 
   // dls
-  evhtp_set_regex_cb(g_htp, "/ob/dls/("DEF_REG_UUID")", cb_htp_ob_dls_uuid, NULL);
-  evhtp_set_regex_cb(g_htp, "/ob/dls", cb_htp_ob_dls, NULL);
+  evhtp_set_regex_cb(g_htp, "^/ob/dls/("DEF_REG_UUID")", cb_htp_ob_dls_uuid, NULL);
+  evhtp_set_regex_cb(g_htp, "^/ob/dls$", cb_htp_ob_dls, NULL);
 
   // dialings
-  evhtp_set_regex_cb(g_htp, "/ob/dialings/("DEF_REG_UUID")", cb_htp_ob_dialings_uuid, NULL);
-  evhtp_set_regex_cb(g_htp, "/ob/dialings", cb_htp_ob_dialings, NULL);
+  evhtp_set_regex_cb(g_htp, "^/ob/dialings/("DEF_REG_UUID")", cb_htp_ob_dialings_uuid, NULL);
+  evhtp_set_regex_cb(g_htp, "^/ob/dialings$", cb_htp_ob_dialings, NULL);
 
+
+  //// ^/pjsip/
+  // endpoints
+  evhtp_set_regex_cb(g_htp, "^/pjsip/endpoints/(.*)", cb_htp_pjsip_endpoints_detail, NULL);
+  evhtp_set_regex_cb(g_htp, "^/pjsip/endpoints$", cb_htp_pjsip_endpoints, NULL);
+
+  // aors
+  evhtp_set_regex_cb(g_htp, "^/pjsip/aors/(.*)", cb_htp_pjsip_aors_detail, NULL);
+  evhtp_set_regex_cb(g_htp, "^/pjsip/aors$", cb_htp_pjsip_aors, NULL);
+
+  // auths
+  evhtp_set_regex_cb(g_htp, "^/pjsip/auths/(.*)", cb_htp_pjsip_auths_detail, NULL);
+  evhtp_set_regex_cb(g_htp, "^/pjsip/auths$", cb_htp_pjsip_auths, NULL);
+
+  // contacts
+  evhtp_set_regex_cb(g_htp, "^/pjsip/contacts/(.*)", cb_htp_pjsip_contacts_detail, NULL);
+  evhtp_set_regex_cb(g_htp, "^/pjsip/contacts$", cb_htp_pjsip_contacts, NULL);
 
 
   //// ^/sip/
   // peers
-  evhtp_set_regex_cb(g_htp, "/sip/peers/(*)", cb_htp_sip_peers_detail, NULL);
-  evhtp_set_regex_cb(g_htp, "/sip/peers", cb_htp_sip_peers, NULL);
+  evhtp_set_regex_cb(g_htp, "^/sip/peers/(.*)", cb_htp_sip_peers_detail, NULL);
+  evhtp_set_regex_cb(g_htp, "^/sip/peers$", cb_htp_sip_peers, NULL);
 
   // registries
-  evhtp_set_regex_cb(g_htp, "/sip/registries/(*)", cb_htp_sip_registries_detail, NULL);
-  evhtp_set_regex_cb(g_htp, "/sip/registries", cb_htp_sip_registries, NULL);
+  evhtp_set_regex_cb(g_htp, "^/sip/registries/(.*)", cb_htp_sip_registries_detail, NULL);
+  evhtp_set_regex_cb(g_htp, "^/sip/registries$", cb_htp_sip_registries, NULL);
 
 
 
   //// ^/voicemail/
   // users
-  evhtp_set_regex_cb(g_htp, "/voicemail/users/(*)", cb_htp_voicemail_users_detail, NULL);
-  evhtp_set_regex_cb(g_htp, "/voicemail/users", cb_htp_voicemail_users, NULL);
+  evhtp_set_regex_cb(g_htp, "^/voicemail/users/(.*)", cb_htp_voicemail_users_detail, NULL);
+  evhtp_set_regex_cb(g_htp, "^/voicemail/users$", cb_htp_voicemail_users, NULL);
 
   // vms
-  evhtp_set_regex_cb(g_htp, "/voicemail/vms/("DEF_REG_MSGNAME")", cb_htp_voicemail_vms_msgname, NULL);
-  evhtp_set_regex_cb(g_htp, "/voicemail/vms", cb_htp_voicemail_vms, NULL);
+  evhtp_set_regex_cb(g_htp, "^/voicemail/vms/("DEF_REG_MSGNAME")", cb_htp_voicemail_vms_msgname, NULL);
+  evhtp_set_regex_cb(g_htp, "^/voicemail/vms$", cb_htp_voicemail_vms, NULL);
 
 
   return true;
@@ -1794,5 +1825,316 @@ static void cb_htp_voicemail_vms_msgname(evhtp_request_t *req, void *data)
   // should not reach to here.
   simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
 
+  return;
+}
+
+/**
+ * http request handler
+ * ^/pjsip/endpoints
+ * @param req
+ * @param data
+ */
+static void cb_htp_pjsip_endpoints(evhtp_request_t *req, void *data)
+{
+  int method;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_pjsip_endpoints.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if(method != htp_method_GET) {
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  if(method == htp_method_GET) {
+    htp_get_pjsip_endpoints(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  return;
+}
+
+/**
+ * http request handler
+ * ^/pjsip/endpoints/(*)
+ * @param req
+ * @param data
+ */
+static void cb_htp_pjsip_endpoints_detail(evhtp_request_t *req, void *data)
+{
+  int method;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_pjsip_endpoints_detail.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if(method != htp_method_GET) {
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // fire handlers
+  if(method == htp_method_GET) {
+    htp_get_pjsip_endpoints_detail(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  return;
+}
+
+/**
+ * http request handler
+ * ^/pjsip/aors$
+ * @param req
+ * @param data
+ */
+static void cb_htp_pjsip_aors(evhtp_request_t *req, void *data)
+{
+  int method;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_pjsip_aors.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if(method != htp_method_GET) {
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // fire handlers
+  if(method == htp_method_GET) {
+    htp_get_pjsip_aors(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  return;
+}
+
+/**
+ * http request handler
+ * ^/pjsip/aors/(.*)
+ * @param req
+ * @param data
+ */
+static void cb_htp_pjsip_aors_detail(evhtp_request_t *req, void *data)
+{
+  int method;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_pjsip_aors_detail.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if(method != htp_method_GET) {
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // fire handlers
+  if(method == htp_method_GET) {
+    htp_get_pjsip_aors_detail(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  return;
+}
+
+/**
+ * http request handler
+ * ^/pjsip/auths$
+ * @param req
+ * @param data
+ */
+static void cb_htp_pjsip_auths(evhtp_request_t *req, void *data)
+{
+  int method;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_pjsip_auths.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if(method != htp_method_GET) {
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // fire handlers
+  if(method == htp_method_GET) {
+    htp_get_pjsip_auths(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  return;
+}
+
+/**
+ * http request handler
+ * ^/pjsip/auths/(.*)
+ * @param req
+ * @param data
+ */
+static void cb_htp_pjsip_auths_detail(evhtp_request_t *req, void *data)
+{
+  int method;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_pjsip_auths_detail.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if(method != htp_method_GET) {
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // fire handlers
+  if(method == htp_method_GET) {
+    htp_get_pjsip_auths_detail(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  return;
+}
+
+/**
+ * http request handler
+ * ^/pjsip/contacts$
+ * @param req
+ * @param data
+ */
+static void cb_htp_pjsip_contacts(evhtp_request_t *req, void *data)
+{
+  int method;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_pjsip_contacts.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if(method != htp_method_GET) {
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // fire handlers
+  if(method == htp_method_GET) {
+    htp_get_pjsip_contacts(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  return;
+}
+
+/**
+ * http request handler
+ * ^/pjsip/contacts/(.*)
+ * @param req
+ * @param data
+ */
+static void cb_htp_pjsip_contacts_detail(evhtp_request_t *req, void *data)
+{
+  int method;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_pjsip_contacts_detail.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if(method != htp_method_GET) {
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // fire handlers
+  if(method == htp_method_GET) {
+    htp_get_pjsip_contacts_detail(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   return;
 }
