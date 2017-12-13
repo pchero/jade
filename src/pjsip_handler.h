@@ -16,6 +16,8 @@ void htp_get_pjsip_aors(evhtp_request_t *req, void *data);
 void htp_get_pjsip_aors_detail(evhtp_request_t *req, void *data);
 void htp_get_pjsip_auths(evhtp_request_t *req, void *data);
 void htp_get_pjsip_auths_detail(evhtp_request_t *req, void *data);
+void htp_get_pjsip_contacts(evhtp_request_t *req, void *data);
+void htp_get_pjsip_contacts_detail(evhtp_request_t *req, void *data);
 
 
 

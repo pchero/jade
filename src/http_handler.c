@@ -64,6 +64,8 @@ static void cb_htp_pjsip_aors(evhtp_request_t *req, void *data);
 static void cb_htp_pjsip_aors_detail(evhtp_request_t *req, void *data);
 static void cb_htp_pjsip_auths(evhtp_request_t *req, void *data);
 static void cb_htp_pjsip_auths_detail(evhtp_request_t *req, void *data);
+static void cb_htp_pjsip_contacts(evhtp_request_t *req, void *data);
+static void cb_htp_pjsip_contacts_detail(evhtp_request_t *req, void *data);
 
 
 // voicemail/
@@ -236,6 +238,10 @@ bool init_http_handler(void)
   // auths
   evhtp_set_regex_cb(g_htp, "^/pjsip/auths/(.*)", cb_htp_pjsip_auths_detail, NULL);
   evhtp_set_regex_cb(g_htp, "^/pjsip/auths$", cb_htp_pjsip_auths, NULL);
+
+  // contacts
+  evhtp_set_regex_cb(g_htp, "^/pjsip/contacts/(.*)", cb_htp_pjsip_contacts_detail, NULL);
+  evhtp_set_regex_cb(g_htp, "^/pjsip/contacts$", cb_htp_pjsip_contacts, NULL);
 
 
   //// ^/sip/
@@ -2042,6 +2048,84 @@ static void cb_htp_pjsip_auths_detail(evhtp_request_t *req, void *data)
   // fire handlers
   if(method == htp_method_GET) {
     htp_get_pjsip_auths_detail(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  return;
+}
+
+/**
+ * http request handler
+ * ^/pjsip/contacts$
+ * @param req
+ * @param data
+ */
+static void cb_htp_pjsip_contacts(evhtp_request_t *req, void *data)
+{
+  int method;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_pjsip_contacts.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if(method != htp_method_GET) {
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // fire handlers
+  if(method == htp_method_GET) {
+    htp_get_pjsip_contacts(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  return;
+}
+
+/**
+ * http request handler
+ * ^/pjsip/contacts/(.*)
+ * @param req
+ * @param data
+ */
+static void cb_htp_pjsip_contacts_detail(evhtp_request_t *req, void *data)
+{
+  int method;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_pjsip_contacts_detail.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if(method != htp_method_GET) {
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // fire handlers
+  if(method == htp_method_GET) {
+    htp_get_pjsip_contacts_detail(req, data);
     return;
   }
   else {

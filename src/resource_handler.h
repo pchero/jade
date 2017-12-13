@@ -71,6 +71,8 @@ json_t* get_pjsip_aors_all(void);
 json_t* get_pjsip_aor_info(const char* key);
 json_t* get_pjsip_auths_all(void);
 json_t* get_pjsip_auth_info(const char* key);
+json_t* get_pjsip_contacts_all(void);
+json_t* get_pjsip_contact_info(const char* key);
 
 
 // voicemail

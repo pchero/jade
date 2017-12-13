@@ -19,15 +19,11 @@
 
 #define DEF_UUID_STR_LEN 37
 
-//void _free(void* tmp)
-//{
-//  if(tmp == NULL) {
-//    return;
-//  }
-//  free(tmp);
-//
-//  return;
-//}
+
+static int uri_decode(const char *s, char *dec);
+static int ishex(int x);
+
+
 
 /**
  *
@@ -50,29 +46,6 @@ void trim(char* s)
 
 	memmove(s, p, l + 1);
 }
-//void trim(char *text)
-//{
-//  int i;
-//  int len;
-//  int retval = 0;
-//
-//  if(text == NULL) {
-//    return;
-//  }
-//
-//  len = strlen(text);
-//  for
-//  (
-//    i = len - 1;
-//    i >= 0 && ((text[i]==' ') || (text[i]=='\t') );
-//    i--
-//  )
-//  {
-//    text[i] = (char)0;
-//    retval++;
-//  }
-//  return;
-//}
 
 
 /**
@@ -279,3 +252,49 @@ char* get_variables_ami_str_from_object(json_t* j_variables)
   return res;
 }
 
+static int ishex(int x)
+{
+  return  (x >= '0' && x <= '9')  ||
+    (x >= 'a' && x <= 'f')  ||
+    (x >= 'A' && x <= 'F');
+}
+
+static int uri_decode(const char *s, char *dec)
+{
+  char *o;
+  const char *end;
+  int c;
+
+  end = s + strlen(s);
+  for (o = dec; s <= end; o++) {
+    c = *s++;
+    if (c == '+') {
+      c = ' ';
+    }
+    else if ((c == '%') && ( !ishex(*s++) || !ishex(*s++) || !sscanf(s - 2, "%2x", &c))) {
+      return -1;
+    }
+
+    if (dec) {
+      *o = c;
+    }
+  }
+
+  return o - dec;
+}
+
+char* uri_parse(const char* uri)
+{
+  char tmp[2048];
+  char* res;
+  int ret;
+
+  ret = uri_decode(uri, tmp);
+  if(ret < 0) {
+    return NULL;
+  }
+
+  res = strdup(tmp);
+
+  return res;
+}

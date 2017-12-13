@@ -876,26 +876,6 @@ json_t* get_parked_call_info(const char* parkee_unique_id)
 }
 
 /**
- * Get corresponding pjsip_contact info.
- * @param uri
- * @return
- */
-json_t* get_pjsip_contact_info(const char* uri)
-{
-  json_t* j_res;
-
-  if(uri == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return NULL;
-  }
-  slog(LOG_DEBUG, "Fired get_pjsip_contact_info. uri[%s]", uri);
-
-  j_res = get_detail_item_key_string("pjsip_contact", "uri", uri);
-
-  return j_res;
-}
-
-/**
  * Get corresponding pjsip_endpoint info.
  * @param name
  * @return
@@ -1003,6 +983,41 @@ json_t* get_pjsip_auth_info(const char* key)
   return j_res;
 }
 
+/**
+ * Get all list of pjsip_contact info.
+ * @param name
+ * @return
+ */
+json_t* get_pjsip_contacts_all(void)
+{
+  json_t* j_res;
+
+  slog(LOG_DEBUG, "Fired get_pjsip_contacts_all.");
+
+  j_res = get_items("pjsip_contact", "*");
+
+  return j_res;
+}
+
+/**
+ * Get detail info of given pjsip_contact key.
+ * @param name
+ * @return
+ */
+json_t* get_pjsip_contact_info(const char* key)
+{
+  json_t* j_res;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_pjsip_contact_info.");
+
+  j_res = get_detail_item_key_string("pjsip_contact", "uri", key);
+
+  return j_res;
+}
 
 
 /**

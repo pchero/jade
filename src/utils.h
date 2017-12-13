@@ -20,6 +20,11 @@ char* get_utc_timestamp_time(void);
 char* get_utc_timestamp_using_timespec(struct timespec timeptr);
 char* get_variables_info_ami_str_from_string(const char* str);
 char* get_variables_ami_str_from_object(json_t* j_variables);
+char* uri_parse(const char* uri);
+
+
+
+
 //char* get_variables_info_ami_str(struct ast_json* j_obj, const char* name);
 //struct ast_json* get_variables_info_json_object(struct ast_json* j_obj, const char* name);
 //char* get_variables_info_ami_str_from_json_array(struct ast_json* j_arr);
