@@ -65,7 +65,13 @@ json_t* get_parked_call_info(const char* parkee_unique_id);
 
 // pjsip
 json_t* get_pjsip_contact_status_info(const char* uri);
+json_t* get_pjsip_endpoints_all(void);
 json_t* get_pjsip_endpoint_info(const char* name);
+json_t* get_pjsip_aors_all(void);
+json_t* get_pjsip_aor_info(const char* key);
+json_t* get_pjsip_auths_all(void);
+json_t* get_pjsip_auth_info(const char* key);
+
 
 // voicemail
 json_t* get_voicemail_user_info(const char* context, const char* mailbox);

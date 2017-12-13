@@ -704,7 +704,6 @@ static bool remove_vm(const char* context, const char* mailbox, const char* dir,
     slog(LOG_ERR, "Could not get voicemail directory info.");
     return false;
   }
-  slog(LOG_DEBUG, "Check value. size_1[%lu], size_2[%lu]", sizeof(exts), sizeof(exts[0]));
 
   for(i = 0; i < (sizeof(exts)/sizeof(exts[0])); i++) {
     // create target filename
