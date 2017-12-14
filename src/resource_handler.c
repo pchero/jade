@@ -855,11 +855,11 @@ json_t* get_device_state_info(const char* name)
  * Get all parking_lot's array
  * @return
  */
-json_t* get_park_parking_lots_all(void)
+json_t* get_park_parkinglots_all(void)
 {
   json_t* j_res;
 
-  slog(LOG_DEBUG, "Fired get_park_parking_lots_all.");
+  slog(LOG_DEBUG, "Fired get_park_parkinglots_all.");
 
   j_res = get_items("parking_lot", "*");
 
@@ -870,11 +870,11 @@ json_t* get_park_parking_lots_all(void)
  * Get all parking_lot's all name array
  * @return
  */
-json_t* get_park_parking_lots_all_name(void)
+json_t* get_park_parkinglots_all_name(void)
 {
   json_t* j_res;
 
-  slog(LOG_DEBUG, "Fired get_parking_lots_all_name.");
+  slog(LOG_DEBUG, "Fired get_park_parkinglots_all_name.");
 
   j_res = get_items("parking_lot", "name");
 
@@ -885,7 +885,7 @@ json_t* get_park_parking_lots_all_name(void)
  * Get corresponding parking_lot detail info.
  * @return
  */
-json_t* get_park_parking_lot_info(const char* name)
+json_t* get_park_parkinglot_info(const char* name)
 {
   json_t* j_res;
 
@@ -893,7 +893,7 @@ json_t* get_park_parking_lot_info(const char* name)
     slog(LOG_WARNING, "Wrong input parameter.");
     return NULL;
   }
-  slog(LOG_DEBUG, "Fired get_parking_lot_info. name[%s]", name);
+  slog(LOG_DEBUG, "Fired get_park_parkinglot_info. name[%s]", name);
 
   j_res = get_detail_item_key_string("parking_lot", "name", name);
 
@@ -904,11 +904,11 @@ json_t* get_park_parking_lot_info(const char* name)
  * Get all parking_lot's all parkee_unique_id array
  * @return
  */
-json_t* get_parked_calls_all_parkee_unique_id(void)
+json_t* get_park_parkedcalls_all_parkee_unique_id(void)
 {
   json_t* j_res;
 
-  slog(LOG_DEBUG, "Fired get_parked_calls_all_unique_id.");
+  slog(LOG_DEBUG, "Fired get_park_parkedcalls_all_parkee_unique_id.");
 
   j_res = get_items("parked_call", "parkee_unique_id");
 
@@ -916,10 +916,26 @@ json_t* get_parked_calls_all_parkee_unique_id(void)
 }
 
 /**
+ * Get all parkedcalls info array
+ * @return
+ */
+json_t* get_park_parkedcalls_all(void)
+{
+  json_t* j_res;
+
+  slog(LOG_DEBUG, "Fired get_park_parkedcalls_all.");
+
+  j_res = get_items("parked_call", "*");
+
+  return j_res;
+}
+
+
+/**
  * Get corresponding parking_lot detail info.
  * @return
  */
-json_t* get_parked_call_info(const char* parkee_unique_id)
+json_t* get_park_parkedcall_info(const char* parkee_unique_id)
 {
   json_t* j_res;
 

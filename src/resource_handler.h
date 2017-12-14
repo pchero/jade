@@ -58,11 +58,12 @@ json_t* get_device_states_all_device(void);
 json_t* get_device_state_info(const char* device);
 
 // park
-json_t* get_park_parking_lots_all(void);
-json_t* get_park_parking_lots_all_name(void);
-json_t* get_park_parking_lot_info(const char* name);
-json_t* get_parked_calls_all_parkee_unique_id(void);
-json_t* get_parked_call_info(const char* parkee_unique_id);
+json_t* get_park_parkinglots_all(void);
+json_t* get_park_parkinglots_all_name(void);
+json_t* get_park_parkinglot_info(const char* name);
+json_t* get_park_parkedcalls_all();
+json_t* get_park_parkedcalls_all_parkee_unique_id(void);
+json_t* get_park_parkedcall_info(const char* parkee_unique_id);
 
 // pjsip
 json_t* get_pjsip_contact_info(const char* uri);
