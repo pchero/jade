@@ -39,6 +39,7 @@ static void ami_event_endpointdetail(json_t* j_msg);
 static void ami_event_endpointlist(json_t* j_msg);
 static void ami_event_hangup(json_t* j_msg);
 static void ami_event_newchannel(json_t* j_msg);
+static void ami_event_newstate(json_t* j_msg);
 static void ami_event_originateresponse(json_t* j_msg);
 static void ami_event_parkedcall(json_t* j_msg);
 static void ami_event_parkedcallgiveup(json_t* j_msg);
@@ -157,6 +158,9 @@ void ami_message_handler(const char* msg)
   }
   else if(strcasecmp(event, "NewChannel") == 0) {
     ami_event_newchannel(j_msg);
+  }
+  else if(strcasecmp(event, "Newstate") == 0) {
+    ami_event_newstate(j_msg);
   }
   else if(strcasecmp(event, "OriginateResponse") == 0) {
     ami_event_originateresponse(j_msg);
@@ -2976,6 +2980,78 @@ static void ami_event_coreshowchannel(json_t* j_msg)
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to channel.");
+    return;
+  }
+
+  return;
+}
+
+/**
+ * AMI event handler.
+ * Event: Newstate
+ * @param j_msg
+ */
+static void ami_event_newstate(json_t* j_msg)
+{
+  json_t* j_tmp;
+  int ret;
+  char* timestamp;
+  char* tmp;
+  char* sql;
+
+  if(j_msg == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired ami_event_newstate.");
+
+  timestamp = get_utc_timestamp();
+  j_tmp = json_pack("{"
+      "s:s, s:s, "
+      "s:s, s:i, s:s, "
+      "s:s, s:s, s:s, s:s, s:s, s:s, "
+      "s:s, s:s, s:s, "
+      "s:s"
+      "}",
+
+      "unique_id",  json_string_value(json_object_get(j_msg, "Uniqueid"))? : "",
+      "linked_id",  json_string_value(json_object_get(j_msg, "Linkedid"))? : "",
+
+      "channel",   json_string_value(json_object_get(j_msg, "Channel"))? : "",
+      "channel_state",      json_string_value(json_object_get(j_msg, "ChannelState"))? atoi(json_string_value(json_object_get(j_msg, "ChannelState"))): 0,
+      "channel_state_desc", json_string_value(json_object_get(j_msg, "ChannelStateDesc"))? : "",
+
+      "caller_id_num",        json_string_value(json_object_get(j_msg, "CallerIDNum"))? : "",
+      "caller_id_name",       json_string_value(json_object_get(j_msg, "CallerIDName"))? : "",
+      "connected_line_num",   json_string_value(json_object_get(j_msg, "ConnectedLineNum"))? : "",
+      "connected_line_name",  json_string_value(json_object_get(j_msg, "ConnectedLineName"))? : "",
+      "language",             json_string_value(json_object_get(j_msg, "Language"))? : "",
+      "account_code",         json_string_value(json_object_get(j_msg, "AccountCode"))? : "",
+
+      "context",    json_string_value(json_object_get(j_msg, "Context"))? : "",
+      "exten",      json_string_value(json_object_get(j_msg, "Exten"))? : "",
+      "priority",   json_string_value(json_object_get(j_msg, "Priority"))? : "",
+
+      "tm_update",  timestamp
+      );
+  sfree(timestamp);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not create message.");
+    return;
+  }
+
+  tmp = db_ctx_get_update_str(j_tmp);
+  json_decref(j_tmp);
+  asprintf(&sql, "update channel set %s where unique_id=\"%s\";",
+      tmp,
+      json_string_value(json_object_get(j_msg, "Uniqueid"))
+      );
+  sfree(tmp);
+
+  ret = db_ctx_exec(g_db_ast, sql);
+  sfree(sql);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not channel agent info. unique_id[%s]", json_string_value(json_object_get(j_msg, "Uniqueid")));
     return;
   }
 
