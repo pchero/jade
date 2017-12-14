@@ -53,7 +53,7 @@ static json_t* get_items(const char* table, const char* item)
       break;
     }
 
-    json_array_append(j_res, j_tmp);
+    json_array_append_new(j_res, j_tmp);
   }
   db_ctx_free(g_db_ast);
 

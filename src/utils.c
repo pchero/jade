@@ -302,3 +302,29 @@ char* uri_parse(const char* uri)
 
   return res;
 }
+
+/**
+ *
+ * @param time
+ * @param format
+ * @return
+ */
+int convert_time_string(const char* time, const char* format)
+{
+  struct tm tm;
+  int sec;
+
+  if((time == NULL) || (format == NULL)) {
+    return -1;
+  }
+
+  memset(&tm, 0x00, sizeof(tm));
+  strptime(time, format, &tm);
+
+  sec = 0;
+  sec += tm.tm_sec;
+  sec += tm.tm_min * 60;
+  sec += tm.tm_hour * 60 * 60;
+
+  return sec;
+}

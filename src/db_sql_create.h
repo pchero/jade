@@ -56,6 +56,12 @@ static const char* g_sql_create_channel =
 "   exten       varchar(255),"
 "   priority    varchar(255),"
 
+"   application       varchar(255),"
+"   application_data  varchar(1023),"
+"   bridge_id         varchar(255),"
+
+"   duration  int,"
+
 // variables
 "   variables   text,"
 

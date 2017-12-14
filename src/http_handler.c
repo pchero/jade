@@ -140,7 +140,7 @@ bool init_http_handler(void)
   //// ^/core/
   // channels
   evhtp_set_regex_cb(g_htp, "^/core/channels/(.*)", cb_htp_core_channels_detail, NULL);
-  evhtp_set_regex_cb(g_htp, "^/core/channel$", cb_htp_core_channels, NULL);
+  evhtp_set_regex_cb(g_htp, "^/core/channels$", cb_htp_core_channels, NULL);
 
   // systems
   evhtp_set_regex_cb(g_htp, "^/core/systems/(.*)", cb_htp_core_systems_detail, NULL);

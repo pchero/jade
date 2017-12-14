@@ -103,7 +103,7 @@ bool init_event_handler(void)
   ev_pid = calloc(sizeof(struct event), 1);
   event_assign(ev_pid, g_base, -1, 0, cb_pid_update, ev_pid);
   event_add(ev_pid, &tv);
-  add_event_handler(ev);
+  add_event_handler(ev_pid);
 
   return true;
 }

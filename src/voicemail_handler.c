@@ -786,15 +786,6 @@ static json_t* get_vms_status(const char* directory, const char* status, const c
       continue;
     }
 
-//    j_tmp = json_object();
-//    ret = ini_parse(filename, vm_info_parser, j_tmp);
-//    sfree(filename);
-//    if(ret != 0) {
-//      slog(LOG_ERR, "Could not parse the file correctly. err[%d:%s]", errno, strerror(errno));
-//      json_decref(j_tmp);
-//      continue;
-//    }
-
     // set status
     json_object_set_new(j_tmp, "status", json_string(status));
 

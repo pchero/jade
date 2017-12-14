@@ -20,8 +20,9 @@ char* get_utc_timestamp_time(void);
 char* get_utc_timestamp_using_timespec(struct timespec timeptr);
 char* get_variables_info_ami_str_from_string(const char* str);
 char* get_variables_ami_str_from_object(json_t* j_variables);
-char* uri_parse(const char* uri);
 
+char* uri_parse(const char* uri);
+int convert_time_string(const char* time, const char* format);
 
 
 
