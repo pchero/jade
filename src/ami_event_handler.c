@@ -1451,11 +1451,11 @@ static void ami_event_rename(json_t* j_msg)
   json_object_set_new(j_tmp, "tm_update", json_string(timestamp));
   sfree(timestamp);
 
-  // update channel name
-  ret = db_ctx_insert_or_replace(g_db_ast, "channel", j_tmp);
+  // update channel info.
+  ret = update_channel_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
-    slog(LOG_ERR, "Could not update correct channel info.");
+    slog(LOG_ERR, "Could not update channel info.");
     return;
   }
 
@@ -3000,8 +3000,6 @@ static void ami_event_newstate(json_t* j_msg)
   json_t* j_tmp;
   int ret;
   char* timestamp;
-  char* tmp;
-  char* sql;
 
   if(j_msg == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -3044,18 +3042,11 @@ static void ami_event_newstate(json_t* j_msg)
     return;
   }
 
-  tmp = db_ctx_get_update_str(j_tmp);
+  // update channel info.
+  ret = update_channel_info(j_tmp);
   json_decref(j_tmp);
-  asprintf(&sql, "update channel set %s where unique_id=\"%s\";",
-      tmp,
-      json_string_value(json_object_get(j_msg, "Uniqueid"))
-      );
-  sfree(tmp);
-
-  ret = db_ctx_exec(g_db_ast, sql);
-  sfree(sql);
   if(ret == false) {
-    slog(LOG_WARNING, "Could not channel agent info. unique_id[%s]", json_string_value(json_object_get(j_msg, "Uniqueid")));
+    slog(LOG_ERR, "Could not update channel info.");
     return;
   }
 
@@ -3072,8 +3063,6 @@ static void ami_event_newexten(json_t* j_msg)
   json_t* j_tmp;
   int ret;
   char* timestamp;
-  char* tmp;
-  char* sql;
 
   if(j_msg == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -3122,18 +3111,11 @@ static void ami_event_newexten(json_t* j_msg)
     return;
   }
 
-  tmp = db_ctx_get_update_str(j_tmp);
+  // update channel info.
+  ret = update_channel_info(j_tmp);
   json_decref(j_tmp);
-  asprintf(&sql, "update channel set %s where unique_id=\"%s\";",
-      tmp,
-      json_string_value(json_object_get(j_msg, "Uniqueid"))
-      );
-  sfree(tmp);
-
-  ret = db_ctx_exec(g_db_ast, sql);
-  sfree(sql);
   if(ret == false) {
-    slog(LOG_WARNING, "Could not channel agent info. unique_id[%s]", json_string_value(json_object_get(j_msg, "Uniqueid")));
+    slog(LOG_ERR, "Could not update channel info.");
     return;
   }
 

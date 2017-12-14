@@ -675,6 +675,38 @@ json_t* get_channel_info(const char* unique_id)
 }
 
 /**
+ * update channel info.
+ * @return
+ */
+int update_channel_info(const json_t* j_tmp)
+{
+  char* tmp;
+  char* sql;
+  int ret;
+
+  if(j_tmp == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  tmp = db_ctx_get_update_str(j_tmp);
+  asprintf(&sql, "update channel set %s where unique_id=\"%s\";",
+      tmp,
+      json_string_value(json_object_get(j_tmp, "unique_id"))
+      );
+  sfree(tmp);
+
+  ret = db_ctx_exec(g_db_ast, sql);
+  sfree(sql);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not update channel info. unique_id[%s]", json_string_value(json_object_get(j_tmp, "Uniqueid")));
+    return false;
+  }
+
+  return true;
+}
+
+/**
  * Get all agent's id array
  * @return
  */

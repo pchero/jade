@@ -42,6 +42,7 @@ json_t* get_queue_params_all_name(void);
 json_t* get_channels_all_unique_id(void);
 json_t* get_channels_all(void);
 json_t* get_channel_info(const char* unique_id);
+int update_channel_info(const json_t* j_tmp);
 
 // agent
 json_t* get_agents_all_id(void);
