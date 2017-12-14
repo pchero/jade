@@ -828,8 +828,6 @@ static void cb_htp_queue_queues_detail(evhtp_request_t *req, void *data)
 static void cb_htp_queue_members(evhtp_request_t *req, void *data)
 {
   int method;
-  json_t* j_res;
-  json_t* j_tmp;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -844,26 +842,19 @@ static void cb_htp_queue_members(evhtp_request_t *req, void *data)
     return;
   }
 
+  // fire handlers
   if(method == htp_method_GET) {
-    j_tmp = get_queue_members_all_name_queue();
-    if(j_tmp == NULL) {
-      simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-      return;
-    }
-
-    // create result
-    j_res = create_default_result(EVHTP_RES_OK);
-    json_object_set_new(j_res, "result", json_object());
-    json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
-
-    simple_response_normal(req, j_res);
-    json_decref(j_res);
+    htp_get_queue_members(req, data);
+    return;
   }
   else {
     // should not reach to here.
     simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
   }
 
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   return;
 }
 
