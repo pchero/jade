@@ -11,7 +11,9 @@
 #include "http_handler.h"
 #include "resource_handler.h"
 #include "slog.h"
+#include "utils.h"
 
+#include "agent_handler.h"
 
 /**
  * GET ^/agent/agents request handler.
@@ -56,7 +58,8 @@ void htp_get_agent_agents_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_tmp;
-  const char* id;
+  char* id;
+  const char* tmp_const;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -65,7 +68,8 @@ void htp_get_agent_agents_detail(evhtp_request_t *req, void *data)
   slog(LOG_INFO, "Fired htp_get_agent_agents_detail.");
 
   // get id
-  id = req->uri->path->file;
+  tmp_const = req->uri->path->file;
+  id = uri_parse(tmp_const);
   if(id == NULL) {
     slog(LOG_NOTICE, "Could not get id info.");
     simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
@@ -74,6 +78,7 @@ void htp_get_agent_agents_detail(evhtp_request_t *req, void *data)
 
   // get channel info.
   j_tmp = get_agent_info(id);
+  sfree(id);
   if(j_tmp == NULL) {
     slog(LOG_NOTICE, "Could not get agent info.");
     simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);

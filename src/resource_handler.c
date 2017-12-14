@@ -310,7 +310,7 @@ json_t* get_registries_all(void)
 
 
 /**
- * Get all registry account array
+ * Get all queue_param array
  * @return
  */
 json_t* get_queue_params_all_name(void)
@@ -352,35 +352,34 @@ json_t* get_queue_params_all_name(void)
 }
 
 /**
+ * Get all queue_param array
+ * @return
+ */
+json_t* get_queue_params_all(void)
+{
+  json_t* j_res;
+
+  j_res = get_items("queue_param", "*");
+  return j_res;
+}
+
+/**
  * Get corresponding queue param info.
  * @return
  */
-json_t* get_queue_param_info(const char* name)
+json_t* get_queue_param_info(const char* key)
 {
-  char* sql;
-  int ret;
-  json_t* j_tmp;
+  json_t* j_res;
 
-  if(name == NULL) {
+  if(key == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return NULL;
   }
-  slog(LOG_DEBUG, "Fired get_queue_param_info. name[%s]", name);
+  slog(LOG_DEBUG, "Fired get_queue_param_info.");
 
-  asprintf(&sql, "select * from queue_param where name=\"%s\";", name);
-  ret = db_ctx_query(g_db_ast, sql);
-  sfree(sql);
-  if(ret == false) {
-    slog(LOG_WARNING, "Could not get correct queue_param info.");
-    return NULL;
-  }
+  j_res = get_detail_item_key_string("queue_param", "name", key);
 
-  j_tmp = db_ctx_get_record(g_db_ast);
-  db_ctx_free(g_db_ast);
-  if(j_tmp == NULL) {
-    return NULL;
-  }
-  return j_tmp;
+  return j_res;
 }
 
 /**
@@ -423,6 +422,18 @@ json_t* get_queue_members_all_name_queue(void)
   }
   db_ctx_free(g_db_ast);
 
+  return j_res;
+}
+
+/**
+ * Get all queue members array
+ * @return
+ */
+json_t* get_queue_members_all(void)
+{
+  json_t* j_res;
+
+  j_res = get_items("queue_member", "*");
   return j_res;
 }
 
@@ -502,10 +513,43 @@ json_t* get_queue_entries_all_unique_id_queue_name(void)
 }
 
 /**
+ * Get all queue_entry array
+ * @return
+ */
+json_t* get_queue_entries_all(void)
+{
+  json_t* j_res;
+
+  j_res = get_items("queue_entry", "*");
+  return j_res;
+}
+
+/**
+ * Get detail info of given queue_entry key.
+ * @param name
+ * @return
+ */
+json_t* get_queue_entry_info(const char* key)
+{
+  json_t* j_res;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_queue_entry_info.");
+
+  j_res = get_detail_item_key_string("queue_entry", "channel", key);
+
+  return j_res;
+}
+
+
+/**
  * Get corresponding queue entry info.
  * @return
  */
-json_t* get_queue_entry_info(const char* unique_id, const char* queue_name)
+json_t* get_queue_entry_info_by_id_name(const char* unique_id, const char* queue_name)
 {
   char* sql;
   int ret;
@@ -808,10 +852,25 @@ json_t* get_device_state_info(const char* name)
 }
 
 /**
+ * Get all parking_lot's array
+ * @return
+ */
+json_t* get_park_parking_lots_all(void)
+{
+  json_t* j_res;
+
+  slog(LOG_DEBUG, "Fired get_park_parking_lots_all.");
+
+  j_res = get_items("parking_lot", "*");
+
+  return j_res;
+}
+
+/**
  * Get all parking_lot's all name array
  * @return
  */
-json_t* get_parking_lots_all_name(void)
+json_t* get_park_parking_lots_all_name(void)
 {
   json_t* j_res;
 
@@ -826,7 +885,7 @@ json_t* get_parking_lots_all_name(void)
  * Get corresponding parking_lot detail info.
  * @return
  */
-json_t* get_parking_lot_info(const char* name)
+json_t* get_park_parking_lot_info(const char* name)
 {
   json_t* j_res;
 

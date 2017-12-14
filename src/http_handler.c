@@ -23,6 +23,8 @@
 #include "agent_handler.h"
 #include "sip_handler.h"
 #include "pjsip_handler.h"
+#include "queue_handler.h"
+#include "park_handler.h"
 
 
 
@@ -68,6 +70,16 @@ static void cb_htp_pjsip_contacts(evhtp_request_t *req, void *data);
 static void cb_htp_pjsip_contacts_detail(evhtp_request_t *req, void *data);
 
 
+// queue
+static void cb_htp_queue_entries(evhtp_request_t *req, void *data);
+static void cb_htp_queue_entries_detail(evhtp_request_t *req, void *data);
+static void cb_htp_queue_members(evhtp_request_t *req, void *data);
+static void cb_htp_queue_members_detail(evhtp_request_t *req, void *data);
+static void cb_htp_queue_queues(evhtp_request_t *req, void *data);
+static void cb_htp_queue_queues_detail(evhtp_request_t *req, void *data);
+
+
+
 // voicemail/
 static void cb_htp_voicemail_users(evhtp_request_t *req, void *data);
 static void cb_htp_voicemail_users_detail(evhtp_request_t *req, void *data);
@@ -80,29 +92,17 @@ static void cb_htp_databases(evhtp_request_t *req, void *data);
 static void cb_htp_databases_key(evhtp_request_t *req, void *data);
 
 
-// queue_params
-static void cb_htp_queue_params(evhtp_request_t *req, void *data);
-static void cb_htp_queue_params_detail(evhtp_request_t *req, void *data);
-
-// queue_members
-static void cb_htp_queue_members(evhtp_request_t *req, void *data);
-static void cb_htp_queue_members_detail(evhtp_request_t *req, void *data);
-
-// queue entries
-static void cb_htp_queue_entries(evhtp_request_t *req, void *data);
-static void cb_htp_queue_entries_detail(evhtp_request_t *req, void *data);
-
 // device_states
 static void cb_htp_device_states(evhtp_request_t *req, void *data);
 static void cb_htp_device_states_detail(evhtp_request_t *req, void *data);
 
 // parking_lots
-static void cb_htp_parking_lots(evhtp_request_t *req, void *data);
-static void cb_htp_parking_lots_detail(evhtp_request_t *req, void *data);
+static void cb_htp_park_parking_lots(evhtp_request_t *req, void *data);
+static void cb_htp_park_parking_lots_detail(evhtp_request_t *req, void *data);
 
 // parked_calls
-static void cb_htp_parked_calls(evhtp_request_t *req, void *data);
-static void cb_htp_parked_calls_detail(evhtp_request_t *req, void *data);
+static void cb_htp_park_parked_calls(evhtp_request_t *req, void *data);
+static void cb_htp_park_parked_calls_detail(evhtp_request_t *req, void *data);
 
 
 
@@ -127,58 +127,7 @@ bool init_http_handler(void)
     return false;
   }
 
-  // register callback
-  evhtp_set_cb(g_htp, "/ping", cb_htp_ping, NULL);
-
-  // peers
-  evhtp_set_cb(g_htp, "/peers/", cb_htp_sip_peers_detail, NULL);
-  evhtp_set_cb(g_htp, "/peers", cb_htp_sip_peers, NULL);
-
-  // databases - deprecated
-  evhtp_set_cb(g_htp, "/databases/", cb_htp_databases_key, NULL);
-  evhtp_set_cb(g_htp, "/databases", cb_htp_databases, NULL);
-
-  // registres
-  evhtp_set_cb(g_htp, "/registries/", cb_htp_sip_registries_detail, NULL);
-  evhtp_set_cb(g_htp, "/registries", cb_htp_sip_registries, NULL);
-
-  // queue_params
-  evhtp_set_cb(g_htp, "/queue_params/", cb_htp_queue_params_detail, NULL);
-  evhtp_set_cb(g_htp, "/queue_params", cb_htp_queue_params, NULL);
-
-  // queue_members
-  evhtp_set_cb(g_htp, "/queue_members/", cb_htp_queue_members_detail, NULL);
-  evhtp_set_cb(g_htp, "/queue_members", cb_htp_queue_members, NULL);
-
-  // queue_entries
-  evhtp_set_cb(g_htp, "/queue_entries/", cb_htp_queue_entries_detail, NULL);
-  evhtp_set_cb(g_htp, "/queue_entries", cb_htp_queue_entries, NULL);
-
-  // queue_entries
-  evhtp_set_cb(g_htp, "/channels/", cb_htp_core_channels_detail, NULL);
-  evhtp_set_cb(g_htp, "/channels", cb_htp_core_channels, NULL);
-
-  // agents
-  evhtp_set_cb(g_htp, "/agents/", cb_htp_agent_agents_detail, NULL);
-  evhtp_set_cb(g_htp, "/agents", cb_htp_agent_agents, NULL);
-
-  // systems
-  evhtp_set_cb(g_htp, "/systems/", cb_htp_core_systems_detail, NULL);
-  evhtp_set_cb(g_htp, "/systems", cb_htp_core_systems, NULL);
-
-  // device_states
-  evhtp_set_cb(g_htp, "/device_states/", cb_htp_device_states_detail, NULL);
-  evhtp_set_cb(g_htp, "/device_states", cb_htp_device_states, NULL);
-
-  // parking_lots
-  evhtp_set_cb(g_htp, "/parking_lots/", cb_htp_parking_lots_detail, NULL);
-  evhtp_set_cb(g_htp, "/parking_lots", cb_htp_parking_lots, NULL);
-
-  // parked_calls
-  evhtp_set_cb(g_htp, "/parked_calls/", cb_htp_parked_calls_detail, NULL);
-  evhtp_set_cb(g_htp, "/parked_calls", cb_htp_parked_calls, NULL);
-
-
+  /////////////////////// apis
 
 
   //// ^/agent/
@@ -226,6 +175,18 @@ bool init_http_handler(void)
   evhtp_set_regex_cb(g_htp, "^/ob/dialings$", cb_htp_ob_dialings, NULL);
 
 
+
+  //// ^/park/
+  // parking_lots
+  evhtp_set_regex_cb(g_htp, "^/park/parking_lots/(.*)", cb_htp_park_parking_lots_detail, NULL);
+  evhtp_set_regex_cb(g_htp, "^/park/parking_lots$", cb_htp_park_parking_lots, NULL);
+
+  // parked_calls
+  evhtp_set_regex_cb(g_htp, "^/park/parked_calls/(.*)", cb_htp_park_parked_calls_detail, NULL);
+  evhtp_set_regex_cb(g_htp, "^/park/parked_calls$", cb_htp_park_parked_calls, NULL);
+
+
+
   //// ^/pjsip/
   // endpoints
   evhtp_set_regex_cb(g_htp, "^/pjsip/endpoints/(.*)", cb_htp_pjsip_endpoints_detail, NULL);
@@ -242,6 +203,22 @@ bool init_http_handler(void)
   // contacts
   evhtp_set_regex_cb(g_htp, "^/pjsip/contacts/(.*)", cb_htp_pjsip_contacts_detail, NULL);
   evhtp_set_regex_cb(g_htp, "^/pjsip/contacts$", cb_htp_pjsip_contacts, NULL);
+
+
+
+  //// ^/queue/
+  // entries
+  evhtp_set_regex_cb(g_htp, "^/queue/entries/(.*)", cb_htp_queue_entries_detail, NULL);
+  evhtp_set_regex_cb(g_htp, "^/queue/entries$", cb_htp_queue_entries, NULL);
+
+  // members
+  evhtp_set_regex_cb(g_htp, "^/queue/members/(.*)", cb_htp_queue_members_detail, NULL);
+  evhtp_set_regex_cb(g_htp, "^/queue/members$", cb_htp_queue_members, NULL);
+
+  // queues
+  evhtp_set_regex_cb(g_htp, "^/queue/queues/(.*)", cb_htp_queue_queues_detail, NULL);
+  evhtp_set_regex_cb(g_htp, "^/queue/queues$", cb_htp_queue_queues, NULL);
+
 
 
   //// ^/sip/
@@ -263,6 +240,63 @@ bool init_http_handler(void)
   // vms
   evhtp_set_regex_cb(g_htp, "^/voicemail/vms/("DEF_REG_MSGNAME")", cb_htp_voicemail_vms_msgname, NULL);
   evhtp_set_regex_cb(g_htp, "^/voicemail/vms$", cb_htp_voicemail_vms, NULL);
+
+
+
+
+  // old apis.
+  // will be deprecated.
+
+  // register callback
+  evhtp_set_cb(g_htp, "/ping", cb_htp_ping, NULL);
+
+  // peers
+  evhtp_set_cb(g_htp, "/peers/", cb_htp_sip_peers_detail, NULL);
+  evhtp_set_cb(g_htp, "/peers", cb_htp_sip_peers, NULL);
+
+  // databases - deprecated
+  evhtp_set_cb(g_htp, "/databases/", cb_htp_databases_key, NULL);
+  evhtp_set_cb(g_htp, "/databases", cb_htp_databases, NULL);
+
+  // registres
+  evhtp_set_cb(g_htp, "/registries/", cb_htp_sip_registries_detail, NULL);
+  evhtp_set_cb(g_htp, "/registries", cb_htp_sip_registries, NULL);
+
+  // queue_params
+  evhtp_set_cb(g_htp, "/queue_params/", cb_htp_queue_queues_detail, NULL);
+  evhtp_set_cb(g_htp, "/queue_params", cb_htp_queue_queues, NULL);
+
+  // queue_members
+  evhtp_set_cb(g_htp, "/queue_members/", cb_htp_queue_members_detail, NULL);
+  evhtp_set_cb(g_htp, "/queue_members", cb_htp_queue_members, NULL);
+
+  // queue_entries
+  evhtp_set_cb(g_htp, "/queue_entries/", cb_htp_queue_entries_detail, NULL);
+  evhtp_set_cb(g_htp, "/queue_entries", cb_htp_queue_entries, NULL);
+
+  // queue_entries
+  evhtp_set_cb(g_htp, "/channels/", cb_htp_core_channels_detail, NULL);
+  evhtp_set_cb(g_htp, "/channels", cb_htp_core_channels, NULL);
+
+  // agents
+  evhtp_set_cb(g_htp, "/agents/", cb_htp_agent_agents_detail, NULL);
+  evhtp_set_cb(g_htp, "/agents", cb_htp_agent_agents, NULL);
+
+  // systems
+  evhtp_set_cb(g_htp, "/systems/", cb_htp_core_systems_detail, NULL);
+  evhtp_set_cb(g_htp, "/systems", cb_htp_core_systems, NULL);
+
+  // device_states
+  evhtp_set_cb(g_htp, "/device_states/", cb_htp_device_states_detail, NULL);
+  evhtp_set_cb(g_htp, "/device_states", cb_htp_device_states, NULL);
+
+  // parking_lots
+  evhtp_set_cb(g_htp, "/parking_lots/", cb_htp_park_parking_lots_detail, NULL);
+  evhtp_set_cb(g_htp, "/parking_lots", cb_htp_park_parking_lots, NULL);
+
+  // parked_calls
+  evhtp_set_cb(g_htp, "/parked_calls/", cb_htp_park_parked_calls_detail, NULL);
+  evhtp_set_cb(g_htp, "/parked_calls", cb_htp_park_parked_calls, NULL);
 
 
   return true;
@@ -709,21 +743,19 @@ static void cb_htp_sip_registries_detail(evhtp_request_t *req, void *data)
 
 /**
  * http request handler
- * ^/queue_params
+ * ^/queue/queues$
  * @param req
  * @param data
  */
-static void cb_htp_queue_params(evhtp_request_t *req, void *data)
+static void cb_htp_queue_queues(evhtp_request_t *req, void *data)
 {
   int method;
-  json_t* j_res;
-  json_t* j_tmp;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_INFO, "Fired cb_htp_queue_params.");
+  slog(LOG_INFO, "Fired cb_htp_queue_queues.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -732,49 +764,37 @@ static void cb_htp_queue_params(evhtp_request_t *req, void *data)
     return;
   }
 
+  // fire handlers
   if(method == htp_method_GET) {
-    j_tmp = get_queue_params_all_name();
-    if(j_tmp == NULL) {
-      simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-      return;
-    }
-
-    // create result
-    j_res = create_default_result(EVHTP_RES_OK);
-    json_object_set_new(j_res, "result", json_object());
-    json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
-
-    simple_response_normal(req, j_res);
-    json_decref(j_res);
+    htp_get_queue_queues(req, data);
+    return;
   }
   else {
     // should not reach to here.
     simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
   }
 
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   return;
 }
 
 /**
  * http request handler
- * ^/queue_params/
+ * ^/queue/queues/(.*)
  * @param req
  * @param data
  */
-static void cb_htp_queue_params_detail(evhtp_request_t *req, void *data)
+static void cb_htp_queue_queues_detail(evhtp_request_t *req, void *data)
 {
   int method;
-  json_t* j_data;
-  json_t* j_res;
-  json_t* j_tmp;
-  const char* tmp_const;
-  char* tmp;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_INFO, "Fired cb_htp_queue_params_name.");
+  slog(LOG_INFO, "Fired cb_htp_queue_queues_detail.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -783,44 +803,19 @@ static void cb_htp_queue_params_detail(evhtp_request_t *req, void *data)
     return;
   }
 
+  // fire handlers
   if(method == htp_method_GET) {
-    // get data
-    tmp_const = (char*)evbuffer_pullup(req->buffer_in, evbuffer_get_length(req->buffer_in));
-    if(tmp_const == NULL) {
-      simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-      return;
-    }
-
-    // create json
-    tmp = strndup(tmp_const, evbuffer_get_length(req->buffer_in));
-    slog(LOG_DEBUG, "Requested data. data[%s]", tmp);
-    j_data = json_loads(tmp, JSON_DECODE_ANY, NULL);
-    sfree(tmp);
-    if(j_data == NULL) {
-      simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-      return;
-    }
-
-    // get value
-    j_tmp = get_queue_param_info(json_string_value(json_object_get(j_data, "name")));
-    json_decref(j_data);
-    if(j_tmp == NULL) {
-      simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-      return;
-    }
-
-    // create result
-    j_res = create_default_result(EVHTP_RES_OK);
-    json_object_set_new(j_res, "result", j_tmp);
-
-    simple_response_normal(req, j_res);
-    json_decref(j_res);
+    htp_get_queue_queues_detail(req, data);
+    return;
   }
   else {
     // should not reach to here.
     simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
   }
 
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   return;
 }
 
@@ -874,18 +869,13 @@ static void cb_htp_queue_members(evhtp_request_t *req, void *data)
 
 /**
  * http request handler
- * ^/queue_members/
+ * ^/queue/members/(.*)
  * @param req
  * @param data
  */
 static void cb_htp_queue_members_detail(evhtp_request_t *req, void *data)
 {
   int method;
-  json_t* j_data;
-  json_t* j_res;
-  json_t* j_tmp;
-  const char* tmp_const;
-  char* tmp;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -900,61 +890,31 @@ static void cb_htp_queue_members_detail(evhtp_request_t *req, void *data)
     return;
   }
 
+  // fire handlers
   if(method == htp_method_GET) {
-    // get data
-    tmp_const = (char*)evbuffer_pullup(req->buffer_in, evbuffer_get_length(req->buffer_in));
-    if(tmp_const == NULL) {
-      simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-      return;
-    }
-
-    // create json
-    tmp = strndup(tmp_const, evbuffer_get_length(req->buffer_in));
-    slog(LOG_DEBUG, "Requested data. data[%s]", tmp);
-    j_data = json_loads(tmp, JSON_DECODE_ANY, NULL);
-    sfree(tmp);
-    if(j_data == NULL) {
-      simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-      return;
-    }
-
-    // get value
-    j_tmp = get_queue_member_info(
-        json_string_value(json_object_get(j_data, "name")),
-        json_string_value(json_object_get(j_data, "queue_name"))
-        );
-    json_decref(j_data);
-    if(j_tmp == NULL) {
-      simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-      return;
-    }
-
-    // create result
-    j_res = create_default_result(EVHTP_RES_OK);
-    json_object_set_new(j_res, "result", j_tmp);
-
-    simple_response_normal(req, j_res);
-    json_decref(j_res);
+    htp_get_queue_members_detail(req, data);
+    return;
   }
   else {
     // should not reach to here.
     simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
   }
 
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   return;
 }
 
 /**
  * http request handler
- * ^/queue_entries
+ * ^/queue/entries$
  * @param req
  * @param data
  */
 static void cb_htp_queue_entries(evhtp_request_t *req, void *data)
 {
   int method;
-  json_t* j_res;
-  json_t* j_tmp;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -969,43 +929,32 @@ static void cb_htp_queue_entries(evhtp_request_t *req, void *data)
     return;
   }
 
+  // fire handlers
   if(method == htp_method_GET) {
-    j_tmp = get_queue_entries_all_unique_id_queue_name();
-    if(j_tmp == NULL) {
-      simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-      return;
-    }
-
-    // create result
-    j_res = create_default_result(EVHTP_RES_OK);
-    json_object_set_new(j_res, "result", json_object());
-    json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
-
-    simple_response_normal(req, j_res);
-    json_decref(j_res);
+    htp_get_queue_entries(req, data);
+    return;
   }
   else {
     // should not reach to here.
     simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
   }
+
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
 
   return;
 }
 
 /**
  * http request handler
- * ^/queue_entries/
+ * ^/queue/entries/(.*)
  * @param req
  * @param data
  */
 static void cb_htp_queue_entries_detail(evhtp_request_t *req, void *data)
 {
   int method;
-  json_t* j_data;
-  json_t* j_res;
-  json_t* j_tmp;
-  const char* tmp_const;
-  char* tmp;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -1020,47 +969,19 @@ static void cb_htp_queue_entries_detail(evhtp_request_t *req, void *data)
     return;
   }
 
+  // fire handlers
   if(method == htp_method_GET) {
-    // get data
-    tmp_const = (char*)evbuffer_pullup(req->buffer_in, evbuffer_get_length(req->buffer_in));
-    if(tmp_const == NULL) {
-      simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-      return;
-    }
-
-    // create json
-    tmp = strndup(tmp_const, evbuffer_get_length(req->buffer_in));
-    slog(LOG_DEBUG, "Requested data. data[%s]", tmp);
-    j_data = json_loads(tmp, JSON_DECODE_ANY, NULL);
-    sfree(tmp);
-    if(j_data == NULL) {
-      simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-      return;
-    }
-
-    // get value
-    j_tmp = get_queue_entry_info(
-        json_string_value(json_object_get(j_data, "unique_id")),
-        json_string_value(json_object_get(j_data, "queue_name"))
-        );
-    json_decref(j_data);
-    if(j_tmp == NULL) {
-      simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-      return;
-    }
-
-    // create result
-    j_res = create_default_result(EVHTP_RES_OK);
-    json_object_set_new(j_res, "result", j_tmp);
-
-    simple_response_normal(req, j_res);
-    json_decref(j_res);
+    htp_get_queue_entries_detail(req, data);
+    return;
   }
   else {
     // should not reach to here.
     simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
   }
 
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   return;
 }
 
@@ -1421,21 +1342,19 @@ static void cb_htp_device_states_detail(evhtp_request_t *req, void *data)
 
 /**
  * http request handler
- * ^/parking_lots
+ * ^/park/parking_lots$
  * @param req
  * @param data
  */
-static void cb_htp_parking_lots(evhtp_request_t *req, void *data)
+static void cb_htp_park_parking_lots(evhtp_request_t *req, void *data)
 {
   int method;
-  json_t* j_res;
-  json_t* j_tmp;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_INFO, "Fired cb_htp_parking_lots.");
+  slog(LOG_INFO, "Fired cb_htp_park_parking_lots.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -1444,20 +1363,10 @@ static void cb_htp_parking_lots(evhtp_request_t *req, void *data)
     return;
   }
 
+  // fire handlers
   if(method == htp_method_GET) {
-    j_tmp = get_parking_lots_all_name();
-    if(j_tmp == NULL) {
-      simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-      return;
-    }
-
-    // create result
-    j_res = create_default_result(EVHTP_RES_OK);
-    json_object_set_new(j_res, "result", json_object());
-    json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
-
-    simple_response_normal(req, j_res);
-    json_decref(j_res);
+    htp_get_park_parking_lots(req, data);
+    return;
   }
   else {
     // should not reach to here.
@@ -1465,29 +1374,26 @@ static void cb_htp_parking_lots(evhtp_request_t *req, void *data)
     return;
   }
 
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   return;
 }
 
 /**
  * http request handler
- * ^/parking_lots/
+ * ^/park/parking_lots/(.*)
  * @param req
  * @param data
  */
-static void cb_htp_parking_lots_detail(evhtp_request_t *req, void *data)
+static void cb_htp_park_parking_lots_detail(evhtp_request_t *req, void *data)
 {
   int method;
-  json_t* j_data;
-  json_t* j_res;
-  json_t* j_tmp;
-  const char* tmp_const;
-  char* tmp;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_INFO, "Fired cb_htp_parking_lots_detail.");
+  slog(LOG_INFO, "Fired cb_htp_park_parking_lots_detail.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -1496,38 +1402,10 @@ static void cb_htp_parking_lots_detail(evhtp_request_t *req, void *data)
     return;
   }
 
+  // fire handlers
   if(method == htp_method_GET) {
-    // get data
-    tmp_const = (char*)evbuffer_pullup(req->buffer_in, evbuffer_get_length(req->buffer_in));
-    if(tmp_const == NULL) {
-      simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-      return;
-    }
-
-    // create json
-    tmp = strndup(tmp_const, evbuffer_get_length(req->buffer_in));
-    slog(LOG_DEBUG, "Requested data. data[%s]", tmp);
-    j_data = json_loads(tmp, JSON_DECODE_ANY, NULL);
-    sfree(tmp);
-    if(j_data == NULL) {
-      simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-      return;
-    }
-
-    // get value
-    j_tmp = get_parking_lot_info(json_string_value(json_object_get(j_data, "name")));
-    json_decref(j_data);
-    if(j_tmp == NULL) {
-      simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-      return;
-    }
-
-    // create result
-    j_res = create_default_result(EVHTP_RES_OK);
-    json_object_set_new(j_res, "result", j_tmp);
-
-    simple_response_normal(req, j_res);
-    json_decref(j_res);
+    htp_get_park_parking_lots_detail(req, data);
+    return;
   }
   else {
     // should not reach to here.
@@ -1535,6 +1413,8 @@ static void cb_htp_parking_lots_detail(evhtp_request_t *req, void *data)
     return;
   }
 
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   return;
 }
 
@@ -1544,7 +1424,7 @@ static void cb_htp_parking_lots_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-static void cb_htp_parked_calls(evhtp_request_t *req, void *data)
+static void cb_htp_park_parked_calls(evhtp_request_t *req, void *data)
 {
   int method;
   json_t* j_res;
@@ -1593,7 +1473,7 @@ static void cb_htp_parked_calls(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-static void cb_htp_parked_calls_detail(evhtp_request_t *req, void *data)
+static void cb_htp_park_parked_calls_detail(evhtp_request_t *req, void *data)
 {
   int method;
   json_t* j_data;

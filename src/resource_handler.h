@@ -24,17 +24,19 @@ json_t* get_registries_all_account(void);
 json_t* get_registries_all(void);
 json_t* get_registry_info(const char* account);
 
-// queue param
-json_t* get_queue_params_all_name(void);
-json_t* get_queue_param_info(const char* name);
 
-// queue member
+// queue
+json_t* get_queue_entry_info(const char* key);
+json_t* get_queue_entry_info_by_id_name(const char* channel, const char* queue_name);
+json_t* get_queue_entries_all_unique_id_queue_name(void);
+json_t* get_queue_entries_all(void);
+json_t* get_queue_members_all(void);
 json_t* get_queue_members_all_name_queue(void);
 json_t* get_queue_member_info(const char* name, const char* queue_name);
+json_t* get_queue_param_info(const char* name);
+json_t* get_queue_params_all(void);
+json_t* get_queue_params_all_name(void);
 
-// queue entry
-json_t* get_queue_entries_all_unique_id_queue_name(void);
-json_t* get_queue_entry_info(const char* channel, const char* queue_name);
 
 // channel
 json_t* get_channels_all_unique_id(void);
@@ -55,11 +57,10 @@ json_t* get_system_info(const char* id);
 json_t* get_device_states_all_device(void);
 json_t* get_device_state_info(const char* device);
 
-// parking_lot
-json_t* get_parking_lots_all_name(void);
-json_t* get_parking_lot_info(const char* parkee_unique_id);
-
-// parked_call
+// park
+json_t* get_park_parking_lots_all(void);
+json_t* get_park_parking_lots_all_name(void);
+json_t* get_park_parking_lot_info(const char* name);
 json_t* get_parked_calls_all_parkee_unique_id(void);
 json_t* get_parked_call_info(const char* parkee_unique_id);
 

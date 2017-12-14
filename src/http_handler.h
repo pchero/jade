@@ -10,6 +10,7 @@
 
 #include <evhtp.h>
 #include <stdbool.h>
+#include <jansson.h>
 
 #define DEF_REG_UUID "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
 

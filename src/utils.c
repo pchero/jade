@@ -289,6 +289,10 @@ char* uri_parse(const char* uri)
   char* res;
   int ret;
 
+  if(uri == NULL) {
+    return NULL;
+  }
+
   ret = uri_decode(uri, tmp);
   if(ret < 0) {
     return NULL;
