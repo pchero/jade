@@ -955,7 +955,8 @@ static void ami_event_queueentry(json_t* j_msg)
     return;
   }
 
-  ret = db_ctx_insert_or_replace(g_db_ast, "queue_entry", j_tmp);
+  // create queue entry
+  ret = create_queue_entry_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert queue_member.");
@@ -972,8 +973,8 @@ static void ami_event_queueentry(json_t* j_msg)
  */
 static void ami_event_queuecallerabandon(json_t* j_msg)
 {
-  char* sql;
   int ret;
+  const char* tmp_const;
 
   if(j_msg == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -981,14 +982,8 @@ static void ami_event_queuecallerabandon(json_t* j_msg)
   }
   slog(LOG_DEBUG, "Fired ami_event_queuecallerabandon.");
 
-
-  asprintf(&sql, "delete from queue_entry where queue_name=\"%s\" and channel=\"%s\";",
-      json_string_value(json_object_get(j_msg, "Queue"))? : "",
-      json_string_value(json_object_get(j_msg, "Channel"))? : ""
-      );
-
-  ret = db_ctx_exec(g_db_ast, sql);
-  sfree(sql);
+  tmp_const = json_string_value(json_object_get(j_msg, "Uniqueid"));
+  ret = delete_queue_entry_info(tmp_const);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete queue_entry.");
     return;
@@ -1039,10 +1034,11 @@ static void ami_event_queuecallerjoin(json_t* j_msg)
     return;
   }
 
-  ret = db_ctx_insert_or_replace(g_db_ast, "queue_entry", j_tmp);
+  // create queue entry
+  ret = create_queue_entry_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
-    slog(LOG_ERR, "Could not insert to queue_entry.");
+    slog(LOG_ERR, "Could not insert queue_member.");
     return;
   }
 
@@ -1057,7 +1053,7 @@ static void ami_event_queuecallerjoin(json_t* j_msg)
 static void ami_event_queuecallerleave(json_t* j_msg)
 {
   int ret;
-  char* sql;
+  const char* tmp_const;
 
   if(j_msg == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -1065,17 +1061,13 @@ static void ami_event_queuecallerleave(json_t* j_msg)
   }
   slog(LOG_INFO, "Fired ami_event_queuecallerleave.");
 
-  asprintf(&sql, "delete from queue_entry where queue_name=\"%s\" and position=%s;",
-      json_string_value(json_object_get(j_msg, "Queue"))? : "",
-      json_string_value(json_object_get(j_msg, "Position"))? : ""
-      );
-
-  ret = db_ctx_exec(g_db_ast, sql);
-  sfree(sql);
+  tmp_const = json_string_value(json_object_get(j_msg, "Uniqueid"));
+  ret = delete_queue_entry_info(tmp_const);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete queue_entry.");
     return;
   }
+
   return;
 }
 

@@ -578,6 +578,54 @@ json_t* get_queue_entry_info_by_id_name(const char* unique_id, const char* queue
 }
 
 /**
+ * delete queue info.
+ * @return
+ */
+int delete_queue_entry_info(const char* key)
+{
+  char* sql;
+  int ret;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  asprintf(&sql, "delete from queue_entry where unique_id=\"%s\";", key);
+  ret = db_ctx_exec(g_db_ast, sql);
+  sfree(sql);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not delete channel info. unique_id[%s]", key);
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * create queue info.
+ * @return
+ */
+int create_queue_entry_info(const json_t* j_tmp)
+{
+  int ret;
+
+  if(j_tmp == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  ret = db_ctx_insert_or_replace(g_db_ast, "queue_entry", j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert queue_entry.");
+    return false;
+  }
+
+  return true;
+}
+
+
+/**
  * Get all channel's unique id array
  * @return
  */
