@@ -18,6 +18,7 @@
 #include "db_ctx_handler.h"
 #include "ast_header.h"
 #include "ami_handler.h"
+#include "ami_action_handler.h"
 
 #include "ob_dialing_handler.h"
 #include "ob_event_handler.h"
@@ -1402,7 +1403,6 @@ json_t* get_ob_dialings_uuid_all(void)
  */
 bool send_ob_dialing_hangup_request(const char* uuid)
 {
-  json_t* j_tmp;
   json_t* j_dialing;
   int ret;
 
@@ -1425,16 +1425,8 @@ bool send_ob_dialing_hangup_request(const char* uuid)
     return false;
   }
 
-  // create hangup request
-  j_tmp = json_pack("{s:s, s:s}",
-      "Action",   "Hangup",
-      "Channel",  json_string_value(json_object_get(j_dialing, "channel"))? : ""
-      );
-  json_decref(j_dialing);
-
   // send hangup request
-  ret = send_ami_cmd(j_tmp);
-  json_decref(j_tmp);
+  ret = ami_action_hangup(json_string_value(json_object_get(j_dialing, "channel")));
   if(ret == false) {
     slog(LOG_ERR, "Could not send ami action for dialing hangup. action[%s]", "Hangup");
     return false;

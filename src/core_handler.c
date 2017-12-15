@@ -7,6 +7,7 @@
 #include "slog.h"
 #include "resource_handler.h"
 #include "http_handler.h"
+#include "ami_action_handler.h"
 
 #include "core_handler.h"
 
@@ -82,6 +83,48 @@ void htp_get_core_channels_detail(evhtp_request_t *req, void *data)
   // create result
   j_res = create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", j_tmp);
+
+  simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * DELETE ^/core/channels/(.*) request handler.
+ * @param req
+ * @param data
+ */
+void htp_delete_core_channels_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  const char* unique_id;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired htp_delete_core_channels_detail.");
+
+  // get channel unique_id
+  unique_id = req->uri->path->file;
+  if(unique_id == NULL) {
+    slog(LOG_NOTICE, "Could not get uuid info.");
+    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // send hangup
+  ret = ami_action_hangup_by_uniqueid(unique_id);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not send hangup. unique_id[%s]", unique_id);
+    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = create_default_result(EVHTP_RES_OK);
 
   simple_response_normal(req, j_res);
   json_decref(j_res);
