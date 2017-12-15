@@ -707,6 +707,33 @@ int update_channel_info(const json_t* j_tmp)
 }
 
 /**
+ * delete channel info.
+ * @return
+ */
+int delete_channel_info(const char* key)
+{
+  char* tmp;
+  char* sql;
+  int ret;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  asprintf(&sql, "delete from channel where unique_id=\"%s\";", key);
+  ret = db_ctx_exec(g_db_ast, sql);
+  sfree(sql);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not delete channel info. unique_id[%s]", key);
+    return false;
+  }
+
+  return true;
+}
+
+
+/**
  * Get all agent's id array
  * @return
  */
@@ -964,7 +991,7 @@ json_t* get_park_parkedcalls_all(void)
 
 
 /**
- * Get corresponding parking_lot detail info.
+ * Get corresponding parked call detail info.
  * @return
  */
 json_t* get_park_parkedcall_info(const char* parkee_unique_id)
@@ -980,6 +1007,54 @@ json_t* get_park_parkedcall_info(const char* parkee_unique_id)
   j_res = get_detail_item_key_string("parked_call", "parkee_unique_id", parkee_unique_id);
 
   return j_res;
+}
+
+/**
+ * Create parked call detail info.
+ * @return
+ */
+int create_park_parkedcall_info(const json_t* j_tmp)
+{
+  int ret;
+
+  if(j_tmp == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  ret = db_ctx_insert_or_replace(g_db_ast, "parked_call", j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert to parked_call.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Delete parked call detail info.
+ * @return
+ */
+int delete_park_parkedcall_info(const char* key)
+{
+  int ret;
+  char* sql;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  asprintf(&sql, "delete from parked_call where parkee_unique_id=\"%s\";", key);
+
+  ret = db_ctx_exec(g_db_ast, sql);
+  sfree(sql);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not delete parked_call.");
+    return false;
+  }
+  return true;
 }
 
 /**

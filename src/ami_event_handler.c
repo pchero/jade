@@ -1243,28 +1243,25 @@ static void ami_event_hangup(json_t* j_msg)
   const char* tmp_const;
   const char* hangup_detail;
 
+
   if(j_msg == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
   slog(LOG_DEBUG, "Fired ami_event_hangup.");
 
-  // check event
-  tmp = json_dumps(j_msg, JSON_ENCODE_ANY);
-  slog(LOG_DEBUG, "Event message. msg[%s]", tmp);
-  sfree(tmp);
-
-  asprintf(&sql, "delete from channel where unique_id=\"%s\";",
-      json_string_value(json_object_get(j_msg, "Uniqueid"))
-      );
-
-  ret = db_ctx_exec(g_db_ast, sql);
-  sfree(sql);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not delete channel.");
+  tmp_const = json_string_value(json_object_get(j_msg, "Uniqueid"));
+  if(tmp_const == NULL) {
+    slog(LOG_ERR, "Could not get unique id info.");
     return;
   }
 
+  // delete channel info.
+  ret = delete_channel_info(tmp_const);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not delete channel info. unique_id[%s]", tmp_const);
+    return;
+  }
 
   ///// for ob_dialing
 
@@ -1822,7 +1819,7 @@ static void ami_event_parkedcall(json_t* j_msg)
     return;
   }
 
-  ret = db_ctx_insert_or_replace(g_db_ast, "parked_call", j_tmp);
+  ret = create_park_parkedcall_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to parked_call.");
@@ -1843,6 +1840,7 @@ static void ami_event_parkedcallswap(json_t* j_msg)
   int ret;
   char* timestamp;
   char* sql;
+  const char* tmp_const;
 
   if(j_msg == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -1851,12 +1849,8 @@ static void ami_event_parkedcallswap(json_t* j_msg)
   slog(LOG_DEBUG, "Fired ami_event_parkedcallswap.");
 
   // remove old parked call
-  asprintf(&sql, "delete from parked_call where parkee_unique_id=\"%s\";",
-      json_string_value(json_object_get(j_msg, "ParkeeUniqueid"))? : ""
-      );
-
-  ret = db_ctx_exec(g_db_ast, sql);
-  sfree(sql);
+  tmp_const = json_string_value(json_object_get(j_msg, "ParkeeUniqueid"));
+  ret = delete_park_parkedcall_info(tmp_const);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete parked_call.");
     return;
@@ -1918,7 +1912,7 @@ static void ami_event_parkedcallswap(json_t* j_msg)
     return;
   }
 
-  ret = db_ctx_insert_or_replace(g_db_ast, "parked_call", j_tmp);
+  ret = create_park_parkedcall_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to parked_call.");
@@ -1936,7 +1930,7 @@ static void ami_event_parkedcallswap(json_t* j_msg)
 static void ami_event_parkedcalltimeout(json_t* j_msg)
 {
   int ret;
-  char* sql;
+  const char* tmp_const;
 
   if(j_msg == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -1944,16 +1938,13 @@ static void ami_event_parkedcalltimeout(json_t* j_msg)
   }
   slog(LOG_INFO, "Fired ami_event_parkedcalltimeout.");
 
-  asprintf(&sql, "delete from parked_call where parkee_unique_id=\"%s\";",
-      json_string_value(json_object_get(j_msg, "ParkeeUniqueid"))? : ""
-      );
-
-  ret = db_ctx_exec(g_db_ast, sql);
-  sfree(sql);
+  tmp_const = json_string_value(json_object_get(j_msg, "ParkeeUniqueid"));
+  ret = delete_park_parkedcall_info(tmp_const);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete parked_call.");
     return;
   }
+
   return;
 }
 
@@ -1965,7 +1956,7 @@ static void ami_event_parkedcalltimeout(json_t* j_msg)
 static void ami_event_unparkedcall(json_t* j_msg)
 {
   int ret;
-  char* sql;
+  const char* tmp_const;
 
   if(j_msg == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -1973,12 +1964,8 @@ static void ami_event_unparkedcall(json_t* j_msg)
   }
   slog(LOG_INFO, "Fired ami_event_unparkedcall.");
 
-  asprintf(&sql, "delete from parked_call where parkee_unique_id=\"%s\";",
-      json_string_value(json_object_get(j_msg, "ParkeeUniqueid"))? : ""
-      );
-
-  ret = db_ctx_exec(g_db_ast, sql);
-  sfree(sql);
+  tmp_const = json_string_value(json_object_get(j_msg, "ParkeeUniqueid"));
+  ret = delete_park_parkedcall_info(tmp_const);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete parked_call.");
     return;
@@ -1994,7 +1981,7 @@ static void ami_event_unparkedcall(json_t* j_msg)
 static void ami_event_parkedcallgiveup(json_t* j_msg)
 {
   int ret;
-  char* sql;
+  const char* tmp_const;
 
   if(j_msg == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -2002,16 +1989,13 @@ static void ami_event_parkedcallgiveup(json_t* j_msg)
   }
   slog(LOG_INFO, "Fired ami_event_parkedcallgiveup.");
 
-  asprintf(&sql, "delete from parked_call where parkee_unique_id=\"%s\";",
-      json_string_value(json_object_get(j_msg, "ParkeeUniqueid"))? : ""
-      );
-
-  ret = db_ctx_exec(g_db_ast, sql);
-  sfree(sql);
+  tmp_const = json_string_value(json_object_get(j_msg, "ParkeeUniqueid"));
+  ret = delete_park_parkedcall_info(tmp_const);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete parked_call.");
     return;
   }
+
   return;
 }
 

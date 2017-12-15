@@ -43,6 +43,7 @@ json_t* get_channels_all_unique_id(void);
 json_t* get_channels_all(void);
 json_t* get_channel_info(const char* unique_id);
 int update_channel_info(const json_t* j_tmp);
+int delete_channel_info(const char* key);
 
 // agent
 json_t* get_agents_all_id(void);
@@ -65,6 +66,9 @@ json_t* get_park_parkinglot_info(const char* name);
 json_t* get_park_parkedcalls_all();
 json_t* get_park_parkedcalls_all_parkee_unique_id(void);
 json_t* get_park_parkedcall_info(const char* parkee_unique_id);
+int create_park_parkedcall_info(const json_t* j_tmp);
+int delete_park_parkedcall_info(const char* key);
+
 
 // pjsip
 json_t* get_pjsip_contact_info(const char* uri);
