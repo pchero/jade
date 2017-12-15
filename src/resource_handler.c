@@ -712,7 +712,6 @@ int update_channel_info(const json_t* j_tmp)
  */
 int delete_channel_info(const char* key)
 {
-  char* tmp;
   char* sql;
   int ret;
 
@@ -960,6 +959,30 @@ json_t* get_park_parkinglot_info(const char* name)
 }
 
 /**
+ * Create parking_lot detail info.
+ * @return
+ */
+int create_park_parkinglot_info(const json_t* j_tmp)
+{
+  int ret;
+
+  if(j_tmp == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired create_park_parkinglot_info.");
+
+  ret = db_ctx_insert_or_replace(g_db_ast, "parking_lot", j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert to parking_lot.");
+    return false;
+  }
+
+  return true;
+}
+
+
+/**
  * Get all parking_lot's all parkee_unique_id array
  * @return
  */
@@ -1023,7 +1046,6 @@ int create_park_parkedcall_info(const json_t* j_tmp)
   }
 
   ret = db_ctx_insert_or_replace(g_db_ast, "parked_call", j_tmp);
-  json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to parked_call.");
     return false;

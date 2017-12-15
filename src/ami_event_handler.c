@@ -1237,8 +1237,6 @@ static void ami_event_hangup(json_t* j_msg)
 {
   int hangup;
   int ret;
-  char* sql;
-  char* tmp;
   const char* uuid;
   const char* tmp_const;
   const char* hangup_detail;
@@ -1737,10 +1735,11 @@ static void ami_event_parkinglot(json_t* j_msg)
     return;
   }
 
-  ret = db_ctx_insert_or_replace(g_db_ast, "parking_lot", j_tmp);
+  // create parking lot
+  ret = create_park_parkinglot_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
-    slog(LOG_ERR, "Could not insert to parking_lot.");
+    slog(LOG_ERR, "Could not create parking_lot.");
     return;
   }
 
@@ -1839,7 +1838,6 @@ static void ami_event_parkedcallswap(json_t* j_msg)
   json_t* j_tmp;
   int ret;
   char* timestamp;
-  char* sql;
   const char* tmp_const;
 
   if(j_msg == NULL) {
