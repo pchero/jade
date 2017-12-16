@@ -1132,7 +1132,7 @@ static int create_voicemail_user(json_t* j_data)
 
   // check existence
   ret = is_exist_voicemail_user(context, mailbox);
-  if(ret != false) {
+  if(ret == true) {
     slog(LOG_NOTICE, "The given voicemail user info is already exist. context[%s], malbox[%s]", context, mailbox);
     return false;
   }
