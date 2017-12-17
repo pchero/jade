@@ -48,6 +48,8 @@ static void cb_htp_agent_agents_detail(evhtp_request_t *req, void *data);
 // core
 static void cb_htp_core_channels(evhtp_request_t *req, void *data);
 static void cb_htp_core_channels_detail(evhtp_request_t *req, void *data);
+static void cb_htp_core_modules(evhtp_request_t *req, void *data);
+static void cb_htp_core_modules_detail(evhtp_request_t *req, void *data);
 static void cb_htp_core_systems(evhtp_request_t *req, void *data);
 static void cb_htp_core_systems_detail(evhtp_request_t *req, void *data);
 
@@ -144,6 +146,10 @@ bool init_http_handler(void)
   // channels
   evhtp_set_regex_cb(g_htp, "^/core/channels/(.*)", cb_htp_core_channels_detail, NULL);
   evhtp_set_regex_cb(g_htp, "^/core/channels$", cb_htp_core_channels, NULL);
+
+  // modules
+  evhtp_set_regex_cb(g_htp, "^/core/modules/(.*)", cb_htp_core_modules_detail, NULL);
+  evhtp_set_regex_cb(g_htp, "^/core/modules$", cb_htp_core_modules, NULL);
 
   // systems
   evhtp_set_regex_cb(g_htp, "^/core/systems/(.*)", cb_htp_core_systems_detail, NULL);
@@ -1067,6 +1073,93 @@ static void cb_htp_core_channels_detail(evhtp_request_t *req, void *data)
 
   return;
 }
+
+/**
+ * http request handler
+ * ^/core/modules$
+ * @param req
+ * @param data
+ */
+static void cb_htp_core_modules(evhtp_request_t *req, void *data)
+{
+  int method;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_core_modules.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if(method != htp_method_GET) {
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  if(method == htp_method_GET) {
+    htp_get_core_modules(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+
+  return;
+}
+
+/**
+ * http request handler
+ * ^/core/modules/(.*)
+ * @param req
+ * @param data
+ */
+static void cb_htp_core_modules_detail(evhtp_request_t *req, void *data)
+{
+  int method;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_core_modules_detail.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if((method != htp_method_POST) && (method != htp_method_PUT) && (method != htp_method_DELETE)) {
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // fire handlers
+  if(method == htp_method_POST) {
+    htp_post_core_modules_detail(req, data);
+    return;
+  }
+  else if(method == htp_method_PUT) {
+    htp_put_core_modules_detail(req, data);
+    return;
+  }
+  else if(method == htp_method_DELETE) {
+    htp_delete_core_modules_detail(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  return;
+}
+
 
 /**
  * http request handler

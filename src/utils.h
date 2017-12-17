@@ -23,6 +23,7 @@ char* get_variables_ami_str_from_object(json_t* j_variables);
 
 char* uri_parse(const char* uri);
 int convert_time_string(const char* time, const char* format);
+char* strip_ext(char *fname);
 
 
 

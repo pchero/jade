@@ -71,6 +71,24 @@ static const char* g_sql_create_channel =
 "   primary key(unique_id)"
 ");";
 
+
+// core_module
+static const char* g_sql_drop_core_module = "drop table if exists core_module;";
+static const char* g_sql_create_core_module =
+"create table core_module("
+
+// identity
+"   name      varchar(255) not null,"
+"   size      int,"
+"   load      varchar(255),"
+
+// timestamp. UTC."
+"   tm_update     datetime(6),"
+
+"   primary key(name)"
+");";
+
+
 // peer
 static const char* g_sql_drop_peer = "drop table if exists peer;";
 static const char* g_sql_create_peer =

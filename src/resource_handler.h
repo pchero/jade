@@ -10,6 +10,14 @@
 
 #include <jansson.h>
 
+bool init_resource_handler(void);
+
+
+// core
+// core_module
+int create_core_module(json_t* j_tmp);
+json_t* get_core_modules_all(void);
+
 // peer
 json_t* get_peers_all_peer(void);
 json_t* get_peers_all(void);

@@ -36,6 +36,7 @@
 #define DEF_GENERAL_EVENT_TIME_FAST "100000"
 #define DEF_GENERAL_EVENT_TIME_SLOW "3000000"
 #define DEF_GENERAL_DIR_CONF	"/etc/asterisk"
+#define DEF_GENERAL_DIR_MODULE   "/usr/lib/asterisk/modules"
 
 #define DEF_VOICEMAIL_DIRECTORY "/var/spool/asterisk/voicemail"
 #define DEF_VOICEMAIL_CONFNAME "voicemail.conf"
@@ -145,7 +146,7 @@ static bool load_config(void)
       "s:{"
       	"s:s, s:s, s:s, s:s, s:s, "
       	"s:s, s:s, s:s, s:s, s:s, "
-      	"s:s"
+      	"s:s, s:s "
 			"},"	// general
       "s:{s:s, s:s}, "	// voicemail
       "s:{s:s, s:s, s:s}"	// ob
@@ -164,6 +165,7 @@ static bool load_config(void)
         "event_time_slow",  DEF_GENERAL_EVENT_TIME_SLOW,
 
 				"directory_conf",		DEF_GENERAL_DIR_CONF,
+				"directory_module", DEF_GENERAL_DIR_MODULE,
 
       "voicemail",
         "dicretory",        DEF_VOICEMAIL_DIRECTORY,

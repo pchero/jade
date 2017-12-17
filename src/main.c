@@ -14,7 +14,8 @@
 #include "http_handler.h"
 #include "event_handler.h"
 #include "data_handler.h"
-
+#include "resource_handler.h"
+#include "misc_handler.h"
 #include "ob_event_handler.h"
 
 
@@ -24,7 +25,6 @@ struct event_base*  g_base = NULL;
 
 
 static bool init_event(void);
-static bool init_db(void);
 static bool option_parse(int argc, char** argv);
 static void print_help(void);
 
@@ -35,27 +35,6 @@ static bool init_event(void)
     printf("New event base.\n");
     g_base = event_base_new();
   }
-
-  return true;
-}
-
-static bool init_db(void)
-{
-  // init database
-  const char* tmp_const;
-
-  tmp_const = json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "database_name"));
-  if(tmp_const == NULL) {
-    slog(LOG_ERR, "Could not get database_name info.");
-    return false;
-  }
-
-  g_db_ast = db_ctx_init(tmp_const);
-  if(g_db_ast == NULL) {
-    slog(LOG_WARNING, "Could not initiate db.");
-    return false;
-  }
-  slog(LOG_NOTICE, "Finished db_init.");
 
   return true;
 }
@@ -91,13 +70,12 @@ bool init(void)
   }
   slog(LOG_NOTICE, "Finished init_event.");
 
-  // init db
-  ret = init_db();
+  ret = init_resource_handler();
   if(ret == false) {
-    slog(LOG_ERR, "Could not initiate db.");
+    slog(LOG_ERR, "Could not initiate resource.");
     return false;
   }
-  slog(LOG_NOTICE, "Finished db_init.");
+  slog(LOG_NOTICE, "Finished resource_init.");
 
   ret = init_data_handler();
   if(ret == false) {
@@ -123,6 +101,12 @@ bool init(void)
   ret = init_outbound();
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate ob_handler.");
+    return false;
+  }
+
+  ret = init_misc_handler();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate misc_handler.");
     return false;
   }
 

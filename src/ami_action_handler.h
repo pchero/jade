@@ -11,6 +11,7 @@
 
 int ami_action_hangup(const char* channel);
 int ami_action_hangup_by_uniqueid(const char* unique_id);
+int ami_action_moduleload(const char* name, const char* type);
 
 
 

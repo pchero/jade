@@ -13,10 +13,226 @@
 #include "common.h"
 #include "slog.h"
 #include "utils.h"
+#include "db_sql_create.h"
+
 #include "resource_handler.h"
+
+extern app* g_app;
+
 
 static json_t* get_items(const char* table, const char* item);
 static json_t* get_detail_item_key_string(const char* table, const char* key, const char* val);
+
+static bool init_db(void);
+static bool init_core_database(void);
+
+/**
+ * Initiate resource.
+ * @return
+ */
+bool init_resource_handler(void)
+{
+  int ret;
+
+  ret = init_db();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate db.");
+    return false;
+  }
+
+  ret = init_core_database();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate core database.");
+    return false;
+  }
+
+  return true;
+}
+
+static bool init_db(void)
+{
+  // init database
+  const char* tmp_const;
+
+  tmp_const = json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "database_name"));
+  if(tmp_const == NULL) {
+    slog(LOG_ERR, "Could not get database_name info.");
+    return false;
+  }
+
+  g_db_ast = db_ctx_init(tmp_const);
+  if(g_db_ast == NULL) {
+    slog(LOG_WARNING, "Could not initiate db.");
+    return false;
+  }
+  slog(LOG_NOTICE, "Finished db_init.");
+
+  return true;
+}
+
+/**
+ * Initialize core database.
+ * @return Success: true\n
+ * Failure: false
+ */
+static bool init_core_database(void)
+{
+  int ret;
+
+  // action
+  db_ctx_exec(g_db_ast, g_sql_drop_action);
+  ret = db_ctx_exec(g_db_ast, g_sql_create_action);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create table. table[%s]", "action");
+    return false;
+  }
+
+  // system
+  db_ctx_exec(g_db_ast, g_sql_drop_system);
+  ret = db_ctx_exec(g_db_ast, g_sql_create_system);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create table. table[%s]", "system");
+    return false;
+  }
+
+  // core
+  db_ctx_exec(g_db_ast, g_sql_drop_core_module);
+  ret = db_ctx_exec(g_db_ast, g_sql_create_core_module);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create table. table[%s]", "core_module");
+    return false;
+  }
+
+  // channel
+  db_ctx_exec(g_db_ast, g_sql_drop_channel);
+  ret = db_ctx_exec(g_db_ast, g_sql_create_channel);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create table. table[%s]", "channel");
+    return false;
+  }
+
+  // peer
+  db_ctx_exec(g_db_ast, g_sql_drop_peer);
+  ret = db_ctx_exec(g_db_ast, g_sql_create_peer);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create table. table[%s]", "peer");
+    return false;
+  }
+
+  // queue_param
+  db_ctx_exec(g_db_ast, g_sql_drop_queue_param);
+  ret = db_ctx_exec(g_db_ast, g_sql_create_queue_param);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create table. table[%s]", "queue_param");
+    return false;
+  }
+
+  // queue_member
+  db_ctx_exec(g_db_ast, g_sql_drop_queue_member);
+  ret = db_ctx_exec(g_db_ast, g_sql_create_queue_member);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create table. table[%s]", "queue_member");
+    return false;
+  }
+
+  // queue_member
+  db_ctx_exec(g_db_ast, g_sql_drop_queue_entry);
+  ret = db_ctx_exec(g_db_ast, g_sql_create_queue_entry);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create table. table[%s]", "queue_entry");
+    return false;
+  }
+
+  // database
+  db_ctx_exec(g_db_ast, g_sql_drop_database);
+  ret = db_ctx_exec(g_db_ast, g_sql_create_database);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create table. table[%s]", "database");
+    return false;
+  }
+
+  // registry
+  db_ctx_exec(g_db_ast, g_sql_drop_registry);
+  ret = db_ctx_exec(g_db_ast, g_sql_create_registry);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create table. table[%s]", "registry");
+    return false;
+  }
+
+  // agent
+  db_ctx_exec(g_db_ast, g_sql_drop_agent);
+  ret = db_ctx_exec(g_db_ast, g_sql_create_agent);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create table. table[%s]", "agent");
+    return false;
+  }
+
+  // device_state
+  db_ctx_exec(g_db_ast, g_sql_drop_device_state);
+  ret = db_ctx_exec(g_db_ast, g_sql_create_device_state);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create table. table[%s]", "device_state");
+    return false;
+  }
+
+  // parking_lot
+  db_ctx_exec(g_db_ast, g_sql_drop_parking_lot);
+  ret = db_ctx_exec(g_db_ast, g_sql_create_parking_lot);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create table. table[%s]", "parking_lot");
+    return false;
+  }
+
+  // parked_call
+  db_ctx_exec(g_db_ast, g_sql_drop_parked_call);
+  ret = db_ctx_exec(g_db_ast, g_sql_create_parked_call);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create table. table[%s]", "parked_call");
+    return false;
+  }
+
+  // pjsip_contact
+  db_ctx_exec(g_db_ast, g_sql_drop_pjsip_contact);
+  ret = db_ctx_exec(g_db_ast, g_sql_create_pjsip_contact);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create table. table[%s]", "pjsip_contact");
+    return false;
+  }
+
+  // pjsip_endpoint
+  db_ctx_exec(g_db_ast, g_sql_drop_pjsip_endpoint);
+  ret = db_ctx_exec(g_db_ast, g_sql_create_pjsip_endpoint);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create table. table[%s]", "pjsip_endpoint");
+    return false;
+  }
+
+  // pjsip_aor
+  db_ctx_exec(g_db_ast, g_sql_drop_pjsip_aor);
+  ret = db_ctx_exec(g_db_ast, g_sql_create_pjsip_aor);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create table. table[%s]", "pjsip_aor");
+    return false;
+  }
+
+  // pjsip_auth
+  db_ctx_exec(g_db_ast, g_sql_drop_pjsip_auth);
+  ret = db_ctx_exec(g_db_ast, g_sql_create_pjsip_auth);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create table. table[%s]", "pjsip_auth");
+    return false;
+  }
+
+  // voicemail_user
+  db_ctx_exec(g_db_ast, g_sql_drop_voicemail_user);
+  ret = db_ctx_exec(g_db_ast, g_sql_create_voicemail_user);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create table. table[%s]", "voicemail_user");
+    return false;
+  }
+
+  return true;
+}
 
 
 /**
@@ -1315,6 +1531,43 @@ json_t* get_voicemail_users_all()
   slog(LOG_DEBUG, "Fired get_voicemail_users_all.");
 
   j_res = get_items("voicemail_user", "*");
+
+  return j_res;
+}
+
+/**
+ * Insert data into core_module
+ * @param j_tmp
+ * @return
+ */
+int create_core_module(json_t* j_tmp)
+{
+  int ret;
+
+  if(j_tmp == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  ret = db_ctx_insert_or_replace(g_db_ast, "core_module", j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert core_module.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Get all core_modules info.
+ * @return
+ */
+json_t* get_core_modules_all(void)
+{
+  json_t* j_res;
+  slog(LOG_DEBUG, "Fired get_core_modules_all.");
+
+  j_res = get_items("core_module", "*");
 
   return j_res;
 }

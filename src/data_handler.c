@@ -21,7 +21,6 @@
 #include "common.h"
 #include "slog.h"
 #include "utils.h"
-#include "db_sql_create.h"
 #include "event_handler.h"
 #include "ami_handler.h"
 #include "ami_event_handler.h"
@@ -43,7 +42,6 @@ static void cb_ami_connect(__attribute__((unused)) int fd, __attribute__((unused
 static void cb_ami_connection_check(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg);
 static void cb_ami_status_check(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg);
 
-static bool init_ami_database(void);
 static bool init_ami_connect(void);
 static bool send_init_actions(void);
 
@@ -320,13 +318,6 @@ static bool ami_connect(void)
     return false;
   }
 
-  // init ami database
-  ret = init_ami_database();
-  if(ret == false) {
-    slog(LOG_ERR, "Could not initiate ami database.");
-    return false;
-  }
-
   // login
   ret = ami_login();
   if(ret == false) {
@@ -342,162 +333,6 @@ static bool ami_connect(void)
   ret = send_init_actions();
   if(ret == false) {
     slog(LOG_ERR, "Could not send init info.");
-    return false;
-  }
-
-  return true;
-}
-
-/**
- * Initialize ami database.
- * @return Success: true\n
- * Failure: false
- */
-static bool init_ami_database(void)
-{
-  int ret;
-
-  // action
-  db_ctx_exec(g_db_ast, g_sql_drop_action);
-  ret = db_ctx_exec(g_db_ast, g_sql_create_action);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create table. table[%s]", "action");
-    return false;
-  }
-
-  // system
-  db_ctx_exec(g_db_ast, g_sql_drop_system);
-  ret = db_ctx_exec(g_db_ast, g_sql_create_system);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create table. table[%s]", "system");
-    return false;
-  }
-
-  // channel
-  db_ctx_exec(g_db_ast, g_sql_drop_channel);
-  ret = db_ctx_exec(g_db_ast, g_sql_create_channel);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create table. table[%s]", "channel");
-    return false;
-  }
-
-  // peer
-  db_ctx_exec(g_db_ast, g_sql_drop_peer);
-  ret = db_ctx_exec(g_db_ast, g_sql_create_peer);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create table. table[%s]", "peer");
-    return false;
-  }
-
-  // queue_param
-  db_ctx_exec(g_db_ast, g_sql_drop_queue_param);
-  ret = db_ctx_exec(g_db_ast, g_sql_create_queue_param);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create table. table[%s]", "queue_param");
-    return false;
-  }
-
-  // queue_member
-  db_ctx_exec(g_db_ast, g_sql_drop_queue_member);
-  ret = db_ctx_exec(g_db_ast, g_sql_create_queue_member);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create table. table[%s]", "queue_member");
-    return false;
-  }
-
-  // queue_member
-  db_ctx_exec(g_db_ast, g_sql_drop_queue_entry);
-  ret = db_ctx_exec(g_db_ast, g_sql_create_queue_entry);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create table. table[%s]", "queue_entry");
-    return false;
-  }
-
-  // database
-  db_ctx_exec(g_db_ast, g_sql_drop_database);
-  ret = db_ctx_exec(g_db_ast, g_sql_create_database);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create table. table[%s]", "database");
-    return false;
-  }
-
-  // registry
-  db_ctx_exec(g_db_ast, g_sql_drop_registry);
-  ret = db_ctx_exec(g_db_ast, g_sql_create_registry);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create table. table[%s]", "registry");
-    return false;
-  }
-
-  // agent
-  db_ctx_exec(g_db_ast, g_sql_drop_agent);
-  ret = db_ctx_exec(g_db_ast, g_sql_create_agent);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create table. table[%s]", "agent");
-    return false;
-  }
-
-  // device_state
-  db_ctx_exec(g_db_ast, g_sql_drop_device_state);
-  ret = db_ctx_exec(g_db_ast, g_sql_create_device_state);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create table. table[%s]", "device_state");
-    return false;
-  }
-
-  // parking_lot
-  db_ctx_exec(g_db_ast, g_sql_drop_parking_lot);
-  ret = db_ctx_exec(g_db_ast, g_sql_create_parking_lot);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create table. table[%s]", "parking_lot");
-    return false;
-  }
-
-  // parked_call
-  db_ctx_exec(g_db_ast, g_sql_drop_parked_call);
-  ret = db_ctx_exec(g_db_ast, g_sql_create_parked_call);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create table. table[%s]", "parked_call");
-    return false;
-  }
-
-  // pjsip_contact
-  db_ctx_exec(g_db_ast, g_sql_drop_pjsip_contact);
-  ret = db_ctx_exec(g_db_ast, g_sql_create_pjsip_contact);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create table. table[%s]", "pjsip_contact");
-    return false;
-  }
-
-  // pjsip_endpoint
-  db_ctx_exec(g_db_ast, g_sql_drop_pjsip_endpoint);
-  ret = db_ctx_exec(g_db_ast, g_sql_create_pjsip_endpoint);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create table. table[%s]", "pjsip_endpoint");
-    return false;
-  }
-
-  // pjsip_aor
-  db_ctx_exec(g_db_ast, g_sql_drop_pjsip_aor);
-  ret = db_ctx_exec(g_db_ast, g_sql_create_pjsip_aor);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create table. table[%s]", "pjsip_aor");
-    return false;
-  }
-
-  // pjsip_auth
-  db_ctx_exec(g_db_ast, g_sql_drop_pjsip_auth);
-  ret = db_ctx_exec(g_db_ast, g_sql_create_pjsip_auth);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create table. table[%s]", "pjsip_auth");
-    return false;
-  }
-
-  // voicemail_user
-  db_ctx_exec(g_db_ast, g_sql_drop_voicemail_user);
-  ret = db_ctx_exec(g_db_ast, g_sql_create_voicemail_user);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create table. table[%s]", "voicemail_user");
     return false;
   }
 
