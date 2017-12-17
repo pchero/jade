@@ -430,19 +430,22 @@ static int backup_ast_config_info(const char* filename)
 
 static int write_ast_config_info(const char* filename, json_t* j_conf)
 {
-  const char* sec_name;
+  const char* section;
   const char* dir;
   const char* key;
   char* target;
   json_t* j_item;
   json_t* j_val;
+  json_t* j_val_tmp;
   FILE *f;
+  int ret;
+  int idx;
 
   if((j_conf == NULL) || (filename == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
-  slog(LOG_DEBUG, "Fired write_ast_config. filename[%s]", filename);
+  slog(LOG_DEBUG, "Fired write_ast_config_info. filename[%s]", filename);
 
   // create target
   dir = json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "directory_conf"));
@@ -455,10 +458,20 @@ static int write_ast_config_info(const char* filename, json_t* j_conf)
   }
   sfree(target);
 
-  json_object_foreach(j_conf, sec_name, j_item) {
-    fprintf(f, "[%s]\n", sec_name);
+  json_object_foreach(j_conf, section, j_item) {
+    fprintf(f, "[%s]\n", section);
     json_object_foreach(j_item, key, j_val) {
-      fprintf(f, "%s=%s\n", key, json_string_value(j_val));
+
+      // check is array
+      ret = json_is_array(j_val);
+      if(ret == true) {
+        json_array_foreach(j_val, idx, j_val_tmp) {
+          fprintf(f, "%s=%s\n", key, json_string_value(j_val_tmp));
+        }
+      }
+      else {
+        fprintf(f, "%s=%s\n", key, json_string_value(j_val));
+      }
     }
   }
   fclose(f);
