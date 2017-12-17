@@ -244,6 +244,46 @@ void htp_get_core_modules(evhtp_request_t *req, void *data)
 }
 
 /**
+ * GET ^/core/modules/(.*) request handler.
+ * @param req
+ * @param data
+ */
+void htp_get_core_modules_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+  char* name;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired htp_gett_core_modules_detail.");
+
+  // get module name
+  name = uri_parse(req->uri->path->file);
+  if(name == NULL) {
+    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // get module info
+  j_tmp = get_core_module_info(name);
+  sfree(name);
+
+  // create result
+  j_res = create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", j_tmp);
+
+  simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+
+  return;
+}
+
+/**
  * POST ^/core/modules/(.*) request handler.
  * @param req
  * @param data
@@ -269,6 +309,7 @@ void htp_post_core_modules_detail(evhtp_request_t *req, void *data)
 
   // send request
   ret = ami_action_moduleload(name, "load");
+  sfree(name);
   if(ret == false) {
     simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
@@ -309,6 +350,7 @@ void htp_put_core_modules_detail(evhtp_request_t *req, void *data)
 
   // send request
   ret = ami_action_moduleload(name, "reload");
+  sfree(name);
   if(ret == false) {
     simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
@@ -349,6 +391,7 @@ void htp_delete_core_modules_detail(evhtp_request_t *req, void *data)
 
   // send request
   ret = ami_action_moduleload(name, "unload");
+  sfree(name);
   if(ret == false) {
     simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;

@@ -1131,13 +1131,17 @@ static void cb_htp_core_modules_detail(evhtp_request_t *req, void *data)
 
   // method check
   method = evhtp_request_get_method(req);
-  if((method != htp_method_POST) && (method != htp_method_PUT) && (method != htp_method_DELETE)) {
+  if((method != htp_method_GET) && (method != htp_method_POST) && (method != htp_method_PUT) && (method != htp_method_DELETE)) {
     simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // fire handlers
-  if(method == htp_method_POST) {
+  if(method == htp_method_GET) {
+    htp_get_core_modules_detail(req, data);
+    return;
+  }
+  else if(method == htp_method_POST) {
     htp_post_core_modules_detail(req, data);
     return;
   }

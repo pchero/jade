@@ -1571,3 +1571,23 @@ json_t* get_core_modules_all(void)
 
   return j_res;
 }
+
+/**
+ * Get given core_module info.
+ * @return
+ */
+json_t* get_core_module_info(const char* key)
+{
+  json_t* j_res;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_core_module_info.");
+
+  j_res = get_detail_item_key_string("core_module", "name", key);
+
+  return j_res;
+}
+

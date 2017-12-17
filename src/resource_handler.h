@@ -17,6 +17,7 @@ bool init_resource_handler(void);
 // core_module
 int create_core_module(json_t* j_tmp);
 json_t* get_core_modules_all(void);
+json_t* get_core_module_info(const char* key);
 
 // peer
 json_t* get_peers_all_peer(void);
