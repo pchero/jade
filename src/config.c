@@ -5,12 +5,25 @@
  *      Author: pchero
  */
 
+#define _GNU_SOURCE
+
 #include <stdbool.h>
 #include <jansson.h>
 #include <string.h>
+#include <errno.h>
+#include <dirent.h>
 
 #include "common.h"
 #include "slog.h"
+#include "minIni.h"
+#include "utils.h"
+
+#include "config.h"
+
+#define DEF_JADE_LIB_DIR  "/var/lib/jade"
+
+#define DEF_AST_CONF_BACKUP_DIR "confs"
+
 
 #define DEF_CONF_FILENAME "./jade.conf"
 
@@ -32,10 +45,20 @@
 #define DEF_OB_DATABASE_NAME  "./outbound_database.db"
 
 extern app* g_app;
+static char g_config_filename[1024] = "";
+
 
 static bool load_config(void);
 static bool write_config(void);
-static char g_config_filename[1024] = "";
+
+static int write_ast_config_info(const char* filename, json_t* j_conf);
+
+static char* get_ast_backup_conf_dir(void);
+static json_t* get_ast_backup_filenames(const char* filename);
+static int ast_conf_handler(const mTCHAR *section, const mTCHAR *key, const mTCHAR *value, void *data);
+static int backup_ast_config_info(const char* filename);
+static bool create_lib_dirs(void);
+
 
 /**
  * Initiate configuration
@@ -50,6 +73,11 @@ bool init_config(void)
   }
 
   ret = load_config();
+  if(ret == false) {
+    return false;
+  }
+
+  ret = create_lib_dirs();
   if(ret == false) {
     return false;
   }
@@ -71,6 +99,28 @@ bool update_config_filename(const char* filename)
 
   snprintf(g_config_filename, sizeof(g_config_filename), "%s", filename);
   printf("Updated config filename. config_filename[%s]", g_config_filename);
+
+  return true;
+}
+
+static bool create_lib_dirs(void)
+{
+  int ret;
+  char* cmd;
+  char* tmp;
+
+  slog(LOG_DEBUG, "Fired create_lib_dirs.");
+
+  asprintf(&tmp, "%s/%s", DEF_JADE_LIB_DIR, DEF_AST_CONF_BACKUP_DIR);
+
+  asprintf(&cmd, "mkdir -p %s", tmp);
+  sfree(tmp);
+
+  ret = system(cmd);
+  sfree(cmd);
+  if(ret != EXIT_SUCCESS) {
+    return false;
+  }
 
   return true;
 }
@@ -168,5 +218,386 @@ static bool write_config(void)
   json_dump_file(g_app->j_conf, g_config_filename, JSON_INDENT(4));
 
   return true;
+}
+
+static int ast_conf_handler(const mTCHAR *section, const mTCHAR *key, const mTCHAR *value, void *data)
+{
+  json_t* j_res;
+  json_t* j_sec;
+  json_t* j_item;
+  json_t* j_arr;
+  int ret;
+
+  j_res = (json_t*)data;
+
+  // check section.
+  // if not exist, create new one.
+  j_sec = json_object_get(j_res, section);
+  if(j_sec == NULL) {
+    json_object_set_new(j_res, section, json_object());
+    j_sec = json_object_get(j_res, section);
+  }
+
+
+  // check item existence.
+  // if there's key already, add it as a array.
+  j_item = json_object_get(j_sec, key);
+  if(j_item != NULL) {
+    ret = json_is_array(j_item);
+    if(ret == true) {
+      // if already exist, append it
+      json_array_append_new(j_item, json_string(value));
+    }
+    else {
+      // if not exist,
+      // substitute to array.
+      j_arr = json_array();
+      json_array_append_new(j_arr, json_string(value));
+      json_array_append(j_arr, j_item);
+      json_object_set_new(j_sec, key, j_arr);
+    }
+  }
+  else {
+    // add key/value
+    json_object_set_new(j_sec, key, json_string(value));
+  }
+
+  return 1;
+}
+
+/**
+ * Get current configuration info of given filename.
+ * @param filename
+ * @return
+ */
+static json_t* get_ast_config_info(const char* filename)
+{
+  json_t* j_res;
+  int ret;
+
+  if(filename == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_ast_current_config_info. filename[%s]", filename);
+
+  j_res = json_object();
+  ret = ini_browse(ast_conf_handler, j_res, filename);
+  if(ret == 0) {
+    json_decref(j_res);
+    slog(LOG_ERR, "Could not get asterisk config.");
+    return NULL;
+  }
+
+  return j_res;
+}
+
+/**
+ * Get current config info from given filename.
+ * @param filename
+ * @return
+ */
+json_t* get_ast_cuurent_config_info(const char* filename)
+{
+  json_t* j_conf;
+  const char* dir;
+  char* target;
+
+  if(filename == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_ast_backup_config_info.");
+
+  dir = json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "directory_conf"));
+  asprintf(&target, "%s/%s", dir, filename);
+
+  j_conf = get_ast_config_info(target);
+  sfree(target);
+  if(j_conf == NULL) {
+    slog(LOG_ERR, "Could not get config file info.");
+    return NULL;
+  }
+  return j_conf;
+}
+
+
+/**
+ * @param filename
+ * @return
+ */
+char* get_ast_current_config_info_raw(const char* filename)
+{
+
+  // todo: not implemented yet.
+  slog(LOG_ERR, "Not implemented yet.");
+  return NULL;
+}
+
+
+/**
+ * Update asterisk configuration file info.
+ * @param j_conf
+ * @param filename
+ * @return
+ */
+int update_ast_current_config_info(const char* filename, json_t* j_conf)
+{
+  int ret;
+
+  if((j_conf == NULL) || (filename == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  // backup current config
+  ret = backup_ast_config_info(filename);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not backup current config file. filename[%s]", filename);
+    return false;
+  }
+
+  ret = write_ast_config_info(filename, j_conf);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update config. filename[%s]", filename);
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Update asterisk configuration file.
+ * @param j_conf
+ * @param filename
+ * @return
+ */
+int update_ast_config_info_raw(const char* filename, const char* data)
+{
+  if((filename == NULL) || (data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_ERR, "Not implemented yet");
+
+  return false;
+}
+
+/**
+ * backup the given asterisk configuration file.
+ * @param filename
+ * @return
+ */
+static int backup_ast_config_info(const char* filename)
+{
+  char* target;
+  char* timestamp;
+  char* backup_dir;
+  const char* conf_dir;
+  char* cmd;
+  int ret;
+
+  if(filename == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired backup_ast_config_info. filename[%s]", filename);
+
+  timestamp = get_utc_timestamp();
+  backup_dir = get_ast_backup_conf_dir();
+  conf_dir = json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "directory_conf"));
+
+  // create full target filename
+  asprintf(&target, "%s/%s.%s", backup_dir, filename, timestamp);
+  sfree(backup_dir);
+  sfree(timestamp);
+
+  // create cmd for copy config file to backdup dir
+  asprintf(&cmd, "cp -r %s/%s %s", conf_dir, filename, target);
+  sfree(target);
+  slog(LOG_DEBUG, "Copy config file. cmd[%s]", cmd);
+
+  // execute
+  ret = system(cmd);
+  sfree(cmd);
+  if(ret != EXIT_SUCCESS) {
+    slog(LOG_ERR, "Could not backup the config file. filename[%s], err[%d:%s]", filename, errno, strerror(errno));
+    return false;
+  }
+
+  return true;
+}
+
+static int write_ast_config_info(const char* filename, json_t* j_conf)
+{
+  const char* sec_name;
+  const char* dir;
+  const char* key;
+  char* target;
+  json_t* j_item;
+  json_t* j_val;
+  FILE *f;
+
+  if((j_conf == NULL) || (filename == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired write_ast_config. filename[%s]", filename);
+
+  // create target
+  dir = json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "directory_conf"));
+  asprintf(&target, "%s/%s", dir, filename);
+
+  f = fopen(target, "w+");
+  if(f == NULL) {
+    slog(LOG_ERR, "Could not open the conf file. filename[%s], err[%d:%s]", target, errno, strerror(errno));
+    return false;
+  }
+  sfree(target);
+
+  json_object_foreach(j_conf, sec_name, j_item) {
+    fprintf(f, "[%s]\n", sec_name);
+    json_object_foreach(j_item, key, j_val) {
+      fprintf(f, "%s=%s\n", key, json_string_value(j_val));
+    }
+  }
+  fclose(f);
+
+  return true;
+}
+
+/**
+ * Get config info from given filename.
+ * @param filename
+ * @return
+ */
+json_t* get_ast_backup_config_info(const char* filename)
+{
+  char* tmp;
+  char* full_filename;
+  json_t* j_conf;
+
+  if(filename == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_ast_backup_config_info.");
+
+  // create full filename
+  tmp = get_ast_backup_conf_dir();
+  asprintf(&full_filename, "%s/%s", tmp, filename);
+  sfree(tmp);
+
+  j_conf = get_ast_config_info(full_filename);
+  sfree(full_filename);
+  if(j_conf == NULL) {
+    slog(LOG_ERR, "Could not get config file info.");
+    return NULL;
+  }
+
+  return j_conf;
+}
+
+json_t* get_ast_backup_configs_info_all(const char* filename)
+{
+  json_t* j_res;
+  json_t* j_list;
+  json_t* j_tmp;
+  json_t* j_conf;
+  json_t* j_conf_tmp;
+  const char* tmp_const;
+  int idx;
+
+  if(filename == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  j_list = get_ast_backup_filenames(filename);
+  if(j_list == NULL) {
+    slog(LOG_ERR, "Could not ast conf file list.");
+    return NULL;
+  }
+
+  j_res = json_array();
+  json_array_foreach(j_list, idx, j_tmp) {
+
+    // get filename
+    tmp_const = json_string_value(j_tmp);
+
+    j_conf = get_ast_backup_config_info(tmp_const);
+    if(j_conf == NULL) {
+      slog(LOG_ERR, "Could not get config file info.");
+      continue;
+    }
+
+    j_conf_tmp = json_object();
+    json_object_set_new(j_conf_tmp, tmp_const, j_conf);
+
+    // add to array
+    json_array_append_new(j_res, j_conf_tmp);
+  }
+  json_decref(j_list);
+
+  return j_res;
+}
+
+/**
+ * Return asterisk backup dir name
+ * @return
+ */
+static char* get_ast_backup_conf_dir(void)
+{
+  char* res;
+
+  asprintf(&res, "%s/%s", DEF_JADE_LIB_DIR, DEF_AST_CONF_BACKUP_DIR);
+  return res;
+}
+
+/**
+ * Get backup filename lists of given filename
+ * @param filename
+ * @return
+ */
+static json_t* get_ast_backup_filenames(const char* filename)
+{
+  json_t* j_res;
+  struct dirent **namelist;
+  int i;
+  int cnt;
+  char* tmp;
+  char* dir;
+
+  if(filename == NULL) {
+    return NULL;
+  }
+
+  j_res = json_array();
+  dir = get_ast_backup_conf_dir();
+
+  // get directory info.
+  cnt = scandir(dir, &namelist, NULL, versionsort);
+  sfree(dir);
+  if(cnt < 0) {
+    if(errno == ENOENT) {
+      return j_res;
+    }
+
+    slog(LOG_ERR, "Could not get directory info. err[%d:%s]", errno, strerror(errno));
+    json_decref(j_res);
+    return NULL;
+  }
+
+  // get file info
+  for(i = 0; i < cnt; i++) {
+    tmp = strstr(namelist[i]->d_name, filename);
+    if(tmp != NULL) {
+      json_array_append_new(j_res, json_string(namelist[i]->d_name));
+    }
+    free(namelist[i]);
+  }
+  free(namelist);
+
+  return j_res;
 }
 
