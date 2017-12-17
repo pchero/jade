@@ -20,5 +20,12 @@ void htp_get_voicemail_vms(evhtp_request_t *req, void *data);
 void htp_get_voicemail_vms_msgname(evhtp_request_t *req, void *data);
 void htp_delete_voicemail_vms_msgname(evhtp_request_t *req, void *data);
 
+void htp_get_voicemail_setting(evhtp_request_t *req, void *data);
+void htp_put_voicemail_setting(evhtp_request_t *req, void *data);
+
+void htp_get_voicemail_settings(evhtp_request_t *req, void *data);
+void htp_get_voicemail_settings_detail(evhtp_request_t *req, void *data);
+
+
 
 #endif /* SRC_VOICEMAIL_HANDLER_H_ */
