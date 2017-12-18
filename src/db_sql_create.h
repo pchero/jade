@@ -192,12 +192,12 @@ static const char* g_sql_create_queue_entry =
 "create table queue_entry("
 
 // identity
+"   unique_id         varchar(255),"
 "   queue_name        varchar(255),"
 "   channel           varchar(255),"
 
 // info
 "   position            int,"
-"   unique_id           varchar(255),"
 "   caller_id_num       varchar(255),"
 "   caller_id_name      varchar(255),"
 "   connected_line_num  varchar(255),"
@@ -208,7 +208,7 @@ static const char* g_sql_create_queue_entry =
 // timestamp. UTC."
 "   tm_update         datetime(6),"   // update time."
 
-"   primary key(queue_name, channel)"
+"   primary key(unique_id)"
 
 ");";
 

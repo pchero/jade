@@ -755,7 +755,7 @@ json_t* get_queue_entry_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired get_queue_entry_info.");
 
-  j_res = get_detail_item_key_string("queue_entry", "channel", key);
+  j_res = get_detail_item_key_string("queue_entry", "unique_id", key);
 
   return j_res;
 }
