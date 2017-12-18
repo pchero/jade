@@ -328,3 +328,29 @@ int convert_time_string(const char* time, const char* format)
 
   return sec;
 }
+
+/**
+ @brief strip extension
+ */
+char* strip_ext(char *fname)
+{
+  char* filename;
+  char* end;
+
+  if(fname == NULL) {
+    return NULL;
+  }
+
+  filename = strdup(fname);
+  end = filename + strlen(filename);
+
+  while ((end > filename) && (*end != '.') && (*end != '\\') && (*end != '/')) {
+    --end;
+  }
+
+  if ((end > filename) && (*end == '.')) {
+    *end = '\0';
+  }
+
+  return filename;
+}

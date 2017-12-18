@@ -6,6 +6,7 @@
 Methods
 -------
 GET : Get list of all voicemail users.
+POST : Create new voicemail user.
 
 Method: GET
 -----------
@@ -36,7 +37,7 @@ Returns
             "server_email": "<string>",
             "mail_command": "<string>",
             "attach_message": "<string>",
-            "attachement_format": "<string>",
+            "attachment_format": "<string>",
             "delete_message": "<string>",
 
             "call_operator": "<string>",
@@ -88,7 +89,7 @@ Return parameters
    * ``server_email``: Server's mail address.(mail sender)
    * ``mail_command``: Mail sending command.
    * ``attach_message``: Voicemail attachment.
-   * ``attachement_format``: Attached voicemail format.
+   * ``attachment_format``: Attached voicemail format.
    * ``delete_message``: Delete voicemail after send to email or not.
    
    * ``call_operator``: 
@@ -134,7 +135,7 @@ Example
         "list": [
             {
                 "attach_message": "Yes",
-                "attachement_format": "",
+                "attachment_format": "",
                 "call_operator": "No",
                 "callback": "",
                 "can_review": "No",
@@ -173,6 +174,156 @@ Example
   }
   
 
+  
+Method: POST
+-----------
+Create new voicemail user.
+
+Call
+++++
+::
+
+  POST ^/voicemail/users
+  
+  {
+    "context": "<string>", 
+    "mailbox": "<string>", 
+    "password": "<string>", 
+    "full_name": "<string>", 
+    "email": "<string>", 
+    "pager": "<string>", 
+
+    "timezone": "<string>", 
+    "locale": "<string>", 
+    "attach_message": "<string>", 
+    "attachment_format": "<string>", 
+    "say_cid": "<string>", 
+
+    "cid_internal_contexts": "<string>", 
+    "say_duration": "<string>", 
+    "say_duration_minimum": "<string>", 
+    "dialout": "<string>", 
+    "send_voicemail": "<string>", 
+
+    "search_contexts": "<string>", 
+    "callback": "<string>", 
+    "exit_context": "<string>", 
+    "can_review": "<string>", 
+    "call_operator": "<string>", 
+
+    "say_envelope": "<string>", 
+    "delete_message": "<string>", 
+    "alias": "<string>", 
+    "volume_gain": "<string>", 
+    "next_after_cmd": "<string>", 
+
+    "force_name": "<string>", 
+    "force_greetings": "<string>", 
+    "hide_from_dir": "<string>", 
+    "temp_greet_warn": "<string>", 
+    "password_location": "<string>", 
+
+    "message_wrap": "<string>", 
+    "min_password": "<string>", 
+    "vm_password": "<string>", 
+    "vm_new_password": "<string>", 
+    "vm_pass_changed": "<string>", 
+
+    "vm_reenter_password": "<string>", 
+    "vm_mismatch": "<string>", 
+    "vm_invalid_password": "<string>", 
+    "vm_pls_try_again": "<string>", 
+    "vm_prepend_timeout": "<string>", 
+
+    "listen_control_forward_key": "<string>", 
+    "listen_control_reverse_key": "<string>", 
+    "listen_control_pause_key": "<string>", 
+    "listen_control_restart_key": "<string>", 
+    "listen_control_stop_key": "<string>", 
+
+    "backup_deleted": "<string>"
+  }
+
+* ``context``: <required> Context name.
+* ``mailbox``: <required> Mailbox name.
+* ``password``: password.
+* ``full_name``: full name.
+* ``email``: email address.
+* ``pager``: pager address.
+
+* ``timezone``:
+* ``locale``:
+* ``attach_message``:
+* ``attachment_format``:
+* ``say_cid``:
+
+* ``cid_internal_contexts``:
+* ``say_duration``:
+* ``say_duration_minimum``:
+* ``dialout``:
+* ``send_voicemail``:
+
+* ``search_contexts``:
+* ``callback``:
+* ``exit_context``:
+* ``can_review``:
+* ``call_operator``:
+
+* ``say_envelope``:
+* ``delete_message``:
+* ``alias``:
+* ``volume_gain``:
+* ``next_after_cmd``:
+
+* ``force_name``:
+* ``force_greetings``:
+* ``hide_from_dir``:
+* ``temp_greet_warn``:
+* ``password_location``:
+
+* ``message_wrap``:
+* ``min_password``:
+* ``vm_password``:
+* ``vm_new_password``:
+* ``vm_pass_changed``:
+
+* ``vm_reenter_password``:
+* ``vm_mismatch``:
+* ``vm_invalid_password``:
+* ``vm_pls_try_again``:
+* ``vm_prepend_timeout``:
+
+* ``listen_control_forward_key``:
+* ``listen_control_reverse_key``:
+* ``listen_control_pause_key``:
+* ``listen_control_restart_key``:
+* ``listen_control_stop_key``:
+
+* ``backup_deleted``:
+  
+Returns
++++++++
+::
+
+   {
+     $defhdr
+   }
+
+   
+Example
++++++++
+::
+
+  $ curl -X POST localhost:8081/voicemail/users -d \
+    '{"context": "test1", "mailbox": "testmail"}' 
+
+  {
+    "api_ver": "0.1",
+    "statuscode": 200,
+    "timestamp": "2017-12-15T23:07:53.444934604Z"
+  }
+
+  
 
 /voicemail/vms
 ==============
@@ -227,7 +378,6 @@ Returns
           ...
        ]
      }
-   }
    }
 
 Return parameters

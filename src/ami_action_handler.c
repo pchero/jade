@@ -75,3 +75,37 @@ int ami_action_hangup_by_uniqueid(const char* unique_id)
 
   return true;
 }
+
+/**
+ * AMI event handler.
+ * Action: ModuleLoad
+ */
+int ami_action_moduleload(const char* name, const char* type)
+{
+  json_t* j_tmp;
+  int ret;
+
+  if((name == NULL) || (type == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired ami_action_moduleload. name[%s], type[%s]", name, type);
+
+
+  // create request
+  j_tmp = json_pack("{s:s, s:s, s:s}",
+      "Action",     "ModuleLoad",
+      "Module",     name,
+      "LoadType",   type
+      );
+
+  // send hangup request
+  ret = send_ami_cmd(j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not send ami action");
+    return false;
+  }
+
+  return true;
+}

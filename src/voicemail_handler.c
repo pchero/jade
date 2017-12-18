@@ -31,7 +31,6 @@ extern app* g_app;
 static json_t* get_vm_info(const char* filename);
 static json_t* get_vms_info_all(const char* context, const char* mailbox);
 static json_t* get_vms_status(const char* directory, const char* status, const char* dir);
-static void strip_ext(char *fname);
 static char* get_vm_filename(const char* context, const char* mailbox, const char* dir, const char* msgname);
 
 static int delete_voicemail_user(const char* context, const char* mailbox);
@@ -765,22 +764,6 @@ static json_t* get_vm_info(const char* filename)
 }
 
 /**
- @brief strip extension
- */
-static void strip_ext(char *fname)
-{
-  char *end = fname + strlen(fname);
-
-  while ((end > fname) && (*end != '.') && (*end != '\\') && (*end != '/')) {
-    --end;
-  }
-
-  if ((end > fname) && (*end == '.')) {
-    *end = '\0';
-  }
-}
-
-/**
  * Get given mailbox@context's all vm info
  * @param context
  * @param mailbox
@@ -962,8 +945,7 @@ static json_t* get_vms_status(const char* directory, const char* status, const c
     json_object_set_new(j_tmp, "dir", json_string(dir));
 
     // set msgname
-    msgname = strdup(ent->d_name);
-    strip_ext(msgname);
+    msgname = strip_ext(ent->d_name);
     json_object_set_new(j_tmp, "msgname", json_string(msgname));
     sfree(msgname);
 
