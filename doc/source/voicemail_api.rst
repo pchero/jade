@@ -277,6 +277,8 @@ Methods
 -------
 GET : Get all backup voicemail settings.
 
+DELETE : Delete given backup voicemail setting.
+
 .. _get_voicemail_settings_detail:
 
 Method: GET
@@ -355,6 +357,45 @@ Example
     "timestamp": "2017-12-18T11:30:24.953556796Z"
   }
 
+  
+.. _delete_voicemail_settings_detail:
+  
+Method: DELETE
+--------------
+DELETE : Delete given backup voicemail setting.
+
+
+Call
+++++
+::
+
+  DELETE ^/voicemail/settings/<detail>
+  
+Method parameters
+
+* ``detail``: backup filename.
+  
+Returns
++++++++
+::
+
+  {
+    $defhdr
+  }
+   
+Example
++++++++
+::
+
+  $ curl -X DELETE localhost:8081/voicemail/settings/voicemail.conf.2017-12-17T02:25:19.494086661Z
+  
+  {
+    "api_ver": "0.1",
+    "statuscode": 200,
+    "timestamp": "2017-12-18T20:52:30.462052487Z"
+  }
+
+  
 
 .. _voicemail_users:
 

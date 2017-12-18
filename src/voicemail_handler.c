@@ -45,9 +45,11 @@ static int update_voicemail_current_setting_info(json_t* j_data);
 
 static json_t* get_voicemail_backup_settings_all(void);
 static json_t* get_voicemail_backup_setting_info(const char* filename);
+static bool remove_voicemail_backup_setting_info(const char* filename);
 
 static bool is_exist_voicemail_user(const char* context, const char* mailbox);
 static bool is_setting_context(const char* context);
+static bool is_voicemail_setting_filename(const char* filename);
 
 static int remove_voicemail_user_info(const char* context, const char* mailbox);
 static int write_voicemail_user_info(json_t* j_data);
@@ -674,6 +676,52 @@ void htp_get_voicemail_settings_detail(evhtp_request_t *req, void *data)
   j_res = create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", json_object());
   json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
+
+  // response
+  simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * DELETE ^/voicemail/settings/(.*) request handler.
+ * @param req
+ * @param data
+ */
+void htp_delete_voicemail_settings_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  const char* tmp_const;
+  char* name;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired htp_get_voicemail_settings_detail.");
+
+  // name parse
+  tmp_const = req->uri->path->file;
+  name = uri_parse(tmp_const);
+  if(name == NULL) {
+    slog(LOG_ERR, "Could not get name info.");
+    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // remove it
+  ret = remove_voicemail_backup_setting_info(name);
+  sfree(name);
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not delete setting file.");
+    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = create_default_result(EVHTP_RES_OK);
 
   // response
   simple_response_normal(req, j_res);
@@ -1368,6 +1416,37 @@ static json_t* get_voicemail_backup_setting_info(const char* filename)
 }
 
 /**
+ * Remove voicemail setting(configuration) info.
+ * @param filename
+ * @return
+ */
+static bool remove_voicemail_backup_setting_info(const char* filename)
+{
+  int ret;
+
+  if(filename == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired remove_voicemail_backup_setting_info. filename[%s]", filename);
+
+  ret = is_voicemail_setting_filename(filename);
+  if(ret == false) {
+    slog(LOG_NOTICE, "The given filename is not voicemail conf file.");
+    return false;
+  }
+
+  ret = remove_ast_backup_config_info(filename);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not remove voicemail backup conf.");
+    return false;
+  }
+
+  return true;
+}
+
+
+/**
  * Get voicemail current setting(configuration) info.
  * @param filename
  * @return
@@ -1427,4 +1506,26 @@ static json_t* get_voicemail_backup_settings_all(void)
   j_res = get_ast_backup_configs_info_all(filename);
 
   return j_res;
+}
+
+/**
+ * Return true if given filename related with voicemail setting file.
+ * @param filename
+ * @return
+ */
+static bool is_voicemail_setting_filename(const char* filename)
+{
+  const char* tmp_const;
+
+  if(filename == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  tmp_const = strstr(filename, "voicemail.conf");
+  if(tmp_const == NULL) {
+    return false;
+  }
+
+  return true;
 }

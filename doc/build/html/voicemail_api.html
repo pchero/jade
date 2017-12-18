@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>/voicemail/users &mdash; jade 0.0.1 documentation</title>
+    <title>/voicemail/setting &mdash; jade 0.0.1 documentation</title>
     
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -41,24 +41,405 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="voicemail-users">
-<span id="voicemail-api"></span><span id="id1"></span><h1>/voicemail/users<a class="headerlink" href="#voicemail-users" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="voicemail-setting">
+<span id="voicemail-api"></span><span id="id1"></span><h1>/voicemail/setting<a class="headerlink" href="#voicemail-setting" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="methods">
 <h2>Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h2>
-<p>GET : Get list of all voicemail users.
-POST : Create new voicemail user.</p>
+<p>GET : Get current voicemail setting.</p>
+<p>PUT : Update voicemail setting.</p>
 </div>
 <div class="section" id="method-get">
-<h2>Method: GET<a class="headerlink" href="#method-get" title="Permalink to this headline">¶</a></h2>
-<p>Get list of all voicemail users.</p>
+<span id="get-voicemail-setting"></span><h2>Method: GET<a class="headerlink" href="#method-get" title="Permalink to this headline">¶</a></h2>
+<p>GET : Get current voicemail setting.</p>
+<p>This result does not mean to currently running setting.
+It shows only setting file.</p>
 <div class="section" id="call">
 <h3>Call<a class="headerlink" href="#call" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre>GET ^/voicemail/users
+<div class="highlight-python"><div class="highlight"><pre>GET ^/voicemail/setting
 </pre></div>
 </div>
 </div>
 <div class="section" id="returns">
 <h3>Returns<a class="headerlink" href="#returns" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr,
+  &quot;result&quot;: {
+    &quot;general&quot;: {
+      ...
+    },
+    &quot;zonemessages&quot;: {
+      ...
+    },
+    &quot;&lt;context&gt;&quot;: {
+      &quot;&lt;mailbox&gt;&quot;: &quot;&lt;string&gt;&quot;
+    },
+    ...
+  }
+}
+</pre></div>
+</div>
+<p>Return parameters</p>
+<ul>
+<li><p class="first"><tt class="docutils literal"><span class="pre">general</span></tt> : The general option. See detail Asterisk&#8217;s voicemail setting options.</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">zonemessages</span></tt>: The zonemessages option. See detail Asterisk&#8217;s voicemail setting options.</p>
+</li>
+<li><dl class="first docutils">
+<dt><tt class="docutils literal"><span class="pre">context</span></tt>: Voicemail context option. See detail Asterisk&#8217;s voicemail context option.</dt>
+<dd><ul class="first last simple">
+<li><tt class="docutils literal"><span class="pre">mailbox</span></tt>: Voicemail mailbox options. See detail Asterisk&#8217;s voicemail mailbox option.</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</div>
+<div class="section" id="example">
+<h3>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET localhost:8081/voicemail/setting
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;result&quot;: {
+      &quot;default&quot;: {
+          &quot;1234&quot;: &quot;&gt; 4242,Example Mailbox,root@localhost&quot;
+      },
+      &quot;general&quot;: {
+          &quot;attach&quot;: &quot;yes&quot;,
+          &quot;emaildateformat&quot;: &quot;%A, %B %d, %Y at %r&quot;,
+          &quot;format&quot;: &quot;wav49|gsm|wav&quot;,
+          &quot;maxlogins&quot;: &quot;3&quot;,
+          &quot;maxsilence&quot;: &quot;10&quot;,
+          &quot;pagerdateformat&quot;: &quot;%A, %B %d, %Y at %r&quot;,
+          &quot;sendvoicemail&quot;: &quot;yes&quot;,
+          &quot;serveremail&quot;: &quot;asterisk&quot;,
+          &quot;silencethreshold&quot;: &quot;128&quot;,
+          &quot;skipms&quot;: &quot;3000&quot;
+      },
+      &quot;other&quot;: {
+          &quot;1234&quot;: &quot;&gt; 5678,Company2 User,root@localhost&quot;
+      },
+      &quot;vm-demo&quot;: {
+          &quot;6001&quot;: &quot;&gt; 8762,Alice Jones,alice@example.com,alice2@example.com,attach=no|tz=central|maxmsg=10&quot;,
+          &quot;6002&quot;: &quot;&gt; 9271,Bob Smith,bob@example.com,bob2@example.com,attach=yes|tz=eastern&quot;,
+          &quot;6005&quot;: &quot;,Bob Smith,bob@example.com,bob2@example.com,tz=eastern|attach=Yes|attachfmt=|saycid=No|saydurationm=2|dialout=|callback=|exitcontext=|review=No|operator=No|envelope=Yes|delete=No|volgain=0.000000|&quot;,
+          &quot;agent-01&quot;: &quot;&gt; ,agent 01,agent-01@example.com,,&quot;,
+          &quot;pjagent-01&quot;: &quot;&gt; ,pjagent 01,pjagent-01@example.com,,&quot;
+      },
+      &quot;zonemessages&quot;: {
+          &quot;central&quot;: &quot;America/Chicago|&#39;vm-received&#39; Q &#39;digits/at&#39; IMp&quot;,
+          &quot;central24&quot;: &quot;America/Chicago|&#39;vm-received&#39; q &#39;digits/at&#39; H N &#39;hours&#39;&quot;,
+          &quot;eastern&quot;: &quot;America/New_York|&#39;vm-received&#39; Q &#39;digits/at&#39; IMp&quot;,
+          &quot;european&quot;: &quot;Europe/Copenhagen|&#39;vm-received&#39; a d b &#39;digits/at&#39; HM&quot;,
+          &quot;military&quot;: &quot;Zulu|&#39;vm-received&#39; q &#39;digits/at&#39; H N &#39;hours&#39; &#39;phonetic/z_p&#39;&quot;
+      }
+  },
+  &quot;statuscode&quot;: 200,
+  &quot;timestamp&quot;: &quot;2017-12-18T11:03:54.209580717Z&quot;
+}
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="method-put">
+<span id="put-voicemail-setting"></span><h2>Method: PUT<a class="headerlink" href="#method-put" title="Permalink to this headline">¶</a></h2>
+<p>PUT : Update voicemail setting.</p>
+<p>Update only setting file. To adapt to module, required module reload.</p>
+<div class="section" id="id2">
+<h3>Call<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>PUT ^/voicemail/setting
+
+{
+  ...
+}
+</pre></div>
+</div>
+<p>Data parameters</p>
+<ul class="simple">
+<li>voicemail setting info.</li>
+</ul>
+</div>
+<div class="section" id="id3">
+<h3>Returns<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr
+}
+</pre></div>
+</div>
+</div>
+<div class="section" id="id4">
+<h3>Example<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X PUT localhost:8081/voicemail/setting -d
+{
+  &quot;default&quot;: {
+    &quot;1234&quot;: &quot;&gt; 4242,Example Mailbox,root@localhost&quot;
+  },
+  &quot;general&quot;: {
+    &quot;attach&quot;: &quot;yes&quot;,
+    &quot;emaildateformat&quot;: &quot;%A, %B %d, %Y at %r&quot;,
+    &quot;format&quot;: &quot;wav49|gsm|wav&quot;,
+    &quot;maxlogins&quot;: &quot;3&quot;,
+    &quot;maxsilence&quot;: &quot;10&quot;,
+    &quot;pagerdateformat&quot;: &quot;%A, %B %d, %Y at %r&quot;,
+    &quot;sendvoicemail&quot;: &quot;yes&quot;,
+    &quot;serveremail&quot;: &quot;asterisk&quot;,
+    &quot;silencethreshold&quot;: &quot;128&quot;,
+    &quot;skipms&quot;: &quot;3000&quot;
+  },
+  &quot;other&quot;: {
+    &quot;1234&quot;: &quot;&gt; 5678,Company2 User,root@localhost&quot;
+  },
+  &quot;vm-demo&quot;: {
+    &quot;6001&quot;: &quot;&gt; 8762,Alice Jones,alice@example.com,alice2@example.com,attach=no|tz=central|maxmsg=10&quot;,
+    &quot;6002&quot;: &quot;&gt; 9271,Bob Smith,bob@example.com,bob2@example.com,attach=yes|tz=eastern&quot;,
+    &quot;6005&quot;: &quot;,Bob Smith,bob@example.com,bob2@example.com,tz=eastern|attach=Yes|attachfmt=|saycid=No|saydurationm=2|dialout=|callback=|exitcontext=|review=No|operator=No|envelope=Yes|delete=No|volgain=0.000000|&quot;,
+    &quot;agent-01&quot;: &quot;&gt; ,agent 01,agent-01@example.com,,&quot;,
+    &quot;pjagent-01&quot;: &quot;&gt; ,pjagent 01,pjagent-01@example.com,,&quot;
+  },
+  &quot;zonemessages&quot;: {
+    &quot;central&quot;: &quot;America/Chicago|&#39;vm-received&#39; Q &#39;digits/at&#39; IMp&quot;,
+    &quot;central24&quot;: &quot;America/Chicago|&#39;vm-received&#39; q &#39;digits/at&#39; H N &#39;hours&#39;&quot;,
+    &quot;eastern&quot;: &quot;America/New_York|&#39;vm-received&#39; Q &#39;digits/at&#39; IMp&quot;,
+    &quot;european&quot;: &quot;Europe/Copenhagen|&#39;vm-received&#39; a d b &#39;digits/at&#39; HM&quot;,
+    &quot;military&quot;: &quot;Zulu|&#39;vm-received&#39; q &#39;digits/at&#39; H N &#39;hours&#39; &#39;phonetic/z_p&#39;&quot;
+  }
+}
+
+{&quot;api_ver&quot;: &quot;0.1&quot;, &quot;statuscode&quot;: 200, &quot;timestamp&quot;: &quot;2017-12-18T11:23:36.669590706Z&quot;}
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="voicemail-settings">
+<span id="id5"></span><h1>/voicemail/settings<a class="headerlink" href="#voicemail-settings" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id6">
+<h2>Methods<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
+<p>GET : Get all backup voicemail settings.</p>
+</div>
+<div class="section" id="get-voicemail-settings">
+<span id="id7"></span><h2>Method: GET<a class="headerlink" href="#get-voicemail-settings" title="Permalink to this headline">¶</a></h2>
+<p>GET : Get all backup voicemail settings.</p>
+<div class="section" id="id8">
+<h3>Call<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>GET ^/voicemail/settings
+</pre></div>
+</div>
+</div>
+<div class="section" id="id9">
+<h3>Returns<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr,
+  &quot;reuslt&quot;: {
+    &quot;list&quot;: [
+      &quot;&lt;filename&gt;&quot;: {
+        ...
+      }
+    ]
+  }
+}
+</pre></div>
+</div>
+<p>Return parameters</p>
+<ul>
+<li><dl class="first docutils">
+<dt><tt class="docutils literal"><span class="pre">list</span></tt>: array of backup files.</dt>
+<dd><ul class="first last simple">
+<li><tt class="docutils literal"><span class="pre">filename</span></tt>: backup filename.</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</div>
+<div class="section" id="id10">
+<h3>Example<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET localhost:8081/voicemail/settings
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;result&quot;: {
+      &quot;list&quot;: [
+          {
+              &quot;voicemail.conf.2017-12-18T11:23:36.665818303Z&quot;: {
+                  &quot;default&quot;: {
+                      &quot;1234&quot;: &quot;&gt; 4242,Example Mailbox,root@localhost&quot;
+                  },
+                  &quot;general&quot;: {
+                      &quot;attach&quot;: &quot;yes&quot;,
+                      &quot;emaildateformat&quot;: &quot;%A, %B %d, %Y at %r&quot;,
+                      &quot;format&quot;: &quot;wav49|gsm|wav&quot;,
+                      &quot;maxlogins&quot;: &quot;3&quot;,
+                      &quot;maxsilence&quot;: &quot;10&quot;,
+                      &quot;pagerdateformat&quot;: &quot;%A, %B %d, %Y at %r&quot;,
+                      &quot;sendvoicemail&quot;: &quot;yes&quot;,
+                      &quot;serveremail&quot;: &quot;asterisk&quot;,
+                      &quot;silencethreshold&quot;: &quot;128&quot;,
+                      &quot;skipms&quot;: &quot;3000&quot;
+                  },
+                  &quot;other&quot;: {
+                      &quot;1234&quot;: &quot;&gt; 5678,Company2 User,root@localhost&quot;
+                  },
+                  &quot;vm-demo&quot;: {
+                      &quot;6001&quot;: &quot;&gt; 8762,Alice Jones,alice@example.com,alice2@example.com,attach=no|tz=central|maxmsg=10&quot;,
+                      &quot;6002&quot;: &quot;&gt; 9271,Bob Smith,bob@example.com,bob2@example.com,attach=yes|tz=eastern&quot;,
+                      &quot;6005&quot;: &quot;,Bob Smith,bob@example.com,bob2@example.com,tz=eastern|attach=Yes|attachfmt=|saycid=No|saydurationm=2|dialout=|callback=|exitcontext=|review=No|operator=No|envelope=Yes|delete=No|volgain=0.000000|&quot;,
+                      &quot;agent-01&quot;: &quot;&gt; ,agent 01,agent-01@example.com,,&quot;,
+                      &quot;pjagent-01&quot;: &quot;&gt; ,pjagent 01,pjagent-01@example.com,,&quot;
+                  },
+                  &quot;zonemessages&quot;: {
+                      &quot;central&quot;: &quot;America/Chicago|&#39;vm-received&#39; Q &#39;digits/at&#39; IMp&quot;,
+                      &quot;central24&quot;: &quot;America/Chicago|&#39;vm-received&#39; q &#39;digits/at&#39; H N &#39;hours&#39;&quot;,
+                      &quot;eastern&quot;: &quot;America/New_York|&#39;vm-received&#39; Q &#39;digits/at&#39; IMp&quot;,
+                      &quot;european&quot;: &quot;Europe/Copenhagen|&#39;vm-received&#39; a d b &#39;digits/at&#39; HM&quot;,
+                      &quot;military&quot;: &quot;Zulu|&#39;vm-received&#39; q &#39;digits/at&#39; H N &#39;hours&#39; &#39;phonetic/z_p&#39;&quot;
+                  }
+              }
+          }
+      ]
+  },
+  &quot;statuscode&quot;: 200,
+  &quot;timestamp&quot;: &quot;2017-12-18T11:23:56.197482423Z&quot;
+}
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="voicemail-settings-detail">
+<span id="id11"></span><h1>/voicemail/settings/&lt;detail&gt;<a class="headerlink" href="#voicemail-settings-detail" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id12">
+<h2>Methods<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h2>
+<p>GET : Get all backup voicemail settings.</p>
+<p>DELETE : Delete given backup voicemail setting.</p>
+</div>
+<div class="section" id="get-voicemail-settings-detail">
+<span id="id13"></span><h2>Method: GET<a class="headerlink" href="#get-voicemail-settings-detail" title="Permalink to this headline">¶</a></h2>
+<p>GET : Get backup voicemail settings of given info.</p>
+<div class="section" id="id14">
+<h3>Call<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>GET ^/voicemail/settings/&lt;detail&gt;
+</pre></div>
+</div>
+<p>Method parameters</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">detail</span></tt>: backup filename.</li>
+</ul>
+</div>
+<div class="section" id="id15">
+<h3>Returns<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr,
+  &quot;reuslt&quot;: {
+    ...
+  }
+}
+</pre></div>
+</div>
+<p>See detail Asterisk&#8217;s voicemail setting.</p>
+</div>
+<div class="section" id="id16">
+<h3>Example<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET localhost:8081/voicemail/settings/voicemail.conf.2017-12-18T11:23:36.665818303Z
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;result&quot;: {
+      &quot;list&quot;: {
+          &quot;default&quot;: {
+              &quot;1234&quot;: &quot;&gt; 4242,Example Mailbox,root@localhost&quot;
+          },
+          &quot;general&quot;: {
+              &quot;attach&quot;: &quot;yes&quot;,
+              &quot;emaildateformat&quot;: &quot;%A, %B %d, %Y at %r&quot;,
+              &quot;format&quot;: &quot;wav49|gsm|wav&quot;,
+              &quot;maxlogins&quot;: &quot;3&quot;,
+              &quot;maxsilence&quot;: &quot;10&quot;,
+              &quot;pagerdateformat&quot;: &quot;%A, %B %d, %Y at %r&quot;,
+              &quot;sendvoicemail&quot;: &quot;yes&quot;,
+              &quot;serveremail&quot;: &quot;asterisk&quot;,
+              &quot;silencethreshold&quot;: &quot;128&quot;,
+              &quot;skipms&quot;: &quot;3000&quot;
+          },
+          &quot;other&quot;: {
+              &quot;1234&quot;: &quot;&gt; 5678,Company2 User,root@localhost&quot;
+          },
+          &quot;vm-demo&quot;: {
+              &quot;6001&quot;: &quot;&gt; 8762,Alice Jones,alice@example.com,alice2@example.com,attach=no|tz=central|maxmsg=10&quot;,
+              &quot;6002&quot;: &quot;&gt; 9271,Bob Smith,bob@example.com,bob2@example.com,attach=yes|tz=eastern&quot;,
+              &quot;6005&quot;: &quot;,Bob Smith,bob@example.com,bob2@example.com,tz=eastern|attach=Yes|attachfmt=|saycid=No|saydurationm=2|dialout=|callback=|exitcontext=|review=No|operator=No|envelope=Yes|delete=No|volgain=0.000000|&quot;,
+              &quot;agent-01&quot;: &quot;&gt; ,agent 01,agent-01@example.com,,&quot;,
+              &quot;pjagent-01&quot;: &quot;&gt; ,pjagent 01,pjagent-01@example.com,,&quot;
+          },
+          &quot;zonemessages&quot;: {
+              &quot;central&quot;: &quot;America/Chicago|&#39;vm-received&#39; Q &#39;digits/at&#39; IMp&quot;,
+              &quot;central24&quot;: &quot;America/Chicago|&#39;vm-received&#39; q &#39;digits/at&#39; H N &#39;hours&#39;&quot;,
+              &quot;eastern&quot;: &quot;America/New_York|&#39;vm-received&#39; Q &#39;digits/at&#39; IMp&quot;,
+              &quot;european&quot;: &quot;Europe/Copenhagen|&#39;vm-received&#39; a d b &#39;digits/at&#39; HM&quot;,
+              &quot;military&quot;: &quot;Zulu|&#39;vm-received&#39; q &#39;digits/at&#39; H N &#39;hours&#39; &#39;phonetic/z_p&#39;&quot;
+          }
+      }
+  },
+  &quot;statuscode&quot;: 200,
+  &quot;timestamp&quot;: &quot;2017-12-18T11:30:24.953556796Z&quot;
+}
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="method-delete">
+<span id="delete-voicemail-settings-detail"></span><h2>Method: DELETE<a class="headerlink" href="#method-delete" title="Permalink to this headline">¶</a></h2>
+<p>DELETE : Delete given backup voicemail setting.</p>
+<div class="section" id="id17">
+<h3>Call<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>DELETE ^/voicemail/settings/&lt;detail&gt;
+</pre></div>
+</div>
+<p>Method parameters</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">detail</span></tt>: backup filename.</li>
+</ul>
+</div>
+<div class="section" id="id18">
+<h3>Returns<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr
+}
+</pre></div>
+</div>
+</div>
+<div class="section" id="id19">
+<h3>Example<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X DELETE localhost:8081/voicemail/settings/voicemail.conf.2017-12-17T02:25:19.494086661Z
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;statuscode&quot;: 200,
+  &quot;timestamp&quot;: &quot;2017-12-18T20:52:30.462052487Z&quot;
+}
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="voicemail-users">
+<span id="id20"></span><h1>/voicemail/users<a class="headerlink" href="#voicemail-users" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id21">
+<h2>Methods<a class="headerlink" href="#id21" title="Permalink to this headline">¶</a></h2>
+<p>GET : Get list of all voicemail users.
+POST : Create new voicemail user.</p>
+</div>
+<div class="section" id="id22">
+<h2>Method: GET<a class="headerlink" href="#id22" title="Permalink to this headline">¶</a></h2>
+<p>Get list of all voicemail users.</p>
+<div class="section" id="id23">
+<h3>Call<a class="headerlink" href="#id23" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>GET ^/voicemail/users
+</pre></div>
+</div>
+</div>
+<div class="section" id="id24">
+<h3>Returns<a class="headerlink" href="#id24" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr,
   &quot;reuslt&quot;: {
@@ -157,8 +538,8 @@ POST : Create new voicemail user.</p>
 </li>
 </ul>
 </div>
-<div class="section" id="example">
-<h3>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id25">
+<h3>Example<a class="headerlink" href="#id25" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-python"><div class="highlight"><pre>curl -X GET 192.168.200.10:8081/voicemail/users
 
 {
@@ -211,8 +592,8 @@ POST : Create new voicemail user.</p>
 <div class="section" id="method-post">
 <h2>Method: POST<a class="headerlink" href="#method-post" title="Permalink to this headline">¶</a></h2>
 <p>Create new voicemail user.</p>
-<div class="section" id="id2">
-<h3>Call<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id26">
+<h3>Call<a class="headerlink" href="#id26" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-python"><div class="highlight"><pre>POST ^/voicemail/users
 
 {
@@ -325,16 +706,16 @@ POST : Create new voicemail user.</p>
 <li><tt class="docutils literal"><span class="pre">backup_deleted</span></tt>:</li>
 </ul>
 </div>
-<div class="section" id="id3">
-<h3>Returns<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id27">
+<h3>Returns<a class="headerlink" href="#id27" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr
 }
 </pre></div>
 </div>
 </div>
-<div class="section" id="id4">
-<h3>Example<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id28">
+<h3>Example<a class="headerlink" href="#id28" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -X POST localhost:8081/voicemail/users -d \
   &#39;{&quot;context&quot;: &quot;test1&quot;, &quot;mailbox&quot;: &quot;testmail&quot;}&#39;
 
@@ -350,21 +731,21 @@ POST : Create new voicemail user.</p>
 </div>
 <div class="section" id="voicemail-vms">
 <h1>/voicemail/vms<a class="headerlink" href="#voicemail-vms" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="id5">
-<h2>Methods<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id29">
+<h2>Methods<a class="headerlink" href="#id29" title="Permalink to this headline">¶</a></h2>
 <p>GET : Get list of all voicemail info of given user.</p>
 </div>
-<div class="section" id="id6">
-<h2>Method: GET<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id30">
+<h2>Method: GET<a class="headerlink" href="#id30" title="Permalink to this headline">¶</a></h2>
 <p>GET : Get list of all voicemail info of given user.</p>
-<div class="section" id="id7">
-<h3>Call<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id31">
+<h3>Call<a class="headerlink" href="#id31" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-python"><div class="highlight"><pre>GET ^/voicemail/vms
 </pre></div>
 </div>
 </div>
-<div class="section" id="id8">
-<h3>Returns<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id32">
+<h3>Returns<a class="headerlink" href="#id32" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr,
   &quot;reuslt&quot;: {
@@ -428,8 +809,8 @@ POST : Create new voicemail user.</p>
 </li>
 </ul>
 </div>
-<div class="section" id="id9">
-<h3>Example<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id33">
+<h3>Example<a class="headerlink" href="#id33" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/voicemail/vms\?context=vm-demo\&amp;mailbox=pjagent-01
 
 {
@@ -465,36 +846,36 @@ POST : Create new voicemail user.</p>
 </div>
 </div>
 </div>
-<div class="section" id="voicemail-vms-msgname">
-<h1>/voicemail/vms/&lt;msgname&gt;<a class="headerlink" href="#voicemail-vms-msgname" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="id10">
-<h2>Methods<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="voicemail-vms-detail">
+<span id="id34"></span><h1>/voicemail/vms/&lt;detail&gt;<a class="headerlink" href="#voicemail-vms-detail" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id35">
+<h2>Methods<a class="headerlink" href="#id35" title="Permalink to this headline">¶</a></h2>
 <p>GET : Get binary of given voicemail.</p>
 <p>DELETE : Delete given voicemail</p>
 </div>
-<div class="section" id="id11">
-<h2>Method: GET<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="get-voicemail-vms-detail">
+<span id="id36"></span><h2>Method: GET<a class="headerlink" href="#get-voicemail-vms-detail" title="Permalink to this headline">¶</a></h2>
 <p>GET : Get binary of given voicemail.</p>
-<div class="section" id="id12">
-<h3>Call<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre>GET ^/voicemail/vms/&lt;msgname&gt;?context=&lt;context&gt;&amp;mailbox=&lt;mailbox&gt;&amp;dir=&lt;dir&gt;
+<div class="section" id="id37">
+<h3>Call<a class="headerlink" href="#id37" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>GET ^/voicemail/vms/&lt;detail&gt;?context=&lt;context&gt;&amp;mailbox=&lt;mailbox&gt;&amp;dir=&lt;dir&gt;
 </pre></div>
 </div>
 <ul class="simple">
-<li><tt class="docutils literal"><span class="pre">msgname</span></tt>: Message name.</li>
+<li><tt class="docutils literal"><span class="pre">detail</span></tt>: Message name.</li>
 <li><tt class="docutils literal"><span class="pre">context</span></tt>: Message&#8217;s context.</li>
 <li><tt class="docutils literal"><span class="pre">mailbox</span></tt>: Message&#8217;s mailbox.</li>
 <li><tt class="docutils literal"><span class="pre">dir</span></tt>: Message&#8217;s dir info.</li>
 </ul>
 </div>
-<div class="section" id="id13">
-<h3>Returns<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id38">
+<h3>Returns<a class="headerlink" href="#id38" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-python"><div class="highlight"><pre>Binary stream of given voicemail file.
 </pre></div>
 </div>
 </div>
-<div class="section" id="id14">
-<h3>Example<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id39">
+<h3>Example<a class="headerlink" href="#id39" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -v -X GET 192.168.200.10:8081/voicemail/vms/msg0003\?context=vm-demo\&amp;mailbox=pjagent-01\&amp;dir=INBOX &gt; /tmp/tmp.wav
 
   Note: Unnecessary use of -X or --request, GET is already inferred.
@@ -518,11 +899,11 @@ POST : Create new voicemail user.</p>
 </div>
 </div>
 </div>
-<div class="section" id="method-delete">
-<h2>Method: DELETE<a class="headerlink" href="#method-delete" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id40">
+<h2>Method: DELETE<a class="headerlink" href="#id40" title="Permalink to this headline">¶</a></h2>
 <p>DELETE : Delete given voicemail.</p>
-<div class="section" id="id15">
-<h3>Call<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id41">
+<h3>Call<a class="headerlink" href="#id41" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-python"><div class="highlight"><pre>DELETE ^/voicemail/vms/&lt;msgname&gt;?context=&lt;context&gt;&amp;mailbox=&lt;mailbox&gt;&amp;dir=&lt;dir&gt;
 </pre></div>
 </div>
@@ -533,16 +914,16 @@ POST : Create new voicemail user.</p>
 <li><tt class="docutils literal"><span class="pre">dir</span></tt>: Message&#8217;s dir info.</li>
 </ul>
 </div>
-<div class="section" id="id16">
-<h3>Returns<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id42">
+<h3>Returns<a class="headerlink" href="#id42" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr
 }
 </pre></div>
 </div>
 </div>
-<div class="section" id="id17">
-<h3>Example<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id43">
+<h3>Example<a class="headerlink" href="#id43" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -v -X DELETE 192.168.200.10:8081/voicemail/vms/msg0003\?context=vm-demo\&amp;mailbox=pjagent-01\&amp;dir=INBOX
 
 {
@@ -564,7 +945,7 @@ POST : Create new voicemail user.</p>
         <div class="sphinxsidebarwrapper">
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">/voicemail/users</a><ul>
+<li><a class="reference internal" href="#">/voicemail/setting</a><ul>
 <li><a class="reference internal" href="#methods">Methods</a></li>
 <li><a class="reference internal" href="#method-get">Method: GET</a><ul>
 <li><a class="reference internal" href="#call">Call</a></li>
@@ -572,7 +953,7 @@ POST : Create new voicemail user.</p>
 <li><a class="reference internal" href="#example">Example</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#method-post">Method: POST</a><ul>
+<li><a class="reference internal" href="#method-put">Method: PUT</a><ul>
 <li><a class="reference internal" href="#id2">Call</a></li>
 <li><a class="reference internal" href="#id3">Returns</a></li>
 <li><a class="reference internal" href="#id4">Example</a></li>
@@ -580,28 +961,70 @@ POST : Create new voicemail user.</p>
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#voicemail-vms">/voicemail/vms</a><ul>
-<li><a class="reference internal" href="#id5">Methods</a></li>
-<li><a class="reference internal" href="#id6">Method: GET</a><ul>
-<li><a class="reference internal" href="#id7">Call</a></li>
-<li><a class="reference internal" href="#id8">Returns</a></li>
-<li><a class="reference internal" href="#id9">Example</a></li>
+<li><a class="reference internal" href="#voicemail-settings">/voicemail/settings</a><ul>
+<li><a class="reference internal" href="#id6">Methods</a></li>
+<li><a class="reference internal" href="#get-voicemail-settings">Method: GET</a><ul>
+<li><a class="reference internal" href="#id8">Call</a></li>
+<li><a class="reference internal" href="#id9">Returns</a></li>
+<li><a class="reference internal" href="#id10">Example</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#voicemail-vms-msgname">/voicemail/vms/&lt;msgname&gt;</a><ul>
-<li><a class="reference internal" href="#id10">Methods</a></li>
-<li><a class="reference internal" href="#id11">Method: GET</a><ul>
-<li><a class="reference internal" href="#id12">Call</a></li>
-<li><a class="reference internal" href="#id13">Returns</a></li>
-<li><a class="reference internal" href="#id14">Example</a></li>
+<li><a class="reference internal" href="#voicemail-settings-detail">/voicemail/settings/&lt;detail&gt;</a><ul>
+<li><a class="reference internal" href="#id12">Methods</a></li>
+<li><a class="reference internal" href="#get-voicemail-settings-detail">Method: GET</a><ul>
+<li><a class="reference internal" href="#id14">Call</a></li>
+<li><a class="reference internal" href="#id15">Returns</a></li>
+<li><a class="reference internal" href="#id16">Example</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#method-delete">Method: DELETE</a><ul>
-<li><a class="reference internal" href="#id15">Call</a></li>
-<li><a class="reference internal" href="#id16">Returns</a></li>
-<li><a class="reference internal" href="#id17">Example</a></li>
+<li><a class="reference internal" href="#id17">Call</a></li>
+<li><a class="reference internal" href="#id18">Returns</a></li>
+<li><a class="reference internal" href="#id19">Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#voicemail-users">/voicemail/users</a><ul>
+<li><a class="reference internal" href="#id21">Methods</a></li>
+<li><a class="reference internal" href="#id22">Method: GET</a><ul>
+<li><a class="reference internal" href="#id23">Call</a></li>
+<li><a class="reference internal" href="#id24">Returns</a></li>
+<li><a class="reference internal" href="#id25">Example</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#method-post">Method: POST</a><ul>
+<li><a class="reference internal" href="#id26">Call</a></li>
+<li><a class="reference internal" href="#id27">Returns</a></li>
+<li><a class="reference internal" href="#id28">Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#voicemail-vms">/voicemail/vms</a><ul>
+<li><a class="reference internal" href="#id29">Methods</a></li>
+<li><a class="reference internal" href="#id30">Method: GET</a><ul>
+<li><a class="reference internal" href="#id31">Call</a></li>
+<li><a class="reference internal" href="#id32">Returns</a></li>
+<li><a class="reference internal" href="#id33">Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#voicemail-vms-detail">/voicemail/vms/&lt;detail&gt;</a><ul>
+<li><a class="reference internal" href="#id35">Methods</a></li>
+<li><a class="reference internal" href="#get-voicemail-vms-detail">Method: GET</a><ul>
+<li><a class="reference internal" href="#id37">Call</a></li>
+<li><a class="reference internal" href="#id38">Returns</a></li>
+<li><a class="reference internal" href="#id39">Example</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id40">Method: DELETE</a><ul>
+<li><a class="reference internal" href="#id41">Call</a></li>
+<li><a class="reference internal" href="#id42">Returns</a></li>
+<li><a class="reference internal" href="#id43">Example</a></li>
 </ul>
 </li>
 </ul>
