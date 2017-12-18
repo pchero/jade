@@ -1,5 +1,361 @@
 .. _voicemail_api:
 
+
+.. _voicemail_setting:
+
+/voicemail/setting
+==================
+
+Methods
+-------
+GET : Get current voicemail setting.
+
+PUT : Update voicemail setting.
+
+.. _get_voicemail_setting:
+
+Method: GET
+-----------
+GET : Get current voicemail setting.
+
+This result does not mean to currently running setting. 
+It shows only setting file.
+
+Call
+++++
+::
+
+  GET ^/voicemail/setting
+  
+Returns
++++++++
+::
+
+  {
+    $defhdr,
+    "result": {
+      "general": {
+        ...
+      },
+      "zonemessages": {
+        ...
+      },
+      "<context>": {
+        "<mailbox>": "<string>"
+      },
+      ...
+    }
+  }
+
+Return parameters
+
+* ``general`` : The general option. See detail Asterisk's voicemail setting options.
+* ``zonemessages``: The zonemessages option. See detail Asterisk's voicemail setting options.
+* ``context``: Voicemail context option. See detail Asterisk's voicemail context option.
+    * ``mailbox``: Voicemail mailbox options. See detail Asterisk's voicemail mailbox option.
+   
+Example
++++++++
+::
+
+  $ curl -X GET localhost:8081/voicemail/setting
+  
+  {
+    "api_ver": "0.1",
+    "result": {
+        "default": {
+            "1234": "> 4242,Example Mailbox,root@localhost"
+        },
+        "general": {
+            "attach": "yes",
+            "emaildateformat": "%A, %B %d, %Y at %r",
+            "format": "wav49|gsm|wav",
+            "maxlogins": "3",
+            "maxsilence": "10",
+            "pagerdateformat": "%A, %B %d, %Y at %r",
+            "sendvoicemail": "yes",
+            "serveremail": "asterisk",
+            "silencethreshold": "128",
+            "skipms": "3000"
+        },
+        "other": {
+            "1234": "> 5678,Company2 User,root@localhost"
+        },
+        "vm-demo": {
+            "6001": "> 8762,Alice Jones,alice@example.com,alice2@example.com,attach=no|tz=central|maxmsg=10",
+            "6002": "> 9271,Bob Smith,bob@example.com,bob2@example.com,attach=yes|tz=eastern",
+            "6005": ",Bob Smith,bob@example.com,bob2@example.com,tz=eastern|attach=Yes|attachfmt=|saycid=No|saydurationm=2|dialout=|callback=|exitcontext=|review=No|operator=No|envelope=Yes|delete=No|volgain=0.000000|",
+            "agent-01": "> ,agent 01,agent-01@example.com,,",
+            "pjagent-01": "> ,pjagent 01,pjagent-01@example.com,,"
+        },
+        "zonemessages": {
+            "central": "America/Chicago|'vm-received' Q 'digits/at' IMp",
+            "central24": "America/Chicago|'vm-received' q 'digits/at' H N 'hours'",
+            "eastern": "America/New_York|'vm-received' Q 'digits/at' IMp",
+            "european": "Europe/Copenhagen|'vm-received' a d b 'digits/at' HM",
+            "military": "Zulu|'vm-received' q 'digits/at' H N 'hours' 'phonetic/z_p'"
+        }
+    },
+    "statuscode": 200,
+    "timestamp": "2017-12-18T11:03:54.209580717Z"
+  }
+
+.. _put_voicemail_setting:
+
+Method: PUT
+-----------
+PUT : Update voicemail setting.
+
+Update only setting file. To adapt to module, required module reload.
+
+Call
+++++
+::
+
+  PUT ^/voicemail/setting
+  
+  {
+    ...
+  }
+
+Data parameters
+
+* voicemail setting info.
+  
+Returns
++++++++
+::
+
+  {
+    $defhdr
+  }
+   
+Example
++++++++
+::
+
+  $ curl -X PUT localhost:8081/voicemail/setting -d
+  {
+    "default": {
+      "1234": "> 4242,Example Mailbox,root@localhost"
+    },
+    "general": {
+      "attach": "yes",
+      "emaildateformat": "%A, %B %d, %Y at %r",
+      "format": "wav49|gsm|wav",
+      "maxlogins": "3",
+      "maxsilence": "10",
+      "pagerdateformat": "%A, %B %d, %Y at %r",
+      "sendvoicemail": "yes",
+      "serveremail": "asterisk",
+      "silencethreshold": "128",
+      "skipms": "3000"
+    },
+    "other": {
+      "1234": "> 5678,Company2 User,root@localhost"
+    },
+    "vm-demo": {
+      "6001": "> 8762,Alice Jones,alice@example.com,alice2@example.com,attach=no|tz=central|maxmsg=10",
+      "6002": "> 9271,Bob Smith,bob@example.com,bob2@example.com,attach=yes|tz=eastern",
+      "6005": ",Bob Smith,bob@example.com,bob2@example.com,tz=eastern|attach=Yes|attachfmt=|saycid=No|saydurationm=2|dialout=|callback=|exitcontext=|review=No|operator=No|envelope=Yes|delete=No|volgain=0.000000|",
+      "agent-01": "> ,agent 01,agent-01@example.com,,",
+      "pjagent-01": "> ,pjagent 01,pjagent-01@example.com,,"
+    },
+    "zonemessages": {
+      "central": "America/Chicago|'vm-received' Q 'digits/at' IMp",
+      "central24": "America/Chicago|'vm-received' q 'digits/at' H N 'hours'",
+      "eastern": "America/New_York|'vm-received' Q 'digits/at' IMp",
+      "european": "Europe/Copenhagen|'vm-received' a d b 'digits/at' HM",
+      "military": "Zulu|'vm-received' q 'digits/at' H N 'hours' 'phonetic/z_p'"
+    }
+  }
+  
+  {"api_ver": "0.1", "statuscode": 200, "timestamp": "2017-12-18T11:23:36.669590706Z"}
+  
+  
+.. _voicemail_settings:
+
+/voicemail/settings
+===================
+
+Methods
+-------
+GET : Get all backup voicemail settings.
+
+.. _get_voicemail_settings:
+
+Method: GET
+-----------
+GET : Get all backup voicemail settings.
+
+
+Call
+++++
+::
+
+  GET ^/voicemail/settings
+  
+Returns
++++++++
+::
+
+  {
+    $defhdr,
+    "reuslt": {
+      "list": [
+        "<filename>": {
+          ...
+        }
+      ]
+    }
+  }
+
+Return parameters
+
+* ``list``: array of backup files.
+    * ``filename``: backup filename.
+   
+Example
++++++++
+::
+
+  $ curl -X GET localhost:8081/voicemail/settings
+  
+  {
+    "api_ver": "0.1",
+    "result": {
+        "list": [
+            {
+                "voicemail.conf.2017-12-18T11:23:36.665818303Z": {
+                    "default": {
+                        "1234": "> 4242,Example Mailbox,root@localhost"
+                    },
+                    "general": {
+                        "attach": "yes",
+                        "emaildateformat": "%A, %B %d, %Y at %r",
+                        "format": "wav49|gsm|wav",
+                        "maxlogins": "3",
+                        "maxsilence": "10",
+                        "pagerdateformat": "%A, %B %d, %Y at %r",
+                        "sendvoicemail": "yes",
+                        "serveremail": "asterisk",
+                        "silencethreshold": "128",
+                        "skipms": "3000"
+                    },
+                    "other": {
+                        "1234": "> 5678,Company2 User,root@localhost"
+                    },
+                    "vm-demo": {
+                        "6001": "> 8762,Alice Jones,alice@example.com,alice2@example.com,attach=no|tz=central|maxmsg=10",
+                        "6002": "> 9271,Bob Smith,bob@example.com,bob2@example.com,attach=yes|tz=eastern",
+                        "6005": ",Bob Smith,bob@example.com,bob2@example.com,tz=eastern|attach=Yes|attachfmt=|saycid=No|saydurationm=2|dialout=|callback=|exitcontext=|review=No|operator=No|envelope=Yes|delete=No|volgain=0.000000|",
+                        "agent-01": "> ,agent 01,agent-01@example.com,,",
+                        "pjagent-01": "> ,pjagent 01,pjagent-01@example.com,,"
+                    },
+                    "zonemessages": {
+                        "central": "America/Chicago|'vm-received' Q 'digits/at' IMp",
+                        "central24": "America/Chicago|'vm-received' q 'digits/at' H N 'hours'",
+                        "eastern": "America/New_York|'vm-received' Q 'digits/at' IMp",
+                        "european": "Europe/Copenhagen|'vm-received' a d b 'digits/at' HM",
+                        "military": "Zulu|'vm-received' q 'digits/at' H N 'hours' 'phonetic/z_p'"
+                    }
+                }
+            }
+        ]
+    },
+    "statuscode": 200,
+    "timestamp": "2017-12-18T11:23:56.197482423Z"
+  }
+
+
+.. _voicemail_settings_detail:
+
+/voicemail/settings/<detail>
+============================
+
+Methods
+-------
+GET : Get all backup voicemail settings.
+
+.. _get_voicemail_settings_detail:
+
+Method: GET
+-----------
+GET : Get backup voicemail settings of given info.
+
+
+Call
+++++
+::
+
+  GET ^/voicemail/settings/<detail>
+  
+Method parameters
+
+* ``detail``: backup filename.
+  
+Returns
++++++++
+::
+
+  {
+    $defhdr,
+    "reuslt": {
+      ...
+    }
+  }
+
+See detail Asterisk's voicemail setting.
+   
+Example
++++++++
+::
+
+  $ curl -X GET localhost:8081/voicemail/settings/voicemail.conf.2017-12-18T11:23:36.665818303Z
+  
+  {
+    "api_ver": "0.1",
+    "result": {
+        "list": {
+            "default": {
+                "1234": "> 4242,Example Mailbox,root@localhost"
+            },
+            "general": {
+                "attach": "yes",
+                "emaildateformat": "%A, %B %d, %Y at %r",
+                "format": "wav49|gsm|wav",
+                "maxlogins": "3",
+                "maxsilence": "10",
+                "pagerdateformat": "%A, %B %d, %Y at %r",
+                "sendvoicemail": "yes",
+                "serveremail": "asterisk",
+                "silencethreshold": "128",
+                "skipms": "3000"
+            },
+            "other": {
+                "1234": "> 5678,Company2 User,root@localhost"
+            },
+            "vm-demo": {
+                "6001": "> 8762,Alice Jones,alice@example.com,alice2@example.com,attach=no|tz=central|maxmsg=10",
+                "6002": "> 9271,Bob Smith,bob@example.com,bob2@example.com,attach=yes|tz=eastern",
+                "6005": ",Bob Smith,bob@example.com,bob2@example.com,tz=eastern|attach=Yes|attachfmt=|saycid=No|saydurationm=2|dialout=|callback=|exitcontext=|review=No|operator=No|envelope=Yes|delete=No|volgain=0.000000|",
+                "agent-01": "> ,agent 01,agent-01@example.com,,",
+                "pjagent-01": "> ,pjagent 01,pjagent-01@example.com,,"
+            },
+            "zonemessages": {
+                "central": "America/Chicago|'vm-received' Q 'digits/at' IMp",
+                "central24": "America/Chicago|'vm-received' q 'digits/at' H N 'hours'",
+                "eastern": "America/New_York|'vm-received' Q 'digits/at' IMp",
+                "european": "Europe/Copenhagen|'vm-received' a d b 'digits/at' HM",
+                "military": "Zulu|'vm-received' q 'digits/at' H N 'hours' 'phonetic/z_p'"
+            }
+        }
+    },
+    "statuscode": 200,
+    "timestamp": "2017-12-18T11:30:24.953556796Z"
+  }
+
+
 .. _voicemail_users:
 
 /voicemail/users
@@ -445,9 +801,10 @@ Example
     "timestamp": "2017-12-08T15:31:37.267471272Z"
   }
 
+
+.. _voicemail_vms_detail:
   
-  
-/voicemail/vms/<msgname>
+/voicemail/vms/<detail>
 ========================
 
 Methods
@@ -455,6 +812,8 @@ Methods
 GET : Get binary of given voicemail.
 
 DELETE : Delete given voicemail
+
+.. _get_voicemail_vms_detail:
 
 Method: GET
 -----------
@@ -464,9 +823,9 @@ Call
 ++++
 ::
 
-  GET ^/voicemail/vms/<msgname>?context=<context>&mailbox=<mailbox>&dir=<dir>
+  GET ^/voicemail/vms/<detail>?context=<context>&mailbox=<mailbox>&dir=<dir>
 
-* ``msgname``: Message name.
+* ``detail``: Message name.
 
 * ``context``: Message's context.
 * ``mailbox``: Message's mailbox.
