@@ -558,6 +558,38 @@ json_t* get_ast_backup_configs_info_all(const char* filename)
 }
 
 /**
+ * Remove config info of given filename.
+ * @param filename
+ * @return
+ */
+int remove_ast_backup_config_info(const char* filename)
+{
+  char* tmp;
+  char* full_filename;
+  int ret;
+
+  if(filename == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired remove_ast_backup_config_info. filename[%s]", filename);
+
+  // create full filename
+  tmp = get_ast_backup_conf_dir();
+  asprintf(&full_filename, "%s/%s", tmp, filename);
+  sfree(tmp);
+
+  ret = remove(full_filename);
+  sfree(full_filename);
+  if(ret != 0) {
+    slog(LOG_ERR, "Could not remove file. err[%d:%s]", errno, strerror(errno));
+    return false;
+  }
+
+  return true;
+}
+
+/**
  * Return asterisk backup dir name
  * @return
  */
