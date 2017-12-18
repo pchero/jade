@@ -1,5 +1,7 @@
 .. _voicemail_api:
 
+.. _voicemail_users:
+
 /voicemail/users
 ================
 
@@ -176,7 +178,7 @@ Example
 
   
 Method: POST
------------
+------------
 Create new voicemail user.
 
 Call

@@ -400,7 +400,7 @@ Example
 .. _post_core_modules_detail:
 
 Method: POST
------------
+------------
 Load the given module.
 
 Call

@@ -1050,510 +1050,23 @@ sessions and are temporary.</p>
 </div>
 </div>
 </div>
-<div class="section" id="queue-params">
-<h2>/queue_params<a class="headerlink" href="#queue-params" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="core-channels">
+<span id="core-api"></span><h2>/core/channels<a class="headerlink" href="#core-channels" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="id66">
 <h3>Methods<a class="headerlink" href="#id66" title="Permalink to this headline">¶</a></h3>
-<p>GET : Get list of all queue param info</p>
+<p>GET : Get list of all channels info.</p>
 </div>
-<div class="section" id="id67">
-<h3>Method: GET<a class="headerlink" href="#id67" title="Permalink to this headline">¶</a></h3>
-<p>Get list of all queue param info</p>
+<div class="section" id="get-core-channels">
+<span id="id67"></span><h3>Method: GET<a class="headerlink" href="#get-core-channels" title="Permalink to this headline">¶</a></h3>
+<p>Get list of all channels info.</p>
 <div class="section" id="id68">
 <h4>Call<a class="headerlink" href="#id68" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">GET</span> <span class="o">/</span><span class="n">queue_params</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">GET</span> <span class="o">/</span><span class="n">core</span><span class="o">/</span><span class="n">channels</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="id69">
 <h4>Returns<a class="headerlink" href="#id69" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>{
-  $defhdr,
-  &quot;reuslt&quot;: {
-    &quot;list&quot;: [
-      {&quot;name&quot;: &quot;&lt;string&gt;&quot;},
-      ...
-    ]
-  }
-}
-</pre></div>
-</div>
-<ul class="simple">
-<li><tt class="docutils literal"><span class="pre">list</span></tt> : array of registry account.</li>
-</ul>
-</div>
-<div class="section" id="id70">
-<h4>Example<a class="headerlink" href="#id70" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/queue_params
-
-{
-  &quot;api_ver&quot;: &quot;0.1&quot;,
-  &quot;result&quot;: {
-    &quot;list&quot;: [
-      {&quot;name&quot;: &quot;TestQueue&quot;},
-      {&quot;name&quot;: &quot;sales&quot;},
-      {&quot;name&quot;: &quot;sales_1&quot;}
-    ]
-  },
-  &quot;statuscode&quot;: 200,
-  &quot;timestamp&quot;: &quot;2017-03-12T00:32:09.547759070Z&quot;
-}
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-<div class="section" id="id71">
-<h2>/queue_params/<a class="headerlink" href="#id71" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id72">
-<h3>Methods<a class="headerlink" href="#id72" title="Permalink to this headline">¶</a></h3>
-<p>GET : Get queue param detail info of given queue info.</p>
-</div>
-<div class="section" id="id73">
-<h3>Method: GET<a class="headerlink" href="#id73" title="Permalink to this headline">¶</a></h3>
-<p>Get queue param detail info of given queue info.</p>
-<div class="section" id="id74">
-<h4>Call<a class="headerlink" href="#id74" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>GET /queue_params/
-
-{
-  &quot;name&quot;: &quot;&lt;string&gt;&quot;
-}
-</pre></div>
-</div>
-<p>Data parameters</p>
-<ul class="simple">
-<li><tt class="docutils literal"><span class="pre">account</span></tt>: account info.</li>
-</ul>
-</div>
-<div class="section" id="id75">
-<h4>Returns<a class="headerlink" href="#id75" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>{
-  $defhdr,
-  &quot;reuslt&quot;: {
-    &quot;name&quot;: &quot;&lt;string&gt;&quot;,
-    &quot;strategy&quot;: &quot;&lt;string&gt;&quot;,
-    &quot;max&quot;: &lt;integer&gt;,
-    &quot;weight&quot;: &lt;integer&gt;,
-
-    &quot;calls&quot;: &lt;integer&gt;,
-    &quot;completed&quot;: &lt;integer&gt;,
-    &quot;abandoned&quot;: &lt;integer&gt;,
-
-    &quot;hold_time&quot;: &lt;integer&gt;,
-    &quot;talk_time&quot;: &lt;integer&gt;,
-
-    &quot;service_level&quot;: &lt;integer&gt;,
-    &quot;service_level_perf&quot;: &lt;integer&gt;,
-
-    &quot;tm_update&quot;: &quot;&lt;timestamp&gt;&quot;
-  }
-}
-</pre></div>
-</div>
-<p>Return parameters</p>
-<ul class="simple">
-<li><tt class="docutils literal"><span class="pre">name</span></tt>: Queue name.</li>
-<li><tt class="docutils literal"><span class="pre">strategy</span></tt>: Call distribution.</li>
-<li><tt class="docutils literal"><span class="pre">max</span></tt>: Max waiting call count.</li>
-<li><tt class="docutils literal"><span class="pre">weight</span></tt>: Queue priority.</li>
-<li><tt class="docutils literal"><span class="pre">calls</span></tt>: Waiting call count.</li>
-<li><tt class="docutils literal"><span class="pre">completed</span></tt>: Completed call count.</li>
-<li><tt class="docutils literal"><span class="pre">abandoned</span></tt>: Abandoned call count.</li>
-<li><tt class="docutils literal"><span class="pre">hold_time</span></tt>: Average waiting time.</li>
-<li><tt class="docutils literal"><span class="pre">talk_time</span></tt>: Average talk time.</li>
-<li><tt class="docutils literal"><span class="pre">service_level</span></tt>: Service_level_perf interval time.</li>
-<li><tt class="docutils literal"><span class="pre">service_leve_perf</span></tt>: Service level performance.</li>
-</ul>
-</div>
-<div class="section" id="id76">
-<h4>Example<a class="headerlink" href="#id76" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/queue_params/ -d &#39;{&quot;name&quot;: &quot;sales_1&quot;}&#39;
-
-{
-  &quot;api_ver&quot;: &quot;0.1&quot;,
-  &quot;result&quot;: {
-    &quot;abandoned&quot;: 9,
-    &quot;calls&quot;: 0,
-    &quot;completed&quot;: 65,
-    &quot;hold_time&quot;: 0,
-    &quot;max&quot;: 0,
-    &quot;name&quot;: &quot;sales_1&quot;,
-    &quot;service_level&quot;: 0,
-    &quot;service_level_perf&quot;: 4.6,
-    &quot;strategy&quot;: &quot;ringall&quot;,
-    &quot;talk_time&quot;: 4,
-    &quot;tm_update&quot;: &quot;2017-03-12T00:20:21.239699084Z&quot;,
-    &quot;weight&quot;: 0
-  },
-  &quot;statuscode&quot;: 200,
-  &quot;timestamp&quot;: &quot;2017-03-12T00:34:44.693298239Z&quot;
-}
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-<div class="section" id="queue-members">
-<h2>/queue_members<a class="headerlink" href="#queue-members" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id77">
-<h3>Methods<a class="headerlink" href="#id77" title="Permalink to this headline">¶</a></h3>
-<p>GET : Get list of all queue member info.</p>
-</div>
-<div class="section" id="id78">
-<h3>Method: GET<a class="headerlink" href="#id78" title="Permalink to this headline">¶</a></h3>
-<p>Get list of all queue member info.</p>
-<div class="section" id="id79">
-<h4>Call<a class="headerlink" href="#id79" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">GET</span> <span class="o">/</span><span class="n">queue_members</span>
-</pre></div>
-</div>
-</div>
-<div class="section" id="id80">
-<h4>Returns<a class="headerlink" href="#id80" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>{
-  $defhdr,
-  &quot;reuslt&quot;: {
-    &quot;list&quot;: [
-      {
-        &quot;name&quot;: &quot;&lt;string&gt;&quot;,
-        &quot;queue_name&quot;: &quot;&lt;string&gt;&quot;
-      },
-      ...
-    ]
-  }
-}
-</pre></div>
-</div>
-<ul>
-<li><dl class="first docutils">
-<dt><tt class="docutils literal"><span class="pre">list</span></tt> <span class="classifier-delimiter">:</span> <span class="classifier">array of registry account.</span></dt>
-<dd><ul class="first last simple">
-<li><tt class="docutils literal"><span class="pre">name</span></tt>: Member name.</li>
-<li><tt class="docutils literal"><span class="pre">queue_name</span></tt>: Queue name.</li>
-</ul>
-</dd>
-</dl>
-</li>
-</ul>
-</div>
-<div class="section" id="id81">
-<h4>Example<a class="headerlink" href="#id81" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/queue_params
-
-{
-  &quot;api_ver&quot;: &quot;0.1&quot;,
-  &quot;result&quot;: {
-    &quot;list&quot;: [
-      {
-        &quot;name&quot;: &quot;sip/agent-01&quot;,
-        &quot;queue_name&quot;: &quot;sales_1&quot;
-      },
-      {
-        &quot;name&quot;: &quot;sip/agent-02&quot;,
-        &quot;queue_name&quot;: &quot;sales_1&quot;
-      },
-      {
-        &quot;name&quot;: &quot;sip/agent-03&quot;,
-        &quot;queue_name&quot;: &quot;sales_1&quot;
-      }
-    ]
-  },
-  &quot;statuscode&quot;: 200,
-  &quot;timestamp&quot;: &quot;2017-03-12T00:53:39.754989917Z&quot;
-}
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-<div class="section" id="id82">
-<h2>/queue_members/<a class="headerlink" href="#id82" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id83">
-<h3>Methods<a class="headerlink" href="#id83" title="Permalink to this headline">¶</a></h3>
-<p>GET : Get queue member detail info of given queue member info.</p>
-</div>
-<div class="section" id="id84">
-<h3>Method: GET<a class="headerlink" href="#id84" title="Permalink to this headline">¶</a></h3>
-<p>Get queue member detail info of given queue member info.</p>
-<div class="section" id="id85">
-<h4>Call<a class="headerlink" href="#id85" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>GET /queue_params/
-
-{
-  &quot;name&quot;: &quot;&lt;string&gt;&quot;,
-  &quot;queue_name&quot;: &quot;&lt;string&gt;&quot;
-}
-</pre></div>
-</div>
-<p>Data parameters</p>
-<ul>
-<li><dl class="first docutils">
-<dt><tt class="docutils literal"><span class="pre">account</span></tt>: Account info.</dt>
-<dd><ul class="first last simple">
-<li><tt class="docutils literal"><span class="pre">name</span></tt>: Queue member name.</li>
-<li><tt class="docutils literal"><span class="pre">queue_name</span></tt>: Queue name.</li>
-</ul>
-</dd>
-</dl>
-</li>
-</ul>
-</div>
-<div class="section" id="id86">
-<h4>Returns<a class="headerlink" href="#id86" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>{
-  $defhdr,
-  &quot;reuslt&quot;: {
-    &quot;name&quot;: &quot;&lt;string&gt;&quot;,
-    &quot;queue_name&quot;: &quot;&lt;string&gt;&quot;,
-    &quot;status&quot;: &lt;integer&gt;,
-
-    &quot;membership&quot;: &quot;&lt;string&gt;&quot;,
-    &quot;state_interface&quot;: &quot;&lt;string&gt;&quot;,
-    &quot;location&quot;: &quot;&lt;string&gt;&quot;,
-
-    &quot;paused&quot;: &lt;integer&gt;,
-    &quot;paused_reason&quot;: &quot;&lt;string&gt;&quot;,
-    &quot;penalty&quot;: &lt;integer&gt;,
-
-    &quot;calls_taken&quot;: &lt;integer&gt;,
-    &quot;in_call&quot;: &lt;integer&gt;,
-
-    &quot;last_call&quot;: &lt;integer&gt;,
-    &quot;last_pause&quot;: &lt;integer&gt;,
-
-    &quot;ring_inuse&quot;: &lt;integer&gt;,
-
-    &quot;tm_update&quot;: &quot;&lt;timestamp&gt;&quot;
-  }
-}
-</pre></div>
-</div>
-<p>Return parameters</p>
-<ul class="simple">
-<li><tt class="docutils literal"><span class="pre">name</span></tt>: The name of the queue member.</li>
-<li><tt class="docutils literal"><span class="pre">queue_name</span></tt>: The name of the queue.</li>
-<li><tt class="docutils literal"><span class="pre">status</span></tt>: The numeric device state status of the queue member.</li>
-<li><tt class="docutils literal"><span class="pre">membership</span></tt>: Membership of queue member.</li>
-<li><tt class="docutils literal"><span class="pre">state_interface</span></tt>: Channel technology or location from which to read device state changes.</li>
-<li><tt class="docutils literal"><span class="pre">location</span></tt>: The queue member&#8217;s channel technology or location.</li>
-<li><tt class="docutils literal"><span class="pre">paused</span></tt>: Paused.</li>
-<li><tt class="docutils literal"><span class="pre">paused_reason</span></tt>: If set when paused, the reason the queue member was paused.</li>
-<li><tt class="docutils literal"><span class="pre">penalty</span></tt>: The penalty associated with the queue member.</li>
-<li><tt class="docutils literal"><span class="pre">calls_taken</span></tt>: The number of calls this queue member has serviced.</li>
-<li><tt class="docutils literal"><span class="pre">in_call</span></tt>: Set to 1 if member is in call. Set to 0 after LastCall time is updated.</li>
-<li><tt class="docutils literal"><span class="pre">last_call</span></tt>: The time this member last took a call, expressed in seconds since 00:00, Jan 1, 1970 UTC.</li>
-<li><tt class="docutils literal"><span class="pre">last_pause</span></tt>: The time when started last paused the queue member.</li>
-<li><tt class="docutils literal"><span class="pre">ring_inuse</span></tt>: Ring in use option.</li>
-</ul>
-</div>
-<div class="section" id="id87">
-<h4>Example<a class="headerlink" href="#id87" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/queue_members/ -d &#39;{&quot;name&quot;: &quot;sip/agent-01&quot;, &quot;queue_name&quot;:&quot;sales_1&quot;}&#39;
-
-{
-  &quot;api_ver&quot;: &quot;0.1&quot;,
-  &quot;result&quot;: {
-    &quot;calls_taken&quot;: 1,
-    &quot;in_call&quot;: 0,
-    &quot;last_call&quot;: 1489272714,
-    &quot;last_pause&quot;: 0,
-    &quot;location&quot;: &quot;sip/agent-01&quot;,
-    &quot;membership&quot;: &quot;dynamic&quot;,
-    &quot;name&quot;: &quot;sip/agent-01&quot;,
-    &quot;paused&quot;: 0,
-    &quot;paused_reason&quot;: &quot;&quot;,
-    &quot;penalty&quot;: 0,
-    &quot;queue_name&quot;: &quot;sales_1&quot;,
-    &quot;ring_inuse&quot;: null,
-    &quot;state_interface&quot;: &quot;sip/agent-01&quot;,
-    &quot;status&quot;: 1,
-    &quot;tm_update&quot;: &quot;2017-03-12T00:20:21.315020002Z&quot;
-  },
-  &quot;statuscode&quot;: 200,
-  &quot;timestamp&quot;: &quot;2017-03-12T00:58:00.10439598Z&quot;
-}
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-<div class="section" id="queue-entries">
-<h2>/queue_entries<a class="headerlink" href="#queue-entries" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id88">
-<h3>Methods<a class="headerlink" href="#id88" title="Permalink to this headline">¶</a></h3>
-<p>GET : Get list of all queue entries info.</p>
-</div>
-<div class="section" id="id89">
-<h3>Method: GET<a class="headerlink" href="#id89" title="Permalink to this headline">¶</a></h3>
-<p>Get list of all queue entries info.</p>
-<div class="section" id="id90">
-<h4>Call<a class="headerlink" href="#id90" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">GET</span> <span class="o">/</span><span class="n">queue_entries</span>
-</pre></div>
-</div>
-</div>
-<div class="section" id="id91">
-<h4>Returns<a class="headerlink" href="#id91" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>{
-  $defhdr,
-  &quot;reuslt&quot;: {
-    &quot;list&quot;: [
-      {
-        &quot;unique_id&quot;: &quot;&lt;string&gt;&quot;,
-        &quot;queue_name&quot;: &quot;&lt;string&gt;&quot;
-      },
-      ...
-    ]
-  }
-}
-</pre></div>
-</div>
-<ul>
-<li><dl class="first docutils">
-<dt><tt class="docutils literal"><span class="pre">list</span></tt> <span class="classifier-delimiter">:</span> <span class="classifier">array of queue entries.</span></dt>
-<dd><ul class="first last simple">
-<li><tt class="docutils literal"><span class="pre">unique_id</span></tt>: unique id.</li>
-<li><tt class="docutils literal"><span class="pre">queue_name</span></tt>: Queue name.</li>
-</ul>
-</dd>
-</dl>
-</li>
-</ul>
-</div>
-<div class="section" id="id92">
-<h4>Example<a class="headerlink" href="#id92" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/queue_entries
-
-{
-  &quot;api_ver&quot;: &quot;0.1&quot;,
-  &quot;result&quot;: {
-    &quot;list&quot;: [
-      {
-        &quot;channel&quot;: &quot;SIP/300-000001d6&quot;,
-        &quot;queue_name&quot;: &quot;sales_1&quot;
-      }
-    ]
-  },
-  &quot;statuscode&quot;: 200,
-  &quot;timestamp&quot;: &quot;2017-03-12T01:12:04.633580922Z&quot;
-}
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-<div class="section" id="id93">
-<h2>/queue_entries/<a class="headerlink" href="#id93" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id94">
-<h3>Methods<a class="headerlink" href="#id94" title="Permalink to this headline">¶</a></h3>
-<p>GET : Get queue entry detail info of given queue entry info.</p>
-</div>
-<div class="section" id="id95">
-<h3>Method: GET<a class="headerlink" href="#id95" title="Permalink to this headline">¶</a></h3>
-<p>Get queue entry detail info of given queue entry info.</p>
-<div class="section" id="id96">
-<h4>Call<a class="headerlink" href="#id96" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>GET /queue_entries/
-
-{
-  &quot;unique_id&quot;: &quot;&lt;string&gt;&quot;,
-  &quot;queue_name&quot;: &quot;&lt;string&gt;&quot;
-}
-</pre></div>
-</div>
-<p>Data parameters</p>
-<ul>
-<li><dl class="first docutils">
-<dt><tt class="docutils literal"><span class="pre">account</span></tt>: Account info.</dt>
-<dd><ul class="first last simple">
-<li><tt class="docutils literal"><span class="pre">channel</span></tt>: Queue entry channel name.</li>
-<li><tt class="docutils literal"><span class="pre">queue_name</span></tt>: Queue name.</li>
-</ul>
-</dd>
-</dl>
-</li>
-</ul>
-</div>
-<div class="section" id="id97">
-<h4>Returns<a class="headerlink" href="#id97" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>{
-  $defhdr,
-  &quot;reuslt&quot;: {
-    &quot;unique_id&quot;: &quot;5086b7ea-0072-4a2d-a632-4bc1477e6060&quot;,
-    &quot;queue_name&quot;: &quot;sales_1&quot;,
-    &quot;channel&quot;: &quot;SIP/300-000001d6&quot;,
-
-    &quot;caller_id_name&quot;: &quot;&lt;unknown&gt;&quot;,
-    &quot;caller_id_num&quot;: &quot;&lt;unknown&gt;&quot;,
-    &quot;connected_line_name&quot;: &quot;&lt;unknown&gt;&quot;,
-    &quot;connected_line_num&quot;: &quot;&lt;unknown&gt;&quot;,
-
-    &quot;position&quot;: &lt;integer&gt;,
-    &quot;wait&quot;: &lt;integer&gt;,
-
-    &quot;tm_update&quot;: &quot;&lt;timestamp&gt;&quot;
-  }
-}
-</pre></div>
-</div>
-<p>Return parameters</p>
-<ul class="simple">
-<li><tt class="docutils literal"><span class="pre">unique_id</span></tt>: Unique id of channel.</li>
-<li><tt class="docutils literal"><span class="pre">caller_id_num</span></tt>: The name of the queue.</li>
-<li><tt class="docutils literal"><span class="pre">channel</span></tt>: Channel name.</li>
-<li><tt class="docutils literal"><span class="pre">caller_id_name</span></tt>: Caller&#8217;s name.</li>
-<li><tt class="docutils literal"><span class="pre">caller_id_num</span></tt>: Caller&#8217;s number.</li>
-<li><tt class="docutils literal"><span class="pre">connected_line_name</span></tt>: Connected line&#8217;s name.</li>
-<li><tt class="docutils literal"><span class="pre">connected_line_num</span></tt>: Connected line&#8217;s number.</li>
-<li><tt class="docutils literal"><span class="pre">position</span></tt>: Position in the queue.</li>
-<li><tt class="docutils literal"><span class="pre">wait</span></tt>: If set when paused, the reason the queue member was paused.</li>
-</ul>
-</div>
-<div class="section" id="id98">
-<h4>Example<a class="headerlink" href="#id98" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/queue_entries/ -d \
-&#39;{&quot;channel&quot;: &quot;SIP/300-000001d6&quot;, &quot;queue_name&quot;: &quot;sales_1&quot;}&#39;
-
-{
-  &quot;api_ver&quot;: &quot;0.1&quot;,
-  &quot;result&quot;: {
-    &quot;caller_id_name&quot;: &quot;&lt;unknown&gt;&quot;,
-    &quot;caller_id_num&quot;: &quot;&lt;unknown&gt;&quot;,
-    &quot;channel&quot;: &quot;SIP/300-000001d6&quot;,
-    &quot;connected_line_name&quot;: &quot;&lt;unknown&gt;&quot;,
-    &quot;connected_line_num&quot;: &quot;&lt;unknown&gt;&quot;,
-    &quot;position&quot;: 1,
-    &quot;queue_name&quot;: &quot;sales_1&quot;,
-    &quot;tm_update&quot;: &quot;2017-03-12T01:10:59.374246871Z&quot;,
-    &quot;unique_id&quot;: &quot;5086b7ea-0072-4a2d-a632-4bc1477e6060&quot;,
-    &quot;wait&quot;: null
-  },
-  &quot;statuscode&quot;: 200,
-  &quot;timestamp&quot;: &quot;2017-03-12T01:13:34.221218064Z&quot;
-}
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-<div class="section" id="core-channels">
-<span id="core-api"></span><h2>/core/channels<a class="headerlink" href="#core-channels" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id99">
-<h3>Methods<a class="headerlink" href="#id99" title="Permalink to this headline">¶</a></h3>
-<p>GET : Get list of all channels info.</p>
-</div>
-<div class="section" id="get-core-channels">
-<span id="id100"></span><h3>Method: GET<a class="headerlink" href="#get-core-channels" title="Permalink to this headline">¶</a></h3>
-<p>Get list of all channels info.</p>
-<div class="section" id="id101">
-<h4>Call<a class="headerlink" href="#id101" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">GET</span> <span class="o">/</span><span class="n">core</span><span class="o">/</span><span class="n">channels</span>
-</pre></div>
-</div>
-</div>
-<div class="section" id="id102">
-<h4>Returns<a class="headerlink" href="#id102" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr,
   &quot;reuslt&quot;: {
@@ -1600,8 +1113,8 @@ sessions and are temporary.</p>
 </li>
 </ul>
 </div>
-<div class="section" id="id103">
-<h4>Example<a class="headerlink" href="#id103" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id70">
+<h4>Example<a class="headerlink" href="#id70" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/core/channels
 
 {
@@ -1642,16 +1155,16 @@ sessions and are temporary.</p>
 </div>
 <div class="section" id="core-channels-detail">
 <h2>/core/channels/&lt;detail&gt;<a class="headerlink" href="#core-channels-detail" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id104">
-<h3>Methods<a class="headerlink" href="#id104" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id71">
+<h3>Methods<a class="headerlink" href="#id71" title="Permalink to this headline">¶</a></h3>
 <p>GET : Get channel&#8217;s detail info of given channel info.</p>
 <p>DELETE : Hangup the given channel.</p>
 </div>
 <div class="section" id="get-core-channels-detail">
-<span id="id105"></span><h3>Method: GET<a class="headerlink" href="#get-core-channels-detail" title="Permalink to this headline">¶</a></h3>
+<span id="id72"></span><h3>Method: GET<a class="headerlink" href="#get-core-channels-detail" title="Permalink to this headline">¶</a></h3>
 <p>Get channel&#8217;s detail info of given channel info.</p>
-<div class="section" id="id106">
-<h4>Call<a class="headerlink" href="#id106" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id73">
+<h4>Call<a class="headerlink" href="#id73" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>GET /channels/&lt;detail&gt;
 </pre></div>
 </div>
@@ -1660,8 +1173,8 @@ sessions and are temporary.</p>
 <li><tt class="docutils literal"><span class="pre">detail</span></tt>: unique id.</li>
 </ul>
 </div>
-<div class="section" id="id107">
-<h4>Returns<a class="headerlink" href="#id107" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id74">
+<h4>Returns<a class="headerlink" href="#id74" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr,
   &quot;reuslt&quot;: {
@@ -1716,8 +1229,8 @@ sessions and are temporary.</p>
 <li><tt class="docutils literal"><span class="pre">variables</span></tt>: List of channel&#8217;s variables.</li>
 </ul>
 </div>
-<div class="section" id="id108">
-<h4>Example<a class="headerlink" href="#id108" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id75">
+<h4>Example<a class="headerlink" href="#id75" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -X GET localhost:8081/core/channels/1513550354.0
 
 {
@@ -1754,8 +1267,8 @@ sessions and are temporary.</p>
 <div class="section" id="method-delete">
 <span id="delete-core-channels-detail"></span><h3>Method: DELETE<a class="headerlink" href="#method-delete" title="Permalink to this headline">¶</a></h3>
 <p>Hangup the given channel.</p>
-<div class="section" id="id109">
-<h4>Call<a class="headerlink" href="#id109" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id76">
+<h4>Call<a class="headerlink" href="#id76" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>DELETE /channels/&lt;detail&gt;
 </pre></div>
 </div>
@@ -1764,16 +1277,16 @@ sessions and are temporary.</p>
 <li><tt class="docutils literal"><span class="pre">detail</span></tt>: unique id.</li>
 </ul>
 </div>
-<div class="section" id="id110">
-<h4>Returns<a class="headerlink" href="#id110" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id77">
+<h4>Returns<a class="headerlink" href="#id77" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr
 }
 </pre></div>
 </div>
 </div>
-<div class="section" id="id111">
-<h4>Example<a class="headerlink" href="#id111" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id78">
+<h4>Example<a class="headerlink" href="#id78" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -X DELETE localhost:8081/core/channels/1513550354.0
 
 {
@@ -1788,21 +1301,21 @@ sessions and are temporary.</p>
 </div>
 <div class="section" id="core-modules">
 <h2>/core/modules<a class="headerlink" href="#core-modules" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id112">
-<h3>Methods<a class="headerlink" href="#id112" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id79">
+<h3>Methods<a class="headerlink" href="#id79" title="Permalink to this headline">¶</a></h3>
 <p>GET : Get list of all modules info.</p>
 </div>
 <div class="section" id="get-core-modules">
-<span id="id113"></span><h3>Method: GET<a class="headerlink" href="#get-core-modules" title="Permalink to this headline">¶</a></h3>
+<span id="id80"></span><h3>Method: GET<a class="headerlink" href="#get-core-modules" title="Permalink to this headline">¶</a></h3>
 <p>Get list of all modules info.</p>
-<div class="section" id="id114">
-<h4>Call<a class="headerlink" href="#id114" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id81">
+<h4>Call<a class="headerlink" href="#id81" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">GET</span> <span class="o">/</span><span class="n">core</span><span class="o">/</span><span class="n">modules</span>
 </pre></div>
 </div>
 </div>
-<div class="section" id="id115">
-<h4>Returns<a class="headerlink" href="#id115" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id82">
+<h4>Returns<a class="headerlink" href="#id82" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr,
   &quot;reuslt&quot;: {
@@ -1830,8 +1343,8 @@ sessions and are temporary.</p>
 </li>
 </ul>
 </div>
-<div class="section" id="id116">
-<h4>Example<a class="headerlink" href="#id116" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id83">
+<h4>Example<a class="headerlink" href="#id83" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -X GET localhost:8081/core/modules
 
 {
@@ -1856,18 +1369,18 @@ sessions and are temporary.</p>
 </div>
 <div class="section" id="core-modules-detail">
 <h2>/core/modules/&lt;detail&gt;<a class="headerlink" href="#core-modules-detail" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id117">
-<h3>Methods<a class="headerlink" href="#id117" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id84">
+<h3>Methods<a class="headerlink" href="#id84" title="Permalink to this headline">¶</a></h3>
 <p>GET : Get detail info of given module</p>
 <p>POST : Load given module.</p>
 <p>PUT : Reload given module.</p>
 <p>DELETE : Unload given module.</p>
 </div>
 <div class="section" id="get-core-modules-detail">
-<span id="id118"></span><h3>Method: GET<a class="headerlink" href="#get-core-modules-detail" title="Permalink to this headline">¶</a></h3>
+<span id="id85"></span><h3>Method: GET<a class="headerlink" href="#get-core-modules-detail" title="Permalink to this headline">¶</a></h3>
 <p>Get list of all modules info.</p>
-<div class="section" id="id119">
-<h4>Call<a class="headerlink" href="#id119" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id86">
+<h4>Call<a class="headerlink" href="#id86" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>GET /core/modules/&lt;detail&gt;
 </pre></div>
 </div>
@@ -1876,8 +1389,8 @@ sessions and are temporary.</p>
 <li><tt class="docutils literal"><span class="pre">detail</span></tt>: module name</li>
 </ul>
 </div>
-<div class="section" id="id120">
-<h4>Returns<a class="headerlink" href="#id120" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id87">
+<h4>Returns<a class="headerlink" href="#id87" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr,
   &quot;reuslt&quot;: {
@@ -1895,8 +1408,8 @@ sessions and are temporary.</p>
 <li><tt class="docutils literal"><span class="pre">size</span></tt>: module size.</li>
 </ul>
 </div>
-<div class="section" id="id121">
-<h4>Example<a class="headerlink" href="#id121" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id88">
+<h4>Example<a class="headerlink" href="#id88" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -X GET localhost:8081/core/modules/app_voicemail
 
 {
@@ -1917,8 +1430,8 @@ sessions and are temporary.</p>
 <div class="section" id="method-post">
 <span id="post-core-modules-detail"></span><h3>Method: POST<a class="headerlink" href="#method-post" title="Permalink to this headline">¶</a></h3>
 <p>Load the given module.</p>
-<div class="section" id="id122">
-<h4>Call<a class="headerlink" href="#id122" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id89">
+<h4>Call<a class="headerlink" href="#id89" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>POST /core/modules/&lt;detail&gt;
 </pre></div>
 </div>
@@ -1927,16 +1440,16 @@ sessions and are temporary.</p>
 <li><tt class="docutils literal"><span class="pre">detail</span></tt>: module name</li>
 </ul>
 </div>
-<div class="section" id="id123">
-<h4>Returns<a class="headerlink" href="#id123" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id90">
+<h4>Returns<a class="headerlink" href="#id90" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr
 }
 </pre></div>
 </div>
 </div>
-<div class="section" id="id124">
-<h4>Example<a class="headerlink" href="#id124" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id91">
+<h4>Example<a class="headerlink" href="#id91" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -X POST localhost:8081/core/modules/app_voicemail
 
 {
@@ -1951,8 +1464,8 @@ sessions and are temporary.</p>
 <div class="section" id="method-put">
 <span id="put-core-modules-detail"></span><h3>Method: PUT<a class="headerlink" href="#method-put" title="Permalink to this headline">¶</a></h3>
 <p>Reload the given module.</p>
-<div class="section" id="id125">
-<h4>Call<a class="headerlink" href="#id125" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id92">
+<h4>Call<a class="headerlink" href="#id92" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>PUT /core/modules/&lt;detail&gt;
 </pre></div>
 </div>
@@ -1961,16 +1474,16 @@ sessions and are temporary.</p>
 <li><tt class="docutils literal"><span class="pre">detail</span></tt>: module name</li>
 </ul>
 </div>
-<div class="section" id="id126">
-<h4>Returns<a class="headerlink" href="#id126" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id93">
+<h4>Returns<a class="headerlink" href="#id93" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr
 }
 </pre></div>
 </div>
 </div>
-<div class="section" id="id127">
-<h4>Example<a class="headerlink" href="#id127" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id94">
+<h4>Example<a class="headerlink" href="#id94" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -X PUT localhost:8081/core/modules/app_voicemail
 
 {
@@ -1983,10 +1496,10 @@ sessions and are temporary.</p>
 </div>
 </div>
 <div class="section" id="delete-core-modules-detail">
-<span id="id128"></span><h3>Method: DELETE<a class="headerlink" href="#delete-core-modules-detail" title="Permalink to this headline">¶</a></h3>
+<span id="id95"></span><h3>Method: DELETE<a class="headerlink" href="#delete-core-modules-detail" title="Permalink to this headline">¶</a></h3>
 <p>Unload the given module.</p>
-<div class="section" id="id129">
-<h4>Call<a class="headerlink" href="#id129" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id96">
+<h4>Call<a class="headerlink" href="#id96" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>DELETE /core/modules/&lt;detail&gt;
 </pre></div>
 </div>
@@ -1995,16 +1508,16 @@ sessions and are temporary.</p>
 <li><tt class="docutils literal"><span class="pre">detail</span></tt>: module name</li>
 </ul>
 </div>
-<div class="section" id="id130">
-<h4>Returns<a class="headerlink" href="#id130" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id97">
+<h4>Returns<a class="headerlink" href="#id97" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr
 }
 </pre></div>
 </div>
 </div>
-<div class="section" id="id131">
-<h4>Example<a class="headerlink" href="#id131" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id98">
+<h4>Example<a class="headerlink" href="#id98" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -X DELETE localhost:8081/core/modules/app_voicemail
 
 {
@@ -2019,21 +1532,21 @@ sessions and are temporary.</p>
 </div>
 <div class="section" id="core-systems">
 <h2>/core/systems<a class="headerlink" href="#core-systems" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id132">
-<h3>Methods<a class="headerlink" href="#id132" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id99">
+<h3>Methods<a class="headerlink" href="#id99" title="Permalink to this headline">¶</a></h3>
 <p>GET : Get list of all systems info.</p>
 </div>
 <div class="section" id="get-core-systems">
-<span id="id133"></span><h3>Method: GET<a class="headerlink" href="#get-core-systems" title="Permalink to this headline">¶</a></h3>
+<span id="id100"></span><h3>Method: GET<a class="headerlink" href="#get-core-systems" title="Permalink to this headline">¶</a></h3>
 <p>Get list of all modules info.</p>
-<div class="section" id="id134">
-<h4>Call<a class="headerlink" href="#id134" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id101">
+<h4>Call<a class="headerlink" href="#id101" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">GET</span> <span class="o">/</span><span class="n">core</span><span class="o">/</span><span class="n">systems</span>
 </pre></div>
 </div>
 </div>
-<div class="section" id="id135">
-<h4>Returns<a class="headerlink" href="#id135" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id102">
+<h4>Returns<a class="headerlink" href="#id102" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr,
   &quot;reuslt&quot;: {
@@ -2083,8 +1596,8 @@ sessions and are temporary.</p>
 </li>
 </ul>
 </div>
-<div class="section" id="id136">
-<h4>Example<a class="headerlink" href="#id136" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id103">
+<h4>Example<a class="headerlink" href="#id103" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -X GET localhost:8081/core/systems
 
 {
@@ -2123,15 +1636,15 @@ sessions and are temporary.</p>
 </div>
 <div class="section" id="core-systems-detail">
 <h2>/core/systems/&lt;detail&gt;<a class="headerlink" href="#core-systems-detail" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id137">
-<h3>Methods<a class="headerlink" href="#id137" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id104">
+<h3>Methods<a class="headerlink" href="#id104" title="Permalink to this headline">¶</a></h3>
 <p>GET : Get detail info of given system.</p>
 </div>
 <div class="section" id="get-core-systems-detail">
-<span id="id138"></span><h3>Method: GET<a class="headerlink" href="#get-core-systems-detail" title="Permalink to this headline">¶</a></h3>
+<span id="id105"></span><h3>Method: GET<a class="headerlink" href="#get-core-systems-detail" title="Permalink to this headline">¶</a></h3>
 <p>Get detail info of given system.</p>
-<div class="section" id="id139">
-<h4>Call<a class="headerlink" href="#id139" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id106">
+<h4>Call<a class="headerlink" href="#id106" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>GET /core/systems/&lt;detail&gt;
 </pre></div>
 </div>
@@ -2140,8 +1653,8 @@ sessions and are temporary.</p>
 <li><tt class="docutils literal"><span class="pre">detail</span></tt>: system id.</li>
 </ul>
 </div>
-<div class="section" id="id140">
-<h4>Returns<a class="headerlink" href="#id140" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id107">
+<h4>Returns<a class="headerlink" href="#id107" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr,
   &quot;reuslt&quot;: {
@@ -2194,8 +1707,8 @@ sessions and are temporary.</p>
 <li><tt class="docutils literal"><span class="pre">startup_time</span></tt>: Startup time.</li>
 </ul>
 </div>
-<div class="section" id="id141">
-<h4>Example<a class="headerlink" href="#id141" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id108">
+<h4>Example<a class="headerlink" href="#id108" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -X GET localhost:8081/core/systems/1
 
 {
@@ -2229,23 +1742,23 @@ sessions and are temporary.</p>
 </div>
 </div>
 <div class="section" id="voicemail-users">
-<span id="voicemail-api"></span><h2>/voicemail/users<a class="headerlink" href="#voicemail-users" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id142">
-<h3>Methods<a class="headerlink" href="#id142" title="Permalink to this headline">¶</a></h3>
+<span id="voicemail-api"></span><span id="id109"></span><h2>/voicemail/users<a class="headerlink" href="#voicemail-users" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id110">
+<h3>Methods<a class="headerlink" href="#id110" title="Permalink to this headline">¶</a></h3>
 <p>GET : Get list of all voicemail users.
 POST : Create new voicemail user.</p>
 </div>
-<div class="section" id="id143">
-<h3>Method: GET<a class="headerlink" href="#id143" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id111">
+<h3>Method: GET<a class="headerlink" href="#id111" title="Permalink to this headline">¶</a></h3>
 <p>Get list of all voicemail users.</p>
-<div class="section" id="id144">
-<h4>Call<a class="headerlink" href="#id144" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id112">
+<h4>Call<a class="headerlink" href="#id112" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>GET ^/voicemail/users
 </pre></div>
 </div>
 </div>
-<div class="section" id="id145">
-<h4>Returns<a class="headerlink" href="#id145" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id113">
+<h4>Returns<a class="headerlink" href="#id113" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr,
   &quot;reuslt&quot;: {
@@ -2344,8 +1857,8 @@ POST : Create new voicemail user.</p>
 </li>
 </ul>
 </div>
-<div class="section" id="id146">
-<h4>Example<a class="headerlink" href="#id146" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id114">
+<h4>Example<a class="headerlink" href="#id114" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>curl -X GET 192.168.200.10:8081/voicemail/users
 
 {
@@ -2395,11 +1908,11 @@ POST : Create new voicemail user.</p>
 </div>
 </div>
 </div>
-<div class="section" id="id147">
-<h3>Method: POST<a class="headerlink" href="#id147" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id115">
+<h3>Method: POST<a class="headerlink" href="#id115" title="Permalink to this headline">¶</a></h3>
 <p>Create new voicemail user.</p>
-<div class="section" id="id148">
-<h4>Call<a class="headerlink" href="#id148" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id116">
+<h4>Call<a class="headerlink" href="#id116" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>POST ^/voicemail/users
 
 {
@@ -2512,16 +2025,16 @@ POST : Create new voicemail user.</p>
 <li><tt class="docutils literal"><span class="pre">backup_deleted</span></tt>:</li>
 </ul>
 </div>
-<div class="section" id="id149">
-<h4>Returns<a class="headerlink" href="#id149" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id117">
+<h4>Returns<a class="headerlink" href="#id117" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr
 }
 </pre></div>
 </div>
 </div>
-<div class="section" id="id150">
-<h4>Example<a class="headerlink" href="#id150" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id118">
+<h4>Example<a class="headerlink" href="#id118" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -X POST localhost:8081/voicemail/users -d \
   &#39;{&quot;context&quot;: &quot;test1&quot;, &quot;mailbox&quot;: &quot;testmail&quot;}&#39;
 
@@ -2537,21 +2050,21 @@ POST : Create new voicemail user.</p>
 </div>
 <div class="section" id="voicemail-vms">
 <h2>/voicemail/vms<a class="headerlink" href="#voicemail-vms" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id151">
-<h3>Methods<a class="headerlink" href="#id151" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id119">
+<h3>Methods<a class="headerlink" href="#id119" title="Permalink to this headline">¶</a></h3>
 <p>GET : Get list of all voicemail info of given user.</p>
 </div>
-<div class="section" id="id152">
-<h3>Method: GET<a class="headerlink" href="#id152" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id120">
+<h3>Method: GET<a class="headerlink" href="#id120" title="Permalink to this headline">¶</a></h3>
 <p>GET : Get list of all voicemail info of given user.</p>
-<div class="section" id="id153">
-<h4>Call<a class="headerlink" href="#id153" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id121">
+<h4>Call<a class="headerlink" href="#id121" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>GET ^/voicemail/vms
 </pre></div>
 </div>
 </div>
-<div class="section" id="id154">
-<h4>Returns<a class="headerlink" href="#id154" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id122">
+<h4>Returns<a class="headerlink" href="#id122" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr,
   &quot;reuslt&quot;: {
@@ -2615,8 +2128,8 @@ POST : Create new voicemail user.</p>
 </li>
 </ul>
 </div>
-<div class="section" id="id155">
-<h4>Example<a class="headerlink" href="#id155" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id123">
+<h4>Example<a class="headerlink" href="#id123" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/voicemail/vms\?context=vm-demo\&amp;mailbox=pjagent-01
 
 {
@@ -2654,16 +2167,16 @@ POST : Create new voicemail user.</p>
 </div>
 <div class="section" id="voicemail-vms-msgname">
 <h2>/voicemail/vms/&lt;msgname&gt;<a class="headerlink" href="#voicemail-vms-msgname" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id156">
-<h3>Methods<a class="headerlink" href="#id156" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id124">
+<h3>Methods<a class="headerlink" href="#id124" title="Permalink to this headline">¶</a></h3>
 <p>GET : Get binary of given voicemail.</p>
 <p>DELETE : Delete given voicemail</p>
 </div>
-<div class="section" id="id157">
-<h3>Method: GET<a class="headerlink" href="#id157" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id125">
+<h3>Method: GET<a class="headerlink" href="#id125" title="Permalink to this headline">¶</a></h3>
 <p>GET : Get binary of given voicemail.</p>
-<div class="section" id="id158">
-<h4>Call<a class="headerlink" href="#id158" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id126">
+<h4>Call<a class="headerlink" href="#id126" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>GET ^/voicemail/vms/&lt;msgname&gt;?context=&lt;context&gt;&amp;mailbox=&lt;mailbox&gt;&amp;dir=&lt;dir&gt;
 </pre></div>
 </div>
@@ -2674,14 +2187,14 @@ POST : Create new voicemail user.</p>
 <li><tt class="docutils literal"><span class="pre">dir</span></tt>: Message&#8217;s dir info.</li>
 </ul>
 </div>
-<div class="section" id="id159">
-<h4>Returns<a class="headerlink" href="#id159" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id127">
+<h4>Returns<a class="headerlink" href="#id127" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>Binary stream of given voicemail file.
 </pre></div>
 </div>
 </div>
-<div class="section" id="id160">
-<h4>Example<a class="headerlink" href="#id160" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id128">
+<h4>Example<a class="headerlink" href="#id128" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -v -X GET 192.168.200.10:8081/voicemail/vms/msg0003\?context=vm-demo\&amp;mailbox=pjagent-01\&amp;dir=INBOX &gt; /tmp/tmp.wav
 
   Note: Unnecessary use of -X or --request, GET is already inferred.
@@ -2705,11 +2218,11 @@ POST : Create new voicemail user.</p>
 </div>
 </div>
 </div>
-<div class="section" id="id161">
-<h3>Method: DELETE<a class="headerlink" href="#id161" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id129">
+<h3>Method: DELETE<a class="headerlink" href="#id129" title="Permalink to this headline">¶</a></h3>
 <p>DELETE : Delete given voicemail.</p>
-<div class="section" id="id162">
-<h4>Call<a class="headerlink" href="#id162" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id130">
+<h4>Call<a class="headerlink" href="#id130" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>DELETE ^/voicemail/vms/&lt;msgname&gt;?context=&lt;context&gt;&amp;mailbox=&lt;mailbox&gt;&amp;dir=&lt;dir&gt;
 </pre></div>
 </div>
@@ -2720,16 +2233,16 @@ POST : Create new voicemail user.</p>
 <li><tt class="docutils literal"><span class="pre">dir</span></tt>: Message&#8217;s dir info.</li>
 </ul>
 </div>
-<div class="section" id="id163">
-<h4>Returns<a class="headerlink" href="#id163" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id131">
+<h4>Returns<a class="headerlink" href="#id131" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr
 }
 </pre></div>
 </div>
 </div>
-<div class="section" id="id164">
-<h4>Example<a class="headerlink" href="#id164" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id132">
+<h4>Example<a class="headerlink" href="#id132" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -v -X DELETE 192.168.200.10:8081/voicemail/vms/msg0003\?context=vm-demo\&amp;mailbox=pjagent-01\&amp;dir=INBOX
 
 {
@@ -2744,16 +2257,16 @@ POST : Create new voicemail user.</p>
 </div>
 <div class="section" id="ob-plans">
 <span id="ob-api"></span><h2>/ob/plans<a class="headerlink" href="#ob-plans" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id165">
-<h3>Methods<a class="headerlink" href="#id165" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id133">
+<h3>Methods<a class="headerlink" href="#id133" title="Permalink to this headline">¶</a></h3>
 <p>POST : Create new plan.</p>
 <p>GET : Get list of all plans.</p>
 </div>
-<div class="section" id="id166">
-<h3>Method: POST<a class="headerlink" href="#id166" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id134">
+<h3>Method: POST<a class="headerlink" href="#id134" title="Permalink to this headline">¶</a></h3>
 <p>Create new plan.</p>
-<div class="section" id="id167">
-<h4>Call<a class="headerlink" href="#id167" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id135">
+<h4>Call<a class="headerlink" href="#id135" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>POST /ob/plans
 
 {
@@ -2809,8 +2322,8 @@ POST : Create new voicemail user.</p>
 <li><tt class="docutils literal"><span class="pre">max_retry_cnt_8</span></tt>: Max retry count for number 8.</li>
 </ul>
 </div>
-<div class="section" id="id168">
-<h4>Returns<a class="headerlink" href="#id168" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id136">
+<h4>Returns<a class="headerlink" href="#id136" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr,
   &quot;reuslt&quot;: {
@@ -2874,8 +2387,8 @@ POST : Create new voicemail user.</p>
 <li><tt class="docutils literal"><span class="pre">max_retry_cnt_8</span></tt>: Max retry count for number 8.</li>
 </ul>
 </div>
-<div class="section" id="id169">
-<h4>Example<a class="headerlink" href="#id169" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id137">
+<h4>Example<a class="headerlink" href="#id137" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -X POST 192.168.200.10:8081/ob/plans -d \
 &#39;{&quot;name&quot;: &quot;Test plan create&quot;, &quot;variables&quot;: {&quot;plan_key_1&quot;: &quot;plean_val_1&quot;}}&#39;
 
@@ -2918,17 +2431,17 @@ POST : Create new voicemail user.</p>
 </div>
 </div>
 </div>
-<div class="section" id="id170">
-<h3>Method: GET<a class="headerlink" href="#id170" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id138">
+<h3>Method: GET<a class="headerlink" href="#id138" title="Permalink to this headline">¶</a></h3>
 <p>Get list of all plans.</p>
-<div class="section" id="id171">
-<h4>Call<a class="headerlink" href="#id171" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id139">
+<h4>Call<a class="headerlink" href="#id139" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">GET</span> <span class="o">/</span><span class="n">ob</span><span class="o">/</span><span class="n">plans</span>
 </pre></div>
 </div>
 </div>
-<div class="section" id="id172">
-<h4>Returns<a class="headerlink" href="#id172" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id140">
+<h4>Returns<a class="headerlink" href="#id140" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr,
   &quot;reuslt&quot;: {
@@ -2984,8 +2497,8 @@ POST : Create new voicemail user.</p>
 </li>
 </ul>
 </div>
-<div class="section" id="id173">
-<h4>Example<a class="headerlink" href="#id173" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id141">
+<h4>Example<a class="headerlink" href="#id141" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre> curl -X GET 192.168.200.10:8081/ob/plans
 
 {
@@ -3034,23 +2547,23 @@ POST : Create new voicemail user.</p>
 </div>
 <div class="section" id="ob-plans-uuid">
 <h2>/ob/plans/&lt;uuid&gt;<a class="headerlink" href="#ob-plans-uuid" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id174">
-<h3>Methods<a class="headerlink" href="#id174" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id142">
+<h3>Methods<a class="headerlink" href="#id142" title="Permalink to this headline">¶</a></h3>
 <p>GET : Get specified plan detail info.</p>
 <p>PUT : Update specified plan detail info.</p>
 <p>DELETE : Delete specified plan</p>
 </div>
-<div class="section" id="id175">
-<h3>Method: GET<a class="headerlink" href="#id175" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id143">
+<h3>Method: GET<a class="headerlink" href="#id143" title="Permalink to this headline">¶</a></h3>
 <p>Get plan detail info.</p>
-<div class="section" id="id176">
-<h4>Call<a class="headerlink" href="#id176" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id144">
+<h4>Call<a class="headerlink" href="#id144" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>GET /ob/plans/&lt;plan-uuid&gt;
 </pre></div>
 </div>
 </div>
-<div class="section" id="id177">
-<h4>Returns<a class="headerlink" href="#id177" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id145">
+<h4>Returns<a class="headerlink" href="#id145" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr,
   &quot;reuslt&quot;: {
@@ -3114,8 +2627,8 @@ POST : Create new voicemail user.</p>
 <li><tt class="docutils literal"><span class="pre">max_retry_cnt_8</span></tt>: Max retry count for number 8.</li>
 </ul>
 </div>
-<div class="section" id="id178">
-<h4>Example<a class="headerlink" href="#id178" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id146">
+<h4>Example<a class="headerlink" href="#id146" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/ob/plans/48c93d14-31f8-4445-970d-b865c8a4f432
 
 {
@@ -3157,11 +2670,11 @@ POST : Create new voicemail user.</p>
 </div>
 </div>
 </div>
-<div class="section" id="id179">
-<h3>Method: PUT<a class="headerlink" href="#id179" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id147">
+<h3>Method: PUT<a class="headerlink" href="#id147" title="Permalink to this headline">¶</a></h3>
 <p>Get plan detail info.</p>
-<div class="section" id="id180">
-<h4>Call<a class="headerlink" href="#id180" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id148">
+<h4>Call<a class="headerlink" href="#id148" title="Permalink to this headline">¶</a></h4>
 <p>Update specified plan info.</p>
 <div class="highlight-python"><div class="highlight"><pre>PUT /ob/plans/&lt;plan-uuid&gt;
 
@@ -3219,8 +2732,8 @@ POST : Create new voicemail user.</p>
 <li><tt class="docutils literal"><span class="pre">max_retry_cnt_8</span></tt>: Max retry count for number 8.</li>
 </ul>
 </div>
-<div class="section" id="id181">
-<h4>Returns<a class="headerlink" href="#id181" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id149">
+<h4>Returns<a class="headerlink" href="#id149" title="Permalink to this headline">¶</a></h4>
 <p>Updated plan info.</p>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr,
@@ -3285,8 +2798,8 @@ POST : Create new voicemail user.</p>
 <li><tt class="docutils literal"><span class="pre">max_retry_cnt_8</span></tt>: Max retry count for number 8.</li>
 </ul>
 </div>
-<div class="section" id="id182">
-<h4>Example<a class="headerlink" href="#id182" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id150">
+<h4>Example<a class="headerlink" href="#id150" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -X PUT 192.168.200.10:8081/ob/plans/48c93d14-31f8-4445-970d-b865c8a4f432 -d \
 &#39;{&quot;name&quot;: &quot;update plan name&quot;}&#39;
 
@@ -3329,12 +2842,12 @@ POST : Create new voicemail user.</p>
 </div>
 </div>
 </div>
-<div class="section" id="id183">
-<h3>Method: DELETE<a class="headerlink" href="#id183" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id151">
+<h3>Method: DELETE<a class="headerlink" href="#id151" title="Permalink to this headline">¶</a></h3>
 <p>Delete specified plan info.</p>
 <p>If there is any related with this item, response error.</p>
-<div class="section" id="id184">
-<h4>Call<a class="headerlink" href="#id184" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id152">
+<h4>Call<a class="headerlink" href="#id152" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>DELETE /ob/plans/&lt;uuid&gt;?force=&lt;force option&gt;
 </pre></div>
 </div>
@@ -3344,8 +2857,8 @@ POST : Create new voicemail user.</p>
 <li><tt class="docutils literal"><span class="pre">force</span></tt>: &lt;optional&gt; Force option. See detail <a class="reference internal" href="ob_structure.html#ob-force-option"><em>Force option</em></a>. Default: 0.</li>
 </ul>
 </div>
-<div class="section" id="id185">
-<h4>Returns<a class="headerlink" href="#id185" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id153">
+<h4>Returns<a class="headerlink" href="#id153" title="Permalink to this headline">¶</a></h4>
 <p>Deleted plan info.</p>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr,
@@ -3386,8 +2899,8 @@ POST : Create new voicemail user.</p>
 </pre></div>
 </div>
 </div>
-<div class="section" id="id186">
-<h4>Example<a class="headerlink" href="#id186" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id154">
+<h4>Example<a class="headerlink" href="#id154" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>curl -X DELETE 192.168.200.10:8081/ob/plans/c8b521ab-8114-4a62-b4e9-488d770d4ee8
 
 {
@@ -3432,16 +2945,16 @@ POST : Create new voicemail user.</p>
 </div>
 <div class="section" id="ob-destinations">
 <h2>/ob/destinations<a class="headerlink" href="#ob-destinations" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id187">
-<h3>Methods<a class="headerlink" href="#id187" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id155">
+<h3>Methods<a class="headerlink" href="#id155" title="Permalink to this headline">¶</a></h3>
 <p>POST : Create new destination.</p>
 <p>GET : Get list of all destinations.</p>
 </div>
-<div class="section" id="id188">
-<h3>Method: POST<a class="headerlink" href="#id188" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id156">
+<h3>Method: POST<a class="headerlink" href="#id156" title="Permalink to this headline">¶</a></h3>
 <p>Create new destination.</p>
-<div class="section" id="id189">
-<h4>Call<a class="headerlink" href="#id189" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id157">
+<h4>Call<a class="headerlink" href="#id157" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>POST /ob/destinations
 
 {
@@ -3474,8 +2987,8 @@ POST : Create new voicemail user.</p>
 <li><tt class="docutils literal"><span class="pre">variables</span></tt>: variables info json object.</li>
 </ul>
 </div>
-<div class="section" id="id190">
-<h4>Returns<a class="headerlink" href="#id190" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id158">
+<h4>Returns<a class="headerlink" href="#id158" title="Permalink to this headline">¶</a></h4>
 <p>Created destination info.</p>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr,
@@ -3517,8 +3030,8 @@ POST : Create new voicemail user.</p>
 <li><tt class="docutils literal"><span class="pre">variables</span></tt>: variables info json object.</li>
 </ul>
 </div>
-<div class="section" id="id191">
-<h4>Example<a class="headerlink" href="#id191" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id159">
+<h4>Example<a class="headerlink" href="#id159" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -X POST 192.168.200.10:8081/ob/destinations -d&#39;{}&#39;
 
 {
@@ -3546,17 +3059,17 @@ POST : Create new voicemail user.</p>
 </div>
 </div>
 </div>
-<div class="section" id="id192">
-<h3>Method: GET<a class="headerlink" href="#id192" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id160">
+<h3>Method: GET<a class="headerlink" href="#id160" title="Permalink to this headline">¶</a></h3>
 <p>Get list of all destinations.</p>
-<div class="section" id="id193">
-<h4>Call<a class="headerlink" href="#id193" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id161">
+<h4>Call<a class="headerlink" href="#id161" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">GET</span> <span class="o">/</span><span class="n">ob</span><span class="o">/</span><span class="n">destinations</span>
 </pre></div>
 </div>
 </div>
-<div class="section" id="id194">
-<h4>Returns<a class="headerlink" href="#id194" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id162">
+<h4>Returns<a class="headerlink" href="#id162" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr,
   &quot;reuslt&quot;: {
@@ -3609,8 +3122,8 @@ POST : Create new voicemail user.</p>
 </li>
 </ul>
 </div>
-<div class="section" id="id195">
-<h4>Example<a class="headerlink" href="#id195" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id163">
+<h4>Example<a class="headerlink" href="#id163" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre> curl -X GET 192.168.200.10:8081/ob/destinations
 
 {
@@ -3645,23 +3158,23 @@ POST : Create new voicemail user.</p>
 </div>
 <div class="section" id="ob-destinations-uuid">
 <h2>/ob/destinations/&lt;uuid&gt;<a class="headerlink" href="#ob-destinations-uuid" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id196">
-<h3>Methods<a class="headerlink" href="#id196" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id164">
+<h3>Methods<a class="headerlink" href="#id164" title="Permalink to this headline">¶</a></h3>
 <p>GET : Get specified destination detail info.</p>
 <p>PUT : Update specified destination detail info.</p>
 <p>DELETE : Delete specified destination</p>
 </div>
-<div class="section" id="id197">
-<h3>Method: GET<a class="headerlink" href="#id197" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id165">
+<h3>Method: GET<a class="headerlink" href="#id165" title="Permalink to this headline">¶</a></h3>
 <p>Get specified destination detail info.</p>
-<div class="section" id="id198">
-<h4>Call<a class="headerlink" href="#id198" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id166">
+<h4>Call<a class="headerlink" href="#id166" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>GET /ob/destinations/&lt;uuid&gt;
 </pre></div>
 </div>
 </div>
-<div class="section" id="id199">
-<h4>Returns<a class="headerlink" href="#id199" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id167">
+<h4>Returns<a class="headerlink" href="#id167" title="Permalink to this headline">¶</a></h4>
 <p>Specified destination detail info.</p>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr,
@@ -3703,8 +3216,8 @@ POST : Create new voicemail user.</p>
 <li><tt class="docutils literal"><span class="pre">variables</span></tt>: variables info json object.</li>
 </ul>
 </div>
-<div class="section" id="id200">
-<h4>Example<a class="headerlink" href="#id200" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id168">
+<h4>Example<a class="headerlink" href="#id168" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/ob/destinations/5ff9611c-136b-47d7-b8d4-0bd6f0d5b037
 
 {
@@ -3732,11 +3245,11 @@ POST : Create new voicemail user.</p>
 </div>
 </div>
 </div>
-<div class="section" id="id201">
-<h3>Method: PUT<a class="headerlink" href="#id201" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id169">
+<h3>Method: PUT<a class="headerlink" href="#id169" title="Permalink to this headline">¶</a></h3>
 <p>Update specified destination detail info.</p>
-<div class="section" id="id202">
-<h4>Call<a class="headerlink" href="#id202" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id170">
+<h4>Call<a class="headerlink" href="#id170" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>PUT /ob/destinations/&lt;uuid&gt;
 
 {
@@ -3773,8 +3286,8 @@ POST : Create new voicemail user.</p>
 <li><tt class="docutils literal"><span class="pre">variables</span></tt>: variables info json object.</li>
 </ul>
 </div>
-<div class="section" id="id203">
-<h4>Returns<a class="headerlink" href="#id203" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id171">
+<h4>Returns<a class="headerlink" href="#id171" title="Permalink to this headline">¶</a></h4>
 <p>Return the updated destination detail info.</p>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr,
@@ -3816,8 +3329,8 @@ POST : Create new voicemail user.</p>
 <li><tt class="docutils literal"><span class="pre">variables</span></tt>: variables info json object.</li>
 </ul>
 </div>
-<div class="section" id="id204">
-<h4>Example<a class="headerlink" href="#id204" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id172">
+<h4>Example<a class="headerlink" href="#id172" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -X PUT 192.168.200.10:8081/ob/destinations/5ff9611c-136b-47d7-b8d4-0bd6f0d5b037 \
   -d &#39;{&quot;name&quot;:&quot;new updated name&quot;}&#39;
 
@@ -3846,12 +3359,12 @@ POST : Create new voicemail user.</p>
 </div>
 </div>
 </div>
-<div class="section" id="id205">
-<h3>Method: DELETE<a class="headerlink" href="#id205" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id173">
+<h3>Method: DELETE<a class="headerlink" href="#id173" title="Permalink to this headline">¶</a></h3>
 <p>Delete specified destination info.</p>
 <p>If there is any related with this item, response error.</p>
-<div class="section" id="id206">
-<h4>Call<a class="headerlink" href="#id206" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id174">
+<h4>Call<a class="headerlink" href="#id174" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>DELETE /ob/destinations/&lt;uuid&gt;?force=&lt;force option&gt;
 </pre></div>
 </div>
@@ -3861,8 +3374,8 @@ POST : Create new voicemail user.</p>
 <li><tt class="docutils literal"><span class="pre">force</span></tt>: &lt;optional&gt; Force option. See detail <a class="reference internal" href="ob_structure.html#ob-force-option"><em>Force option</em></a>. Default: 0.</li>
 </ul>
 </div>
-<div class="section" id="id207">
-<h4>Returns<a class="headerlink" href="#id207" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id175">
+<h4>Returns<a class="headerlink" href="#id175" title="Permalink to this headline">¶</a></h4>
 <p>Return the deleted destination detail info.</p>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr,
@@ -3904,8 +3417,8 @@ POST : Create new voicemail user.</p>
 <li><tt class="docutils literal"><span class="pre">variables</span></tt>: variables info json object.</li>
 </ul>
 </div>
-<div class="section" id="id208">
-<h4>Example<a class="headerlink" href="#id208" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id176">
+<h4>Example<a class="headerlink" href="#id176" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -X DELETE 192.168.200.10:8081/ob/destinations/38dd5d48-4758-4194-9b7d-24acada05e08
 
 {
@@ -3936,16 +3449,16 @@ POST : Create new voicemail user.</p>
 </div>
 <div class="section" id="ob-dlmas">
 <h2>/ob/dlmas<a class="headerlink" href="#ob-dlmas" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id209">
-<h3>Methods<a class="headerlink" href="#id209" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id177">
+<h3>Methods<a class="headerlink" href="#id177" title="Permalink to this headline">¶</a></h3>
 <p>POST : Create new dlma.</p>
 <p>GET : Get list of all dlmas.</p>
 </div>
-<div class="section" id="id210">
-<h3>Method: POST<a class="headerlink" href="#id210" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id178">
+<h3>Method: POST<a class="headerlink" href="#id178" title="Permalink to this headline">¶</a></h3>
 <p>Create new dlma</p>
-<div class="section" id="id211">
-<h4>Call<a class="headerlink" href="#id211" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id179">
+<h4>Call<a class="headerlink" href="#id179" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">POST</span> <span class="o">/</span><span class="n">ob</span><span class="o">/</span><span class="n">dlmas</span>
 
 <span class="p">{</span>
@@ -3962,8 +3475,8 @@ POST : Create new voicemail user.</p>
 <li><tt class="docutils literal"><span class="pre">variables</span></tt>: variables info json object.</li>
 </ul>
 </div>
-<div class="section" id="id212">
-<h4>Returns<a class="headerlink" href="#id212" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id180">
+<h4>Returns<a class="headerlink" href="#id180" title="Permalink to this headline">¶</a></h4>
 <p>Return the created campaign info.</p>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr,
@@ -3993,8 +3506,8 @@ POST : Create new voicemail user.</p>
 <li><tt class="docutils literal"><span class="pre">variables</span></tt>: variables info json object.</li>
 </ul>
 </div>
-<div class="section" id="id213">
-<h4>Example<a class="headerlink" href="#id213" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id181">
+<h4>Example<a class="headerlink" href="#id181" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -X POST 192.168.200.10:8081/ob/dlmas -d &#39;{&quot;name&quot;: &quot;test dlma&quot;}&#39;
 
 {
@@ -4017,17 +3530,17 @@ POST : Create new voicemail user.</p>
 </div>
 </div>
 </div>
-<div class="section" id="id214">
-<h3>Method: GET<a class="headerlink" href="#id214" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id182">
+<h3>Method: GET<a class="headerlink" href="#id182" title="Permalink to this headline">¶</a></h3>
 <p>Get list of all dlmas.</p>
-<div class="section" id="id215">
-<h4>Call<a class="headerlink" href="#id215" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id183">
+<h4>Call<a class="headerlink" href="#id183" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">GET</span> <span class="o">/</span><span class="n">ob</span><span class="o">/</span><span class="n">dlmas</span>
 </pre></div>
 </div>
 </div>
-<div class="section" id="id216">
-<h4>Returns<a class="headerlink" href="#id216" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id184">
+<h4>Returns<a class="headerlink" href="#id184" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr,
   &quot;reuslt&quot;: {
@@ -4064,8 +3577,8 @@ POST : Create new voicemail user.</p>
 </li>
 </ul>
 </div>
-<div class="section" id="id217">
-<h4>Example<a class="headerlink" href="#id217" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id185">
+<h4>Example<a class="headerlink" href="#id185" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre> $ curl -X GET 192.168.200.10:8081/ob/dlmas
 
 {
@@ -4095,17 +3608,17 @@ POST : Create new voicemail user.</p>
 </div>
 <div class="section" id="ob-dlmas-uuid">
 <h2>/ob/dlmas/&lt;uuid&gt;<a class="headerlink" href="#ob-dlmas-uuid" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id218">
-<h3>Methods<a class="headerlink" href="#id218" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id186">
+<h3>Methods<a class="headerlink" href="#id186" title="Permalink to this headline">¶</a></h3>
 <p>GET : Get specified dlma detail info.</p>
 <p>PUT : Update specified dlma detail info.</p>
 <p>DELETE : Delete specified dlma.</p>
 </div>
-<div class="section" id="id219">
-<h3>Method: GET<a class="headerlink" href="#id219" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id187">
+<h3>Method: GET<a class="headerlink" href="#id187" title="Permalink to this headline">¶</a></h3>
 <p>Get specified dlma detail info.</p>
-<div class="section" id="id220">
-<h4>Call<a class="headerlink" href="#id220" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id188">
+<h4>Call<a class="headerlink" href="#id188" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>GET /ob/dlmas/&lt;uuid&gt;
 </pre></div>
 </div>
@@ -4114,8 +3627,8 @@ POST : Create new voicemail user.</p>
 <li><tt class="docutils literal"><span class="pre">uuid</span></tt> : dlma uuid.</li>
 </ul>
 </div>
-<div class="section" id="id221">
-<h4>Returns<a class="headerlink" href="#id221" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id189">
+<h4>Returns<a class="headerlink" href="#id189" title="Permalink to this headline">¶</a></h4>
 <p>Get specified campaign detail info.</p>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr,
@@ -4145,8 +3658,8 @@ POST : Create new voicemail user.</p>
 <li><tt class="docutils literal"><span class="pre">variables</span></tt>: variables info json object.</li>
 </ul>
 </div>
-<div class="section" id="id222">
-<h4>Example<a class="headerlink" href="#id222" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id190">
+<h4>Example<a class="headerlink" href="#id190" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/ob/dlmas/6526c474-280e-4652-a1bf-731089c981a2
 
 {
@@ -4169,11 +3682,11 @@ POST : Create new voicemail user.</p>
 </div>
 </div>
 </div>
-<div class="section" id="id223">
-<h3>Method: PUT<a class="headerlink" href="#id223" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id191">
+<h3>Method: PUT<a class="headerlink" href="#id191" title="Permalink to this headline">¶</a></h3>
 <p>Update specified dlma detail info.</p>
-<div class="section" id="id224">
-<h4>Call<a class="headerlink" href="#id224" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id192">
+<h4>Call<a class="headerlink" href="#id192" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>PUT /ob/dlmas/&lt;uuid&gt;
 
 {
@@ -4194,8 +3707,8 @@ POST : Create new voicemail user.</p>
 <li><tt class="docutils literal"><span class="pre">variables</span></tt>: variables info json object.</li>
 </ul>
 </div>
-<div class="section" id="id225">
-<h4>Returns<a class="headerlink" href="#id225" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id193">
+<h4>Returns<a class="headerlink" href="#id193" title="Permalink to this headline">¶</a></h4>
 <p>Updated dlma info.</p>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr,
@@ -4225,8 +3738,8 @@ POST : Create new voicemail user.</p>
 <li><tt class="docutils literal"><span class="pre">variables</span></tt>: variables info json object.</li>
 </ul>
 </div>
-<div class="section" id="id226">
-<h4>Example<a class="headerlink" href="#id226" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id194">
+<h4>Example<a class="headerlink" href="#id194" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -X PUT 192.168.200.10:8081/ob/dlmas/6526c474-280e-4652-a1bf-731089c981a2 -d
 &#39;{&quot;detail&quot;: &quot;update dlma detail info.&quot;}&#39;
 
@@ -4250,13 +3763,13 @@ POST : Create new voicemail user.</p>
 </div>
 </div>
 </div>
-<div class="section" id="id227">
-<h3>Method: DELETE<a class="headerlink" href="#id227" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id195">
+<h3>Method: DELETE<a class="headerlink" href="#id195" title="Permalink to this headline">¶</a></h3>
 <p>Delete specified dlma.</p>
 <p>If there is any related with this item, response error.</p>
 <p>If there&#8217;s available dl(dial list), error responsed.</p>
-<div class="section" id="id228">
-<h4>Call<a class="headerlink" href="#id228" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id196">
+<h4>Call<a class="headerlink" href="#id196" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>DELETE /ob/dlmas/&lt;uuid&gt;?force=&lt;force_option&gt;&amp;delete_dls=&lt;delete option&gt;
 </pre></div>
 </div>
@@ -4267,8 +3780,8 @@ POST : Create new voicemail user.</p>
 <li><tt class="docutils literal"><span class="pre">delete_dls</span></tt>: &lt;optional&gt; If sets to 1, delete all the dl(dial list) related with given dlma. Default: 0.</li>
 </ul>
 </div>
-<div class="section" id="id229">
-<h4>Returns<a class="headerlink" href="#id229" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id197">
+<h4>Returns<a class="headerlink" href="#id197" title="Permalink to this headline">¶</a></h4>
 <p>Deleted dlma info.</p>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr,
@@ -4298,8 +3811,8 @@ POST : Create new voicemail user.</p>
 <li><tt class="docutils literal"><span class="pre">variables</span></tt>: variables info json object.</li>
 </ul>
 </div>
-<div class="section" id="id230">
-<h4>Example<a class="headerlink" href="#id230" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id198">
+<h4>Example<a class="headerlink" href="#id198" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -X DELETE 192.168.200.10:8081/ob/dlmas/6526c474-280e-4652-a1bf-731089c981a2
 
 {
@@ -4325,16 +3838,16 @@ POST : Create new voicemail user.</p>
 </div>
 <div class="section" id="ob-dls">
 <h2>/ob/dls<a class="headerlink" href="#ob-dls" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id231">
-<h3>Methods<a class="headerlink" href="#id231" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id199">
+<h3>Methods<a class="headerlink" href="#id199" title="Permalink to this headline">¶</a></h3>
 <p>POST : Create new dial list.</p>
 <p>GET : Get list of dial list.</p>
 </div>
-<div class="section" id="id232">
-<h3>Method: POST<a class="headerlink" href="#id232" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id200">
+<h3>Method: POST<a class="headerlink" href="#id200" title="Permalink to this headline">¶</a></h3>
 <p>Create new dial list.</p>
-<div class="section" id="id233">
-<h4>Call<a class="headerlink" href="#id233" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id201">
+<h4>Call<a class="headerlink" href="#id201" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>POST /ob/dls
 
 {
@@ -4380,8 +3893,8 @@ POST : Create new voicemail user.</p>
 <li><tt class="docutils literal"><span class="pre">variables</span></tt>: variables info json object.</li>
 </ul>
 </div>
-<div class="section" id="id234">
-<h4>Returns<a class="headerlink" href="#id234" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id202">
+<h4>Returns<a class="headerlink" href="#id202" title="Permalink to this headline">¶</a></h4>
 <p>Returns created dial list info.</p>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr,
@@ -4479,8 +3992,8 @@ POST : Create new voicemail user.</p>
 <li><tt class="docutils literal"><span class="pre">tm_update</span></tt>:</li>
 </ul>
 </div>
-<div class="section" id="id235">
-<h4>Example<a class="headerlink" href="#id235" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id203">
+<h4>Example<a class="headerlink" href="#id203" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -X POST 192.168.200.10:8081/ob/dls -d
 &#39;{&quot;dlma_uuid&quot;:&quot;42b72a18-a6c5-43bf-b9aa-6043ff32128d&quot;, &quot;name&quot;: &quot;sample dial list&quot;, \
 &quot;detail&quot;: &quot;dial list sample detail&quot;, &quot;number_1&quot;: &quot;300&quot;}&#39;
@@ -4534,11 +4047,11 @@ POST : Create new voicemail user.</p>
 </div>
 </div>
 </div>
-<div class="section" id="id236">
-<h3>Method: GET<a class="headerlink" href="#id236" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id204">
+<h3>Method: GET<a class="headerlink" href="#id204" title="Permalink to this headline">¶</a></h3>
 <p>Get list of dial list.</p>
-<div class="section" id="id237">
-<h4>Call<a class="headerlink" href="#id237" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id205">
+<h4>Call<a class="headerlink" href="#id205" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>GET /ob/dls?dlma_uuid=&lt;dlam-uuid&gt;&amp;count=&lt;request list count&gt;
 </pre></div>
 </div>
@@ -4548,8 +4061,8 @@ POST : Create new voicemail user.</p>
 <li><tt class="docutils literal"><span class="pre">count</span></tt> : Request list count. Default 100.</li>
 </ul>
 </div>
-<div class="section" id="id238">
-<h4>Returns<a class="headerlink" href="#id238" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id206">
+<h4>Returns<a class="headerlink" href="#id206" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr,
   &quot;reuslt&quot;: {
@@ -4655,8 +4168,8 @@ POST : Create new voicemail user.</p>
 </li>
 </ul>
 </div>
-<div class="section" id="id239">
-<h4>Example<a class="headerlink" href="#id239" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id207">
+<h4>Example<a class="headerlink" href="#id207" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre> $ curl -X GET 192.168.200.10:8081/ob/dls?dlma_uuid=76f42a50-c1c5-47d6-9988-55f552de8307
 
 {
@@ -4716,23 +4229,23 @@ POST : Create new voicemail user.</p>
 </div>
 <div class="section" id="ob-dls-uuid">
 <h2>/ob/dls/&lt;uuid&gt;<a class="headerlink" href="#ob-dls-uuid" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id240">
-<h3>Methods<a class="headerlink" href="#id240" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id208">
+<h3>Methods<a class="headerlink" href="#id208" title="Permalink to this headline">¶</a></h3>
 <p>GET : Get specified dial list detail info.</p>
 <p>PUT : Update specified dial list detail info.</p>
 <p>DELETE : Delete specified dial list.</p>
 </div>
-<div class="section" id="id241">
-<h3>Method: GET<a class="headerlink" href="#id241" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id209">
+<h3>Method: GET<a class="headerlink" href="#id209" title="Permalink to this headline">¶</a></h3>
 <p>Get specified dial list detail info.</p>
-<div class="section" id="id242">
-<h4>Call<a class="headerlink" href="#id242" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id210">
+<h4>Call<a class="headerlink" href="#id210" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>GET /ob/dls/&lt;dl-uuid&gt;
 </pre></div>
 </div>
 </div>
-<div class="section" id="id243">
-<h4>Returns<a class="headerlink" href="#id243" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id211">
+<h4>Returns<a class="headerlink" href="#id211" title="Permalink to this headline">¶</a></h4>
 <p>Returns specified dial list detail info.</p>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr,
@@ -4830,8 +4343,8 @@ POST : Create new voicemail user.</p>
 <li><tt class="docutils literal"><span class="pre">tm_update</span></tt>:</li>
 </ul>
 </div>
-<div class="section" id="id244">
-<h4>Example<a class="headerlink" href="#id244" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id212">
+<h4>Example<a class="headerlink" href="#id212" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/ob/dls/7d760dd1-8ba5-48d9-989d-415d610ffe57
 
 {
@@ -4883,11 +4396,11 @@ POST : Create new voicemail user.</p>
 </div>
 </div>
 </div>
-<div class="section" id="id245">
-<h3>Method: PUT<a class="headerlink" href="#id245" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id213">
+<h3>Method: PUT<a class="headerlink" href="#id213" title="Permalink to this headline">¶</a></h3>
 <p>Update specified dial list detail info.</p>
-<div class="section" id="id246">
-<h4>Call<a class="headerlink" href="#id246" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id214">
+<h4>Call<a class="headerlink" href="#id214" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>PUT /ob/dls/&lt;dl-uuid&gt;
 
 {
@@ -4973,8 +4486,8 @@ POST : Create new voicemail user.</p>
 <li><tt class="docutils literal"><span class="pre">variables</span></tt>: variables info json object.</li>
 </ul>
 </div>
-<div class="section" id="id247">
-<h4>Returns<a class="headerlink" href="#id247" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id215">
+<h4>Returns<a class="headerlink" href="#id215" title="Permalink to this headline">¶</a></h4>
 <p>Returns updated dial list detail info.</p>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr,
@@ -5073,8 +4586,8 @@ POST : Create new voicemail user.</p>
 <li><tt class="docutils literal"><span class="pre">tm_update</span></tt>:</li>
 </ul>
 </div>
-<div class="section" id="id248">
-<h4>Example<a class="headerlink" href="#id248" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id216">
+<h4>Example<a class="headerlink" href="#id216" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -X PUT 192.168.200.10:8081/ob/dls/7d760dd1-8ba5-48d9-989d-415d610ffe57 -d
 &#39;{&quot;detail&quot;: &quot;Updated test customer detail&quot;}&#39;
 
@@ -5127,12 +4640,12 @@ POST : Create new voicemail user.</p>
 </div>
 </div>
 </div>
-<div class="section" id="id249">
-<h3>Method: DELETE<a class="headerlink" href="#id249" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id217">
+<h3>Method: DELETE<a class="headerlink" href="#id217" title="Permalink to this headline">¶</a></h3>
 <p>Delete specified dial list.</p>
 <p>If there is any related with this item, response error.</p>
-<div class="section" id="id250">
-<h4>Call<a class="headerlink" href="#id250" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id218">
+<h4>Call<a class="headerlink" href="#id218" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>DELETE /ob/dls/&lt;uuid&gt;?force=&lt;force_option&gt;
 </pre></div>
 </div>
@@ -5142,8 +4655,8 @@ POST : Create new voicemail user.</p>
 <li><tt class="docutils literal"><span class="pre">force</span></tt>: &lt;optional&gt; Force option. See detail <a class="reference internal" href="ob_structure.html#ob-force-option"><em>Force option</em></a>. Default: 0.</li>
 </ul>
 </div>
-<div class="section" id="id251">
-<h4>Returns<a class="headerlink" href="#id251" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id219">
+<h4>Returns<a class="headerlink" href="#id219" title="Permalink to this headline">¶</a></h4>
 <p>Returns deleted dial list info.</p>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr,
@@ -5242,8 +4755,8 @@ POST : Create new voicemail user.</p>
 <li><tt class="docutils literal"><span class="pre">tm_update</span></tt>:</li>
 </ul>
 </div>
-<div class="section" id="id252">
-<h4>Example<a class="headerlink" href="#id252" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id220">
+<h4>Example<a class="headerlink" href="#id220" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -X DELETE 192.168.200.10:8081/ob/dls/7d760dd1-8ba5-48d9-989d-415d610ffe57
 
 {
@@ -5298,21 +4811,21 @@ POST : Create new voicemail user.</p>
 </div>
 <div class="section" id="ob-dialings">
 <h2>/ob/dialings<a class="headerlink" href="#ob-dialings" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id253">
-<h3>Methods<a class="headerlink" href="#id253" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id221">
+<h3>Methods<a class="headerlink" href="#id221" title="Permalink to this headline">¶</a></h3>
 <p>GET : Get list of all dialings.</p>
 </div>
-<div class="section" id="id254">
-<h3>Method: GET<a class="headerlink" href="#id254" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id222">
+<h3>Method: GET<a class="headerlink" href="#id222" title="Permalink to this headline">¶</a></h3>
 <p>Get list of all dialings.</p>
-<div class="section" id="id255">
-<h4>Call<a class="headerlink" href="#id255" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id223">
+<h4>Call<a class="headerlink" href="#id223" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">GET</span> <span class="o">/</span><span class="n">ob</span><span class="o">/</span><span class="n">dialings</span>
 </pre></div>
 </div>
 </div>
-<div class="section" id="id256">
-<h4>Returns<a class="headerlink" href="#id256" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id224">
+<h4>Returns<a class="headerlink" href="#id224" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr,
   &quot;reuslt&quot;: {
@@ -5405,8 +4918,8 @@ POST : Create new voicemail user.</p>
 </li>
 </ul>
 </div>
-<div class="section" id="id257">
-<h4>Example<a class="headerlink" href="#id257" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id225">
+<h4>Example<a class="headerlink" href="#id225" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/ob/dialings
 
 {
@@ -5606,16 +5119,16 @@ POST : Create new voicemail user.</p>
 </div>
 <div class="section" id="ob-dialings-uuid">
 <h2>/ob/dialings/&lt;uuid&gt;<a class="headerlink" href="#ob-dialings-uuid" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id258">
-<h3>Methods<a class="headerlink" href="#id258" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id226">
+<h3>Methods<a class="headerlink" href="#id226" title="Permalink to this headline">¶</a></h3>
 <p>GET : Get specified dialing detail info.</p>
 <p>DELETE : Send hangup request of specified dialing.</p>
 </div>
-<div class="section" id="id259">
-<h3>Method: GET<a class="headerlink" href="#id259" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id227">
+<h3>Method: GET<a class="headerlink" href="#id227" title="Permalink to this headline">¶</a></h3>
 <p>Get specified dialing detail info.</p>
-<div class="section" id="id260">
-<h4>Call<a class="headerlink" href="#id260" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id228">
+<h4>Call<a class="headerlink" href="#id228" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>GET /ob/dialings/&lt;uuid&gt;
 </pre></div>
 </div>
@@ -5624,8 +5137,8 @@ POST : Create new voicemail user.</p>
 <li><tt class="docutils literal"><span class="pre">uuid</span></tt>: Dialing uuid.</li>
 </ul>
 </div>
-<div class="section" id="id261">
-<h4>Returns<a class="headerlink" href="#id261" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id229">
+<h4>Returns<a class="headerlink" href="#id229" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr,
   &quot;reuslt&quot;: {
@@ -5709,8 +5222,8 @@ POST : Create new voicemail user.</p>
 <li><tt class="docutils literal"><span class="pre">info_plan</span></tt>: The json string dump of plan info when the dialing has created.</li>
 </ul>
 </div>
-<div class="section" id="id262">
-<h4>Example<a class="headerlink" href="#id262" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id230">
+<h4>Example<a class="headerlink" href="#id230" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/ob/dialings/4d78b20b-99e5-4449-977f-261204e11a26
 
 {
@@ -5903,12 +5416,12 @@ POST : Create new voicemail user.</p>
 </div>
 </div>
 </div>
-<div class="section" id="id263">
-<h3>Method: DELETE<a class="headerlink" href="#id263" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id231">
+<h3>Method: DELETE<a class="headerlink" href="#id231" title="Permalink to this headline">¶</a></h3>
 <p>Send hangup request of specified dialing.</p>
 <p>If the request is success, the dialing call will be removed after received hangup event from the Asterisk.</p>
-<div class="section" id="id264">
-<h4>Call<a class="headerlink" href="#id264" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id232">
+<h4>Call<a class="headerlink" href="#id232" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>DELETE /ob/dialings/&lt;uuid&gt;
 </pre></div>
 </div>
@@ -5917,16 +5430,16 @@ POST : Create new voicemail user.</p>
 <li><tt class="docutils literal"><span class="pre">uuid</span></tt>: Dialing uuid.</li>
 </ul>
 </div>
-<div class="section" id="id265">
-<h4>Returns<a class="headerlink" href="#id265" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id233">
+<h4>Returns<a class="headerlink" href="#id233" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr
 }
 </pre></div>
 </div>
 </div>
-<div class="section" id="id266">
-<h4>Example<a class="headerlink" href="#id266" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id234">
+<h4>Example<a class="headerlink" href="#id234" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -X DELETE 192.168.200.10:8081/ob/dialings/16c680fe-0ac7-472f-9e6f-c979db05cac0
 
 {
@@ -5941,16 +5454,16 @@ POST : Create new voicemail user.</p>
 </div>
 <div class="section" id="ob-campaigns">
 <h2>/ob/campaigns<a class="headerlink" href="#ob-campaigns" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id267">
-<h3>Methods<a class="headerlink" href="#id267" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id235">
+<h3>Methods<a class="headerlink" href="#id235" title="Permalink to this headline">¶</a></h3>
 <p>POST : Create new campaign.</p>
 <p>GET : Get list of all campaigns.</p>
 </div>
-<div class="section" id="id268">
-<h3>Method: POST<a class="headerlink" href="#id268" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id236">
+<h3>Method: POST<a class="headerlink" href="#id236" title="Permalink to this headline">¶</a></h3>
 <p>Create new campaign.</p>
-<div class="section" id="id269">
-<h4>Call<a class="headerlink" href="#id269" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id237">
+<h4>Call<a class="headerlink" href="#id237" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>POST /ob/campaigns
 
 {
@@ -5997,8 +5510,8 @@ POST : Create new voicemail user.</p>
 <li><tt class="docutils literal"><span class="pre">sc_day_list</span></tt> : Campaign scheduling day list. See detail <a class="reference internal" href="ob_structure.html#scheduling-day-list"><em>Scheduling day list</em></a>.</li>
 </ul>
 </div>
-<div class="section" id="id270">
-<h4>Returns<a class="headerlink" href="#id270" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id238">
+<h4>Returns<a class="headerlink" href="#id238" title="Permalink to this headline">¶</a></h4>
 <p>Return the created campaign info.</p>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr,
@@ -6054,8 +5567,8 @@ POST : Create new voicemail user.</p>
 <li><tt class="docutils literal"><span class="pre">sc_day_list</span></tt> : Campaign scheduling day list. See detail <a class="reference internal" href="ob_structure.html#scheduling-day-list"><em>Scheduling day list</em></a>.</li>
 </ul>
 </div>
-<div class="section" id="id271">
-<h4>Example<a class="headerlink" href="#id271" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id239">
+<h4>Example<a class="headerlink" href="#id239" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -X POST 192.168.200.10:8081/ob/campaigns -d&#39;{}&#39;
 
 {
@@ -6090,17 +5603,17 @@ POST : Create new voicemail user.</p>
 </div>
 </div>
 </div>
-<div class="section" id="id272">
-<h3>Method: GET<a class="headerlink" href="#id272" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id240">
+<h3>Method: GET<a class="headerlink" href="#id240" title="Permalink to this headline">¶</a></h3>
 <p>Get list of all campaigns.</p>
-<div class="section" id="id273">
-<h4>Call<a class="headerlink" href="#id273" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id241">
+<h4>Call<a class="headerlink" href="#id241" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">GET</span> <span class="o">/</span><span class="n">ob</span><span class="o">/</span><span class="n">campaigns</span>
 </pre></div>
 </div>
 </div>
-<div class="section" id="id274">
-<h4>Returns<a class="headerlink" href="#id274" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id242">
+<h4>Returns<a class="headerlink" href="#id242" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr,
   &quot;reuslt&quot;: {
@@ -6124,8 +5637,8 @@ POST : Create new voicemail user.</p>
 </li>
 </ul>
 </div>
-<div class="section" id="id275">
-<h4>Example<a class="headerlink" href="#id275" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id243">
+<h4>Example<a class="headerlink" href="#id243" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/ob/campaigns
 
 {
@@ -6147,23 +5660,23 @@ POST : Create new voicemail user.</p>
 </div>
 <div class="section" id="ob-campaigns-uuid">
 <h2>/ob/campaigns/&lt;uuid&gt;<a class="headerlink" href="#ob-campaigns-uuid" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id276">
-<h3>Methods<a class="headerlink" href="#id276" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id244">
+<h3>Methods<a class="headerlink" href="#id244" title="Permalink to this headline">¶</a></h3>
 <p>GET : Get specified campaign detail info.</p>
 <p>PUT : Update specified campaign detail info.</p>
 <p>DELETE : Delete specified campaign.</p>
 </div>
-<div class="section" id="id277">
-<h3>Method: GET<a class="headerlink" href="#id277" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id245">
+<h3>Method: GET<a class="headerlink" href="#id245" title="Permalink to this headline">¶</a></h3>
 <p>Get specified campaign detail info.</p>
-<div class="section" id="id278">
-<h4>Call<a class="headerlink" href="#id278" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id246">
+<h4>Call<a class="headerlink" href="#id246" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>GET /ob/campaign/&lt;uuid&gt;
 </pre></div>
 </div>
 </div>
-<div class="section" id="id279">
-<h4>Returns<a class="headerlink" href="#id279" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id247">
+<h4>Returns<a class="headerlink" href="#id247" title="Permalink to this headline">¶</a></h4>
 <p>Get specified campaign detail info.</p>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr,
@@ -6219,8 +5732,8 @@ POST : Create new voicemail user.</p>
 <li><tt class="docutils literal"><span class="pre">sc_day_list</span></tt> : Campaign scheduling day list. See detail <a class="reference internal" href="ob_structure.html#scheduling-day-list"><em>Scheduling day list</em></a>.</li>
 </ul>
 </div>
-<div class="section" id="id280">
-<h4>Example<a class="headerlink" href="#id280" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id248">
+<h4>Example<a class="headerlink" href="#id248" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/ob/campaigns/9841bc9e-3103-4fea-ab11-54ccfcc8322f
 
 {
@@ -6255,11 +5768,11 @@ POST : Create new voicemail user.</p>
 </div>
 </div>
 </div>
-<div class="section" id="id281">
-<h3>Method: PUT<a class="headerlink" href="#id281" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id249">
+<h3>Method: PUT<a class="headerlink" href="#id249" title="Permalink to this headline">¶</a></h3>
 <p>Update specified campaign detail info.</p>
-<div class="section" id="id282">
-<h4>Call<a class="headerlink" href="#id282" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id250">
+<h4>Call<a class="headerlink" href="#id250" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>PUT /ob/campaigns/&lt;campaign-uuid&gt;
 
 {
@@ -6311,8 +5824,8 @@ POST : Create new voicemail user.</p>
 <li><tt class="docutils literal"><span class="pre">sc_day_list</span></tt> : Campaign scheduling day list. See detail <a class="reference internal" href="ob_structure.html#scheduling-day-list"><em>Scheduling day list</em></a>.</li>
 </ul>
 </div>
-<div class="section" id="id283">
-<h4>Returns<a class="headerlink" href="#id283" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id251">
+<h4>Returns<a class="headerlink" href="#id251" title="Permalink to this headline">¶</a></h4>
 <p>Updated campaign info.</p>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr,
@@ -6368,8 +5881,8 @@ POST : Create new voicemail user.</p>
 <li><tt class="docutils literal"><span class="pre">sc_day_list</span></tt> : Campaign scheduling day list. See detail <a class="reference internal" href="ob_structure.html#scheduling-day-list"><em>Scheduling day list</em></a>.</li>
 </ul>
 </div>
-<div class="section" id="id284">
-<h4>Example<a class="headerlink" href="#id284" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id252">
+<h4>Example<a class="headerlink" href="#id252" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -X PUT 192.168.200.10:8081/ob/campaigns/305c96cb-4704-4f33-bcad-6b2e4031d7d4
    -d &#39;{&quot;name&quot;: &quot;Update campaign info&quot;}&#39;
 
@@ -6405,11 +5918,11 @@ POST : Create new voicemail user.</p>
 </div>
 </div>
 </div>
-<div class="section" id="id285">
-<h3>Method: DELETE<a class="headerlink" href="#id285" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id253">
+<h3>Method: DELETE<a class="headerlink" href="#id253" title="Permalink to this headline">¶</a></h3>
 <p>Delete specified campaign info.</p>
-<div class="section" id="id286">
-<h4>Call<a class="headerlink" href="#id286" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id254">
+<h4>Call<a class="headerlink" href="#id254" title="Permalink to this headline">¶</a></h4>
 <p>Delete specified campaign info.</p>
 <div class="highlight-python"><div class="highlight"><pre>DELETE /ob/campaign/&lt;uuid&gt;
 </pre></div>
@@ -6419,8 +5932,8 @@ POST : Create new voicemail user.</p>
 <li><tt class="docutils literal"><span class="pre">uuid</span></tt>: Campaign uuid.</li>
 </ul>
 </div>
-<div class="section" id="id287">
-<h4>Returns<a class="headerlink" href="#id287" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id255">
+<h4>Returns<a class="headerlink" href="#id255" title="Permalink to this headline">¶</a></h4>
 <p>Deleted campaign info.</p>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr,
@@ -6476,8 +5989,8 @@ POST : Create new voicemail user.</p>
 <li><tt class="docutils literal"><span class="pre">sc_day_list</span></tt> : Campaign scheduling day list. See detail <a class="reference internal" href="ob_structure.html#scheduling-day-list"><em>Scheduling day list</em></a>.</li>
 </ul>
 </div>
-<div class="section" id="id288">
-<h4>Example<a class="headerlink" href="#id288" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id256">
+<h4>Example<a class="headerlink" href="#id256" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -X DELETE 192.168.200.10:8081/ob/campaigns/305c96cb-4704-4f33-bcad-6b2e4031d7d4
 
 {
@@ -6507,6 +6020,511 @@ POST : Create new voicemail user.</p>
     &quot;tm_create&quot;: &quot;2017-03-05T15:25:09.788596601Z&quot;,
     &quot;tm_update&quot;: &quot;2017-03-05T15:44:10.295794418Z&quot;
   }
+}
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="queue-entries">
+<span id="queue-api"></span><span id="id257"></span><h2>/queue/entries<a class="headerlink" href="#queue-entries" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id258">
+<h3>Methods<a class="headerlink" href="#id258" title="Permalink to this headline">¶</a></h3>
+<p>GET : Get list of all queue entries info.</p>
+</div>
+<div class="section" id="get-queue-entries">
+<span id="id259"></span><h3>Method: GET<a class="headerlink" href="#get-queue-entries" title="Permalink to this headline">¶</a></h3>
+<p>Get list of all queue entries info.</p>
+<div class="section" id="id260">
+<h4>Call<a class="headerlink" href="#id260" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">GET</span> <span class="o">/</span><span class="n">queue</span><span class="o">/</span><span class="n">entries</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id261">
+<h4>Returns<a class="headerlink" href="#id261" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr,
+  &quot;reuslt&quot;: {
+    &quot;list&quot;: [
+      {
+        &quot;unique_id&quot;: &quot;&lt;string&gt;&quot;,
+        &quot;queue_name&quot;: &quot;&lt;string&gt;&quot;
+      },
+      ...
+    ]
+  }
+}
+</pre></div>
+</div>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">list</span></tt> : array of queue entries.
+* See detail at <a class="reference internal" href="queue_api.html#get-queue-entries-detail"><em>Method: GET</em></a>.</li>
+</ul>
+</div>
+<div class="section" id="id262">
+<h4>Example<a class="headerlink" href="#id262" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET localhost:8081/queue/entries
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;result&quot;: {
+      &quot;list&quot;: [
+          {
+              &quot;caller_id_name&quot;: &quot;pjagent-01&quot;,
+              &quot;caller_id_num&quot;: &quot;pjagent-01&quot;,
+              &quot;channel&quot;: &quot;PJSIP/pjagent-01-00000002&quot;,
+              &quot;connected_line_name&quot;: &quot;&lt;unknown&gt;&quot;,
+              &quot;connected_line_num&quot;: &quot;&lt;unknown&gt;&quot;,
+              &quot;position&quot;: 1,
+              &quot;queue_name&quot;: &quot;sales_1&quot;,
+              &quot;tm_update&quot;: &quot;2017-12-18T00:23:39.821137155Z&quot;,
+              &quot;unique_id&quot;: &quot;1513556618.4&quot;,
+              &quot;wait&quot;: null
+          }
+      ]
+  },
+  &quot;statuscode&quot;: 200,
+  &quot;timestamp&quot;: &quot;2017-12-18T00:23:40.94974824Z&quot;
+}
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="queue-entries-detail">
+<span id="id263"></span><h2>/queue/entries/&lt;detail&gt;<a class="headerlink" href="#queue-entries-detail" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id264">
+<h3>Methods<a class="headerlink" href="#id264" title="Permalink to this headline">¶</a></h3>
+<p>GET : Get queue entry detail info of given queue entry info.</p>
+</div>
+<div class="section" id="get-queue-entries-detail">
+<span id="id265"></span><h3>Method: GET<a class="headerlink" href="#get-queue-entries-detail" title="Permalink to this headline">¶</a></h3>
+<p>Get queue entry detail info of given queue entry info.</p>
+<div class="section" id="id266">
+<h4>Call<a class="headerlink" href="#id266" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-python"><div class="highlight"><pre>GET /queue/entries/&lt;detail&gt;
+</pre></div>
+</div>
+<p>Method parameters</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">detail</span></tt>: unique id</li>
+</ul>
+</div>
+<div class="section" id="id267">
+<h4>Returns<a class="headerlink" href="#id267" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr,
+  &quot;reuslt&quot;: {
+    &quot;unique_id&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;queue_name&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;channel&quot;: &quot;&lt;string&gt;&quot;,
+
+    &quot;caller_id_name&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;caller_id_num&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;connected_line_name&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;connected_line_num&quot;: &quot;&lt;string&gt;&quot;,
+
+    &quot;position&quot;: &lt;number&gt;,
+    &quot;wait&quot;: &lt;number&gt;,
+
+    &quot;tm_update&quot;: &quot;&lt;timestamp&gt;&quot;
+  }
+}
+</pre></div>
+</div>
+<p>Return parameters</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">unique_id</span></tt>: Unique id of channel.</li>
+<li><tt class="docutils literal"><span class="pre">caller_id_num</span></tt>: The name of the queue.</li>
+<li><tt class="docutils literal"><span class="pre">channel</span></tt>: Channel name.</li>
+<li><tt class="docutils literal"><span class="pre">caller_id_name</span></tt>: Caller&#8217;s name.</li>
+<li><tt class="docutils literal"><span class="pre">caller_id_num</span></tt>: Caller&#8217;s number.</li>
+<li><tt class="docutils literal"><span class="pre">connected_line_name</span></tt>: Connected line&#8217;s name.</li>
+<li><tt class="docutils literal"><span class="pre">connected_line_num</span></tt>: Connected line&#8217;s number.</li>
+<li><tt class="docutils literal"><span class="pre">position</span></tt>: Position in the queue.</li>
+<li><tt class="docutils literal"><span class="pre">wait</span></tt>: If set when paused, the reason the queue member was paused.</li>
+</ul>
+</div>
+<div class="section" id="id268">
+<h4>Example<a class="headerlink" href="#id268" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET localhost:8081/queue/entries/1513557067.6
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;result&quot;: {
+      &quot;caller_id_name&quot;: &quot;pjagent-01&quot;,
+      &quot;caller_id_num&quot;: &quot;pjagent-01&quot;,
+      &quot;channel&quot;: &quot;PJSIP/pjagent-01-00000004&quot;,
+      &quot;connected_line_name&quot;: &quot;&lt;unknown&gt;&quot;,
+      &quot;connected_line_num&quot;: &quot;&lt;unknown&gt;&quot;,
+      &quot;position&quot;: 1,
+      &quot;queue_name&quot;: &quot;sales_1&quot;,
+      &quot;tm_update&quot;: &quot;2017-12-18T00:31:08.754950500Z&quot;,
+      &quot;unique_id&quot;: &quot;1513557067.6&quot;,
+      &quot;wait&quot;: null
+  },
+  &quot;statuscode&quot;: 200,
+  &quot;timestamp&quot;: &quot;2017-12-18T00:31:18.894580134Z&quot;
+}
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="queue-members">
+<h2>/queue/members<a class="headerlink" href="#queue-members" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id269">
+<h3>Methods<a class="headerlink" href="#id269" title="Permalink to this headline">¶</a></h3>
+<p>GET : Get list of all queue members info.</p>
+</div>
+<div class="section" id="get-queue-members">
+<span id="id270"></span><h3>Method: GET<a class="headerlink" href="#get-queue-members" title="Permalink to this headline">¶</a></h3>
+<p>Get list of all queue members info.</p>
+<div class="section" id="id271">
+<h4>Call<a class="headerlink" href="#id271" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">GET</span> <span class="o">/</span><span class="n">queue</span><span class="o">/</span><span class="n">members</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id272">
+<h4>Returns<a class="headerlink" href="#id272" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr,
+  &quot;reuslt&quot;: {
+    &quot;list&quot;: [
+      {
+         &quot;name&quot;: &quot;&lt;string&gt;&quot;,
+         &quot;queue_name&quot;: &quot;&lt;string&gt;&quot;,
+         &quot;status&quot;: &lt;integer&gt;,
+
+         &quot;membership&quot;: &quot;&lt;string&gt;&quot;,
+         &quot;state_interface&quot;: &quot;&lt;string&gt;&quot;,
+         &quot;location&quot;: &quot;&lt;string&gt;&quot;,
+
+         &quot;paused&quot;: &lt;integer&gt;,
+         &quot;paused_reason&quot;: &quot;&lt;string&gt;&quot;,
+         &quot;penalty&quot;: &lt;integer&gt;,
+
+         &quot;calls_taken&quot;: &lt;integer&gt;,
+         &quot;in_call&quot;: &lt;integer&gt;,
+
+         &quot;last_call&quot;: &lt;integer&gt;,
+         &quot;last_pause&quot;: &lt;integer&gt;,
+
+         &quot;ring_inuse&quot;: &lt;integer&gt;,
+
+         &quot;tm_update&quot;: &quot;&lt;timestamp&gt;&quot;
+      },
+      ...
+    ]
+  }
+}
+</pre></div>
+</div>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">list</span></tt> : array of registry account.
+* See detail at <a class="reference internal" href="queue_api.html#get-queue-members-detail"><em>Method: GET</em></a>.</li>
+</ul>
+</div>
+<div class="section" id="id273">
+<h4>Example<a class="headerlink" href="#id273" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET 192.168.200.10:8081/queue_params
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;result&quot;: {
+      &quot;list&quot;: [
+          {
+              &quot;calls_taken&quot;: 0,
+              &quot;in_call&quot;: 0,
+              &quot;last_call&quot;: 0,
+              &quot;last_pause&quot;: 0,
+              &quot;location&quot;: &quot;sip/agent-02&quot;,
+              &quot;membership&quot;: &quot;dynamic&quot;,
+              &quot;name&quot;: &quot;sip/agent-02&quot;,
+              &quot;paused&quot;: 0,
+              &quot;paused_reason&quot;: &quot;&quot;,
+              &quot;penalty&quot;: 0,
+              &quot;queue_name&quot;: &quot;sales_1&quot;,
+              &quot;ring_inuse&quot;: null,
+              &quot;state_interface&quot;: &quot;sip/agent-02&quot;,
+              &quot;status&quot;: 4,
+              &quot;tm_update&quot;: &quot;2017-12-18T00:31:04.175880809Z&quot;
+          },
+          ...
+      ]
+  },
+  &quot;statuscode&quot;: 200,
+  &quot;timestamp&quot;: &quot;2017-12-18T00:34:45.370734689Z&quot;
+}
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="queue-members-detail">
+<h2>/queue/members/&lt;detail&gt;<a class="headerlink" href="#queue-members-detail" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id274">
+<h3>Methods<a class="headerlink" href="#id274" title="Permalink to this headline">¶</a></h3>
+<p>GET : Get queue member detail info of given queue member info.</p>
+</div>
+<div class="section" id="get-queue-members-detail">
+<span id="id275"></span><h3>Method: GET<a class="headerlink" href="#get-queue-members-detail" title="Permalink to this headline">¶</a></h3>
+<p>Get queue member detail info of given queue member info.</p>
+<div class="section" id="id276">
+<h4>Call<a class="headerlink" href="#id276" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-python"><div class="highlight"><pre>GET /queue/members/&lt;detail&gt;?queue_name=&lt;string&gt;
+</pre></div>
+</div>
+<p>Method parameters</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">detail</span></tt>: member name.</li>
+<li><tt class="docutils literal"><span class="pre">queue_name</span></tt>: queue name.</li>
+</ul>
+</div>
+<div class="section" id="id277">
+<h4>Returns<a class="headerlink" href="#id277" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr,
+  &quot;reuslt&quot;: {
+    &quot;name&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;queue_name&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;status&quot;: &lt;integer&gt;,
+
+    &quot;membership&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;state_interface&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;location&quot;: &quot;&lt;string&gt;&quot;,
+
+    &quot;paused&quot;: &lt;integer&gt;,
+    &quot;paused_reason&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;penalty&quot;: &lt;integer&gt;,
+
+    &quot;calls_taken&quot;: &lt;integer&gt;,
+    &quot;in_call&quot;: &lt;integer&gt;,
+
+    &quot;last_call&quot;: &lt;integer&gt;,
+    &quot;last_pause&quot;: &lt;integer&gt;,
+
+    &quot;ring_inuse&quot;: &lt;integer&gt;,
+
+    &quot;tm_update&quot;: &quot;&lt;timestamp&gt;&quot;
+  }
+}
+</pre></div>
+</div>
+<p>Return parameters</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">name</span></tt>: The name of the queue member.</li>
+<li><tt class="docutils literal"><span class="pre">queue_name</span></tt>: The name of the queue.</li>
+<li><tt class="docutils literal"><span class="pre">status</span></tt>: The numeric device state status of the queue member.</li>
+<li><tt class="docutils literal"><span class="pre">membership</span></tt>: Membership of queue member.</li>
+<li><tt class="docutils literal"><span class="pre">state_interface</span></tt>: Channel technology or location from which to read device state changes.</li>
+<li><tt class="docutils literal"><span class="pre">location</span></tt>: The queue member&#8217;s channel technology or location.</li>
+<li><tt class="docutils literal"><span class="pre">paused</span></tt>: Paused.</li>
+<li><tt class="docutils literal"><span class="pre">paused_reason</span></tt>: If set when paused, the reason the queue member was paused.</li>
+<li><tt class="docutils literal"><span class="pre">penalty</span></tt>: The penalty associated with the queue member.</li>
+<li><tt class="docutils literal"><span class="pre">calls_taken</span></tt>: The number of calls this queue member has serviced.</li>
+<li><tt class="docutils literal"><span class="pre">in_call</span></tt>: Set to 1 if member is in call. Set to 0 after LastCall time is updated.</li>
+<li><tt class="docutils literal"><span class="pre">last_call</span></tt>: The time this member last took a call, expressed in seconds since 00:00, Jan 1, 1970 UTC.</li>
+<li><tt class="docutils literal"><span class="pre">last_pause</span></tt>: The time when started last paused the queue member.</li>
+<li><tt class="docutils literal"><span class="pre">ring_inuse</span></tt>: Ring in use option.</li>
+</ul>
+</div>
+<div class="section" id="id278">
+<h4>Example<a class="headerlink" href="#id278" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET localhost:8081/queue/members/Agent%2F10001\?queue_name=sales_1
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;result&quot;: {
+      &quot;calls_taken&quot;: 0,
+      &quot;in_call&quot;: 0,
+      &quot;last_call&quot;: 0,
+      &quot;last_pause&quot;: 0,
+      &quot;location&quot;: &quot;Agent/10001&quot;,
+      &quot;membership&quot;: &quot;static&quot;,
+      &quot;name&quot;: &quot;Agent/10001&quot;,
+      &quot;paused&quot;: 0,
+      &quot;paused_reason&quot;: &quot;&quot;,
+      &quot;penalty&quot;: 0,
+      &quot;queue_name&quot;: &quot;sales_1&quot;,
+      &quot;ring_inuse&quot;: null,
+      &quot;state_interface&quot;: &quot;Agent/10001&quot;,
+      &quot;status&quot;: 4,
+      &quot;tm_update&quot;: &quot;2017-12-18T00:31:04.234368754Z&quot;
+  },
+  &quot;statuscode&quot;: 200,
+  &quot;timestamp&quot;: &quot;2017-12-18T00:38:27.704665757Z&quot;
+}
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="queue-queues">
+<h2>/queue/queues<a class="headerlink" href="#queue-queues" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id279">
+<h3>Methods<a class="headerlink" href="#id279" title="Permalink to this headline">¶</a></h3>
+<p>GET : Get list of all queues info</p>
+</div>
+<div class="section" id="id280">
+<h3>Method: GET<a class="headerlink" href="#id280" title="Permalink to this headline">¶</a></h3>
+<p>Get list of all queues info</p>
+<div class="section" id="id281">
+<h4>Call<a class="headerlink" href="#id281" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">GET</span> <span class="o">/</span><span class="n">queue</span><span class="o">/</span><span class="n">queues</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id282">
+<h4>Returns<a class="headerlink" href="#id282" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr,
+  &quot;reuslt&quot;: {
+    &quot;list&quot;: [
+      {
+         &quot;name&quot;: &quot;&lt;string&gt;&quot;,
+         &quot;strategy&quot;: &quot;&lt;string&gt;&quot;,
+         &quot;max&quot;: &lt;integer&gt;,
+         &quot;weight&quot;: &lt;integer&gt;,
+
+         &quot;calls&quot;: &lt;integer&gt;,
+         &quot;completed&quot;: &lt;integer&gt;,
+         &quot;abandoned&quot;: &lt;integer&gt;,
+
+         &quot;hold_time&quot;: &lt;integer&gt;,
+         &quot;talk_time&quot;: &lt;integer&gt;,
+
+         &quot;service_level&quot;: &lt;integer&gt;,
+         &quot;service_level_perf&quot;: &lt;integer&gt;,
+
+         &quot;tm_update&quot;: &quot;&lt;timestamp&gt;&quot;
+      },
+      ...
+    ]
+  }
+}
+</pre></div>
+</div>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">list</span></tt> : array of registry account.
+* See detail at <a class="reference internal" href="queue_api.html#get-queue-queues-detail"><em>Method: GET</em></a>.</li>
+</ul>
+</div>
+<div class="section" id="id283">
+<h4>Example<a class="headerlink" href="#id283" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET localhost:8081/queue/queues
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;result&quot;: {
+      &quot;list&quot;: [
+          {
+              &quot;abandoned&quot;: 2,
+              &quot;calls&quot;: 0,
+              &quot;completed&quot;: 0,
+              &quot;hold_time&quot;: 0,
+              &quot;max&quot;: 0,
+              &quot;name&quot;: &quot;sales_1&quot;,
+              &quot;service_level&quot;: 5,
+              &quot;service_level_perf&quot;: 0.0,
+              &quot;strategy&quot;: &quot;ringall&quot;,
+              &quot;talk_time&quot;: 0,
+              &quot;tm_update&quot;: &quot;2017-12-18T00:31:04.142068111Z&quot;,
+              &quot;weight&quot;: 0
+          }
+      ]
+  },
+  &quot;statuscode&quot;: 200,
+  &quot;timestamp&quot;: &quot;2017-12-18T00:46:25.124236613Z&quot;
+}
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="queue-queues-detail">
+<h2>/queue/queues/&lt;detail&gt;<a class="headerlink" href="#queue-queues-detail" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id284">
+<h3>Methods<a class="headerlink" href="#id284" title="Permalink to this headline">¶</a></h3>
+<p>GET : Get queue detail info of given queue info.</p>
+</div>
+<div class="section" id="get-queue-queues-detail">
+<span id="id285"></span><h3>Method: GET<a class="headerlink" href="#get-queue-queues-detail" title="Permalink to this headline">¶</a></h3>
+<p>Get queue detail info of given queue info.</p>
+<div class="section" id="id286">
+<h4>Call<a class="headerlink" href="#id286" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-python"><div class="highlight"><pre>GET /queue/queues/&lt;detail&gt;
+</pre></div>
+</div>
+<p>Method parameters</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">detail</span></tt>: queue name.</li>
+</ul>
+</div>
+<div class="section" id="id287">
+<h4>Returns<a class="headerlink" href="#id287" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr,
+  &quot;reuslt&quot;: {
+    &quot;name&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;strategy&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;max&quot;: &lt;integer&gt;,
+    &quot;weight&quot;: &lt;integer&gt;,
+
+    &quot;calls&quot;: &lt;integer&gt;,
+    &quot;completed&quot;: &lt;integer&gt;,
+    &quot;abandoned&quot;: &lt;integer&gt;,
+
+    &quot;hold_time&quot;: &lt;integer&gt;,
+    &quot;talk_time&quot;: &lt;integer&gt;,
+
+    &quot;service_level&quot;: &lt;integer&gt;,
+    &quot;service_level_perf&quot;: &lt;integer&gt;,
+
+    &quot;tm_update&quot;: &quot;&lt;timestamp&gt;&quot;
+  }
+}
+</pre></div>
+</div>
+<p>Return parameters</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">name</span></tt>: Queue name.</li>
+<li><tt class="docutils literal"><span class="pre">strategy</span></tt>: Call distribution.</li>
+<li><tt class="docutils literal"><span class="pre">max</span></tt>: Max waiting call count.</li>
+<li><tt class="docutils literal"><span class="pre">weight</span></tt>: Queue priority.</li>
+<li><tt class="docutils literal"><span class="pre">calls</span></tt>: Waiting call count.</li>
+<li><tt class="docutils literal"><span class="pre">completed</span></tt>: Completed call count.</li>
+<li><tt class="docutils literal"><span class="pre">abandoned</span></tt>: Abandoned call count.</li>
+<li><tt class="docutils literal"><span class="pre">hold_time</span></tt>: Average waiting time.</li>
+<li><tt class="docutils literal"><span class="pre">talk_time</span></tt>: Average talk time.</li>
+<li><tt class="docutils literal"><span class="pre">service_level</span></tt>: Service_level_perf interval time.</li>
+<li><tt class="docutils literal"><span class="pre">service_leve_perf</span></tt>: Service level performance.</li>
+</ul>
+</div>
+<div class="section" id="id288">
+<h4>Example<a class="headerlink" href="#id288" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET localhost:8081/queue/queues/sales_1
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;result&quot;: {
+      &quot;abandoned&quot;: 2,
+      &quot;calls&quot;: 0,
+      &quot;completed&quot;: 0,
+      &quot;hold_time&quot;: 0,
+      &quot;max&quot;: 0,
+      &quot;name&quot;: &quot;sales_1&quot;,
+      &quot;service_level&quot;: 5,
+      &quot;service_level_perf&quot;: 0.0,
+      &quot;strategy&quot;: &quot;ringall&quot;,
+      &quot;talk_time&quot;: 0,
+      &quot;tm_update&quot;: &quot;2017-12-18T00:31:04.142068111Z&quot;,
+      &quot;weight&quot;: 0
+  },
+  &quot;statuscode&quot;: 200,
+  &quot;timestamp&quot;: &quot;2017-12-18T00:43:30.189014882Z&quot;
 }
 </pre></div>
 </div>
@@ -6659,9 +6677,9 @@ POST : Create new voicemail user.</p>
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#queue-params">/queue_params</a><ul>
+<li><a class="reference internal" href="#core-channels">/core/channels</a><ul>
 <li><a class="reference internal" href="#id66">Methods</a></li>
-<li><a class="reference internal" href="#id67">Method: GET</a><ul>
+<li><a class="reference internal" href="#get-core-channels">Method: GET</a><ul>
 <li><a class="reference internal" href="#id68">Call</a></li>
 <li><a class="reference internal" href="#id69">Returns</a></li>
 <li><a class="reference internal" href="#id70">Example</a></li>
@@ -6669,49 +6687,53 @@ POST : Create new voicemail user.</p>
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#id71">/queue_params/</a><ul>
-<li><a class="reference internal" href="#id72">Methods</a></li>
-<li><a class="reference internal" href="#id73">Method: GET</a><ul>
-<li><a class="reference internal" href="#id74">Call</a></li>
-<li><a class="reference internal" href="#id75">Returns</a></li>
-<li><a class="reference internal" href="#id76">Example</a></li>
+<li><a class="reference internal" href="#core-channels-detail">/core/channels/&lt;detail&gt;</a><ul>
+<li><a class="reference internal" href="#id71">Methods</a></li>
+<li><a class="reference internal" href="#get-core-channels-detail">Method: GET</a><ul>
+<li><a class="reference internal" href="#id73">Call</a></li>
+<li><a class="reference internal" href="#id74">Returns</a></li>
+<li><a class="reference internal" href="#id75">Example</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#method-delete">Method: DELETE</a><ul>
+<li><a class="reference internal" href="#id76">Call</a></li>
+<li><a class="reference internal" href="#id77">Returns</a></li>
+<li><a class="reference internal" href="#id78">Example</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#queue-members">/queue_members</a><ul>
-<li><a class="reference internal" href="#id77">Methods</a></li>
-<li><a class="reference internal" href="#id78">Method: GET</a><ul>
-<li><a class="reference internal" href="#id79">Call</a></li>
-<li><a class="reference internal" href="#id80">Returns</a></li>
-<li><a class="reference internal" href="#id81">Example</a></li>
+<li><a class="reference internal" href="#core-modules">/core/modules</a><ul>
+<li><a class="reference internal" href="#id79">Methods</a></li>
+<li><a class="reference internal" href="#get-core-modules">Method: GET</a><ul>
+<li><a class="reference internal" href="#id81">Call</a></li>
+<li><a class="reference internal" href="#id82">Returns</a></li>
+<li><a class="reference internal" href="#id83">Example</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#id82">/queue_members/</a><ul>
-<li><a class="reference internal" href="#id83">Methods</a></li>
-<li><a class="reference internal" href="#id84">Method: GET</a><ul>
-<li><a class="reference internal" href="#id85">Call</a></li>
-<li><a class="reference internal" href="#id86">Returns</a></li>
-<li><a class="reference internal" href="#id87">Example</a></li>
+<li><a class="reference internal" href="#core-modules-detail">/core/modules/&lt;detail&gt;</a><ul>
+<li><a class="reference internal" href="#id84">Methods</a></li>
+<li><a class="reference internal" href="#get-core-modules-detail">Method: GET</a><ul>
+<li><a class="reference internal" href="#id86">Call</a></li>
+<li><a class="reference internal" href="#id87">Returns</a></li>
+<li><a class="reference internal" href="#id88">Example</a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#method-post">Method: POST</a><ul>
+<li><a class="reference internal" href="#id89">Call</a></li>
+<li><a class="reference internal" href="#id90">Returns</a></li>
+<li><a class="reference internal" href="#id91">Example</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#queue-entries">/queue_entries</a><ul>
-<li><a class="reference internal" href="#id88">Methods</a></li>
-<li><a class="reference internal" href="#id89">Method: GET</a><ul>
-<li><a class="reference internal" href="#id90">Call</a></li>
-<li><a class="reference internal" href="#id91">Returns</a></li>
-<li><a class="reference internal" href="#id92">Example</a></li>
+<li><a class="reference internal" href="#method-put">Method: PUT</a><ul>
+<li><a class="reference internal" href="#id92">Call</a></li>
+<li><a class="reference internal" href="#id93">Returns</a></li>
+<li><a class="reference internal" href="#id94">Example</a></li>
 </ul>
 </li>
-</ul>
-</li>
-<li><a class="reference internal" href="#id93">/queue_entries/</a><ul>
-<li><a class="reference internal" href="#id94">Methods</a></li>
-<li><a class="reference internal" href="#id95">Method: GET</a><ul>
+<li><a class="reference internal" href="#delete-core-modules-detail">Method: DELETE</a><ul>
 <li><a class="reference internal" href="#id96">Call</a></li>
 <li><a class="reference internal" href="#id97">Returns</a></li>
 <li><a class="reference internal" href="#id98">Example</a></li>
@@ -6719,9 +6741,9 @@ POST : Create new voicemail user.</p>
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#core-channels">/core/channels</a><ul>
+<li><a class="reference internal" href="#core-systems">/core/systems</a><ul>
 <li><a class="reference internal" href="#id99">Methods</a></li>
-<li><a class="reference internal" href="#get-core-channels">Method: GET</a><ul>
+<li><a class="reference internal" href="#get-core-systems">Method: GET</a><ul>
 <li><a class="reference internal" href="#id101">Call</a></li>
 <li><a class="reference internal" href="#id102">Returns</a></li>
 <li><a class="reference internal" href="#id103">Example</a></li>
@@ -6729,73 +6751,67 @@ POST : Create new voicemail user.</p>
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#core-channels-detail">/core/channels/&lt;detail&gt;</a><ul>
+<li><a class="reference internal" href="#core-systems-detail">/core/systems/&lt;detail&gt;</a><ul>
 <li><a class="reference internal" href="#id104">Methods</a></li>
-<li><a class="reference internal" href="#get-core-channels-detail">Method: GET</a><ul>
+<li><a class="reference internal" href="#get-core-systems-detail">Method: GET</a><ul>
 <li><a class="reference internal" href="#id106">Call</a></li>
 <li><a class="reference internal" href="#id107">Returns</a></li>
 <li><a class="reference internal" href="#id108">Example</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#method-delete">Method: DELETE</a><ul>
-<li><a class="reference internal" href="#id109">Call</a></li>
-<li><a class="reference internal" href="#id110">Returns</a></li>
-<li><a class="reference internal" href="#id111">Example</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#voicemail-users">/voicemail/users</a><ul>
+<li><a class="reference internal" href="#id110">Methods</a></li>
+<li><a class="reference internal" href="#id111">Method: GET</a><ul>
+<li><a class="reference internal" href="#id112">Call</a></li>
+<li><a class="reference internal" href="#id113">Returns</a></li>
+<li><a class="reference internal" href="#id114">Example</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id115">Method: POST</a><ul>
+<li><a class="reference internal" href="#id116">Call</a></li>
+<li><a class="reference internal" href="#id117">Returns</a></li>
+<li><a class="reference internal" href="#id118">Example</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#core-modules">/core/modules</a><ul>
-<li><a class="reference internal" href="#id112">Methods</a></li>
-<li><a class="reference internal" href="#get-core-modules">Method: GET</a><ul>
-<li><a class="reference internal" href="#id114">Call</a></li>
-<li><a class="reference internal" href="#id115">Returns</a></li>
-<li><a class="reference internal" href="#id116">Example</a></li>
+<li><a class="reference internal" href="#voicemail-vms">/voicemail/vms</a><ul>
+<li><a class="reference internal" href="#id119">Methods</a></li>
+<li><a class="reference internal" href="#id120">Method: GET</a><ul>
+<li><a class="reference internal" href="#id121">Call</a></li>
+<li><a class="reference internal" href="#id122">Returns</a></li>
+<li><a class="reference internal" href="#id123">Example</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#core-modules-detail">/core/modules/&lt;detail&gt;</a><ul>
-<li><a class="reference internal" href="#id117">Methods</a></li>
-<li><a class="reference internal" href="#get-core-modules-detail">Method: GET</a><ul>
-<li><a class="reference internal" href="#id119">Call</a></li>
-<li><a class="reference internal" href="#id120">Returns</a></li>
-<li><a class="reference internal" href="#id121">Example</a></li>
+<li><a class="reference internal" href="#voicemail-vms-msgname">/voicemail/vms/&lt;msgname&gt;</a><ul>
+<li><a class="reference internal" href="#id124">Methods</a></li>
+<li><a class="reference internal" href="#id125">Method: GET</a><ul>
+<li><a class="reference internal" href="#id126">Call</a></li>
+<li><a class="reference internal" href="#id127">Returns</a></li>
+<li><a class="reference internal" href="#id128">Example</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#method-post">Method: POST</a><ul>
-<li><a class="reference internal" href="#id122">Call</a></li>
-<li><a class="reference internal" href="#id123">Returns</a></li>
-<li><a class="reference internal" href="#id124">Example</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#method-put">Method: PUT</a><ul>
-<li><a class="reference internal" href="#id125">Call</a></li>
-<li><a class="reference internal" href="#id126">Returns</a></li>
-<li><a class="reference internal" href="#id127">Example</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#delete-core-modules-detail">Method: DELETE</a><ul>
-<li><a class="reference internal" href="#id129">Call</a></li>
-<li><a class="reference internal" href="#id130">Returns</a></li>
-<li><a class="reference internal" href="#id131">Example</a></li>
+<li><a class="reference internal" href="#id129">Method: DELETE</a><ul>
+<li><a class="reference internal" href="#id130">Call</a></li>
+<li><a class="reference internal" href="#id131">Returns</a></li>
+<li><a class="reference internal" href="#id132">Example</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#core-systems">/core/systems</a><ul>
-<li><a class="reference internal" href="#id132">Methods</a></li>
-<li><a class="reference internal" href="#get-core-systems">Method: GET</a><ul>
-<li><a class="reference internal" href="#id134">Call</a></li>
-<li><a class="reference internal" href="#id135">Returns</a></li>
-<li><a class="reference internal" href="#id136">Example</a></li>
+<li><a class="reference internal" href="#ob-plans">/ob/plans</a><ul>
+<li><a class="reference internal" href="#id133">Methods</a></li>
+<li><a class="reference internal" href="#id134">Method: POST</a><ul>
+<li><a class="reference internal" href="#id135">Call</a></li>
+<li><a class="reference internal" href="#id136">Returns</a></li>
+<li><a class="reference internal" href="#id137">Example</a></li>
 </ul>
 </li>
-</ul>
-</li>
-<li><a class="reference internal" href="#core-systems-detail">/core/systems/&lt;detail&gt;</a><ul>
-<li><a class="reference internal" href="#id137">Methods</a></li>
-<li><a class="reference internal" href="#get-core-systems-detail">Method: GET</a><ul>
+<li><a class="reference internal" href="#id138">Method: GET</a><ul>
 <li><a class="reference internal" href="#id139">Call</a></li>
 <li><a class="reference internal" href="#id140">Returns</a></li>
 <li><a class="reference internal" href="#id141">Example</a></li>
@@ -6803,7 +6819,7 @@ POST : Create new voicemail user.</p>
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#voicemail-users">/voicemail/users</a><ul>
+<li><a class="reference internal" href="#ob-plans-uuid">/ob/plans/&lt;uuid&gt;</a><ul>
 <li><a class="reference internal" href="#id142">Methods</a></li>
 <li><a class="reference internal" href="#id143">Method: GET</a><ul>
 <li><a class="reference internal" href="#id144">Call</a></li>
@@ -6811,249 +6827,251 @@ POST : Create new voicemail user.</p>
 <li><a class="reference internal" href="#id146">Example</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#id147">Method: POST</a><ul>
+<li><a class="reference internal" href="#id147">Method: PUT</a><ul>
 <li><a class="reference internal" href="#id148">Call</a></li>
 <li><a class="reference internal" href="#id149">Returns</a></li>
 <li><a class="reference internal" href="#id150">Example</a></li>
 </ul>
 </li>
-</ul>
-</li>
-<li><a class="reference internal" href="#voicemail-vms">/voicemail/vms</a><ul>
-<li><a class="reference internal" href="#id151">Methods</a></li>
-<li><a class="reference internal" href="#id152">Method: GET</a><ul>
-<li><a class="reference internal" href="#id153">Call</a></li>
-<li><a class="reference internal" href="#id154">Returns</a></li>
-<li><a class="reference internal" href="#id155">Example</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#voicemail-vms-msgname">/voicemail/vms/&lt;msgname&gt;</a><ul>
-<li><a class="reference internal" href="#id156">Methods</a></li>
-<li><a class="reference internal" href="#id157">Method: GET</a><ul>
-<li><a class="reference internal" href="#id158">Call</a></li>
-<li><a class="reference internal" href="#id159">Returns</a></li>
-<li><a class="reference internal" href="#id160">Example</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#id161">Method: DELETE</a><ul>
-<li><a class="reference internal" href="#id162">Call</a></li>
-<li><a class="reference internal" href="#id163">Returns</a></li>
-<li><a class="reference internal" href="#id164">Example</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#ob-plans">/ob/plans</a><ul>
-<li><a class="reference internal" href="#id165">Methods</a></li>
-<li><a class="reference internal" href="#id166">Method: POST</a><ul>
-<li><a class="reference internal" href="#id167">Call</a></li>
-<li><a class="reference internal" href="#id168">Returns</a></li>
-<li><a class="reference internal" href="#id169">Example</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#id170">Method: GET</a><ul>
-<li><a class="reference internal" href="#id171">Call</a></li>
-<li><a class="reference internal" href="#id172">Returns</a></li>
-<li><a class="reference internal" href="#id173">Example</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#ob-plans-uuid">/ob/plans/&lt;uuid&gt;</a><ul>
-<li><a class="reference internal" href="#id174">Methods</a></li>
-<li><a class="reference internal" href="#id175">Method: GET</a><ul>
-<li><a class="reference internal" href="#id176">Call</a></li>
-<li><a class="reference internal" href="#id177">Returns</a></li>
-<li><a class="reference internal" href="#id178">Example</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#id179">Method: PUT</a><ul>
-<li><a class="reference internal" href="#id180">Call</a></li>
-<li><a class="reference internal" href="#id181">Returns</a></li>
-<li><a class="reference internal" href="#id182">Example</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#id183">Method: DELETE</a><ul>
-<li><a class="reference internal" href="#id184">Call</a></li>
-<li><a class="reference internal" href="#id185">Returns</a></li>
-<li><a class="reference internal" href="#id186">Example</a></li>
+<li><a class="reference internal" href="#id151">Method: DELETE</a><ul>
+<li><a class="reference internal" href="#id152">Call</a></li>
+<li><a class="reference internal" href="#id153">Returns</a></li>
+<li><a class="reference internal" href="#id154">Example</a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li><a class="reference internal" href="#ob-destinations">/ob/destinations</a><ul>
-<li><a class="reference internal" href="#id187">Methods</a></li>
-<li><a class="reference internal" href="#id188">Method: POST</a><ul>
-<li><a class="reference internal" href="#id189">Call</a></li>
-<li><a class="reference internal" href="#id190">Returns</a></li>
-<li><a class="reference internal" href="#id191">Example</a></li>
+<li><a class="reference internal" href="#id155">Methods</a></li>
+<li><a class="reference internal" href="#id156">Method: POST</a><ul>
+<li><a class="reference internal" href="#id157">Call</a></li>
+<li><a class="reference internal" href="#id158">Returns</a></li>
+<li><a class="reference internal" href="#id159">Example</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#id192">Method: GET</a><ul>
-<li><a class="reference internal" href="#id193">Call</a></li>
-<li><a class="reference internal" href="#id194">Returns</a></li>
-<li><a class="reference internal" href="#id195">Example</a></li>
+<li><a class="reference internal" href="#id160">Method: GET</a><ul>
+<li><a class="reference internal" href="#id161">Call</a></li>
+<li><a class="reference internal" href="#id162">Returns</a></li>
+<li><a class="reference internal" href="#id163">Example</a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li><a class="reference internal" href="#ob-destinations-uuid">/ob/destinations/&lt;uuid&gt;</a><ul>
-<li><a class="reference internal" href="#id196">Methods</a></li>
-<li><a class="reference internal" href="#id197">Method: GET</a><ul>
-<li><a class="reference internal" href="#id198">Call</a></li>
-<li><a class="reference internal" href="#id199">Returns</a></li>
-<li><a class="reference internal" href="#id200">Example</a></li>
+<li><a class="reference internal" href="#id164">Methods</a></li>
+<li><a class="reference internal" href="#id165">Method: GET</a><ul>
+<li><a class="reference internal" href="#id166">Call</a></li>
+<li><a class="reference internal" href="#id167">Returns</a></li>
+<li><a class="reference internal" href="#id168">Example</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#id201">Method: PUT</a><ul>
-<li><a class="reference internal" href="#id202">Call</a></li>
-<li><a class="reference internal" href="#id203">Returns</a></li>
-<li><a class="reference internal" href="#id204">Example</a></li>
+<li><a class="reference internal" href="#id169">Method: PUT</a><ul>
+<li><a class="reference internal" href="#id170">Call</a></li>
+<li><a class="reference internal" href="#id171">Returns</a></li>
+<li><a class="reference internal" href="#id172">Example</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#id205">Method: DELETE</a><ul>
-<li><a class="reference internal" href="#id206">Call</a></li>
-<li><a class="reference internal" href="#id207">Returns</a></li>
-<li><a class="reference internal" href="#id208">Example</a></li>
+<li><a class="reference internal" href="#id173">Method: DELETE</a><ul>
+<li><a class="reference internal" href="#id174">Call</a></li>
+<li><a class="reference internal" href="#id175">Returns</a></li>
+<li><a class="reference internal" href="#id176">Example</a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li><a class="reference internal" href="#ob-dlmas">/ob/dlmas</a><ul>
-<li><a class="reference internal" href="#id209">Methods</a></li>
-<li><a class="reference internal" href="#id210">Method: POST</a><ul>
-<li><a class="reference internal" href="#id211">Call</a></li>
-<li><a class="reference internal" href="#id212">Returns</a></li>
-<li><a class="reference internal" href="#id213">Example</a></li>
+<li><a class="reference internal" href="#id177">Methods</a></li>
+<li><a class="reference internal" href="#id178">Method: POST</a><ul>
+<li><a class="reference internal" href="#id179">Call</a></li>
+<li><a class="reference internal" href="#id180">Returns</a></li>
+<li><a class="reference internal" href="#id181">Example</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#id214">Method: GET</a><ul>
-<li><a class="reference internal" href="#id215">Call</a></li>
-<li><a class="reference internal" href="#id216">Returns</a></li>
-<li><a class="reference internal" href="#id217">Example</a></li>
+<li><a class="reference internal" href="#id182">Method: GET</a><ul>
+<li><a class="reference internal" href="#id183">Call</a></li>
+<li><a class="reference internal" href="#id184">Returns</a></li>
+<li><a class="reference internal" href="#id185">Example</a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li><a class="reference internal" href="#ob-dlmas-uuid">/ob/dlmas/&lt;uuid&gt;</a><ul>
-<li><a class="reference internal" href="#id218">Methods</a></li>
-<li><a class="reference internal" href="#id219">Method: GET</a><ul>
-<li><a class="reference internal" href="#id220">Call</a></li>
-<li><a class="reference internal" href="#id221">Returns</a></li>
-<li><a class="reference internal" href="#id222">Example</a></li>
+<li><a class="reference internal" href="#id186">Methods</a></li>
+<li><a class="reference internal" href="#id187">Method: GET</a><ul>
+<li><a class="reference internal" href="#id188">Call</a></li>
+<li><a class="reference internal" href="#id189">Returns</a></li>
+<li><a class="reference internal" href="#id190">Example</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#id223">Method: PUT</a><ul>
-<li><a class="reference internal" href="#id224">Call</a></li>
-<li><a class="reference internal" href="#id225">Returns</a></li>
-<li><a class="reference internal" href="#id226">Example</a></li>
+<li><a class="reference internal" href="#id191">Method: PUT</a><ul>
+<li><a class="reference internal" href="#id192">Call</a></li>
+<li><a class="reference internal" href="#id193">Returns</a></li>
+<li><a class="reference internal" href="#id194">Example</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#id227">Method: DELETE</a><ul>
-<li><a class="reference internal" href="#id228">Call</a></li>
-<li><a class="reference internal" href="#id229">Returns</a></li>
-<li><a class="reference internal" href="#id230">Example</a></li>
+<li><a class="reference internal" href="#id195">Method: DELETE</a><ul>
+<li><a class="reference internal" href="#id196">Call</a></li>
+<li><a class="reference internal" href="#id197">Returns</a></li>
+<li><a class="reference internal" href="#id198">Example</a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li><a class="reference internal" href="#ob-dls">/ob/dls</a><ul>
-<li><a class="reference internal" href="#id231">Methods</a></li>
-<li><a class="reference internal" href="#id232">Method: POST</a><ul>
-<li><a class="reference internal" href="#id233">Call</a></li>
-<li><a class="reference internal" href="#id234">Returns</a></li>
-<li><a class="reference internal" href="#id235">Example</a></li>
+<li><a class="reference internal" href="#id199">Methods</a></li>
+<li><a class="reference internal" href="#id200">Method: POST</a><ul>
+<li><a class="reference internal" href="#id201">Call</a></li>
+<li><a class="reference internal" href="#id202">Returns</a></li>
+<li><a class="reference internal" href="#id203">Example</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#id236">Method: GET</a><ul>
-<li><a class="reference internal" href="#id237">Call</a></li>
-<li><a class="reference internal" href="#id238">Returns</a></li>
-<li><a class="reference internal" href="#id239">Example</a></li>
+<li><a class="reference internal" href="#id204">Method: GET</a><ul>
+<li><a class="reference internal" href="#id205">Call</a></li>
+<li><a class="reference internal" href="#id206">Returns</a></li>
+<li><a class="reference internal" href="#id207">Example</a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li><a class="reference internal" href="#ob-dls-uuid">/ob/dls/&lt;uuid&gt;</a><ul>
-<li><a class="reference internal" href="#id240">Methods</a></li>
-<li><a class="reference internal" href="#id241">Method: GET</a><ul>
-<li><a class="reference internal" href="#id242">Call</a></li>
-<li><a class="reference internal" href="#id243">Returns</a></li>
-<li><a class="reference internal" href="#id244">Example</a></li>
+<li><a class="reference internal" href="#id208">Methods</a></li>
+<li><a class="reference internal" href="#id209">Method: GET</a><ul>
+<li><a class="reference internal" href="#id210">Call</a></li>
+<li><a class="reference internal" href="#id211">Returns</a></li>
+<li><a class="reference internal" href="#id212">Example</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#id245">Method: PUT</a><ul>
-<li><a class="reference internal" href="#id246">Call</a></li>
-<li><a class="reference internal" href="#id247">Returns</a></li>
-<li><a class="reference internal" href="#id248">Example</a></li>
+<li><a class="reference internal" href="#id213">Method: PUT</a><ul>
+<li><a class="reference internal" href="#id214">Call</a></li>
+<li><a class="reference internal" href="#id215">Returns</a></li>
+<li><a class="reference internal" href="#id216">Example</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#id249">Method: DELETE</a><ul>
-<li><a class="reference internal" href="#id250">Call</a></li>
-<li><a class="reference internal" href="#id251">Returns</a></li>
-<li><a class="reference internal" href="#id252">Example</a></li>
+<li><a class="reference internal" href="#id217">Method: DELETE</a><ul>
+<li><a class="reference internal" href="#id218">Call</a></li>
+<li><a class="reference internal" href="#id219">Returns</a></li>
+<li><a class="reference internal" href="#id220">Example</a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li><a class="reference internal" href="#ob-dialings">/ob/dialings</a><ul>
-<li><a class="reference internal" href="#id253">Methods</a></li>
-<li><a class="reference internal" href="#id254">Method: GET</a><ul>
-<li><a class="reference internal" href="#id255">Call</a></li>
-<li><a class="reference internal" href="#id256">Returns</a></li>
-<li><a class="reference internal" href="#id257">Example</a></li>
+<li><a class="reference internal" href="#id221">Methods</a></li>
+<li><a class="reference internal" href="#id222">Method: GET</a><ul>
+<li><a class="reference internal" href="#id223">Call</a></li>
+<li><a class="reference internal" href="#id224">Returns</a></li>
+<li><a class="reference internal" href="#id225">Example</a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li><a class="reference internal" href="#ob-dialings-uuid">/ob/dialings/&lt;uuid&gt;</a><ul>
-<li><a class="reference internal" href="#id258">Methods</a></li>
-<li><a class="reference internal" href="#id259">Method: GET</a><ul>
-<li><a class="reference internal" href="#id260">Call</a></li>
-<li><a class="reference internal" href="#id261">Returns</a></li>
-<li><a class="reference internal" href="#id262">Example</a></li>
+<li><a class="reference internal" href="#id226">Methods</a></li>
+<li><a class="reference internal" href="#id227">Method: GET</a><ul>
+<li><a class="reference internal" href="#id228">Call</a></li>
+<li><a class="reference internal" href="#id229">Returns</a></li>
+<li><a class="reference internal" href="#id230">Example</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#id263">Method: DELETE</a><ul>
-<li><a class="reference internal" href="#id264">Call</a></li>
-<li><a class="reference internal" href="#id265">Returns</a></li>
-<li><a class="reference internal" href="#id266">Example</a></li>
+<li><a class="reference internal" href="#id231">Method: DELETE</a><ul>
+<li><a class="reference internal" href="#id232">Call</a></li>
+<li><a class="reference internal" href="#id233">Returns</a></li>
+<li><a class="reference internal" href="#id234">Example</a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li><a class="reference internal" href="#ob-campaigns">/ob/campaigns</a><ul>
-<li><a class="reference internal" href="#id267">Methods</a></li>
-<li><a class="reference internal" href="#id268">Method: POST</a><ul>
-<li><a class="reference internal" href="#id269">Call</a></li>
-<li><a class="reference internal" href="#id270">Returns</a></li>
-<li><a class="reference internal" href="#id271">Example</a></li>
+<li><a class="reference internal" href="#id235">Methods</a></li>
+<li><a class="reference internal" href="#id236">Method: POST</a><ul>
+<li><a class="reference internal" href="#id237">Call</a></li>
+<li><a class="reference internal" href="#id238">Returns</a></li>
+<li><a class="reference internal" href="#id239">Example</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#id272">Method: GET</a><ul>
-<li><a class="reference internal" href="#id273">Call</a></li>
-<li><a class="reference internal" href="#id274">Returns</a></li>
-<li><a class="reference internal" href="#id275">Example</a></li>
+<li><a class="reference internal" href="#id240">Method: GET</a><ul>
+<li><a class="reference internal" href="#id241">Call</a></li>
+<li><a class="reference internal" href="#id242">Returns</a></li>
+<li><a class="reference internal" href="#id243">Example</a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li><a class="reference internal" href="#ob-campaigns-uuid">/ob/campaigns/&lt;uuid&gt;</a><ul>
-<li><a class="reference internal" href="#id276">Methods</a></li>
-<li><a class="reference internal" href="#id277">Method: GET</a><ul>
-<li><a class="reference internal" href="#id278">Call</a></li>
-<li><a class="reference internal" href="#id279">Returns</a></li>
-<li><a class="reference internal" href="#id280">Example</a></li>
+<li><a class="reference internal" href="#id244">Methods</a></li>
+<li><a class="reference internal" href="#id245">Method: GET</a><ul>
+<li><a class="reference internal" href="#id246">Call</a></li>
+<li><a class="reference internal" href="#id247">Returns</a></li>
+<li><a class="reference internal" href="#id248">Example</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#id281">Method: PUT</a><ul>
-<li><a class="reference internal" href="#id282">Call</a></li>
-<li><a class="reference internal" href="#id283">Returns</a></li>
-<li><a class="reference internal" href="#id284">Example</a></li>
+<li><a class="reference internal" href="#id249">Method: PUT</a><ul>
+<li><a class="reference internal" href="#id250">Call</a></li>
+<li><a class="reference internal" href="#id251">Returns</a></li>
+<li><a class="reference internal" href="#id252">Example</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#id285">Method: DELETE</a><ul>
+<li><a class="reference internal" href="#id253">Method: DELETE</a><ul>
+<li><a class="reference internal" href="#id254">Call</a></li>
+<li><a class="reference internal" href="#id255">Returns</a></li>
+<li><a class="reference internal" href="#id256">Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#queue-entries">/queue/entries</a><ul>
+<li><a class="reference internal" href="#id258">Methods</a></li>
+<li><a class="reference internal" href="#get-queue-entries">Method: GET</a><ul>
+<li><a class="reference internal" href="#id260">Call</a></li>
+<li><a class="reference internal" href="#id261">Returns</a></li>
+<li><a class="reference internal" href="#id262">Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#queue-entries-detail">/queue/entries/&lt;detail&gt;</a><ul>
+<li><a class="reference internal" href="#id264">Methods</a></li>
+<li><a class="reference internal" href="#get-queue-entries-detail">Method: GET</a><ul>
+<li><a class="reference internal" href="#id266">Call</a></li>
+<li><a class="reference internal" href="#id267">Returns</a></li>
+<li><a class="reference internal" href="#id268">Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#queue-members">/queue/members</a><ul>
+<li><a class="reference internal" href="#id269">Methods</a></li>
+<li><a class="reference internal" href="#get-queue-members">Method: GET</a><ul>
+<li><a class="reference internal" href="#id271">Call</a></li>
+<li><a class="reference internal" href="#id272">Returns</a></li>
+<li><a class="reference internal" href="#id273">Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#queue-members-detail">/queue/members/&lt;detail&gt;</a><ul>
+<li><a class="reference internal" href="#id274">Methods</a></li>
+<li><a class="reference internal" href="#get-queue-members-detail">Method: GET</a><ul>
+<li><a class="reference internal" href="#id276">Call</a></li>
+<li><a class="reference internal" href="#id277">Returns</a></li>
+<li><a class="reference internal" href="#id278">Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#queue-queues">/queue/queues</a><ul>
+<li><a class="reference internal" href="#id279">Methods</a></li>
+<li><a class="reference internal" href="#id280">Method: GET</a><ul>
+<li><a class="reference internal" href="#id281">Call</a></li>
+<li><a class="reference internal" href="#id282">Returns</a></li>
+<li><a class="reference internal" href="#id283">Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#queue-queues-detail">/queue/queues/&lt;detail&gt;</a><ul>
+<li><a class="reference internal" href="#id284">Methods</a></li>
+<li><a class="reference internal" href="#get-queue-queues-detail">Method: GET</a><ul>
 <li><a class="reference internal" href="#id286">Call</a></li>
 <li><a class="reference internal" href="#id287">Returns</a></li>
 <li><a class="reference internal" href="#id288">Example</a></li>
