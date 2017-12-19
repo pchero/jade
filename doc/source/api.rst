@@ -1004,5 +1004,6 @@ Example
 
 .. include:: core_api.rst
 .. include:: ob_api.rst
+.. include:: pjsip_api.rst
 .. include:: queue_api.rst
 .. include:: voicemail_api.rst

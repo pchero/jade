@@ -425,8 +425,8 @@ static const char* g_sql_drop_pjsip_contact = "drop table if exists pjsip_contac
 static const char* g_sql_create_pjsip_contact =
 "create table pjsip_contact("
 
-"   uri             varchar(1023),"
 "   id              varchar(1023),"
+"   uri             varchar(1023),"
 "   aor             varchar(1023),"
 "   endpoint_name   varchar(1023),"
 
@@ -448,7 +448,7 @@ static const char* g_sql_create_pjsip_contact =
 // timestamp. UTC."
 "   tm_update         datetime(6),"   // update time."
 
-"   primary key(uri)"
+"   primary key(id)"
 
 ");";
 

@@ -1482,7 +1482,7 @@ json_t* get_pjsip_contact_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired get_pjsip_contact_info.");
 
-  j_res = get_detail_item_key_string("pjsip_contact", "uri", key);
+  j_res = get_detail_item_key_string("pjsip_contact", "id", key);
 
   return j_res;
 }

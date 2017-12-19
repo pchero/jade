@@ -197,10 +197,6 @@ bool init_http_handler(void)
 
 
   //// ^/pjsip/
-  // endpoints
-  evhtp_set_regex_cb(g_htp, "^/pjsip/endpoints/(.*)", cb_htp_pjsip_endpoints_detail, NULL);
-  evhtp_set_regex_cb(g_htp, "^/pjsip/endpoints$", cb_htp_pjsip_endpoints, NULL);
-
   // aors
   evhtp_set_regex_cb(g_htp, "^/pjsip/aors/(.*)", cb_htp_pjsip_aors_detail, NULL);
   evhtp_set_regex_cb(g_htp, "^/pjsip/aors$", cb_htp_pjsip_aors, NULL);
@@ -212,6 +208,10 @@ bool init_http_handler(void)
   // contacts
   evhtp_set_regex_cb(g_htp, "^/pjsip/contacts/(.*)", cb_htp_pjsip_contacts_detail, NULL);
   evhtp_set_regex_cb(g_htp, "^/pjsip/contacts$", cb_htp_pjsip_contacts, NULL);
+
+  // endpoints
+  evhtp_set_regex_cb(g_htp, "^/pjsip/endpoints/(.*)", cb_htp_pjsip_endpoints_detail, NULL);
+  evhtp_set_regex_cb(g_htp, "^/pjsip/endpoints$", cb_htp_pjsip_endpoints, NULL);
 
 
 
