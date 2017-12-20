@@ -17,7 +17,7 @@
 #include "resource_handler.h"
 #include "misc_handler.h"
 #include "ob_event_handler.h"
-
+#include "zmq_handler.h"
 
 app* g_app;
 db_ctx_t* g_db_ast;
@@ -77,6 +77,12 @@ bool init(void)
   }
   slog(LOG_NOTICE, "Finished resource_init.");
 
+  ret = init_zmq_handler();
+  if(ret == false) {
+    slog(LOG_ERR, "Coudl not initiate zmq_handler.");
+    return false;
+  }
+
   ret = init_data_handler();
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate ami_handle.");
@@ -124,6 +130,9 @@ bool terminate(void)
 
   // terminate outbound module.
   term_outbound();
+
+  // terminate zme
+  term_zmq_handler();
 
   // terminate database
   db_ctx_term(g_db_ast);

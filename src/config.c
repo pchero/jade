@@ -31,6 +31,7 @@
 #define DEF_GENERAL_AMI_SERV_PORT "5038"
 #define DEF_GENERAL_HTTP_ADDR "0.0.0.0"
 #define DEF_GENERAL_HTTP_PORT "8081"
+#define DEF_GENERAL_ZMQ_ADDR_PUBLISH "tcp://*:8082"   // zmq address for publish
 #define DEF_GENERAL_LOGLEVEL  "5"
 #define DEF_GENERAL_DATABASE_NAME ":memory:"
 #define DEF_GENERAL_EVENT_TIME_FAST "100000"
@@ -145,7 +146,10 @@ static bool load_config(void)
   j_conf_def = json_pack("{"
       "s:{"
       	"s:s, s:s, s:s, s:s, s:s, "
-      	"s:s, s:s, s:s, s:s, s:s, "
+      	"s:s, "
+      	"s:s, s:s, "
+        "s:s, "
+      	"s:s, s:s, "
       	"s:s, s:s "
 			"},"	// general
       "s:{s:s, s:s}, "	// voicemail
@@ -159,8 +163,12 @@ static bool load_config(void)
         "loglevel",         DEF_GENERAL_LOGLEVEL,
 
         "database_name",    DEF_GENERAL_DATABASE_NAME,
+
         "http_addr",        DEF_GENERAL_HTTP_ADDR,
         "http_port",        DEF_GENERAL_HTTP_PORT,
+
+        "zmq_addr_pub",     DEF_GENERAL_ZMQ_ADDR_PUBLISH,
+
         "event_time_fast",  DEF_GENERAL_EVENT_TIME_FAST,
         "event_time_slow",  DEF_GENERAL_EVENT_TIME_SLOW,
 

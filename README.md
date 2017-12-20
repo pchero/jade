@@ -29,6 +29,8 @@ This module makes easy to managing the calls.
 * libjansson
 * libevhtp(https://github.com/criticalstack/libevhtp)
 * libssl
+* libonig
+* libzmq
 
 ## Manual
 * https://rawgit.com/pchero/jade/master/doc/build/html/index.html
