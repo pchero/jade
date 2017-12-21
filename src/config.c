@@ -760,6 +760,44 @@ bool create_ast_current_config_content(const char* filename, const char* section
 }
 
 /**
+ * Delete asterisk configuration file content.
+ * If already exist, return false.
+ * @param j_conf
+ * @param filename
+ * @return
+ */
+bool delete_ast_current_config_content(const char* filename, const char* section, const char* key)
+{
+  int ret;
+  json_t* j_conf;
+
+  if((filename == NULL) || (section == NULL) || (key == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  // get config
+  j_conf = get_ast_current_config_info(filename);
+  if(j_conf == NULL) {
+    slog(LOG_ERR, "Could not get config info.");
+    return false;
+  }
+
+  // delete key
+  json_object_del(json_object_get(j_conf, section), key);
+
+  // update conf
+  ret = update_ast_current_config_info(filename, j_conf);
+  json_decref(j_conf);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update current ast config info.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
  * Create asterisk configuration file section with given data.
  * If already exist, return false.
  * @param j_conf
@@ -842,6 +880,45 @@ bool update_ast_current_config_section_data(const char* filename, const char* se
 
   // set data
   json_object_set(j_conf, section, j_data);
+
+  // update conf
+  ret = update_ast_current_config_info(filename, j_conf);
+  json_decref(j_conf);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update current ast config info.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Delete asterisk configuration file section.
+ * If not exist, return true.
+ * @param j_conf
+ * @param filename
+ * @return
+ */
+bool delete_ast_current_config_section(const char* filename, const char* section)
+{
+  int ret;
+  json_t* j_conf;
+
+  if((filename == NULL) || (section == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired delete_ast_current_config_section. filename[%s]", filename);
+
+  // get config
+  j_conf = get_ast_current_config_info(filename);
+  if(j_conf == NULL) {
+    slog(LOG_ERR, "Could not get config info.");
+    return false;
+  }
+
+  // delete section
+  json_object_del(j_conf, section);
 
   // update conf
   ret = update_ast_current_config_info(filename, j_conf);
