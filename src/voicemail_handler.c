@@ -39,8 +39,6 @@ static bool remove_vm(const char* context, const char* mailbox, const char* dir,
 static bool create_voicemail_user(json_t* j_data);
 static int update_voicemail_user(json_t* j_data);
 
-static char* create_voicemail_confname(void);
-
 static json_t* get_voicemail_current_setting_info(void);
 static int update_voicemail_current_setting_info(json_t* j_data);
 
@@ -48,11 +46,8 @@ static json_t* get_voicemail_backup_settings_all(void);
 static json_t* get_voicemail_backup_setting_info(const char* filename);
 static bool remove_voicemail_backup_setting_info(const char* filename);
 
-static bool is_exist_voicemail_user(const char* context, const char* mailbox);
 static bool is_setting_context(const char* context);
 static bool is_voicemail_setting_filename(const char* filename);
-
-static int remove_voicemail_user_info(const char* context, const char* mailbox);
 
 
 /**
@@ -1144,24 +1139,6 @@ static char* create_voicemail_user_info_string(json_t* j_data)
   return res;
 }
 
-static bool is_exist_voicemail_user(const char* context, const char* mailbox)
-{
-  json_t* j_tmp;
-
-  if((context == NULL) || (mailbox == NULL)) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return false;
-  }
-
-  j_tmp = get_voicemail_user_info(context, mailbox);
-  if(j_tmp == NULL) {
-    return false;
-  }
-  json_decref(j_tmp);
-
-  return true;
-}
-
 static bool is_setting_context(const char* context)
 {
   int ret;
@@ -1178,42 +1155,6 @@ static bool is_setting_context(const char* context)
 
   return false;
 }
-
-/**
- * Revmoe given voicemail user info from the voicemail configuration file.
- * @param j_data
- * @return
- */
-static int remove_voicemail_user_info(const char* context, const char* mailbox)
-{
-  char* confname;
-  int ret;
-
-  if((context == NULL) || (mailbox == NULL)) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return false;
-  }
-
-  // is setting context?
-  ret = is_setting_context(context);
-  if(ret == true) {
-    slog(LOG_NOTICE, "Given context is setting context.");
-    return false;
-  }
-
-  confname = create_voicemail_confname();
-  if(confname == NULL) {
-    slog(LOG_ERR, "Could not create voicemail configuration filename.");
-    return false;
-  }
-
-  // remove it!
-  ini_puts(context, mailbox, NULL, confname);
-  sfree(confname);
-
-  return true;
-}
-
 
 /**
  * Update voicemail user info.
@@ -1329,39 +1270,17 @@ static int delete_voicemail_user(const char* context, const char* mailbox)
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
+  slog(LOG_DEBUG, "Delete voicemail user. context[%s], mailbox[%s]", context, mailbox);
 
-  // check existence
-  ret = is_exist_voicemail_user(context, mailbox);
-  if(ret != true) {
-    slog(LOG_NOTICE, "The given voicemail user info is not exist. context[%s], malbox[%s]", context, mailbox);
-    return false;
-  }
-
-  // remove it!
-  ret = remove_voicemail_user_info(context, mailbox);
+  // delete voicemail user
+  ret = delete_ast_current_config_content(DEF_VOICEMAIL_CONFNAME, context, mailbox);
   if(ret == false) {
-    slog(LOG_ERR, "Could not remove voicemail user info.");
+    slog(LOG_ERR, "Could not delete voicemail user.");
     return false;
   }
 
   return true;
-}
 
-static char* create_voicemail_confname(void)
-{
-  char* res;
-  const char* dir;
-  const char* conf;
-
-  dir = json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "directory_conf"));
-  conf = json_string_value(json_object_get(json_object_get(g_app->j_conf, "voicemail"), "conf_name"));
-  if((dir == NULL) || (conf == NULL)) {
-    slog(LOG_ERR, "Could not get voicemail config file info.");
-    return NULL;
-  }
-
-  asprintf(&res, "%s/%s", dir, conf);
-  return res;
 }
 
 /**
