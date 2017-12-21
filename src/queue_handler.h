@@ -20,6 +20,7 @@ void htp_post_queue_queues(evhtp_request_t *req, void *data);
 
 void htp_get_queue_queues_detail(evhtp_request_t *req, void *data);
 void htp_put_queue_queues_detail(evhtp_request_t *req, void *data);
+void htp_delete_queue_queues_detail(evhtp_request_t *req, void *data);
 
 
 #endif /* SRC_QUEUE_HANDLER_H_ */

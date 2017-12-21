@@ -908,7 +908,7 @@ bool delete_ast_current_config_section(const char* filename, const char* section
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
-  slog(LOG_DEBUG, "Fired delete_ast_current_config_section. filename[%s]", filename);
+  slog(LOG_DEBUG, "Fired delete_ast_current_config_section. filename[%s], section[%s]", filename, section);
 
   // get config
   j_conf = get_ast_current_config_info(filename);

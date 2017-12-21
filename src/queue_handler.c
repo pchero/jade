@@ -363,7 +363,54 @@ void htp_put_queue_queues_detail(evhtp_request_t *req, void *data)
   sfree(name);
   json_decref(j_data);
   if(ret == false) {
-    slog(LOG_ERR, "Could not get create queue info.");
+    slog(LOG_ERR, "Could not update queue info.");
+    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = create_default_result(EVHTP_RES_OK);
+
+  // response
+  simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * htp request handler.
+ * DELETE ^/queue/queues/(.*) request handler.
+ * @param req
+ * @param data
+ */
+void htp_delete_queue_queues_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  const char* tmp_const;
+  char* name;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired htp_delete_queue_queues_detail.");
+
+  // name parse
+  tmp_const = req->uri->path->file;
+  name = uri_parse(tmp_const);
+  if(name == NULL) {
+    slog(LOG_ERR, "Could not get name info.");
+    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // delete queue
+  ret = delete_queue_info(name);
+  sfree(name);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not get delete queue info.");
     simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
