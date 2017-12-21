@@ -655,7 +655,7 @@ void htp_get_voicemail_settings_detail(evhtp_request_t *req, void *data)
 
   // name parse
   tmp_const = req->uri->path->file;
-  name = uri_parse(tmp_const);
+  name = uri_decode(tmp_const);
   if(name == NULL) {
     slog(LOG_ERR, "Could not get name info.");
     simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
@@ -702,7 +702,7 @@ void htp_delete_voicemail_settings_detail(evhtp_request_t *req, void *data)
 
   // name parse
   tmp_const = req->uri->path->file;
-  name = uri_parse(tmp_const);
+  name = uri_decode(tmp_const);
   if(name == NULL) {
     slog(LOG_ERR, "Could not get name info.");
     simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);

@@ -66,7 +66,7 @@ void htp_get_core_channels_detail(evhtp_request_t *req, void *data)
   slog(LOG_INFO, "Fired htp_get_core_channels_detail.");
 
   // get channel unique_id
-  unique_id = uri_parse(req->uri->path->file);
+  unique_id = uri_decode(req->uri->path->file);
   if(unique_id == NULL) {
     slog(LOG_NOTICE, "Could not get uuid info.");
     simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
@@ -261,7 +261,7 @@ void htp_get_core_modules_detail(evhtp_request_t *req, void *data)
   slog(LOG_INFO, "Fired htp_gett_core_modules_detail.");
 
   // get module name
-  name = uri_parse(req->uri->path->file);
+  name = uri_decode(req->uri->path->file);
   if(name == NULL) {
     simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
@@ -301,7 +301,7 @@ void htp_post_core_modules_detail(evhtp_request_t *req, void *data)
   slog(LOG_INFO, "Fired htp_post_core_modules_detail.");
 
   // get module name
-  name = uri_parse(req->uri->path->file);
+  name = uri_decode(req->uri->path->file);
   if(name == NULL) {
     simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
@@ -342,7 +342,7 @@ void htp_put_core_modules_detail(evhtp_request_t *req, void *data)
   slog(LOG_INFO, "Fired htp_put_core_modules_detail.");
 
   // get module name
-  name = uri_parse(req->uri->path->file);
+  name = uri_decode(req->uri->path->file);
   if(name == NULL) {
     simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
@@ -383,7 +383,7 @@ void htp_delete_core_modules_detail(evhtp_request_t *req, void *data)
   slog(LOG_INFO, "Fired htp_delete_core_modules_detail.");
 
   // get module name
-  name = uri_parse(req->uri->path->file);
+  name = uri_decode(req->uri->path->file);
   if(name == NULL) {
     simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;

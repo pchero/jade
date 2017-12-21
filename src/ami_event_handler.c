@@ -558,7 +558,8 @@ static void ami_event_queueparams(json_t* j_msg)
     return;
   }
 
-  ret = db_ctx_insert_or_replace(g_db_ast, "queue_param", j_tmp);
+  // create queue info
+  ret = create_queue_param_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert queue_param.");
@@ -1016,10 +1017,10 @@ static void ami_event_queuecallerjoin(json_t* j_msg)
       "s:s"
       "}",
 
-      "queue_name", json_string_value(json_object_get(j_msg, "Queue"))? : "",
+      "queue_name",           json_string_value(json_object_get(j_msg, "Queue"))? : "",
       "channel",              json_string_value(json_object_get(j_msg, "Channel"))? : "",
 
-      "position",   json_string_value(json_object_get(j_msg, "Position"))? atoi(json_string_value(json_object_get(j_msg, "Position"))) : 0,
+      "position",             json_string_value(json_object_get(j_msg, "Position"))? atoi(json_string_value(json_object_get(j_msg, "Position"))) : 0,
       "unique_id",            json_string_value(json_object_get(j_msg, "Uniqueid"))? : "",
       "caller_id_num",        json_string_value(json_object_get(j_msg, "CallerIDNum"))? : "",
       "caller_id_name",       json_string_value(json_object_get(j_msg, "CallerIDName"))? : "",

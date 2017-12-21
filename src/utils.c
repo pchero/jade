@@ -19,10 +19,11 @@
 
 #define DEF_UUID_STR_LEN 37
 
-
-static int uri_decode(const char *s, char *dec);
-static int ishex(int x);
-
+#define IS_ALNUM(ch) \
+    ( ch >= 'a' && ch <= 'z' ) || \
+    ( ch >= 'A' && ch <= 'Z' ) || \
+    ( ch >= '0' && ch <= '9' ) || \
+    ( ch >= '-' && ch <= '.' )
 
 
 /**
@@ -252,56 +253,84 @@ char* get_variables_ami_str_from_object(json_t* j_variables)
   return res;
 }
 
-static int ishex(int x)
+/**
+ * Decode uri.
+ * @param str
+ * @return
+ */
+char* uri_decode(const char* str)
 {
-  return  (x >= '0' && x <= '9')  ||
-    (x >= 'a' && x <= 'f')  ||
-    (x >= 'A' && x <= 'F');
-}
+  int i, j = 0, len;
+  char* tmp;
+  char hex[3];
 
-static int uri_decode(const char *s, char *dec)
-{
-  char *o;
-  const char *end;
-  int c;
-
-  end = s + strlen(s);
-  for (o = dec; s <= end; o++) {
-    c = *s++;
-    if (c == '+') {
-      c = ' ';
-    }
-    else if ((c == '%') && ( !ishex(*s++) || !ishex(*s++) || !sscanf(s - 2, "%2x", &c))) {
-      return -1;
-    }
-
-    if (dec) {
-      *o = c;
-    }
-  }
-
-  return o - dec;
-}
-
-char* uri_parse(const char* uri)
-{
-  char tmp[2048];
-  char* res;
-  int ret;
-
-  if(uri == NULL) {
+  if(str == NULL) {
     return NULL;
   }
 
-  ret = uri_decode(uri, tmp);
-  if(ret < 0) {
+  len = strlen( str );
+  hex[2] = 0;
+
+  tmp = (char*)malloc(sizeof(char) * (len + 1));
+
+  for(i = 0; i < len; i++, j++) {
+    if(str[i] != '%') {
+      tmp[j] = str[i];
+    }
+    else {
+
+      if((IS_ALNUM(str[i + 1]) == 1) && (IS_ALNUM(str[i + 2]) == 1) && (i < (len - 2))) {
+        hex[0] = str[i+1];
+        hex[1] = str[i+2];
+        tmp[j] = strtol( hex, NULL, 16 );
+
+        i += 2;
+      }
+      else {
+        tmp[j] = '%';
+      }
+    }
+  }
+  tmp[j] = 0;
+
+  return tmp;
+}
+
+/**
+ * Encode string.
+ * @param str
+ * @return
+ */
+char* uri_encode(const char* str)
+{
+  int i;
+  int j;
+  int len;
+  char* tmp;
+
+  if(str == NULL) {
     return NULL;
   }
 
-  res = strdup(tmp);
+  len = strlen( str );
+  tmp = (char*) malloc( (sizeof(char) * 3 * len) +1 );
 
-  return res;
+  j = 0;
+  for(i = 0; i < len; i++ ){
+    if(IS_ALNUM(str[i]) == 1) {
+      tmp[j] = str[i];
+    }
+    else {
+      snprintf(&tmp[j], 4, "%%%02X\n", (unsigned char)str[i]);
+      j += 2;
+    }
+    j++;
+  }
+  tmp[j] = 0;
+
+  return tmp;
 }
+
 
 /**
  *
