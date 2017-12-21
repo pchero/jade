@@ -32,7 +32,18 @@ Returns
        "list": [
          {
            "unique_id": "<string>",
-           "queue_name": "<string>"
+           "queue_name": "<string>",
+           "channel": "<string>",
+    
+           "caller_id_name": "<string>",
+           "caller_id_num": "<string>",
+           "connected_line_name": "<string>",
+           "connected_line_num": "<string>",
+    
+           "position": <number>,
+           "wait": <number>,
+           
+           "tm_update": "<timestamp>"
          },
          ...
        ]

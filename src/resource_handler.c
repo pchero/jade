@@ -32,6 +32,9 @@ static bool delete_items_string(const char* table, const char* key, const char* 
 static bool init_db(void);
 static bool init_core_database(void);
 
+static bool publish_queue_member_event(const char* type, json_t* j_data);
+
+
 /**
  * Initiate resource.
  * @return
@@ -836,6 +839,118 @@ json_t* get_queue_members_all_name_queue(void)
   return j_res;
 }
 
+static bool publish_queue_member_event(const char* type, json_t* j_data)
+{
+  json_t* j_pub;
+  const char* tmp_const;
+  char* tmp;
+  char* topic;
+  char* event;
+
+  if((type == NULL) || (j_data == NULL)){
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  // create topic
+  tmp_const = json_string_value(json_object_get(j_data, "queue_name"));
+  tmp = uri_encode(tmp_const);
+  asprintf(&topic, "/queue/statuses/%s", tmp);
+  sfree(tmp);
+
+  // create event
+  asprintf(&event, "queue.member.%s", type);
+
+  // create pub
+  j_pub = json_object();
+  json_object_set(j_pub, event, j_data);
+  sfree(event);
+
+  // event publish
+  publish_message(topic, j_pub);
+  sfree(topic);
+  json_decref(j_pub);
+
+  return true;
+}
+
+/**
+ * create queue member info.
+ * @return
+ */
+int create_queue_member_info(const json_t* j_data)
+{
+  int ret;
+  const char* id;
+  json_t* j_tmp;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired create_queue_member_info.");
+
+  // create member info
+  ret = create_item("queue_member", j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert queue_member.");
+    return false;
+  }
+
+  // publish
+  id = json_string_value(json_object_get(j_data, "id"));
+  j_tmp = get_queue_member_info(id);
+  ret = publish_queue_member_event("update", j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish update event.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * delete queue member info.
+ * @return
+ */
+int delete_queue_member_info(const char* key)
+{
+  int ret;
+  json_t* j_tmp;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired delete_queue_member_info.");
+
+  // get member info
+  j_tmp = get_detail_item_key_string("queue_member", "id", key);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "The key is already deleted.");
+    return true;
+  }
+
+  // delete
+  ret = delete_items_string("queue_member", "id", key);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not delete queue member info.");
+    json_decref(j_tmp);
+    return false;
+  }
+
+  // publish
+  ret = publish_queue_member_event("delete", j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish delete event.");
+    return false;
+  }
+
+  return true;
+}
+
 /**
  * Get all queue members array
  * @return
@@ -872,28 +987,18 @@ json_t* get_queue_members_all_by_queuename(const char* name)
  * Get corresponding queue member info.
  * @return
  */
-json_t* get_queue_member_info(const char* name, const char* queue_name)
+json_t* get_queue_member_info(const char* id)
 {
-  char* sql;
-  int ret;
   json_t* j_tmp;
 
-  if((name == NULL) || (queue_name == NULL)) {
+  if(id == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return NULL;
   }
-  slog(LOG_DEBUG, "Fired get_queue_member_info. name[%s], queue_name[%s]", name, queue_name);
+  slog(LOG_DEBUG, "Fired get_queue_member_info. id[%s]", id);
 
-  asprintf(&sql, "select * from queue_member where name=\"%s\" and queue_name=\"%s\";", name, queue_name);
-  ret = db_ctx_query(g_db_ast, sql);
-  sfree(sql);
-  if(ret == false) {
-    slog(LOG_WARNING, "Could not get correct queue_member info.");
-    return NULL;
-  }
-
-  j_tmp = db_ctx_get_record(g_db_ast);
-  db_ctx_free(g_db_ast);
+  // get queue member
+  j_tmp = get_detail_item_key_string("queue_member", "id", id);
   if(j_tmp == NULL) {
     return NULL;
   }
