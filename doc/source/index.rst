@@ -17,6 +17,7 @@ Contents:
    configuration
    structure
    api
+   event
    ob_basic
    ob_structure
    ob_tutorial
