@@ -37,18 +37,21 @@ json_t* get_registry_info(const char* account);
 // queue
 json_t* get_queue_entry_info(const char* key);
 json_t* get_queue_entry_info_by_id_name(const char* channel, const char* queue_name);
-json_t* get_queue_entries_all_unique_id_queue_name(void);
 json_t* get_queue_entries_all(void);
+json_t* get_queue_entries_all_by_queuename(const char* name);
+json_t* get_queue_entries_all_unique_id_queue_name(void);
 int delete_queue_entry_info(const char* key);
 int create_queue_entry_info(const json_t* j_tmp);
 
 json_t* get_queue_members_all(void);
+json_t* get_queue_members_all_by_queuename(const char* name);
 json_t* get_queue_members_all_name_queue(void);
 json_t* get_queue_member_info(const char* name, const char* queue_name);
 json_t* get_queue_param_info(const char* name);
 json_t* get_queue_params_all(void);
 json_t* get_queue_params_all_name(void);
-
+json_t* get_queue_status_info(const char* name);
+json_t* get_queue_statuses_all(void);
 
 // channel
 json_t* get_channels_all_unique_id(void);

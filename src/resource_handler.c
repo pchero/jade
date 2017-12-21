@@ -22,6 +22,7 @@ extern app* g_app;
 
 static json_t* get_items(const char* table, const char* item);
 static json_t* get_detail_item_key_string(const char* table, const char* key, const char* val);
+static json_t* get_detail_items_key_string(const char* table, const char* key, const char* val);
 
 static bool init_db(void);
 static bool init_core_database(void);
@@ -277,7 +278,8 @@ static json_t* get_items(const char* table, const char* item)
 }
 
 /**
- * Get detail info of key="val" from table.
+ * Get detail info of key="val" from table. get only 1 item.
+ * "select * from <table> where <key>=<val>;"
  * @param table
  * @param item
  * @return
@@ -310,6 +312,47 @@ static json_t* get_detail_item_key_string(const char* table, const char* key, co
 
   return j_res;
 
+}
+
+/**
+ * Get detail info of key="val" from table. Get all items.
+ * "select * from <table> where <key>=<val>;"
+ * @param table
+ * @param item
+ * @return
+ */
+static json_t* get_detail_items_key_string(const char* table, const char* key, const char* val)
+{
+  int ret;
+  json_t* j_res;
+  json_t* j_tmp;
+  char* sql;
+
+  if((table == NULL) || (key == NULL) || (val == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_detail_items_key_string. table[%s], key[%s], val[%s]", table, key, val);
+
+  asprintf(&sql, "select * from %s where %s=\"%s\";", table, key, val);
+  ret = db_ctx_query(g_db_ast, sql);
+  sfree(sql);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not get detail info.");
+    return NULL;
+  }
+
+  j_res = json_array();
+  while(true) {
+    j_tmp = db_ctx_get_record(g_db_ast);
+    if(j_tmp == NULL) {
+      break;
+    }
+    json_array_append_new(j_res, j_tmp);
+  }
+  db_ctx_free(g_db_ast);
+
+  return j_res;
 }
 
 
@@ -654,6 +697,26 @@ json_t* get_queue_members_all(void)
 }
 
 /**
+ * Get queue_member array of given queue name
+ * @return
+ */
+json_t* get_queue_members_all_by_queuename(const char* name)
+{
+  json_t* j_res;
+
+  if(name == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_queue_members_all_by_queuename. name[%s]", name);
+
+  // get items
+  j_res = get_detail_items_key_string("queue_member", "queue_name", name);
+
+  return j_res;
+}
+
+/**
  * Get corresponding queue member info.
  * @return
  */
@@ -739,6 +802,27 @@ json_t* get_queue_entries_all(void)
   j_res = get_items("queue_entry", "*");
   return j_res;
 }
+
+/**
+ * Get queue_entry array of given queue name
+ * @return
+ */
+json_t* get_queue_entries_all_by_queuename(const char* name)
+{
+  json_t* j_res;
+
+  if(name == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_queue_entries_all_by_queuename. name[%s]", name);
+
+  // get items
+  j_res = get_detail_items_key_string("queue_entry", "queue_name", name);
+
+  return j_res;
+}
+
 
 /**
  * Get detail info of given queue_entry key.
@@ -840,6 +924,83 @@ int create_queue_entry_info(const json_t* j_tmp)
   return true;
 }
 
+/**
+ * Get all queues status info.
+ * @return
+ */
+json_t* get_queue_statuses_all(void)
+{
+  json_t* j_res;
+  json_t* j_queues;
+  json_t* j_queue;
+  json_t* j_entries;
+  json_t* j_members;
+  json_t* j_tmp;
+  int idx;
+  const char* name;
+
+  j_res = json_array();
+
+  // get all queue info
+  j_queues = get_queue_params_all();
+  json_array_foreach(j_queues, idx, j_queue) {
+    j_tmp = json_object();
+
+    // get queue name
+    name = json_string_value(json_object_get(j_queue, "name"));
+    if(name == NULL) {
+      slog(LOG_ERR, "Could not get queue name info.");
+      continue;
+    }
+
+    // set queue info
+    json_object_set(j_tmp, "queue", j_queue);
+
+    // get and set entries info
+    j_entries = get_queue_entries_all_by_queuename(name);
+    json_object_set_new(j_tmp, "entries", j_entries);
+
+    // get and set members info
+    j_members = get_queue_members_all_by_queuename(name);
+    json_object_set_new(j_tmp, "members", j_members);
+
+    json_array_append(j_res, j_tmp);
+  }
+  json_decref(j_queues);
+
+  return j_res;
+}
+
+/**
+ * Get detail queues status info.
+ * @return
+ */
+json_t* get_queue_status_info(const char* name)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+
+  if(name == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  j_res = json_object();
+
+  // get and set queue info
+  j_tmp = get_queue_param_info(name);
+  json_object_set_new(j_res, "queue", j_tmp);
+
+  // get and set entries info
+  j_tmp = get_queue_entries_all_by_queuename(name);
+  json_object_set_new(j_res, "entries", j_tmp);
+
+  // get and set members info
+  j_tmp = get_queue_members_all_by_queuename(name);
+  json_object_set_new(j_res, "members", j_tmp);
+
+  return j_res;
+}
 
 /**
  * Get all channel's unique id array

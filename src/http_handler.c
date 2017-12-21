@@ -79,6 +79,8 @@ static void cb_htp_queue_members(evhtp_request_t *req, void *data);
 static void cb_htp_queue_members_detail(evhtp_request_t *req, void *data);
 static void cb_htp_queue_queues(evhtp_request_t *req, void *data);
 static void cb_htp_queue_queues_detail(evhtp_request_t *req, void *data);
+static void cb_htp_queue_statuses(evhtp_request_t *req, void *data);
+static void cb_htp_queue_statuses_detail(evhtp_request_t *req, void *data);
 
 
 
@@ -228,6 +230,9 @@ bool init_http_handler(void)
   evhtp_set_regex_cb(g_htp, "^/queue/queues/(.*)", cb_htp_queue_queues_detail, NULL);
   evhtp_set_regex_cb(g_htp, "^/queue/queues$", cb_htp_queue_queues, NULL);
 
+  // statuses
+  evhtp_set_regex_cb(g_htp, "^/queue/statuses/(.*)", cb_htp_queue_statuses_detail, NULL);
+  evhtp_set_regex_cb(g_htp, "^/queue/statuses$", cb_htp_queue_statuses, NULL);
 
 
   //// ^/sip/
@@ -846,6 +851,85 @@ static void cb_htp_queue_queues_detail(evhtp_request_t *req, void *data)
   simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   return;
 }
+
+/**
+ * http request handler
+ * ^/queue/statuses$
+ * @param req
+ * @param data
+ */
+static void cb_htp_queue_statuses(evhtp_request_t *req, void *data)
+{
+  int method;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_queue_statuses.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if(method != htp_method_GET) {
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // fire handlers
+  if(method == htp_method_GET) {
+    htp_get_queue_statuses(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  return;
+}
+
+/**
+ * http request handler
+ * ^/queue/statuses/(.*)
+ * @param req
+ * @param data
+ */
+static void cb_htp_queue_statuses_detail(evhtp_request_t *req, void *data)
+{
+  int method;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_queue_statuses_detail.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if(method != htp_method_GET) {
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // fire handlers
+  if(method == htp_method_GET) {
+    htp_get_queue_statuses_detail(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  return;
+}
+
 
 /**
  * http request handler

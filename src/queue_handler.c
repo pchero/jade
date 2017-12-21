@@ -425,6 +425,80 @@ void htp_delete_queue_queues_detail(evhtp_request_t *req, void *data)
   return;
 }
 
+/**
+ * htp request handler.
+ * request: GET ^/queue/statuses$
+ * @param req
+ * @param data
+ */
+void htp_get_queue_statuses(evhtp_request_t *req, void *data)
+{
+  json_t* j_tmp;
+  json_t* j_res;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired htp_get_queue_statuses.");
+
+  // get info
+  j_tmp = get_queue_statuses_all();
+
+  // create result
+  j_res = create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", json_object());
+  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
+
+  // response
+  simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * htp request handler.
+ * request: GET ^/queue/statuses/(.*)
+ * @param req
+ * @param data
+ */
+void htp_get_queue_statuses_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_tmp;
+  json_t* j_res;
+  char* name;
+  const char* tmp_const;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired htp_get_queue_statuses_detail.");
+
+  // name parse
+  tmp_const = req->uri->path->file;
+  name = uri_parse(tmp_const);
+  if(name == NULL) {
+    slog(LOG_ERR, "Could not get name info.");
+    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // get info
+  j_tmp = get_queue_status_info(name);
+
+  // create result
+  j_res = create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", json_object());
+  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
+
+  // response
+  simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
 
 /**
  * Create queue info.
