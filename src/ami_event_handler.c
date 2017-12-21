@@ -869,8 +869,8 @@ static void ami_event_queuememberremoved(json_t* j_msg)
   slog(LOG_DEBUG, "Fired ami_event_queuecallerabandon.");
 
   asprintf(&id, "%s@%s",
-      json_string_value(json_object_get(j_msg, "Queue")),
-      json_string_value(json_object_get(j_msg, "MemberName"))
+      json_string_value(json_object_get(j_msg, "MemberName")),
+      json_string_value(json_object_get(j_msg, "Queue"))
       );
 
   ret = delete_queue_member_info(id);
