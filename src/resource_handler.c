@@ -964,7 +964,7 @@ json_t* get_queue_statuses_all(void)
     j_members = get_queue_members_all_by_queuename(name);
     json_object_set_new(j_tmp, "members", j_members);
 
-    json_array_append(j_res, j_tmp);
+    json_array_append_new(j_res, j_tmp);
   }
   json_decref(j_queues);
 

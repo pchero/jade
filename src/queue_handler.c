@@ -487,11 +487,11 @@ void htp_get_queue_statuses_detail(evhtp_request_t *req, void *data)
 
   // get info
   j_tmp = get_queue_status_info(name);
+  sfree(name);
 
   // create result
   j_res = create_default_result(EVHTP_RES_OK);
-  json_object_set_new(j_res, "result", json_object());
-  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
+  json_object_set_new(j_res, "result", j_tmp);
 
   // response
   simple_response_normal(req, j_res);
