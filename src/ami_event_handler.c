@@ -558,7 +558,8 @@ static void ami_event_queueparams(json_t* j_msg)
     return;
   }
 
-  ret = db_ctx_insert_or_replace(g_db_ast, "queue_param", j_tmp);
+  // create queue info
+  ret = create_queue_param_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert queue_param.");
@@ -578,6 +579,7 @@ static void ami_event_queuemember(json_t* j_msg)
   json_t* j_tmp;
   int ret;
   char* timestamp;
+  char* id;
 
   if(j_msg == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -619,7 +621,15 @@ static void ami_event_queuemember(json_t* j_msg)
     return;
   }
 
-  ret = db_ctx_insert_or_replace(g_db_ast, "queue_member", j_tmp);
+  // create and set id
+  asprintf(&id, "%s@%s",
+      json_string_value(json_object_get(j_tmp, "name")),
+      json_string_value(json_object_get(j_tmp, "queue_name"))
+      );
+  json_object_set_new(j_tmp, "id", json_string(id));
+  sfree(id);
+
+  ret = create_queue_member_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert queue_member.");
@@ -638,6 +648,7 @@ static void ami_event_queuememberadded(json_t* j_msg)
 {
   json_t* j_tmp;
   int ret;
+  char* id;
   char* timestamp;
 
   if(j_msg == NULL) {
@@ -681,7 +692,15 @@ static void ami_event_queuememberadded(json_t* j_msg)
     return;
   }
 
-  ret = db_ctx_insert_or_replace(g_db_ast, "queue_member", j_tmp);
+  // create and set id
+  asprintf(&id, "%s@%s",
+      json_string_value(json_object_get(j_tmp, "name")),
+      json_string_value(json_object_get(j_tmp, "queue_name"))
+      );
+  json_object_set_new(j_tmp, "id", json_string(id));
+  sfree(id);
+
+  ret = create_queue_member_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert queue_member.");
@@ -701,6 +720,7 @@ static void ami_event_queuememberpause(json_t* j_msg)
   json_t* j_tmp;
   int ret;
   char* timestamp;
+  char* id;
 
   if(j_msg == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -743,7 +763,15 @@ static void ami_event_queuememberpause(json_t* j_msg)
     return;
   }
 
-  ret = db_ctx_insert_or_replace(g_db_ast, "queue_member", j_tmp);
+  // create and set id
+  asprintf(&id, "%s@%s",
+      json_string_value(json_object_get(j_tmp, "name")),
+      json_string_value(json_object_get(j_tmp, "queue_name"))
+      );
+  json_object_set_new(j_tmp, "id", json_string(id));
+  sfree(id);
+
+  ret = create_queue_member_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert queue_member.");
@@ -763,6 +791,7 @@ static void ami_event_queuememberpenalty(json_t* j_msg)
   json_t* j_tmp;
   int ret;
   char* timestamp;
+  char* id;
 
   if(j_msg == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -805,7 +834,15 @@ static void ami_event_queuememberpenalty(json_t* j_msg)
     return;
   }
 
-  ret = db_ctx_insert_or_replace(g_db_ast, "queue_member", j_tmp);
+  // create and set id
+  asprintf(&id, "%s@%s",
+      json_string_value(json_object_get(j_tmp, "name")),
+      json_string_value(json_object_get(j_tmp, "queue_name"))
+      );
+  json_object_set_new(j_tmp, "id", json_string(id));
+  sfree(id);
+
+  ret = create_queue_member_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert queue_member.");
@@ -822,7 +859,7 @@ static void ami_event_queuememberpenalty(json_t* j_msg)
  */
 static void ami_event_queuememberremoved(json_t* j_msg)
 {
-  char* sql;
+  char* id;
   int ret;
 
   if(j_msg == NULL) {
@@ -831,14 +868,13 @@ static void ami_event_queuememberremoved(json_t* j_msg)
   }
   slog(LOG_DEBUG, "Fired ami_event_queuecallerabandon.");
 
-
-  asprintf(&sql, "delete from queue_member where queue_name=\"%s\" and name=\"%s\";",
-      json_string_value(json_object_get(j_msg, "Queue"))? : "",
-      json_string_value(json_object_get(j_msg, "MemberName"))? : ""
+  asprintf(&id, "%s@%s",
+      json_string_value(json_object_get(j_msg, "MemberName")),
+      json_string_value(json_object_get(j_msg, "Queue"))
       );
 
-  ret = db_ctx_exec(g_db_ast, sql);
-  sfree(sql);
+  ret = delete_queue_member_info(id);
+  sfree(id);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete queue_member.");
     return;
@@ -857,6 +893,7 @@ static void ami_event_queuememberringinuse(json_t* j_msg)
   json_t* j_tmp;
   int ret;
   char* timestamp;
+  char* id;
 
   if(j_msg == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -899,7 +936,15 @@ static void ami_event_queuememberringinuse(json_t* j_msg)
     return;
   }
 
-  ret = db_ctx_insert_or_replace(g_db_ast, "queue_member", j_tmp);
+  // create and set id
+  asprintf(&id, "%s@%s",
+      json_string_value(json_object_get(j_tmp, "name")),
+      json_string_value(json_object_get(j_tmp, "queue_name"))
+      );
+  json_object_set_new(j_tmp, "id", json_string(id));
+  sfree(id);
+
+  ret = create_queue_member_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert queue_member.");
@@ -1016,10 +1061,10 @@ static void ami_event_queuecallerjoin(json_t* j_msg)
       "s:s"
       "}",
 
-      "queue_name", json_string_value(json_object_get(j_msg, "Queue"))? : "",
+      "queue_name",           json_string_value(json_object_get(j_msg, "Queue"))? : "",
       "channel",              json_string_value(json_object_get(j_msg, "Channel"))? : "",
 
-      "position",   json_string_value(json_object_get(j_msg, "Position"))? atoi(json_string_value(json_object_get(j_msg, "Position"))) : 0,
+      "position",             json_string_value(json_object_get(j_msg, "Position"))? atoi(json_string_value(json_object_get(j_msg, "Position"))) : 0,
       "unique_id",            json_string_value(json_object_get(j_msg, "Uniqueid"))? : "",
       "caller_id_num",        json_string_value(json_object_get(j_msg, "CallerIDNum"))? : "",
       "caller_id_name",       json_string_value(json_object_get(j_msg, "CallerIDName"))? : "",
@@ -1038,7 +1083,7 @@ static void ami_event_queuecallerjoin(json_t* j_msg)
   ret = create_queue_entry_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
-    slog(LOG_ERR, "Could not insert queue_member.");
+    slog(LOG_ERR, "Could not insert queue_entry.");
     return;
   }
 
@@ -1081,6 +1126,7 @@ static void ami_event_queuememberstatus(json_t* j_msg)
   int ret;
   json_t* j_tmp;
   char* timestamp;
+  char* id;
 
   if(j_msg == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -1128,7 +1174,15 @@ static void ami_event_queuememberstatus(json_t* j_msg)
       json_integer_value(json_object_get(j_tmp, "status"))
       );
 
-  ret = db_ctx_insert_or_replace(g_db_ast, "queue_member", j_tmp);
+  // create and set id
+  asprintf(&id, "%s@%s",
+      json_string_value(json_object_get(j_tmp, "name")),
+      json_string_value(json_object_get(j_tmp, "queue_name"))
+      );
+  json_object_set_new(j_tmp, "id", json_string(id));
+  sfree(id);
+
+  ret = create_queue_member_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to queue_member.");

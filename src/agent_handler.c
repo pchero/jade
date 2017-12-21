@@ -69,7 +69,7 @@ void htp_get_agent_agents_detail(evhtp_request_t *req, void *data)
 
   // get id
   tmp_const = req->uri->path->file;
-  id = uri_parse(tmp_const);
+  id = uri_decode(tmp_const);
   if(id == NULL) {
     slog(LOG_NOTICE, "Could not get id info.");
     simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);

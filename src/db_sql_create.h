@@ -162,8 +162,9 @@ static const char* g_sql_create_queue_member =
 "create table queue_member("
 
 // identity
+"   id             varchar(255),"   // member id(name@queue)
 "   queue_name     varchar(255),"   // queue name
-"   name           varchar(255),"   // name
+"   name           varchar(255),"   // member name
 
 "   location          varchar(255),"          // location
 "   state_interface   varchar(255),"          // state interface

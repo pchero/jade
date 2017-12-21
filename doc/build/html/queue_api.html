@@ -64,7 +64,18 @@
     &quot;list&quot;: [
       {
         &quot;unique_id&quot;: &quot;&lt;string&gt;&quot;,
-        &quot;queue_name&quot;: &quot;&lt;string&gt;&quot;
+        &quot;queue_name&quot;: &quot;&lt;string&gt;&quot;,
+        &quot;channel&quot;: &quot;&lt;string&gt;&quot;,
+
+        &quot;caller_id_name&quot;: &quot;&lt;string&gt;&quot;,
+        &quot;caller_id_num&quot;: &quot;&lt;string&gt;&quot;,
+        &quot;connected_line_name&quot;: &quot;&lt;string&gt;&quot;,
+        &quot;connected_line_num&quot;: &quot;&lt;string&gt;&quot;,
+
+        &quot;position&quot;: &lt;number&gt;,
+        &quot;wait&quot;: &lt;number&gt;,
+
+        &quot;tm_update&quot;: &quot;&lt;timestamp&gt;&quot;
       },
       ...
     ]
@@ -209,6 +220,8 @@
   &quot;reuslt&quot;: {
     &quot;list&quot;: [
       {
+         &quot;id&quot;: &quot;&lt;string&gt;&quot;,
+
          &quot;name&quot;: &quot;&lt;string&gt;&quot;,
          &quot;queue_name&quot;: &quot;&lt;string&gt;&quot;,
          &quot;status&quot;: &lt;integer&gt;,
@@ -251,6 +264,7 @@
   &quot;result&quot;: {
       &quot;list&quot;: [
           {
+              &quot;id&quot;: &quot;sip/agent-02@sales_1&quot;,
               &quot;calls_taken&quot;: 0,
               &quot;in_call&quot;: 0,
               &quot;last_call&quot;: 0,
@@ -303,6 +317,8 @@
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr,
   &quot;reuslt&quot;: {
+    &quot;id&quot;:  &quot;&lt;string&gt;&quot;,
+
     &quot;name&quot;: &quot;&lt;string&gt;&quot;,
     &quot;queue_name&quot;: &quot;&lt;string&gt;&quot;,
     &quot;status&quot;: &lt;integer&gt;,
@@ -328,7 +344,8 @@
 }
 </pre></div>
 </div>
-<p>Return parameters</p>
+<p>Return parameters
+* <tt class="docutils literal"><span class="pre">id</span></tt>: member&#8217;s id.</p>
 <ul class="simple">
 <li><tt class="docutils literal"><span class="pre">name</span></tt>: The name of the queue member.</li>
 <li><tt class="docutils literal"><span class="pre">queue_name</span></tt>: The name of the queue.</li>
@@ -353,6 +370,7 @@
 {
   &quot;api_ver&quot;: &quot;0.1&quot;,
   &quot;result&quot;: {
+      &quot;id&quot;: &quot;Agent/10001@sales_1&quot;,
       &quot;calls_taken&quot;: 0,
       &quot;in_call&quot;: 0,
       &quot;last_call&quot;: 0,
@@ -378,22 +396,23 @@
 </div>
 </div>
 <div class="section" id="queue-queues">
-<h1>/queue/queues<a class="headerlink" href="#queue-queues" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="id18">
-<h2>Methods<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h2>
-<p>GET : Get list of all queues info</p>
-</div>
+<span id="id18"></span><h1>/queue/queues<a class="headerlink" href="#queue-queues" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="id19">
-<h2>Method: GET<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h2>
+<h2>Methods<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h2>
+<p>GET : Get list of all queues info.</p>
+<p>POST : Create new queue info.</p>
+</div>
+<div class="section" id="get-queue-queues">
+<span id="id20"></span><h2>Method: GET<a class="headerlink" href="#get-queue-queues" title="Permalink to this headline">¶</a></h2>
 <p>Get list of all queues info</p>
-<div class="section" id="id20">
-<h3>Call<a class="headerlink" href="#id20" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id21">
+<h3>Call<a class="headerlink" href="#id21" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">GET</span> <span class="o">/</span><span class="n">queue</span><span class="o">/</span><span class="n">queues</span>
 </pre></div>
 </div>
 </div>
-<div class="section" id="id21">
-<h3>Returns<a class="headerlink" href="#id21" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id22">
+<h3>Returns<a class="headerlink" href="#id22" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr,
   &quot;reuslt&quot;: {
@@ -427,8 +446,8 @@
 * See detail at <a class="reference internal" href="#get-queue-queues-detail"><em>Method: GET</em></a>.</li>
 </ul>
 </div>
-<div class="section" id="id22">
-<h3>Example<a class="headerlink" href="#id22" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id23">
+<h3>Example<a class="headerlink" href="#id23" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -X GET localhost:8081/queue/queues
 
 {
@@ -458,18 +477,59 @@
 </div>
 </div>
 </div>
+<div class="section" id="method-post">
+<span id="post-queue-queues"></span><h2>Method: POST<a class="headerlink" href="#method-post" title="Permalink to this headline">¶</a></h2>
+<p>Create new queue info.</p>
+<div class="section" id="id24">
+<h3>Call<a class="headerlink" href="#id24" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">POST</span> <span class="o">/</span><span class="n">queue</span><span class="o">/</span><span class="n">queues</span>
+
+<span class="p">{</span>
+  <span class="o">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Data parameters</p>
+<ul class="simple">
+<li>See detail at Asterisk&#8217;s queue config.</li>
+</ul>
+</div>
+<div class="section" id="id25">
+<h3>Returns<a class="headerlink" href="#id25" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr
+}
+</pre></div>
+</div>
+</div>
+<div class="section" id="id26">
+<h3>Example<a class="headerlink" href="#id26" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X POST localhost:8081/queue/queues \
+  -d &#39;{&quot;name&quot;: &quot;test create queue&quot;, &quot;context&quot;: &quot;default&quot;}&#39;
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;statuscode&quot;: 200,
+  &quot;timestamp&quot;: &quot;2017-12-21T02:02:49.663362846Z&quot;
+}
+</pre></div>
+</div>
+</div>
+</div>
 </div>
 <div class="section" id="queue-queues-detail">
-<h1>/queue/queues/&lt;detail&gt;<a class="headerlink" href="#queue-queues-detail" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="id23">
-<h2>Methods<a class="headerlink" href="#id23" title="Permalink to this headline">¶</a></h2>
+<span id="id27"></span><h1>/queue/queues/&lt;detail&gt;<a class="headerlink" href="#queue-queues-detail" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id28">
+<h2>Methods<a class="headerlink" href="#id28" title="Permalink to this headline">¶</a></h2>
 <p>GET : Get queue detail info of given queue info.</p>
+<p>PUT : Update queue detail info of given queue info.</p>
+<p>DELETE : Delete the given queue.</p>
 </div>
 <div class="section" id="get-queue-queues-detail">
-<span id="id24"></span><h2>Method: GET<a class="headerlink" href="#get-queue-queues-detail" title="Permalink to this headline">¶</a></h2>
+<span id="id29"></span><h2>Method: GET<a class="headerlink" href="#get-queue-queues-detail" title="Permalink to this headline">¶</a></h2>
 <p>Get queue detail info of given queue info.</p>
-<div class="section" id="id25">
-<h3>Call<a class="headerlink" href="#id25" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id30">
+<h3>Call<a class="headerlink" href="#id30" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-python"><div class="highlight"><pre>GET /queue/queues/&lt;detail&gt;
 </pre></div>
 </div>
@@ -478,8 +538,8 @@
 <li><tt class="docutils literal"><span class="pre">detail</span></tt>: queue name.</li>
 </ul>
 </div>
-<div class="section" id="id26">
-<h3>Returns<a class="headerlink" href="#id26" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id31">
+<h3>Returns<a class="headerlink" href="#id31" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-python"><div class="highlight"><pre>{
   $defhdr,
   &quot;reuslt&quot;: {
@@ -518,8 +578,8 @@
 <li><tt class="docutils literal"><span class="pre">service_leve_perf</span></tt>: Service level performance.</li>
 </ul>
 </div>
-<div class="section" id="id27">
-<h3>Example<a class="headerlink" href="#id27" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id32">
+<h3>Example<a class="headerlink" href="#id32" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -X GET localhost:8081/queue/queues/sales_1
 
 {
@@ -540,6 +600,300 @@
   },
   &quot;statuscode&quot;: 200,
   &quot;timestamp&quot;: &quot;2017-12-18T00:43:30.189014882Z&quot;
+}
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="method-put">
+<span id="put-queue-queues-detail"></span><h2>Method: PUT<a class="headerlink" href="#method-put" title="Permalink to this headline">¶</a></h2>
+<p>Update queue detail info of given queue info.</p>
+<div class="section" id="id33">
+<h3>Call<a class="headerlink" href="#id33" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>PUT /queue/queues/&lt;detail&gt;
+
+{
+  ...
+}
+</pre></div>
+</div>
+<p>Method parameters</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">detail</span></tt>: uri encoded queue name.</li>
+</ul>
+<p>Data parameters</p>
+<ul class="simple">
+<li>See detail at Asterisk&#8217;s queue setting.</li>
+</ul>
+</div>
+<div class="section" id="id34">
+<h3>Returns<a class="headerlink" href="#id34" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr
+}
+</pre></div>
+</div>
+</div>
+<div class="section" id="id35">
+<h3>Example<a class="headerlink" href="#id35" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X PUT localhost:8081/queue/queues/test%20create%20queue
+  -d &#39;{&quot;context&quot;: &quot;default&quot;, &quot;member&quot;:[&quot;&gt; Agent/10001&quot;, &quot;&gt; Agent/10003&quot;]}&#39;
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;statuscode&quot;: 200,
+  &quot;timestamp&quot;: &quot;2017-12-21T02:56:19.975276515Z&quot;
+}
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="method-delete">
+<span id="delete-queue-queues-detail"></span><h2>Method: DELETE<a class="headerlink" href="#method-delete" title="Permalink to this headline">¶</a></h2>
+<p>Delete the given queue.</p>
+<div class="section" id="id36">
+<h3>Call<a class="headerlink" href="#id36" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>DELETE /queue/queues/&lt;detail&gt;
+</pre></div>
+</div>
+<p>Method parameters</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">detail</span></tt>: uri encoded queue name.</li>
+</ul>
+</div>
+<div class="section" id="id37">
+<h3>Returns<a class="headerlink" href="#id37" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr
+}
+</pre></div>
+</div>
+</div>
+<div class="section" id="id38">
+<h3>Example<a class="headerlink" href="#id38" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X DELETE localhost:8081/queue/queues/test%20create%20queue
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;statuscode&quot;: 200,
+  &quot;timestamp&quot;: &quot;2017-12-21T02:58:36.537005271Z&quot;
+}
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="queue-statuses">
+<span id="id39"></span><h1>/queue/statuses<a class="headerlink" href="#queue-statuses" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id40">
+<h2>Methods<a class="headerlink" href="#id40" title="Permalink to this headline">¶</a></h2>
+<p>GET : Get list of all queues status.</p>
+</div>
+<div class="section" id="get-queue-statuses">
+<span id="id41"></span><h2>Method: GET<a class="headerlink" href="#get-queue-statuses" title="Permalink to this headline">¶</a></h2>
+<p>Get list of all queues status.</p>
+<div class="section" id="id42">
+<h3>Call<a class="headerlink" href="#id42" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">GET</span> <span class="o">/</span><span class="n">queue</span><span class="o">/</span><span class="n">statuses</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id43">
+<h3>Returns<a class="headerlink" href="#id43" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr,
+  &quot;reuslt&quot;: {
+    &quot;list&quot;: [
+      {
+        &quot;queue&quot;: {...},
+        &quot;entries&quot;: [{...}, ...],
+        &quot;members&quot;: [{...}, ...]
+      },
+      ...
+    ]
+  }
+}
+</pre></div>
+</div>
+<ul>
+<li><dl class="first docutils">
+<dt><tt class="docutils literal"><span class="pre">list</span></tt> <span class="classifier-delimiter">:</span> <span class="classifier">array of info.</span></dt>
+<dd><ul class="first last simple">
+<li><tt class="docutils literal"><span class="pre">queue</span></tt>: See detail at queue info.</li>
+<li><tt class="docutils literal"><span class="pre">entries</span></tt>: See detail at queue entries.</li>
+<li><tt class="docutils literal"><span class="pre">members</span></tt>: See detail at queue members.</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</div>
+<div class="section" id="id44">
+<h3>Example<a class="headerlink" href="#id44" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET localhost:8081/queue/statuses
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;result&quot;: {
+      &quot;list&quot;: [
+          {
+              &quot;entries&quot;: [
+                  {
+                      &quot;caller_id_name&quot;: &quot;pjagent-01&quot;,
+                      &quot;caller_id_num&quot;: &quot;pjagent-01&quot;,
+                      &quot;channel&quot;: &quot;PJSIP/pjagent-01-00000000&quot;,
+                      &quot;connected_line_name&quot;: &quot;&lt;unknown&gt;&quot;,
+                      &quot;connected_line_num&quot;: &quot;&lt;unknown&gt;&quot;,
+                      &quot;position&quot;: 1,
+                      &quot;queue_name&quot;: &quot;sales_1&quot;,
+                      &quot;tm_update&quot;: &quot;2017-12-21T15:17:01.813584621Z&quot;,
+                      &quot;unique_id&quot;: &quot;1513869420.0&quot;,
+                      &quot;wait&quot;: null
+                  },
+                  ...
+              ],
+              &quot;members&quot;: [
+                  {
+                      &quot;id&quot;: &quot;Agent/10001@sales_1&quot;,
+                      &quot;calls_taken&quot;: 0,
+                      &quot;in_call&quot;: 0,
+                      &quot;last_call&quot;: 0,
+                      &quot;last_pause&quot;: 0,
+                      &quot;location&quot;: &quot;Agent/10001&quot;,
+                      &quot;membership&quot;: &quot;static&quot;,
+                      &quot;name&quot;: &quot;Agent/10001&quot;,
+                      &quot;paused&quot;: 0,
+                      &quot;paused_reason&quot;: &quot;&quot;,
+                      &quot;penalty&quot;: 0,
+                      &quot;queue_name&quot;: &quot;sales_1&quot;,
+                      &quot;ring_inuse&quot;: null,
+                      &quot;state_interface&quot;: &quot;Agent/10001&quot;,
+                      &quot;status&quot;: 4,
+                      &quot;tm_update&quot;: &quot;2017-12-21T15:16:24.593579797Z&quot;
+                  },
+                  ...
+              ],
+              &quot;queue&quot;: {
+                  &quot;abandoned&quot;: 0,
+                  &quot;calls&quot;: 0,
+                  &quot;completed&quot;: 0,
+                  &quot;hold_time&quot;: 0,
+                  &quot;max&quot;: 0,
+                  &quot;name&quot;: &quot;sales_1&quot;,
+                  &quot;service_level&quot;: 5,
+                  &quot;service_level_perf&quot;: 0.0,
+                  &quot;strategy&quot;: &quot;ringall&quot;,
+                  &quot;talk_time&quot;: 0,
+                  &quot;tm_update&quot;: &quot;2017-12-21T15:16:24.490123142Z&quot;,
+                  &quot;weight&quot;: 0
+              }
+          }
+      ]
+  },
+  &quot;statuscode&quot;: 200,
+  &quot;timestamp&quot;: &quot;2017-12-21T15:17:03.457906728Z&quot;
+}
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="queue-statuses-detail">
+<span id="id45"></span><h1>/queue/statuses/&lt;detail&gt;<a class="headerlink" href="#queue-statuses-detail" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id46">
+<h2>Methods<a class="headerlink" href="#id46" title="Permalink to this headline">¶</a></h2>
+<p>GET : Get queue status detail info of given queue info.</p>
+</div>
+<div class="section" id="get-queue-statuses-detail">
+<span id="id47"></span><h2>Method: GET<a class="headerlink" href="#get-queue-statuses-detail" title="Permalink to this headline">¶</a></h2>
+<p>Get queue status detail info of given queue info.</p>
+<div class="section" id="id48">
+<h3>Call<a class="headerlink" href="#id48" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>GET /queue/statuses/&lt;detail&gt;
+</pre></div>
+</div>
+<p>Method parameters</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">detail</span></tt>: queue name.</li>
+</ul>
+</div>
+<div class="section" id="id49">
+<h3>Returns<a class="headerlink" href="#id49" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr,
+  &quot;reuslt&quot;: {
+    &quot;queue&quot;: {...},
+    &quot;entries&quot;: [{...}, ...],
+    &quot;members&quot;: [{...}, ...]
+  }
+}
+</pre></div>
+</div>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">queue</span></tt>: See detail at queue info.</li>
+<li><tt class="docutils literal"><span class="pre">entries</span></tt>: See detail at entry info.</li>
+<li><tt class="docutils literal"><span class="pre">members</span></tt>: See detail at member info.</li>
+</ul>
+</div>
+<div class="section" id="id50">
+<h3>Example<a class="headerlink" href="#id50" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET localhost:8081/queue/statuses/sales_1
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;result&quot;: {
+      &quot;entries&quot;: [
+          {
+              &quot;caller_id_name&quot;: &quot;pjagent-01&quot;,
+              &quot;caller_id_num&quot;: &quot;pjagent-01&quot;,
+              &quot;channel&quot;: &quot;PJSIP/pjagent-01-00000002&quot;,
+              &quot;connected_line_name&quot;: &quot;&lt;unknown&gt;&quot;,
+              &quot;connected_line_num&quot;: &quot;&lt;unknown&gt;&quot;,
+              &quot;position&quot;: 1,
+              &quot;queue_name&quot;: &quot;sales_1&quot;,
+              &quot;tm_update&quot;: &quot;2017-12-21T15:33:50.630820416Z&quot;,
+              &quot;unique_id&quot;: &quot;1513870429.2&quot;,
+              &quot;wait&quot;: null
+          }
+      ],
+      &quot;members&quot;: [
+          {
+              &quot;id&quot;: &quot;Agent/10001@sales_1&quot;,
+              &quot;calls_taken&quot;: 0,
+              &quot;in_call&quot;: 0,
+              &quot;last_call&quot;: 0,
+              &quot;last_pause&quot;: 0,
+              &quot;location&quot;: &quot;Agent/10001&quot;,
+              &quot;membership&quot;: &quot;static&quot;,
+              &quot;name&quot;: &quot;Agent/10001&quot;,
+              &quot;paused&quot;: 0,
+              &quot;paused_reason&quot;: &quot;&quot;,
+              &quot;penalty&quot;: 0,
+              &quot;queue_name&quot;: &quot;sales_1&quot;,
+              &quot;ring_inuse&quot;: null,
+              &quot;state_interface&quot;: &quot;Agent/10001&quot;,
+              &quot;status&quot;: 4,
+              &quot;tm_update&quot;: &quot;2017-12-21T15:33:37.613513551Z&quot;
+          },
+          ...
+      ],
+      &quot;queue&quot;: {
+          &quot;abandoned&quot;: 2,
+          &quot;calls&quot;: 0,
+          &quot;completed&quot;: 0,
+          &quot;hold_time&quot;: 0,
+          &quot;max&quot;: 0,
+          &quot;name&quot;: &quot;sales_1&quot;,
+          &quot;service_level&quot;: 5,
+          &quot;service_level_perf&quot;: 0.0,
+          &quot;strategy&quot;: &quot;ringall&quot;,
+          &quot;talk_time&quot;: 0,
+          &quot;tm_update&quot;: &quot;2017-12-21T15:33:37.526617804Z&quot;,
+          &quot;weight&quot;: 0
+      }
+  },
+  &quot;statuscode&quot;: 200,
+  &quot;timestamp&quot;: &quot;2017-12-21T15:33:51.732925780Z&quot;
 }
 </pre></div>
 </div>
@@ -596,21 +950,59 @@
 </ul>
 </li>
 <li><a class="reference internal" href="#queue-queues">/queue/queues</a><ul>
-<li><a class="reference internal" href="#id18">Methods</a></li>
-<li><a class="reference internal" href="#id19">Method: GET</a><ul>
-<li><a class="reference internal" href="#id20">Call</a></li>
-<li><a class="reference internal" href="#id21">Returns</a></li>
-<li><a class="reference internal" href="#id22">Example</a></li>
+<li><a class="reference internal" href="#id19">Methods</a></li>
+<li><a class="reference internal" href="#get-queue-queues">Method: GET</a><ul>
+<li><a class="reference internal" href="#id21">Call</a></li>
+<li><a class="reference internal" href="#id22">Returns</a></li>
+<li><a class="reference internal" href="#id23">Example</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#method-post">Method: POST</a><ul>
+<li><a class="reference internal" href="#id24">Call</a></li>
+<li><a class="reference internal" href="#id25">Returns</a></li>
+<li><a class="reference internal" href="#id26">Example</a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li><a class="reference internal" href="#queue-queues-detail">/queue/queues/&lt;detail&gt;</a><ul>
-<li><a class="reference internal" href="#id23">Methods</a></li>
+<li><a class="reference internal" href="#id28">Methods</a></li>
 <li><a class="reference internal" href="#get-queue-queues-detail">Method: GET</a><ul>
-<li><a class="reference internal" href="#id25">Call</a></li>
-<li><a class="reference internal" href="#id26">Returns</a></li>
-<li><a class="reference internal" href="#id27">Example</a></li>
+<li><a class="reference internal" href="#id30">Call</a></li>
+<li><a class="reference internal" href="#id31">Returns</a></li>
+<li><a class="reference internal" href="#id32">Example</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#method-put">Method: PUT</a><ul>
+<li><a class="reference internal" href="#id33">Call</a></li>
+<li><a class="reference internal" href="#id34">Returns</a></li>
+<li><a class="reference internal" href="#id35">Example</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#method-delete">Method: DELETE</a><ul>
+<li><a class="reference internal" href="#id36">Call</a></li>
+<li><a class="reference internal" href="#id37">Returns</a></li>
+<li><a class="reference internal" href="#id38">Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#queue-statuses">/queue/statuses</a><ul>
+<li><a class="reference internal" href="#id40">Methods</a></li>
+<li><a class="reference internal" href="#get-queue-statuses">Method: GET</a><ul>
+<li><a class="reference internal" href="#id42">Call</a></li>
+<li><a class="reference internal" href="#id43">Returns</a></li>
+<li><a class="reference internal" href="#id44">Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#queue-statuses-detail">/queue/statuses/&lt;detail&gt;</a><ul>
+<li><a class="reference internal" href="#id46">Methods</a></li>
+<li><a class="reference internal" href="#get-queue-statuses-detail">Method: GET</a><ul>
+<li><a class="reference internal" href="#id48">Call</a></li>
+<li><a class="reference internal" href="#id49">Returns</a></li>
+<li><a class="reference internal" href="#id50">Example</a></li>
 </ul>
 </li>
 </ul>

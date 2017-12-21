@@ -32,7 +32,18 @@ Returns
        "list": [
          {
            "unique_id": "<string>",
-           "queue_name": "<string>"
+           "queue_name": "<string>",
+           "channel": "<string>",
+    
+           "caller_id_name": "<string>",
+           "caller_id_num": "<string>",
+           "connected_line_name": "<string>",
+           "connected_line_num": "<string>",
+    
+           "position": <number>,
+           "wait": <number>,
+           
+           "tm_update": "<timestamp>"
          },
          ...
        ]
@@ -185,6 +196,8 @@ Returns
      "reuslt": {
        "list": [
          {
+            "id": "<string>",
+            
             "name": "<string>",
             "queue_name": "<string>",
             "status": <integer>,
@@ -226,6 +239,7 @@ Example
     "result": {
         "list": [
             {
+                "id": "sip/agent-02@sales_1",
                 "calls_taken": 0,
                 "in_call": 0,
                 "last_call": 0,
@@ -281,6 +295,8 @@ Returns
    {
      $defhdr,
      "reuslt": {
+       "id":  "<string>",
+       
        "name": "<string>",
        "queue_name": "<string>",
        "status": <integer>,
@@ -306,6 +322,7 @@ Returns
    }
 
 Return parameters
+* ``id``: member's id.
 
 * ``name``: The name of the queue member.
 * ``queue_name``: The name of the queue.
@@ -336,6 +353,7 @@ Example
   {
     "api_ver": "0.1",
     "result": {
+        "id": "Agent/10001@sales_1",
         "calls_taken": 0,
         "in_call": 0,
         "last_call": 0,
@@ -635,7 +653,7 @@ Example
 .. _delete_queue_queues_detail:
 
 Method: DELETE
------------
+--------------
 Delete the given queue.
 
 Call
@@ -742,6 +760,7 @@ Example
                 ],
                 "members": [
                     {
+                        "id": "Agent/10001@sales_1",
                         "calls_taken": 0,
                         "in_call": 0,
                         "last_call": 0,
@@ -848,6 +867,7 @@ Example
         ],
         "members": [
             {
+                "id": "Agent/10001@sales_1",
                 "calls_taken": 0,
                 "in_call": 0,
                 "last_call": 0,

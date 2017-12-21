@@ -1,0 +1,479 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>queue.entry &mdash; jade 0.0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="jade 0.0.1 documentation" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li><a href="index.html">jade 0.0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="queue-entry">
+<span id="queue-event"></span><span id="id1"></span><h1>queue.entry<a class="headerlink" href="#queue-entry" title="Permalink to this headline">¶</a></h1>
+<p>Queue enty event.</p>
+<div class="section" id="queue-entry-delete">
+<span id="id2"></span><h2>queue.entry.delete<a class="headerlink" href="#queue-entry-delete" title="Permalink to this headline">¶</a></h2>
+<p>Event for queue entry delete.</p>
+<div class="section" id="topic">
+<h3>Topic<a class="headerlink" href="#topic" title="Permalink to this headline">¶</a></h3>
+<dl class="docutils">
+<dt>::</dt>
+<dd>/queue/statuses/&lt;target&gt;</dd>
+</dl>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">target</span></tt>: URI encoded queue name.</li>
+</ul>
+</div>
+<div class="section" id="event">
+<h3>Event<a class="headerlink" href="#event" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>{
+  &quot;queue.entry.delete&quot;: {
+    &quot;unique_id&quot;: &quot;&lt;string&gt;&quot;,
+
+    &quot;queue_name&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;channel&quot;: &quot;&lt;string&gt;&quot;,
+
+    &quot;caller_id_name&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;caller_id_num&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;connected_line_name&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;connected_line_num&quot;: &quot;&lt;string&gt;&quot;,
+
+    &quot;position&quot;: &lt;number&gt;,
+    &quot;wait&quot;: &lt;number&gt;,
+
+    &quot;tm_update&quot;: &quot;&lt;timestamp&gt;&quot;
+  }
+}
+</pre></div>
+</div>
+<ul class="simple">
+<li>See detail at Asterisk&#8217;s queue info.</li>
+</ul>
+</div>
+<div class="section" id="example">
+<h3>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>topic: /queue/statuses/sales%5F1
+
+{
+  &quot;queue.entry.delete&quot;: {
+    &quot;unique_id&quot;: &quot;1513886574.11&quot;,
+    &quot;connected_line_num&quot;: &quot;&lt;unknown&gt;&quot;,
+    &quot;queue_name&quot;: &quot;sales_1&quot;,
+    &quot;wait&quot;: null,
+    &quot;position&quot;: 1,
+    &quot;channel&quot;: &quot;PJSIP/pjagent-01-0000000b&quot;,
+    &quot;caller_id_num&quot;: &quot;pjagent-01&quot;,
+    &quot;caller_id_name&quot;: &quot;pjagent-01&quot;,
+    &quot;connected_line_name&quot;: &quot;&lt;unknown&gt;&quot;,
+    &quot;tm_update&quot;: &quot;2017-12-21T20:02:55.766020378Z&quot;
+  }
+}
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="queue-entry-update">
+<span id="id3"></span><h2>queue.entry.update<a class="headerlink" href="#queue-entry-update" title="Permalink to this headline">¶</a></h2>
+<p>Event for queue entry insert/update.</p>
+<div class="section" id="id4">
+<h3>Topic<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<dl class="docutils">
+<dt>::</dt>
+<dd>/queue/statuses/&lt;target&gt;</dd>
+</dl>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">target</span></tt>: URI encoded queue name.</li>
+</ul>
+</div>
+<div class="section" id="id5">
+<h3>Event<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>{
+  &quot;queue.entry.update&quot;: {
+    &quot;unique_id&quot;: &quot;&lt;string&gt;&quot;,
+
+    &quot;queue_name&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;channel&quot;: &quot;&lt;string&gt;&quot;,
+
+    &quot;caller_id_name&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;caller_id_num&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;connected_line_name&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;connected_line_num&quot;: &quot;&lt;string&gt;&quot;,
+
+    &quot;position&quot;: &lt;number&gt;,
+    &quot;wait&quot;: &lt;number&gt;,
+
+    &quot;tm_update&quot;: &quot;&lt;timestamp&gt;&quot;
+  }
+}
+</pre></div>
+</div>
+<ul class="simple">
+<li>See detail at Asterisk&#8217;s queue info.</li>
+</ul>
+</div>
+<div class="section" id="id6">
+<h3>Example<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>topic: /queue/statuses/sales%5F1
+
+{
+  &quot;queue.entry.update&quot;: {
+    &quot;unique_id&quot;: &quot;1513887042.12&quot;,
+    &quot;caller_id_name&quot;: &quot;pjagent-01&quot;,
+    &quot;connected_line_num&quot;: &quot;&lt;unknown&gt;&quot;,
+    &quot;position&quot;: 1,
+    &quot;tm_update&quot;: &quot;2017-12-21T20:10:43.841799160Z&quot;,
+    &quot;queue_name&quot;: &quot;sales_1&quot;,
+    &quot;channel&quot;: &quot;PJSIP/pjagent-01-0000000c&quot;,
+    &quot;caller_id_num&quot;: &quot;pjagent-01&quot;,
+    &quot;connected_line_name&quot;: &quot;&lt;unknown&gt;&quot;,
+    &quot;wait&quot;: null
+  }
+}
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="queue-member">
+<h1>queue.member<a class="headerlink" href="#queue-member" title="Permalink to this headline">¶</a></h1>
+<p>Queue member event.</p>
+<div class="section" id="queue-member-delete">
+<span id="id7"></span><h2>queue.member.delete<a class="headerlink" href="#queue-member-delete" title="Permalink to this headline">¶</a></h2>
+<p>Event for queue member delete.</p>
+<div class="section" id="id8">
+<h3>Topic<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<dl class="docutils">
+<dt>::</dt>
+<dd>/queue/statuses/&lt;target&gt;</dd>
+</dl>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">target</span></tt>: URI encoded queue name.</li>
+</ul>
+</div>
+<div class="section" id="id9">
+<h3>Event<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>{
+  &quot;queue.entry.delete&quot;: {
+     &quot;id&quot;: &quot;&lt;string&gt;&quot;,
+     &quot;name&quot;: &quot;&lt;string&gt;&quot;,
+     &quot;queue_name&quot;: &quot;&lt;string&gt;&quot;,
+     &quot;status&quot;: &lt;integer&gt;,
+
+     &quot;membership&quot;: &quot;&lt;string&gt;&quot;,
+     &quot;state_interface&quot;: &quot;&lt;string&gt;&quot;,
+     &quot;location&quot;: &quot;&lt;string&gt;&quot;,
+
+     &quot;paused&quot;: &lt;integer&gt;,
+     &quot;paused_reason&quot;: &quot;&lt;string&gt;&quot;,
+     &quot;penalty&quot;: &lt;integer&gt;,
+
+     &quot;calls_taken&quot;: &lt;integer&gt;,
+     &quot;in_call&quot;: &lt;integer&gt;,
+
+     &quot;last_call&quot;: &lt;integer&gt;,
+     &quot;last_pause&quot;: &lt;integer&gt;,
+
+     &quot;ring_inuse&quot;: &lt;integer&gt;,
+
+     &quot;tm_update&quot;: &quot;&lt;timestamp&gt;&quot;
+  }
+}
+</pre></div>
+</div>
+<ul class="simple">
+<li>See detail at Asterisk&#8217;s queue info.</li>
+</ul>
+</div>
+<div class="section" id="id10">
+<h3>Example<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>topic: /queue/statuses/sales%5F1
+
+{
+  &quot;queue.member.delete&quot;: {
+    &quot;location&quot;: &quot;sip/agent-01&quot;,
+    &quot;penalty&quot;: 0,
+    &quot;ring_inuse&quot;: 1,
+    &quot;id&quot;: &quot;sip/agent-01@sales_1&quot;,
+    &quot;state_interface&quot;: &quot;sip/agent-01&quot;,
+    &quot;queue_name&quot;: &quot;sales_1&quot;,
+    &quot;name&quot;: &quot;sip/agent-01&quot;,
+    &quot;membership&quot;: &quot;dynamic&quot;,
+    &quot;calls_taken&quot;: 0,
+    &quot;last_call&quot;: 0,
+    &quot;last_pause&quot;: 0,
+    &quot;in_call&quot;: 0,
+    &quot;status&quot;: 4,
+    &quot;paused&quot;: 0,
+    &quot;paused_reason&quot;: &quot;&quot;,
+    &quot;tm_update&quot;: &quot;2017-12-21T21:35:04.605327430Z&quot;
+  }
+}
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="queue-member-update">
+<span id="id11"></span><h2>queue.member.update<a class="headerlink" href="#queue-member-update" title="Permalink to this headline">¶</a></h2>
+<p>Event for queue member insert/update.</p>
+<div class="section" id="id12">
+<h3>Topic<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
+<dl class="docutils">
+<dt>::</dt>
+<dd>/queue/statuses/&lt;target&gt;</dd>
+</dl>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">target</span></tt>: URI encoded queue name.</li>
+</ul>
+</div>
+<div class="section" id="id13">
+<h3>Event<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>{
+  &quot;queue.member.update&quot;: {
+     &quot;id&quot;: &quot;&lt;string&gt;&quot;,
+
+     &quot;name&quot;: &quot;&lt;string&gt;&quot;,
+     &quot;queue_name&quot;: &quot;&lt;string&gt;&quot;,
+     &quot;status&quot;: &lt;integer&gt;,
+
+     &quot;membership&quot;: &quot;&lt;string&gt;&quot;,
+     &quot;state_interface&quot;: &quot;&lt;string&gt;&quot;,
+     &quot;location&quot;: &quot;&lt;string&gt;&quot;,
+
+     &quot;paused&quot;: &lt;integer&gt;,
+     &quot;paused_reason&quot;: &quot;&lt;string&gt;&quot;,
+     &quot;penalty&quot;: &lt;integer&gt;,
+
+     &quot;calls_taken&quot;: &lt;integer&gt;,
+     &quot;in_call&quot;: &lt;integer&gt;,
+
+     &quot;last_call&quot;: &lt;integer&gt;,
+     &quot;last_pause&quot;: &lt;integer&gt;,
+
+     &quot;ring_inuse&quot;: &lt;integer&gt;,
+
+     &quot;tm_update&quot;: &quot;&lt;timestamp&gt;&quot;
+  }
+}
+</pre></div>
+</div>
+<ul class="simple">
+<li>See detail at Asterisk&#8217;s queue info.</li>
+</ul>
+</div>
+<div class="section" id="id14">
+<h3>Example<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>topic: /queue/statuses/sales%5F1
+
+{
+  &quot;queue.member.update&quot;: {
+    &quot;location&quot;: &quot;sip/agent-01&quot;,
+    &quot;penalty&quot;: 0,
+    &quot;ring_inuse&quot;: 1,
+    &quot;id&quot;: &quot;sip/agent-01@sales_1&quot;,
+    &quot;state_interface&quot;: &quot;sip/agent-01&quot;,
+    &quot;queue_name&quot;: &quot;sales_1&quot;,
+    &quot;name&quot;: &quot;sip/agent-01&quot;,
+    &quot;membership&quot;: &quot;dynamic&quot;,
+    &quot;calls_taken&quot;: 0,
+    &quot;last_call&quot;: 0,
+    &quot;last_pause&quot;: 0,
+    &quot;in_call&quot;: 0,
+    &quot;status&quot;: 4,
+    &quot;paused&quot;: 0,
+    &quot;paused_reason&quot;: &quot;&quot;,
+    &quot;tm_update&quot;: &quot;2017-12-21T21:35:04.605327430Z&quot;
+  }
+}
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="queue-queue">
+<h1>queue.queue<a class="headerlink" href="#queue-queue" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="queue-queue-update">
+<span id="id15"></span><h2>queue.queue.update<a class="headerlink" href="#queue-queue-update" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id16">
+<h3>Topic<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h3>
+<dl class="docutils">
+<dt>::</dt>
+<dd>/queue/statuses/&lt;target&gt;</dd>
+</dl>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">target</span></tt>: URI encoded queue name.</li>
+</ul>
+</div>
+<div class="section" id="id17">
+<h3>Event<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>{
+  &quot;queue.queue.update&quot;: {
+    &quot;name&quot;: &quot;&lt;string&gt;&quot;,
+
+    &quot;strategy&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;max&quot;: &lt;integer&gt;,
+    &quot;weight&quot;: &lt;integer&gt;,
+
+    &quot;calls&quot;: &lt;integer&gt;,
+    &quot;completed&quot;: &lt;integer&gt;,
+    &quot;abandoned&quot;: &lt;integer&gt;,
+
+    &quot;hold_time&quot;: &lt;integer&gt;,
+    &quot;talk_time&quot;: &lt;integer&gt;,
+
+    &quot;service_level&quot;: &lt;integer&gt;,
+    &quot;service_level_perf&quot;: &lt;integer&gt;,
+
+    &quot;tm_update&quot;: &quot;&lt;timestamp&gt;&quot;
+  }
+}
+</pre></div>
+</div>
+<ul class="simple">
+<li>See detail at Asterisk&#8217;s queue info.</li>
+</ul>
+</div>
+<div class="section" id="id18">
+<h3>Example<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>topic: /queue/statuses/sales%5F1
+
+{
+  &quot;queue.queue.update&quot;: {
+    &quot;weight&quot;: 0,
+    &quot;name&quot;: &quot;sales_1&quot;,
+    &quot;service_level&quot;: 5,
+    &quot;abandoned&quot;: 6,
+    &quot;service_level_perf&quot;: 0.0,
+    &quot;max&quot;: 0,
+    &quot;hold_time&quot;: 0,
+    &quot;strategy&quot;: &quot;ringall&quot;,
+    &quot;calls&quot;: 0,
+    &quot;tm_update&quot;: &quot;2017-12-21T18:35:17.131303352Z&quot;,
+    &quot;talk_time&quot;: 0,
+    &quot;completed&quot;: 0
+  }
+}
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">queue.entry</a><ul>
+<li><a class="reference internal" href="#queue-entry-delete">queue.entry.delete</a><ul>
+<li><a class="reference internal" href="#topic">Topic</a></li>
+<li><a class="reference internal" href="#event">Event</a></li>
+<li><a class="reference internal" href="#example">Example</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#queue-entry-update">queue.entry.update</a><ul>
+<li><a class="reference internal" href="#id4">Topic</a></li>
+<li><a class="reference internal" href="#id5">Event</a></li>
+<li><a class="reference internal" href="#id6">Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#queue-member">queue.member</a><ul>
+<li><a class="reference internal" href="#queue-member-delete">queue.member.delete</a><ul>
+<li><a class="reference internal" href="#id8">Topic</a></li>
+<li><a class="reference internal" href="#id9">Event</a></li>
+<li><a class="reference internal" href="#id10">Example</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#queue-member-update">queue.member.update</a><ul>
+<li><a class="reference internal" href="#id12">Topic</a></li>
+<li><a class="reference internal" href="#id13">Event</a></li>
+<li><a class="reference internal" href="#id14">Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#queue-queue">queue.queue</a><ul>
+<li><a class="reference internal" href="#queue-queue-update">queue.queue.update</a><ul>
+<li><a class="reference internal" href="#id16">Topic</a></li>
+<li><a class="reference internal" href="#id17">Event</a></li>
+<li><a class="reference internal" href="#id18">Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/queue_event.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li><a href="index.html">jade 0.0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2017, pchero.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

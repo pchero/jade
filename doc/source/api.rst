@@ -80,9 +80,9 @@ Some of APIs requires a returned uuid for the request. But
 one must expect that these information are only valid within the user
 sessions and are temporary.
 
-****
-APIs
-****
+***
+API
+***
 
 /agents
 =======

@@ -79,7 +79,7 @@ void htp_get_queue_entries_detail(evhtp_request_t *req, void *data)
 
   // name parse
   tmp_const = req->uri->path->file;
-  name = uri_parse(tmp_const);
+  name = uri_decode(tmp_const);
   if(name == NULL) {
     slog(LOG_ERR, "Could not get name info.");
     simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
@@ -148,8 +148,7 @@ void htp_get_queue_members_detail(evhtp_request_t *req, void *data)
   json_t* j_tmp;
   json_t* j_res;
   const char* tmp_const;
-  char* name;
-  char* queue;
+  char* key;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -157,28 +156,18 @@ void htp_get_queue_members_detail(evhtp_request_t *req, void *data)
   }
   slog(LOG_DEBUG, "Fired htp_get_queue_members_detail.");
 
-  // name parse
+  // key parse
   tmp_const = req->uri->path->file;
-  name = uri_parse(tmp_const);
-  if(name == NULL) {
+  key = uri_decode(tmp_const);
+  if(key == NULL) {
     slog(LOG_ERR, "Could not get name info.");
     simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
-  // queue_name parse
-  tmp_const = evhtp_kv_find(req->uri->query, "queue_name");
-  queue = uri_parse(tmp_const);
-  if(queue == NULL) {
-    slog(LOG_ERR, "Could not get queue info.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
   // get info
-  j_tmp = get_queue_member_info(name, queue);
-  sfree(name);
-  sfree(queue);
+  j_tmp = get_queue_member_info(key);
+  sfree(key);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get name info.");
     simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
@@ -293,7 +282,7 @@ void htp_get_queue_queues_detail(evhtp_request_t *req, void *data)
 
   // name parse
   tmp_const = req->uri->path->file;
-  name = uri_parse(tmp_const);
+  name = uri_decode(tmp_const);
   if(name == NULL) {
     slog(LOG_ERR, "Could not get name info.");
     simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
@@ -342,7 +331,7 @@ void htp_put_queue_queues_detail(evhtp_request_t *req, void *data)
 
   // name parse
   tmp_const = req->uri->path->file;
-  name = uri_parse(tmp_const);
+  name = uri_decode(tmp_const);
   if(name == NULL) {
     slog(LOG_ERR, "Could not get name info.");
     simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
@@ -399,7 +388,7 @@ void htp_delete_queue_queues_detail(evhtp_request_t *req, void *data)
 
   // name parse
   tmp_const = req->uri->path->file;
-  name = uri_parse(tmp_const);
+  name = uri_decode(tmp_const);
   if(name == NULL) {
     slog(LOG_ERR, "Could not get name info.");
     simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
@@ -478,7 +467,7 @@ void htp_get_queue_statuses_detail(evhtp_request_t *req, void *data)
 
   // name parse
   tmp_const = req->uri->path->file;
-  name = uri_parse(tmp_const);
+  name = uri_decode(tmp_const);
   if(name == NULL) {
     slog(LOG_ERR, "Could not get name info.");
     simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
