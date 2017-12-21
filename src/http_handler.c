@@ -775,7 +775,7 @@ static void cb_htp_queue_queues(evhtp_request_t *req, void *data)
 
   // method check
   method = evhtp_request_get_method(req);
-  if(method != htp_method_GET) {
+  if((method != htp_method_GET) && (method != htp_method_POST)) {
     simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
@@ -783,6 +783,10 @@ static void cb_htp_queue_queues(evhtp_request_t *req, void *data)
   // fire handlers
   if(method == htp_method_GET) {
     htp_get_queue_queues(req, data);
+    return;
+  }
+  else if(method == htp_method_POST) {
+    htp_post_queue_queues(req, data);
     return;
   }
   else {
@@ -814,7 +818,7 @@ static void cb_htp_queue_queues_detail(evhtp_request_t *req, void *data)
 
   // method check
   method = evhtp_request_get_method(req);
-  if(method != htp_method_GET) {
+  if((method != htp_method_GET) && (method != htp_method_PUT) && (method != htp_method_DELETE)) {
     simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
@@ -822,6 +826,14 @@ static void cb_htp_queue_queues_detail(evhtp_request_t *req, void *data)
   // fire handlers
   if(method == htp_method_GET) {
     htp_get_queue_queues_detail(req, data);
+    return;
+  }
+  else if(method == htp_method_PUT) {
+    htp_put_queue_queues_detail(req, data);
+    return;
+  }
+  else if(method == htp_method_DELETE) {
+    htp_delete_queue_queues_detail(req, data);
     return;
   }
   else {

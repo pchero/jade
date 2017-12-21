@@ -319,7 +319,7 @@ json_t* get_ast_current_config_info(const char* filename)
     slog(LOG_WARNING, "Wrong input parameter.");
     return NULL;
   }
-  slog(LOG_DEBUG, "Fired get_ast_backup_config_info.");
+  slog(LOG_DEBUG, "Fired get_ast_current_config_info.");
 
   dir = json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "directory_conf"));
   asprintf(&target, "%s/%s", dir, filename);
@@ -660,15 +660,63 @@ static json_t* get_ast_backup_filenames(const char* filename)
 
 /**
  * Update asterisk configuration file content.
+ * If not exists, return false
  * @param j_conf
  * @param filename
  * @return
  */
-int update_ast_current_config_content(const char* filename, const char* section, const char* key, const char* val)
+bool update_ast_current_config_content(const char* filename, const char* section, const char* key, const char* val)
 {
   int ret;
   json_t* j_conf;
   json_t* j_section;
+
+  if((filename == NULL) || (section == NULL) || (key == NULL) || (val == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  // get config
+  j_conf = get_ast_current_config_info(filename);
+  if(j_conf == NULL) {
+    slog(LOG_ERR, "Could not get config info.");
+    return false;
+  }
+
+  // get section, if not, return false.
+  j_section = json_object_get(j_conf, section);
+  if(j_section == NULL) {
+    json_decref(j_conf);
+    return false;
+  }
+
+  // update or insert
+  json_object_set_new(j_section, key, json_string(val));
+
+  // write conf
+  ret = update_ast_current_config_info(filename, j_conf);
+  json_decref(j_conf);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update current ast config info.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Create asterisk configuration file content.
+ * If already exist, return false.
+ * @param j_conf
+ * @param filename
+ * @return
+ */
+bool create_ast_current_config_content(const char* filename, const char* section, const char* key, const char* val)
+{
+  int ret;
+  json_t* j_conf;
+  json_t* j_section;
+  json_t* j_tmp;
 
   if((filename == NULL) || (section == NULL) || (key == NULL) || (val == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -689,10 +737,190 @@ int update_ast_current_config_content(const char* filename, const char* section,
     json_object_set_new(j_conf, section, j_section);
   }
 
-  // update or insert
+  // check existence
+  j_tmp = json_object_get(j_section, key);
+  if(j_tmp != NULL) {
+    json_decref(j_conf);
+    slog(LOG_NOTICE, "The content is already exist.");
+    return false;
+  }
+
+  // insert
   json_object_set_new(j_section, key, json_string(val));
 
-  // write conf
+  // update conf
+  ret = update_ast_current_config_info(filename, j_conf);
+  json_decref(j_conf);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update current ast config info.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Delete asterisk configuration file content.
+ * If already exist, return false.
+ * @param j_conf
+ * @param filename
+ * @return
+ */
+bool delete_ast_current_config_content(const char* filename, const char* section, const char* key)
+{
+  int ret;
+  json_t* j_conf;
+
+  if((filename == NULL) || (section == NULL) || (key == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  // get config
+  j_conf = get_ast_current_config_info(filename);
+  if(j_conf == NULL) {
+    slog(LOG_ERR, "Could not get config info.");
+    return false;
+  }
+
+  // delete key
+  json_object_del(json_object_get(j_conf, section), key);
+
+  // update conf
+  ret = update_ast_current_config_info(filename, j_conf);
+  json_decref(j_conf);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update current ast config info.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Create asterisk configuration file section with given data.
+ * If already exist, return false.
+ * @param j_conf
+ * @param filename
+ * @return
+ */
+bool create_ast_current_config_section_data(const char* filename, const char* section, json_t* j_data)
+{
+  int ret;
+  json_t* j_conf;
+  json_t* j_section;
+
+  if((filename == NULL) || (section == NULL) || (j_data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  // get config
+  j_conf = get_ast_current_config_info(filename);
+  if(j_conf == NULL) {
+    slog(LOG_ERR, "Could not get config info.");
+    return false;
+  }
+
+  // get section, if exists return false
+  j_section = json_object_get(j_conf, section);
+  if(j_section != NULL) {
+    slog(LOG_ERR, "Section is already exist.");
+    json_decref(j_conf);
+    return false;
+  }
+
+  // set data
+  json_object_set(j_conf, section, j_data);
+
+  // update conf
+  ret = update_ast_current_config_info(filename, j_conf);
+  json_decref(j_conf);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update current ast config info.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Update asterisk configuration file section with given data.
+ * If already exist, return false.
+ * @param j_conf
+ * @param filename
+ * @return
+ */
+bool update_ast_current_config_section_data(const char* filename, const char* section, json_t* j_data)
+{
+  int ret;
+  json_t* j_conf;
+  json_t* j_section;
+
+  if((filename == NULL) || (section == NULL) || (j_data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired update_ast_current_config_section_data. filename[%s]", filename);
+
+  // get config
+  j_conf = get_ast_current_config_info(filename);
+  if(j_conf == NULL) {
+    slog(LOG_ERR, "Could not get config info.");
+    return false;
+  }
+
+  // get section, if not exists return false
+  j_section = json_object_get(j_conf, section);
+  if(j_section == NULL) {
+    slog(LOG_ERR, "Section is not exist.");
+    json_decref(j_conf);
+    return false;
+  }
+
+  // set data
+  json_object_set(j_conf, section, j_data);
+
+  // update conf
+  ret = update_ast_current_config_info(filename, j_conf);
+  json_decref(j_conf);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update current ast config info.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Delete asterisk configuration file section.
+ * If not exist, return true.
+ * @param j_conf
+ * @param filename
+ * @return
+ */
+bool delete_ast_current_config_section(const char* filename, const char* section)
+{
+  int ret;
+  json_t* j_conf;
+
+  if((filename == NULL) || (section == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired delete_ast_current_config_section. filename[%s], section[%s]", filename, section);
+
+  // get config
+  j_conf = get_ast_current_config_info(filename);
+  if(j_conf == NULL) {
+    slog(LOG_ERR, "Could not get config info.");
+    return false;
+  }
+
+  // delete section
+  json_object_del(j_conf, section);
+
+  // update conf
   ret = update_ast_current_config_info(filename, j_conf);
   json_decref(j_conf);
   if(ret == false) {
