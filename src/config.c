@@ -40,7 +40,6 @@
 #define DEF_GENERAL_DIR_MODULE   "/usr/lib/asterisk/modules"
 
 #define DEF_VOICEMAIL_DIRECTORY "/var/spool/asterisk/voicemail"
-#define DEF_VOICEMAIL_CONFNAME "voicemail.conf"
 
 #define DEF_OB_DIALING_RESULT_FILENAME  "./outbound_result.json"
 #define DEF_OB_DIALING_TIMEOUT          "30"
@@ -154,7 +153,7 @@ static bool load_config(void)
       	"s:s, s:s, "
       	"s:s, s:s "
 			"},"	// general
-      "s:{s:s, s:s}, "	// voicemail
+      "s:{s:s}, "	// voicemail
       "s:{s:s, s:s, s:s}"	// ob
       "}",
       "general",
@@ -179,7 +178,6 @@ static bool load_config(void)
 
       "voicemail",
         "dicretory",        DEF_VOICEMAIL_DIRECTORY,
-				"conf_name",				DEF_VOICEMAIL_CONFNAME,
 
       "ob",
         "dialing_result_filename",  DEF_OB_DIALING_RESULT_FILENAME,

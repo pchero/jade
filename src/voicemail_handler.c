@@ -39,7 +39,6 @@ static bool remove_vm(const char* context, const char* mailbox, const char* dir,
 static bool create_voicemail_user(json_t* j_data);
 static int update_voicemail_user(json_t* j_data);
 
-static json_t* get_voicemail_current_setting_info(void);
 static int update_voicemail_current_setting_info(json_t* j_data);
 
 static json_t* get_voicemail_backup_settings_all(void);
@@ -539,7 +538,7 @@ void htp_get_voicemail_setting(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_voicemail_setting.");
 
   // get info
-  j_tmp = get_voicemail_current_setting_info();
+  j_tmp = get_ast_current_config_info(DEF_VOICEMAIL_CONFNAME);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get voicemail conf.");
     simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
@@ -1333,25 +1332,6 @@ static bool remove_voicemail_backup_setting_info(const char* filename)
   return true;
 }
 
-
-/**
- * Get voicemail current setting(configuration) info.
- * @param filename
- * @return
- */
-static json_t* get_voicemail_current_setting_info(void)
-{
-  const char* tmp_const;
-  json_t* j_res;
-
-  slog(LOG_DEBUG, "Fired get_voicemail_current_setting_info");
-
-  tmp_const = json_string_value(json_object_get(json_object_get(g_app->j_conf, "voicemail"), "conf_name"));
-  j_res = get_ast_current_config_info(tmp_const);
-
-  return j_res;
-}
-
 /**
  * Update voicemail current setting(configuration) info.
  * @param filename
@@ -1359,7 +1339,6 @@ static json_t* get_voicemail_current_setting_info(void)
  */
 static int update_voicemail_current_setting_info(json_t* j_data)
 {
-  const char* tmp_const;
   int ret;
 
   if(j_data == NULL) {
@@ -1368,8 +1347,8 @@ static int update_voicemail_current_setting_info(json_t* j_data)
   }
   slog(LOG_DEBUG, "Fired update_voicemail_current_setting_info");
 
-  tmp_const = json_string_value(json_object_get(json_object_get(g_app->j_conf, "voicemail"), "conf_name"));
-  ret = update_ast_current_config_info(tmp_const, j_data);
+  // update setting
+  ret = update_ast_current_config_info(DEF_VOICEMAIL_CONFNAME, j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update voicemail setting.");
     return false;
@@ -1377,8 +1356,6 @@ static int update_voicemail_current_setting_info(json_t* j_data)
 
   return true;
 }
-
-
 
 /**
  * Get voicemail setting(configuration)s info.
@@ -1388,10 +1365,8 @@ static int update_voicemail_current_setting_info(json_t* j_data)
 static json_t* get_voicemail_backup_settings_all(void)
 {
   json_t* j_res;
-  const char* filename;
 
-  filename = json_string_value(json_object_get(json_object_get(g_app->j_conf, "voicemail"), "conf_name"));
-  j_res = get_ast_backup_configs_info_all(filename);
+  j_res = get_ast_backup_configs_info_all(DEF_VOICEMAIL_CONFNAME);
 
   return j_res;
 }
