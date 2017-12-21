@@ -60,6 +60,8 @@ static json_t* get_ast_backup_filenames(const char* filename);
 static int ast_conf_handler(const mTCHAR *section, const mTCHAR *key, const mTCHAR *value, void *data);
 static int backup_ast_config_info(const char* filename);
 static bool create_lib_dirs(void);
+static json_t* get_ast_config_info(const char* filename);
+
 
 
 /**
@@ -307,7 +309,7 @@ static json_t* get_ast_config_info(const char* filename)
  * @param filename
  * @return
  */
-json_t* get_ast_cuurent_config_info(const char* filename)
+json_t* get_ast_current_config_info(const char* filename)
 {
   json_t* j_conf;
   const char* dir;
@@ -656,3 +658,47 @@ static json_t* get_ast_backup_filenames(const char* filename)
   return j_res;
 }
 
+/**
+ * Update asterisk configuration file content.
+ * @param j_conf
+ * @param filename
+ * @return
+ */
+int update_ast_current_config_content(const char* filename, const char* section, const char* key, const char* val)
+{
+  int ret;
+  json_t* j_conf;
+  json_t* j_section;
+
+  if((filename == NULL) || (section == NULL) || (key == NULL) || (val == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  // get config
+  j_conf = get_ast_current_config_info(filename);
+  if(j_conf == NULL) {
+    slog(LOG_ERR, "Could not get config info.");
+    return false;
+  }
+
+  // get section, if not, create new.
+  j_section = json_object_get(j_conf, section);
+  if(j_section == NULL) {
+    j_section = json_object();
+    json_object_set_new(j_conf, section, j_section);
+  }
+
+  // update or insert
+  json_object_set_new(j_section, key, json_string(val));
+
+  // write conf
+  ret = update_ast_current_config_info(filename, j_conf);
+  json_decref(j_conf);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update current ast config info.");
+    return false;
+  }
+
+  return true;
+}

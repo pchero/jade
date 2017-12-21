@@ -222,6 +222,10 @@ void htp_put_voicemail_users_detail(evhtp_request_t *req, void *data)
     return;
   }
 
+  // add context, mailbox
+  json_object_set_new(j_data, "context", json_string(context));
+  json_object_set_new(j_data, "mailbox", json_string(mailbox));
+
   // update info
   ret = update_voicemail_user(j_data);
   json_decref(j_data);
@@ -1183,7 +1187,7 @@ static bool is_setting_context(const char* context)
 static int write_voicemail_user_info(json_t* j_data)
 {
   char* user_info;
-  char* confname;
+  const char* confname;
   const char* context;
   const char* mailbox;
   int ret;
@@ -1208,6 +1212,13 @@ static int write_voicemail_user_info(json_t* j_data)
     return false;
   }
 
+  // get confname
+  confname = json_string_value(json_object_get(json_object_get(g_app->j_conf, "voicemail"), "conf_name"));
+  if(confname == NULL) {
+    slog(LOG_ERR, "Could not create voicemail configuration filename.");
+    return false;
+  }
+
   // create user string
   user_info = create_voicemail_user_info_string(j_data);
   if(user_info == NULL) {
@@ -1215,15 +1226,13 @@ static int write_voicemail_user_info(json_t* j_data)
     return false;
   }
 
-  confname = create_voicemail_confname();
-  if(confname == NULL) {
-    slog(LOG_ERR, "Could not create voicemail configuration filename.");
+  // update voicemail info
+  ret = update_ast_current_config_content(confname, context, mailbox, user_info);
+  sfree(user_info);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update voicemail user info.");
     return false;
   }
-
-  ini_puts(context, mailbox, user_info, confname);
-  sfree(user_info);
-  sfree(confname);
 
   return true;
 }
@@ -1459,7 +1468,7 @@ static json_t* get_voicemail_current_setting_info(void)
   slog(LOG_DEBUG, "Fired get_voicemail_current_setting_info");
 
   tmp_const = json_string_value(json_object_get(json_object_get(g_app->j_conf, "voicemail"), "conf_name"));
-  j_res = get_ast_cuurent_config_info(tmp_const);
+  j_res = get_ast_current_config_info(tmp_const);
 
   return j_res;
 }
