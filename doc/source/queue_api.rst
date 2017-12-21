@@ -357,12 +357,18 @@ Example
   }
 
   
+.. _queue_queues:
+  
 /queue/queues
 =============
 
 Methods
 -------
-GET : Get list of all queues info
+GET : Get list of all queues info.
+
+POST : Create new queue info.
+
+.. _get_queue_queues:
 
 Method: GET
 -----------
@@ -439,12 +445,61 @@ Example
   }
 
 
+.. _post_queue_queues:
+
+Method: POST
+------------
+Create new queue info.
+
+Call
+++++
+::
+
+  POST /queue/queues
+
+  {
+    ...
+  }
+  
+Data parameters
+
+* See detail at Asterisk's queue config.
+   
+Returns
++++++++
+::
+
+  {
+    $defhdr
+  }
+  
+
+Example
++++++++
+::
+
+  $ curl -X POST localhost:8081/queue/queues \
+    -d '{"name": "test create queue", "context": "default"}'
+  
+  {
+    "api_ver": "0.1",
+    "statuscode": 200,
+    "timestamp": "2017-12-21T02:02:49.663362846Z"
+  } 
+  
+
+.. _queue_queues_detail:
+  
 /queue/queues/<detail>
 ======================
 
 Methods
 -------
 GET : Get queue detail info of given queue info.
+
+PUT : Update queue detail info of given queue info.
+
+DELETE : Delete the given queue.
 
 .. _get_queue_queues_detail:
 
@@ -530,5 +585,85 @@ Example
     "statuscode": 200,
     "timestamp": "2017-12-18T00:43:30.189014882Z"
   }
+
+.. _put_queue_queues_detail:
+
+Method: PUT
+-----------
+Update queue detail info of given queue info.
+
+Call
+++++
+::
+
+  PUT /queue/queues/<detail>
   
+  {
+    ...
+  }
+
+Method parameters
+
+* ``detail``: uri encoded queue name.
+
+Data parameters
+
+* See detail at Asterisk's queue setting.
+
+Returns
++++++++
+::
+
+  {
+    $defhdr
+  }
+
+Example
++++++++
+::
+
+  $ curl -X PUT localhost:8081/queue/queues/test%20create%20queue 
+    -d '{"context": "default", "member":["> Agent/10001", "> Agent/10003"]}'
   
+  {
+    "api_ver": "0.1",
+    "statuscode": 200,
+    "timestamp": "2017-12-21T02:56:19.975276515Z"
+  }
+
+  
+.. _delete_queue_queues_detail:
+
+Method: DELETE
+-----------
+Delete the given queue.
+
+Call
+++++
+::
+
+  DELETE /queue/queues/<detail>  
+
+Method parameters
+
+* ``detail``: uri encoded queue name.
+
+Returns
++++++++
+::
+
+  {
+    $defhdr
+  }
+
+Example
++++++++
+::
+
+  $ curl -X DELETE localhost:8081/queue/queues/test%20create%20queue
+  
+  {
+    "api_ver": "0.1",
+    "statuscode": 200,
+    "timestamp": "2017-12-21T02:58:36.537005271Z"
+  }
