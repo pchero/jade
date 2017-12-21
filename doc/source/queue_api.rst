@@ -667,3 +667,220 @@ Example
     "statuscode": 200,
     "timestamp": "2017-12-21T02:58:36.537005271Z"
   }
+
+  
+  
+.. _queue_statuses:
+  
+/queue/statuses
+===============
+
+Methods
+-------
+GET : Get list of all queues status.
+
+.. _get_queue_statuses:
+
+Method: GET
+-----------
+Get list of all queues status.
+
+Call
+++++
+::
+
+   GET /queue/statuses
+
+Returns
++++++++
+::
+
+  {
+    $defhdr,
+    "reuslt": {
+      "list": [
+        {
+          "queue": {...},
+          "entries": [{...}, ...],
+          "members": [{...}, ...]
+        },
+        ...
+      ]
+    }
+  }
+  
+* ``list`` : array of info.
+    * ``queue``: See detail at queue info.
+    * ``entries``: See detail at queue entries.
+    * ``members``: See detail at queue members.
+
+Example
++++++++
+::
+
+  $ curl -X GET localhost:8081/queue/statuses
+  
+  {
+    "api_ver": "0.1",
+    "result": {
+        "list": [
+            {
+                "entries": [
+                    {
+                        "caller_id_name": "pjagent-01",
+                        "caller_id_num": "pjagent-01",
+                        "channel": "PJSIP/pjagent-01-00000000",
+                        "connected_line_name": "<unknown>",
+                        "connected_line_num": "<unknown>",
+                        "position": 1,
+                        "queue_name": "sales_1",
+                        "tm_update": "2017-12-21T15:17:01.813584621Z",
+                        "unique_id": "1513869420.0",
+                        "wait": null
+                    },
+                    ...
+                ],
+                "members": [
+                    {
+                        "calls_taken": 0,
+                        "in_call": 0,
+                        "last_call": 0,
+                        "last_pause": 0,
+                        "location": "Agent/10001",
+                        "membership": "static",
+                        "name": "Agent/10001",
+                        "paused": 0,
+                        "paused_reason": "",
+                        "penalty": 0,
+                        "queue_name": "sales_1",
+                        "ring_inuse": null,
+                        "state_interface": "Agent/10001",
+                        "status": 4,
+                        "tm_update": "2017-12-21T15:16:24.593579797Z"
+                    },
+                    ...
+                ],
+                "queue": {
+                    "abandoned": 0,
+                    "calls": 0,
+                    "completed": 0,
+                    "hold_time": 0,
+                    "max": 0,
+                    "name": "sales_1",
+                    "service_level": 5,
+                    "service_level_perf": 0.0,
+                    "strategy": "ringall",
+                    "talk_time": 0,
+                    "tm_update": "2017-12-21T15:16:24.490123142Z",
+                    "weight": 0
+                }
+            }
+        ]
+    },
+    "statuscode": 200,
+    "timestamp": "2017-12-21T15:17:03.457906728Z"
+  }
+
+.. _queue_statuses_detail:
+  
+/queue/statuses/<detail>
+========================
+
+Methods
+-------
+GET : Get queue status detail info of given queue info.
+
+.. _get_queue_statuses_detail:
+
+Method: GET
+-----------
+Get queue status detail info of given queue info.
+
+Call
+++++
+::
+
+  GET /queue/statuses/<detail>
+
+Method parameters
+
+* ``detail``: queue name.
+
+Returns
++++++++
+::
+
+   {
+     $defhdr,
+     "reuslt": {
+       "queue": {...},
+       "entries": [{...}, ...],
+       "members": [{...}, ...]
+     }
+   }
+
+* ``queue``: See detail at queue info.
+* ``entries``: See detail at entry info.
+* ``members``: See detail at member info.
+
+Example
++++++++
+::
+
+  $ curl -X GET localhost:8081/queue/statuses/sales_1
+  
+  {
+    "api_ver": "0.1",
+    "result": {
+        "entries": [
+            {
+                "caller_id_name": "pjagent-01",
+                "caller_id_num": "pjagent-01",
+                "channel": "PJSIP/pjagent-01-00000002",
+                "connected_line_name": "<unknown>",
+                "connected_line_num": "<unknown>",
+                "position": 1,
+                "queue_name": "sales_1",
+                "tm_update": "2017-12-21T15:33:50.630820416Z",
+                "unique_id": "1513870429.2",
+                "wait": null
+            }
+        ],
+        "members": [
+            {
+                "calls_taken": 0,
+                "in_call": 0,
+                "last_call": 0,
+                "last_pause": 0,
+                "location": "Agent/10001",
+                "membership": "static",
+                "name": "Agent/10001",
+                "paused": 0,
+                "paused_reason": "",
+                "penalty": 0,
+                "queue_name": "sales_1",
+                "ring_inuse": null,
+                "state_interface": "Agent/10001",
+                "status": 4,
+                "tm_update": "2017-12-21T15:33:37.613513551Z"
+            },
+            ...
+        ],
+        "queue": {
+            "abandoned": 2,
+            "calls": 0,
+            "completed": 0,
+            "hold_time": 0,
+            "max": 0,
+            "name": "sales_1",
+            "service_level": 5,
+            "service_level_perf": 0.0,
+            "strategy": "ringall",
+            "talk_time": 0,
+            "tm_update": "2017-12-21T15:33:37.526617804Z",
+            "weight": 0
+        }
+    },
+    "statuscode": 200,
+    "timestamp": "2017-12-21T15:33:51.732925780Z"
+  }
