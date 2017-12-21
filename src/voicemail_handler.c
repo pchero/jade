@@ -24,7 +24,8 @@
 #include "minIni.h"
 #include "voicemail_handler.h"
 
-#define DEF_SETTING_CONTEXT "general"
+#define DEF_SETTING_CONTEXT     "general"
+#define DEF_VOICEMAIL_CONFNAME  "voicemail.conf"
 
 extern app* g_app;
 
@@ -35,7 +36,7 @@ static char* get_vm_filename(const char* context, const char* mailbox, const cha
 
 static int delete_voicemail_user(const char* context, const char* mailbox);
 static bool remove_vm(const char* context, const char* mailbox, const char* dir, const char* msgname);
-static int create_voicemail_user(json_t* j_data);
+static bool create_voicemail_user(json_t* j_data);
 static int update_voicemail_user(json_t* j_data);
 
 static char* create_voicemail_confname(void);
@@ -52,7 +53,6 @@ static bool is_setting_context(const char* context);
 static bool is_voicemail_setting_filename(const char* filename);
 
 static int remove_voicemail_user_info(const char* context, const char* mailbox);
-static int write_voicemail_user_info(json_t* j_data);
 
 
 /**
@@ -1180,64 +1180,6 @@ static bool is_setting_context(const char* context)
 }
 
 /**
- * Write given voicemail user info to the voicemail configuration file.
- * @param j_data
- * @return
- */
-static int write_voicemail_user_info(json_t* j_data)
-{
-  char* user_info;
-  const char* confname;
-  const char* context;
-  const char* mailbox;
-  int ret;
-
-  if(j_data == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return false;
-  }
-
-  // get madatory item
-  context = json_string_value(json_object_get(j_data, "context"));
-  mailbox = json_string_value(json_object_get(j_data, "mailbox"));
-  if((mailbox == NULL) || (context == NULL)) {
-    slog(LOG_ERR, "Could not get mailbox info.");
-    return false;
-  }
-
-  // is setting context?
-  ret = is_setting_context(context);
-  if(ret == true) {
-    slog(LOG_NOTICE, "Given context is setting context.");
-    return false;
-  }
-
-  // get confname
-  confname = json_string_value(json_object_get(json_object_get(g_app->j_conf, "voicemail"), "conf_name"));
-  if(confname == NULL) {
-    slog(LOG_ERR, "Could not create voicemail configuration filename.");
-    return false;
-  }
-
-  // create user string
-  user_info = create_voicemail_user_info_string(j_data);
-  if(user_info == NULL) {
-    slog(LOG_ERR, "Could not create user string.");
-    return false;
-  }
-
-  // update voicemail info
-  ret = update_ast_current_config_content(confname, context, mailbox, user_info);
-  sfree(user_info);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not update voicemail user info.");
-    return false;
-  }
-
-  return true;
-}
-
-/**
  * Revmoe given voicemail user info from the voicemail configuration file.
  * @param j_data
  * @return
@@ -1284,6 +1226,7 @@ static int update_voicemail_user(json_t* j_data)
   int ret;
   const char* context;
   const char* mailbox;
+  char* user_info;
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -1297,17 +1240,25 @@ static int update_voicemail_user(json_t* j_data)
     return false;
   }
 
-  // check existence
-  ret = is_exist_voicemail_user(context, mailbox);
-  if(ret != true) {
-    slog(LOG_NOTICE, "The given voicemail user info is not exist. context[%s], malbox[%s]", context, mailbox);
+  // is setting context?
+  ret = is_setting_context(context);
+  if(ret == true) {
+    slog(LOG_NOTICE, "Given context is setting context.");
     return false;
   }
 
-  // update
-  ret = write_voicemail_user_info(j_data);
+  // create user string
+  user_info = create_voicemail_user_info_string(j_data);
+  if(user_info == NULL) {
+    slog(LOG_ERR, "Could not create user string.");
+    return false;
+  }
+
+  // update mailbox
+  ret = update_ast_current_config_content(DEF_VOICEMAIL_CONFNAME, context, mailbox, user_info);
+  sfree(user_info);
   if(ret == false) {
-    slog(LOG_ERR, "Could not update voicemail user info.");
+    slog(LOG_ERR, "Could not create new voicemail mailbox.");
     return false;
   }
 
@@ -1318,10 +1269,11 @@ static int update_voicemail_user(json_t* j_data)
  * Create voicemail_user info.
  * @return
  */
-static int create_voicemail_user(json_t* j_data)
+static bool create_voicemail_user(json_t* j_data)
 {
   const char* context;
   const char* mailbox;
+  char* user_info;
   int ret;
 
   if(j_data == NULL) {
@@ -1338,17 +1290,25 @@ static int create_voicemail_user(json_t* j_data)
     return false;
   }
 
-  // check existence
-  ret = is_exist_voicemail_user(context, mailbox);
+  // is setting context?
+  ret = is_setting_context(context);
   if(ret == true) {
-    slog(LOG_NOTICE, "The given voicemail user info is already exist. context[%s], malbox[%s]", context, mailbox);
+    slog(LOG_NOTICE, "Given context is setting context.");
     return false;
   }
 
-  // create
-  ret = write_voicemail_user_info(j_data);
+  // create user string
+  user_info = create_voicemail_user_info_string(j_data);
+  if(user_info == NULL) {
+    slog(LOG_ERR, "Could not create user string.");
+    return false;
+  }
+
+  // create new mailbox
+  ret = create_ast_current_config_content(DEF_VOICEMAIL_CONFNAME, context, mailbox, user_info);
+  sfree(user_info);
   if(ret == false) {
-    slog(LOG_ERR, "Could not update voicemail user info.");
+    slog(LOG_ERR, "Could not create new voicemail mailbox.");
     return false;
   }
 
