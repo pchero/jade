@@ -446,7 +446,7 @@ static json_t* get_detail_items_key_string(const char* table, const char* key, c
  * Get all peers array
  * @return
  */
-json_t* get_peers_all_peer(void)
+json_t* get_sip_peers_all_peer(void)
 {
   json_t* j_res;
 
@@ -461,7 +461,7 @@ json_t* get_peers_all_peer(void)
  * Get all peers array
  * @return
  */
-json_t* get_peers_all(void)
+json_t* get_sip_peers_all(void)
 {
   json_t* j_res;
 
@@ -477,7 +477,7 @@ json_t* get_peers_all(void)
  * Get given peer's detail info.
  * @return
  */
-json_t* get_peer_detail(const char* peer)
+json_t* get_sip_peer_info(const char* peer)
 {
   json_t* j_res;
 
@@ -1405,15 +1405,15 @@ int update_channel_info(const json_t* j_data)
   char* sql;
   int ret;
   json_t* j_tmp;
-  const char* unique_id;
+  const char* key;
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
 
-  unique_id = json_string_value(json_object_get(j_data, "unique_id"));
-  if(unique_id == NULL) {
+  key = json_string_value(json_object_get(j_data, "unique_id"));
+  if(key == NULL) {
     slog(LOG_ERR, "Could not get channel key info.");
     return false;
   }
@@ -1421,21 +1421,21 @@ int update_channel_info(const json_t* j_data)
   tmp = db_ctx_get_update_str(j_data);
   asprintf(&sql, "update channel set %s where unique_id=\"%s\";",
       tmp,
-      unique_id
+      key
       );
   sfree(tmp);
 
   ret = db_ctx_exec(g_db_ast, sql);
   sfree(sql);
   if(ret == false) {
-    slog(LOG_WARNING, "Could not update channel info. unique_id[%s]", json_string_value(json_object_get(j_data, "Uniqueid")));
+    slog(LOG_WARNING, "Could not update channel info. unique_id[%s]", key);
     return false;
   }
 
   // get info
-  j_tmp = get_channel_info(unique_id);
+  j_tmp = get_channel_info(key);
   if(j_tmp == NULL) {
-    slog(LOG_ERR, "Could not get channel info. unique_id[%s]", unique_id);
+    slog(LOG_ERR, "Could not get channel info. unique_id[%s]", key);
     return false;
   }
 
@@ -2083,3 +2083,94 @@ json_t* get_core_module_info(const char* key)
   return j_res;
 }
 
+/**
+ * Create sip peer info.
+ * @param j_data
+ * @return
+ */
+bool create_sip_peer_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired create_sip_peer_info.");
+
+  // insert queue info
+  ret = isert_item("peer", j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert queue_param.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Update sip peer info.
+ * @param j_data
+ * @return
+ */
+bool update_sip_peer_info(const json_t* j_data)
+{
+  char* tmp;
+  char* sql;
+  int ret;
+  const char* key;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired update_sip_peer_info.");
+
+  // get key
+  key = json_string_value(json_object_get(j_data, "key"));
+  if(key == NULL) {
+    slog(LOG_ERR, "Could not get sip peer key info.");
+    return false;
+  }
+
+  // create update sql
+  tmp = db_ctx_get_update_str(j_data);
+  asprintf(&sql, "update peer set %s where peer=\"%s\";",
+      tmp,
+      key
+      );
+  sfree(tmp);
+
+  // execute
+  ret = db_ctx_exec(g_db_ast, sql);
+  sfree(sql);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not update info. key[%s]", key);
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * delete sip peer info.
+ * @return
+ */
+bool delete_sip_peer_info(const char* key)
+{
+  int ret;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired delete_sip_peer_info. peer[%s]", key);
+
+  ret = delete_items_string("peer", "peer", key);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not delete queue info. name[%s]", key);
+    return false;
+  }
+
+  return true;
+}

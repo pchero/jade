@@ -19,11 +19,6 @@ int create_core_module(json_t* j_tmp);
 json_t* get_core_modules_all(void);
 json_t* get_core_module_info(const char* key);
 
-// peer
-json_t* get_peers_all_peer(void);
-json_t* get_peers_all(void);
-json_t* get_peer_detail(const char* name);
-
 // database
 json_t* get_databases_all_key(void);
 json_t* get_database_info(const char* key);
@@ -104,6 +99,14 @@ json_t* get_pjsip_auths_all(void);
 json_t* get_pjsip_auth_info(const char* key);
 json_t* get_pjsip_contacts_all(void);
 json_t* get_pjsip_contact_info(const char* key);
+
+// sip
+bool create_sip_peer_info(const json_t* j_data);
+bool update_sip_peer_info(const json_t* j_data);
+bool delete_sip_peer_info(const char* key);
+json_t* get_sip_peers_all_peer(void);
+json_t* get_sip_peers_all(void);
+json_t* get_sip_peer_info(const char* name);
 
 
 // voicemail

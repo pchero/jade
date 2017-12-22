@@ -41,7 +41,7 @@ void htp_get_sip_peers_detail(evhtp_request_t *req, void *data)
   }
 
   // get peer info.
-  j_tmp = get_peer_detail(id);
+  j_tmp = get_sip_peer_info(id);
   if(j_tmp == NULL) {
     slog(LOG_NOTICE, "Could not get peer info.");
     simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
@@ -74,7 +74,7 @@ void htp_get_sip_peers(evhtp_request_t *req, void *data)
   }
   slog(LOG_INFO, "Fired htp_get_sip_peers.");
 
-  j_tmp = get_peers_all();
+  j_tmp = get_sip_peers_all();
   if(j_tmp == NULL) {
     simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;

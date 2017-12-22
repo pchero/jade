@@ -456,7 +456,8 @@ static void ami_event_peerentry(json_t* j_msg)
     return;
   }
 
-  ret = db_ctx_insert_or_replace(g_db_ast, "peer", j_tmp);
+  // create info
+  ret = create_sip_peer_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert destination.");
@@ -474,8 +475,8 @@ static void ami_event_peerentry(json_t* j_msg)
 static void ami_event_peerstatus(json_t* j_msg)
 {
   int ret;
-  json_t* j_peer;
   const char* peer;
+  json_t* j_tmp;
 
   if(j_msg == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -489,22 +490,19 @@ static void ami_event_peerstatus(json_t* j_msg)
     return;
   }
 
-  // get peer info.
-  j_peer = get_peer_detail(peer);
-  if(j_peer == NULL) {
-    slog(LOG_ERR, "Could not get peer info.");
-    return;
-  }
+  // create update info
+  j_tmp = json_pack("{s:s, s:s, s:s, s:s}",
+      "peer",           peer,
+      "status",         json_string_value(json_object_get(j_msg, "PeerStatus"))? : "",
+      "address",        json_string_value(json_object_get(j_msg, "Address"))? : "",
+      "channel_type",   json_string_value(json_object_get(j_msg, "ChannelType"))? : ""
+      );
 
   // update info
-  json_object_set(j_peer, "status", json_object_get(j_msg, "PeerStatus"));
-  json_object_set(j_peer, "address", json_object_get(j_msg, "Address"));
-  json_object_set(j_peer, "channel_type", json_object_get(j_msg, "ChannelType"));
-
-  ret = db_ctx_insert_or_replace(g_db_ast, "peer", j_peer);
-  json_decref(j_peer);
+  ret = update_sip_peer_info(j_tmp);
+  json_decref(j_tmp);
   if(ret == false) {
-    slog(LOG_ERR, "Could not update peer status info.");
+    slog(LOG_ERR, "Could not update sip peer info.");
     return;
   }
 
