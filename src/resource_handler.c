@@ -2032,34 +2032,46 @@ json_t* get_pjsip_contact_info(const char* key)
   return j_res;
 }
 
+/**
+ * create voicemail user
+ * @param j_tmp
+ * @return
+ */
+bool create_voicemail_user_info(json_t* j_tmp)
+{
+  int ret;
+
+  if(j_tmp == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired create_voicemail_user_info.");
+
+  ret = insert_item("voicemail_user", j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create voicemail_user.");
+    return false;
+  }
+
+  return true;
+}
 
 /**
  * Get corresponding voicemail_user info.
  * @param name
  * @return
  */
-json_t* get_voicemail_user_info(const char* context, const char* mailbox)
+json_t* get_voicemail_user_info(const char* key)
 {
   json_t* j_res;
-  char* sql;
-  int ret;
 
-  if((context == NULL) || (mailbox == NULL)) {
+  if(key == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return NULL;
   }
-  slog(LOG_DEBUG, "Fired get_voicemail_user_info. context[%s], mailbox[%s]", context, mailbox);
+  slog(LOG_DEBUG, "Fired get_voicemail_user_info. id[%s]", key);
 
-  asprintf(&sql, "select * from voicemail_user where context=\"%s\" and mailbox=\"%s\";", context, mailbox);
-  ret = db_ctx_query(g_db_ast, sql);
-  sfree(sql);
-  if(ret == false) {
-    slog(LOG_WARNING, "Could not get correct voicemail_user info.");
-    return NULL;
-  }
-
-  j_res = db_ctx_get_record(g_db_ast);
-  db_ctx_free(g_db_ast);
+  j_res = get_detail_item_key_string("voicemail_user", "id", key);
   if(j_res == NULL) {
     return NULL;
   }

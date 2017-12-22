@@ -48,6 +48,7 @@ static bool remove_voicemail_backup_setting_info(const char* filename);
 static bool is_setting_context(const char* context);
 static bool is_voicemail_setting_filename(const char* filename);
 
+static bool parse_voicemail_id(const char* str, char** mailbox, char** context);
 
 /**
  * GET ^/voicemail/users request handler.
@@ -128,7 +129,7 @@ void htp_post_voicemail_users(evhtp_request_t *req, void *data)
 }
 
 /**
- * GET ^/voicemail/users/?context=<context>&mailbox=<mailbox> request handler.
+ * GET ^/voicemail/users/<detail> request handler.
  * @param req
  * @param data
  */
@@ -136,8 +137,8 @@ void htp_get_voicemail_users_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
-  const char* context;
-  const char* mailbox;
+  char* key;
+  const char* tmp_const;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -145,22 +146,12 @@ void htp_get_voicemail_users_detail(evhtp_request_t *req, void *data)
   }
   slog(LOG_DEBUG, "Fired htp_get_voicemail_users_detail.");
 
-  context = evhtp_kv_find(req->uri->query, "context");
-  if(context == NULL) {
-    slog(LOG_ERR, "Could not get context info.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  mailbox = evhtp_kv_find(req->uri->query, "mailbox");
-  if(mailbox == NULL) {
-    slog(LOG_ERR, "Could not get mailbox info.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
+  tmp_const = req->uri->path->file;
+  key = uri_decode(tmp_const);
 
   // get info
-  j_tmp = get_voicemail_user_info(context, mailbox);
+  j_tmp = get_voicemail_user_info(key);
+  sfree(key);
   if(j_tmp == NULL) {
     simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
     return;
@@ -176,7 +167,7 @@ void htp_get_voicemail_users_detail(evhtp_request_t *req, void *data)
 }
 
 /**
- * PUT ^/voicemail/users/?context=<context>&mailbox=<mailbox> request handler.
+ * PUT ^/voicemail/users/<detail> request handler.
  * @param req
  * @param data
  */
@@ -184,34 +175,37 @@ void htp_put_voicemail_users_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_data;
-  const char* context;
-  const char* mailbox;
+  char* context;
+  char* mailbox;
   int ret;
+  const char* tmp_const;
+  char* key;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired htp_get_voicemail_users_detail.");
+  slog(LOG_DEBUG, "Fired htp_put_voicemail_users_detail.");
 
-  context = evhtp_kv_find(req->uri->query, "context");
-  if(context == NULL) {
-    slog(LOG_ERR, "Could not get context info.");
+  // get key
+  tmp_const = req->uri->path->file;
+  key = uri_decode(tmp_const);
+
+  // parse
+  ret = parse_voicemail_id(key, &mailbox, &context);
+  if(ret == false) {
+    // no request data
     simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
-
-  mailbox = evhtp_kv_find(req->uri->query, "mailbox");
-  if(mailbox == NULL) {
-    slog(LOG_ERR, "Could not get mailbox info.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
+  sfree(key);
 
   // get data
   j_data = get_json_from_request_data(req);
   if(j_data == NULL) {
     // no request data
+    sfree(mailbox);
+    sfree(context);
     simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
@@ -219,6 +213,8 @@ void htp_put_voicemail_users_detail(evhtp_request_t *req, void *data)
   // add context, mailbox
   json_object_set_new(j_data, "context", json_string(context));
   json_object_set_new(j_data, "mailbox", json_string(mailbox));
+  sfree(mailbox);
+  sfree(context);
 
   // update info
   ret = update_voicemail_user(j_data);
@@ -238,16 +234,18 @@ void htp_put_voicemail_users_detail(evhtp_request_t *req, void *data)
 }
 
 /**
- * DELETE ^/voicemail/users/?context=<context>&mailbox=<mailbox> request handler.
+ * DELETE ^/voicemail/users/<detail> request handler.
  * @param req
  * @param data
  */
 void htp_delete_voicemail_users_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
-  const char* context;
-  const char* mailbox;
+  char* context;
+  char* mailbox;
   int ret;
+  char* key;
+  const char* tmp_const;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -255,19 +253,18 @@ void htp_delete_voicemail_users_detail(evhtp_request_t *req, void *data)
   }
   slog(LOG_DEBUG, "Fired htp_delete_voicemail_users_detail.");
 
-  context = evhtp_kv_find(req->uri->query, "context");
-  if(context == NULL) {
-    slog(LOG_ERR, "Could not get context info.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
+  // get key
+  tmp_const = req->uri->path->file;
+  key = uri_decode(tmp_const);
 
-  mailbox = evhtp_kv_find(req->uri->query, "mailbox");
-  if(mailbox == NULL) {
-    slog(LOG_ERR, "Could not get mailbox info.");
+  // parse
+  ret = parse_voicemail_id(key, &mailbox, &context);
+  if(ret == false) {
+    // no request data
     simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
+  sfree(key);
 
   ret = delete_voicemail_user(context, mailbox);
   if(ret == false) {
@@ -1389,6 +1386,36 @@ static bool is_voicemail_setting_filename(const char* filename)
   if(tmp_const == NULL) {
     return false;
   }
+
+  return true;
+}
+
+/**
+ * Parse voicemail user id to mailbox and context
+ * @param str
+ * @param mailbox
+ * @param context
+ * @return
+ */
+static bool parse_voicemail_id(const char* str, char** mailbox, char** context)
+{
+  char* tmp;
+  char* token;
+  char* org;
+
+  if(str == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  tmp = strdup(str);
+  org = tmp;
+
+  token = strsep(&tmp, "@");
+  *mailbox = strdup(token);
+  *context = strdup(tmp);
+
+  sfree(org);
 
   return true;
 }

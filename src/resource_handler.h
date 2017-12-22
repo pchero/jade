@@ -138,7 +138,8 @@ json_t* get_sip_registry_info(const char* account);
 
 
 // voicemail
-json_t* get_voicemail_user_info(const char* context, const char* mailbox);
+bool create_voicemail_user_info(json_t* j_tmp);
+json_t* get_voicemail_user_info(const char* key);
 json_t* get_voicemail_users_all();
 
 
