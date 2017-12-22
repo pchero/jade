@@ -1283,10 +1283,11 @@ static void ami_event_hangup(json_t* j_msg)
 {
   int hangup;
   int ret;
-  const char* uuid;
+  const char* unique_id;
   const char* tmp_const;
   const char* hangup_detail;
-
+  char* timestamp;
+  json_t* j_tmp;
 
   if(j_msg == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -1294,32 +1295,72 @@ static void ami_event_hangup(json_t* j_msg)
   }
   slog(LOG_DEBUG, "Fired ami_event_hangup.");
 
-  tmp_const = json_string_value(json_object_get(j_msg, "Uniqueid"));
-  if(tmp_const == NULL) {
+  unique_id = json_string_value(json_object_get(j_msg, "Uniqueid"));
+  if(unique_id == NULL) {
     slog(LOG_ERR, "Could not get unique id info.");
     return;
   }
 
-  // delete channel info.
-  ret = delete_channel_info(tmp_const);
+  // update channel info
+  timestamp = get_utc_timestamp();
+  j_tmp = json_pack("{"
+      "s:s, s:s, "
+      "s:s, s:i, s:s, "
+      "s:s, s:s, s:s, s:s, s:s, s:s, "
+      "s:s, s:s, s:s, "
+      "s:i, s:s, "
+      "s:s"
+      "}",
+
+      "unique_id",  json_string_value(json_object_get(j_msg, "Uniqueid"))? : "",
+      "linked_id",  json_string_value(json_object_get(j_msg, "Linkedid"))? : "",
+
+      "channel",   json_string_value(json_object_get(j_msg, "Channel"))? : "",
+      "channel_state",      json_string_value(json_object_get(j_msg, "ChannelState"))? atoi(json_string_value(json_object_get(j_msg, "ChannelState"))): 0,
+      "channel_state_desc", json_string_value(json_object_get(j_msg, "ChannelStateDesc"))? : "",
+
+      "caller_id_num",        json_string_value(json_object_get(j_msg, "CallerIDNum"))? : "",
+      "caller_id_name",       json_string_value(json_object_get(j_msg, "CallerIDName"))? : "",
+      "connected_line_num",   json_string_value(json_object_get(j_msg, "ConnectedLineNum"))? : "",
+      "connected_line_name",  json_string_value(json_object_get(j_msg, "ConnectedLineName"))? : "",
+      "language",             json_string_value(json_object_get(j_msg, "Language"))? : "",
+      "account_code",         json_string_value(json_object_get(j_msg, "AccountCode"))? : "",
+
+      "context",    json_string_value(json_object_get(j_msg, "Context"))? : "",
+      "exten",      json_string_value(json_object_get(j_msg, "Exten"))? : "",
+      "priority",   json_string_value(json_object_get(j_msg, "Priority"))? : "",
+
+      "hangup_cause", json_string_value(json_object_get(j_msg, "Cause"))? atoi(json_string_value(json_object_get(j_msg, "Cause"))): 0,
+      "hangup_cause_desc", json_string_value(json_object_get(j_msg, "Cause-txt"))? : "Unknown",
+
+      "tm_update",  timestamp
+      );
+  sfree(timestamp);
+
+  // update info
+  ret = update_channel_info(j_tmp);
+  json_decref(j_tmp);
   if(ret == false) {
-    slog(LOG_ERR, "Could not delete channel info. unique_id[%s]", tmp_const);
+    slog(LOG_ERR, "Could not update channel info.");
+    return;
+  }
+
+  // delete channel info.
+  ret = delete_channel_info(unique_id);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not delete channel info. unique_id[%s]", unique_id);
     return;
   }
 
   ///// for ob_dialing
 
   // get values
-  uuid = json_string_value(json_object_get(j_msg, "Uniqueid"));
-//  if((uuid == NULL) || (strlen(uuid) == 0)) {
-//    uuid = json_string_value(json_object_get(j_msg, "Uniqueid"));
-//  }
   hangup_detail = json_string_value(json_object_get(j_msg, "Cause-txt"));
   tmp_const = json_string_value(json_object_get(j_msg, "Cause"))? : 0;
   hangup = atoi(tmp_const);
 
   // update ob_dialing channel
-  update_ob_dialing_hangup(uuid, hangup, hangup_detail);
+  update_ob_dialing_hangup(unique_id, hangup, hangup_detail);
 
   return;
 }
@@ -1379,7 +1420,8 @@ static void ami_event_newchannel(json_t* j_msg)
     return;
   }
 
-  ret = db_ctx_insert_or_replace(g_db_ast, "channel", j_tmp);
+  // create info
+  ret = create_core_channel_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to channel.");
@@ -2151,10 +2193,11 @@ static void ami_event_varset(json_t* j_msg)
   json_object_set_new(j_chan, "tm_update", json_string(timestamp));
   sfree(timestamp);
 
-  ret = db_ctx_insert_or_replace(g_db_ast, "channel", j_chan);
+  // update info
+  ret = update_channel_info(j_chan);
   json_decref(j_chan);
   if(ret == false) {
-    slog(LOG_ERR, "Could not insert to channel.");
+    slog(LOG_ERR, "Could not update to channel.");
     return;
   }
 
@@ -3008,7 +3051,8 @@ static void ami_event_coreshowchannel(json_t* j_msg)
     return;
   }
 
-  ret = db_ctx_insert_or_replace(g_db_ast, "channel", j_tmp);
+  // create channel info
+  ret = create_core_channel_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to channel.");

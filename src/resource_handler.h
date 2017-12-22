@@ -64,6 +64,7 @@ json_t* get_queue_statuses_all(void);
 json_t* get_channels_all_unique_id(void);
 json_t* get_channels_all(void);
 json_t* get_channel_info(const char* unique_id);
+bool create_core_channel_info(const json_t* j_data);
 int update_channel_info(const json_t* j_tmp);
 int delete_channel_info(const char* key);
 

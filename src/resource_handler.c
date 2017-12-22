@@ -18,7 +18,7 @@
 
 #include "resource_handler.h"
 
-#define DEF_PUB_TYPE_CREATE   "update"
+#define DEF_PUB_TYPE_CREATE   "create"
 #define DEF_PUB_TYPE_UPDATE   "update"
 #define DEF_PUB_TYPE_DELETE   "delete"
 
@@ -1257,6 +1257,48 @@ json_t* get_queue_status_info(const char* name)
 }
 
 /**
+ * create core_channel info.
+ * @return
+ */
+bool create_core_channel_info(const json_t* j_data)
+{
+  int ret;
+  const char* tmp_const;
+  json_t* j_tmp;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired create_core_channel_info.");
+
+  // insert item
+  ret = isert_item("channel", j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert core_channel.");
+    return false;
+  }
+
+  // publish
+  // get data info
+  tmp_const = json_string_value(json_object_get(j_data, "unique_id"));
+  j_tmp = get_channel_info(tmp_const);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get core_channel info. unique_id[%s]", tmp_const);
+    return false;
+  }
+
+  // publish event
+  ret = publish_event_core_channel(DEF_PUB_TYPE_CREATE, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
+  return true;
+}
+/**
  * Get all channel's unique id array
  * @return
  */
@@ -1357,28 +1399,51 @@ json_t* get_channel_info(const char* unique_id)
  * update channel info.
  * @return
  */
-int update_channel_info(const json_t* j_tmp)
+int update_channel_info(const json_t* j_data)
 {
   char* tmp;
   char* sql;
   int ret;
+  json_t* j_tmp;
+  const char* unique_id;
 
-  if(j_tmp == NULL) {
+  if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
 
-  tmp = db_ctx_get_update_str(j_tmp);
+  unique_id = json_string_value(json_object_get(j_data, "unique_id"));
+  if(unique_id == NULL) {
+    slog(LOG_ERR, "Could not get channel key info.");
+    return false;
+  }
+
+  tmp = db_ctx_get_update_str(j_data);
   asprintf(&sql, "update channel set %s where unique_id=\"%s\";",
       tmp,
-      json_string_value(json_object_get(j_tmp, "unique_id"))
+      unique_id
       );
   sfree(tmp);
 
   ret = db_ctx_exec(g_db_ast, sql);
   sfree(sql);
   if(ret == false) {
-    slog(LOG_WARNING, "Could not update channel info. unique_id[%s]", json_string_value(json_object_get(j_tmp, "Uniqueid")));
+    slog(LOG_WARNING, "Could not update channel info. unique_id[%s]", json_string_value(json_object_get(j_data, "Uniqueid")));
+    return false;
+  }
+
+  // get info
+  j_tmp = get_channel_info(unique_id);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get channel info. unique_id[%s]", unique_id);
+    return false;
+  }
+
+  // publish event
+  ret = publish_event_core_channel(DEF_PUB_TYPE_UPDATE, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
     return false;
   }
 
@@ -1391,7 +1456,7 @@ int update_channel_info(const json_t* j_tmp)
  */
 int delete_channel_info(const char* key)
 {
-  char* sql;
+  json_t* j_tmp;
   int ret;
 
   if(key == NULL) {
@@ -1399,11 +1464,23 @@ int delete_channel_info(const char* key)
     return false;
   }
 
-  asprintf(&sql, "delete from channel where unique_id=\"%s\";", key);
-  ret = db_ctx_exec(g_db_ast, sql);
-  sfree(sql);
+  j_tmp = get_channel_info(key);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "The channel is already deleted. key[%s]", key);
+    return false;
+  }
+
+  ret = delete_items_string("channel", "unique_id", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete channel info. unique_id[%s]", key);
+    return false;
+  }
+
+  // publish delete event.
+  ret = publish_event_core_channel(DEF_PUB_TYPE_DELETE, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
     return false;
   }
 
