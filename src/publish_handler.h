@@ -15,5 +15,7 @@ bool publish_event_queue_member(const char* type, json_t* j_data);
 bool publish_event_queue_queue(const char* type, json_t* j_data);
 bool publish_event_queue_entry(const char* type, json_t* j_data);
 
+bool publish_event_core_channel(const char* type, json_t* j_data);
+
 
 #endif /* SRC_PUBLISH_HANDLER_H_ */

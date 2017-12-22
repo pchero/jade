@@ -47,4 +47,6 @@ Simple example of the event. It would be little bit different with real response
 *****
 EVENT
 *****
+
+.. include:: core_event.rst
 .. include:: queue_event.rst

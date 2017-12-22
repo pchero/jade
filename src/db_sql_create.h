@@ -60,10 +60,15 @@ static const char* g_sql_create_channel =
 "   application_data  varchar(1023),"
 "   bridge_id         varchar(255),"
 
-"   duration  int,"
+// hangup
+"   hangup_cause        int,"
+"   hangup_cause_desc   varchar(255),"
 
 // variables
 "   variables   text,"
+
+// other
+"   duration  int,"
 
 // timestamp. UTC."
 "   tm_update     datetime(6),"

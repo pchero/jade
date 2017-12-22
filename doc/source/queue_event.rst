@@ -15,6 +15,7 @@ Event for queue entry delete.
 Topic
 +++++
 ::
+
   /queue/statuses/<target>
   
 * ``target``: URI encoded queue name.
@@ -74,6 +75,7 @@ Event for queue entry insert/update.
 Topic
 +++++
 ::
+
   /queue/statuses/<target>
   
 * ``target``: URI encoded queue name.
@@ -139,6 +141,7 @@ Event for queue member delete.
 Topic
 +++++
 ::
+
   /queue/statuses/<target>
   
 * ``target``: URI encoded queue name.
@@ -212,6 +215,7 @@ Event for queue member insert/update.
 Topic
 +++++
 ::
+
   /queue/statuses/<target>
   
 * ``target``: URI encoded queue name.
@@ -290,6 +294,7 @@ queue.queue.update
 Topic
 +++++
 ::
+
   /queue/statuses/<target>
   
 * ``target``: URI encoded queue name.
