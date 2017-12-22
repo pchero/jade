@@ -14,14 +14,18 @@
 #include "slog.h"
 #include "utils.h"
 #include "db_sql_create.h"
-#include "zmq_handler.h"
+#include "publish_handler.h"
 
 #include "resource_handler.h"
+
+#define DEF_PUB_TYPE_CREATE   "update"
+#define DEF_PUB_TYPE_UPDATE   "update"
+#define DEF_PUB_TYPE_DELETE   "delete"
 
 extern app* g_app;
 
 
-static bool create_item(const char* table, const json_t* j_data);
+static bool isert_item(const char* table, const json_t* j_data);
 static json_t* get_items(const char* table, const char* item);
 static json_t* get_detail_item_key_string(const char* table, const char* key, const char* val);
 static json_t* get_detail_items_key_string(const char* table, const char* key, const char* val);
@@ -31,8 +35,6 @@ static bool delete_items_string(const char* table, const char* key, const char* 
 
 static bool init_db(void);
 static bool init_core_database(void);
-
-static bool publish_queue_member_event(const char* type, json_t* j_data);
 
 
 /**
@@ -249,7 +251,7 @@ static bool init_core_database(void)
  * @param item
  * @return
  */
-static bool create_item(const char* table, const json_t* j_data)
+static bool isert_item(const char* table, const json_t* j_data)
 {
   int ret;
 
@@ -701,18 +703,16 @@ json_t* get_queue_params_all_name(void)
 int create_queue_param_info(const json_t* j_data)
 {
   int ret;
-  char* name;
   const char* tmp_const;
-  char* topic;
   json_t* j_tmp;
-  json_t* j_pub;
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
 
-  ret = create_item("queue_param", j_data);
+  // insert queue info
+  ret = isert_item("queue_param", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert queue_param.");
     return false;
@@ -726,19 +726,13 @@ int create_queue_param_info(const json_t* j_data)
     return false;
   }
 
-  // create topic
-  name = uri_encode(tmp_const);
-  asprintf(&topic, "/queue/statuses/%s", name);
-  sfree(name);
-
-  // create pub
-  j_pub = json_object();
-  json_object_set_new(j_pub, "queue.queue.update", j_tmp);
-
-  // event publish
-  publish_message(topic, j_pub);
-  sfree(topic);
-  json_decref(j_pub);
+  // publish event
+  ret = publish_event_queue_queue(DEF_PUB_TYPE_CREATE, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
 
   return true;
 }
@@ -839,41 +833,6 @@ json_t* get_queue_members_all_name_queue(void)
   return j_res;
 }
 
-static bool publish_queue_member_event(const char* type, json_t* j_data)
-{
-  json_t* j_pub;
-  const char* tmp_const;
-  char* tmp;
-  char* topic;
-  char* event;
-
-  if((type == NULL) || (j_data == NULL)){
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return false;
-  }
-
-  // create topic
-  tmp_const = json_string_value(json_object_get(j_data, "queue_name"));
-  tmp = uri_encode(tmp_const);
-  asprintf(&topic, "/queue/statuses/%s", tmp);
-  sfree(tmp);
-
-  // create event
-  asprintf(&event, "queue.member.%s", type);
-
-  // create pub
-  j_pub = json_object();
-  json_object_set(j_pub, event, j_data);
-  sfree(event);
-
-  // event publish
-  publish_message(topic, j_pub);
-  sfree(topic);
-  json_decref(j_pub);
-
-  return true;
-}
-
 /**
  * create queue member info.
  * @return
@@ -891,16 +850,18 @@ int create_queue_member_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired create_queue_member_info.");
 
   // create member info
-  ret = create_item("queue_member", j_data);
+  ret = isert_item("queue_member", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert queue_member.");
     return false;
   }
 
-  // publish
+  // get data
   id = json_string_value(json_object_get(j_data, "id"));
   j_tmp = get_queue_member_info(id);
-  ret = publish_queue_member_event("update", j_tmp);
+
+  // publish event
+  ret = publish_event_queue_member(DEF_PUB_TYPE_CREATE, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not publish update event.");
@@ -941,7 +902,7 @@ int delete_queue_member_info(const char* key)
   }
 
   // publish
-  ret = publish_queue_member_event("delete", j_tmp);
+  ret = publish_event_queue_member(DEF_PUB_TYPE_DELETE, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not publish delete event.");
@@ -1141,11 +1102,7 @@ json_t* get_queue_entry_info_by_id_name(const char* unique_id, const char* queue
 int delete_queue_entry_info(const char* key)
 {
   int ret;
-  const char* tmp_const;
   json_t* j_data;
-  json_t* j_pub;
-  char* tmp;
-  char* topic;
 
   if(key == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -1168,23 +1125,13 @@ int delete_queue_entry_info(const char* key)
     return false;
   }
 
-  // publish
-  // create topic
-  tmp_const = json_string_value(json_object_get(j_data, "queue_name"));
-  slog(LOG_DEBUG, "Check value. queue_name[%s]", tmp_const);
-  tmp = uri_encode(tmp_const);
-  asprintf(&topic, "/queue/statuses/%s", tmp);
-  sfree(tmp);
-
-  // create pub
-  j_pub = json_object();
-  json_object_set_new(j_pub, "queue.entry.delete", j_data);
-
-  // event publish
-  publish_message(topic, j_pub);
-  sfree(topic);
-  json_decref(j_pub);
-
+  // publish event
+  ret = publish_event_queue_entry(DEF_PUB_TYPE_DELETE, j_data);
+  json_decref(j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
   return true;
 }
 
@@ -1195,18 +1142,17 @@ int delete_queue_entry_info(const char* key)
 int create_queue_entry_info(const json_t* j_data)
 {
   int ret;
-  char* tmp;
-  char* topic;
   const char* tmp_const;
   json_t* j_tmp;
-  json_t* j_pub;
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
+  slog(LOG_DEBUG, "Fired create_queue_entry_info.");
 
-  ret = create_item("queue_entry", j_data);
+  // insert item
+  ret = isert_item("queue_entry", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert queue_entry.");
     return false;
@@ -1221,20 +1167,13 @@ int create_queue_entry_info(const json_t* j_data)
     return false;
   }
 
-  // create topic
-  tmp_const = json_string_value(json_object_get(j_data, "queue_name"));
-  tmp = uri_encode(tmp_const);
-  asprintf(&topic, "/queue/statuses/%s", tmp);
-  sfree(tmp);
-
-  // create pub
-  j_pub = json_object();
-  json_object_set_new(j_pub, "queue.entry.update", j_tmp);
-
-  // event publish
-  publish_message(topic, j_pub);
-  sfree(topic);
-  json_decref(j_pub);
+  // publish event
+  ret = publish_event_queue_entry(DEF_PUB_TYPE_CREATE, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
 
   return true;
 }
@@ -1712,7 +1651,7 @@ int create_park_parkinglot_info(const json_t* j_tmp)
   }
   slog(LOG_DEBUG, "Fired create_park_parkinglot_info.");
 
-  ret = create_item("parking_lot", j_tmp);
+  ret = isert_item("parking_lot", j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to parking_lot.");
     return false;
@@ -1785,7 +1724,7 @@ int create_park_parkedcall_info(const json_t* j_tmp)
     return false;
   }
 
-  ret = create_item("parked_call", j_tmp);
+  ret = isert_item("parked_call", j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to parked_call.");
     return false;
@@ -2025,7 +1964,7 @@ int create_core_module(json_t* j_tmp)
     return false;
   }
 
-  ret = create_item("core_module", j_tmp);
+  ret = isert_item("core_module", j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert core_module.");
     return false;
