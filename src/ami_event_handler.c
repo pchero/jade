@@ -2835,6 +2835,7 @@ static void ami_event_voicemailuserentry(json_t* j_msg)
 {
   json_t* j_data;
   char* timestamp;
+  char* id;
   const char* context;
   const char* mailbox;
   int ret;
@@ -2857,9 +2858,13 @@ static void ami_event_voicemailuserentry(json_t* j_msg)
     return;
   }
 
+  // create id
+  asprintf(&id, "%s@%s", mailbox, context);
+
+  // create info
   timestamp = get_utc_timestamp();
   j_data = json_pack("{"
-      "s:s, s:s, "        // basic info
+      "s:s, s:s, s:s, "   // basic info
       "s:s, s:s, s:s, "   // user info
       "s:s, s:s, s:s, "   // mail setting
 
@@ -2874,6 +2879,7 @@ static void ami_event_voicemailuserentry(json_t* j_msg)
       "}",
 
       // basic info
+      "id",      id,
       "context", context,
       "mailbox", mailbox,
 
@@ -2924,9 +2930,10 @@ static void ami_event_voicemailuserentry(json_t* j_msg)
       "tm_update", timestamp
       );
   sfree(timestamp);
+  sfree(id);
 
-  // insert or replace
-  ret = db_ctx_insert_or_replace(g_db_ast, "voicemail_user", j_data);
+  // create info
+  ret = create_voicemail_user_info(j_data);
   json_decref(j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to voicemail_user.");

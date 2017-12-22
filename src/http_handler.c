@@ -1865,7 +1865,7 @@ static void cb_htp_voicemail_settings_detail(evhtp_request_t *req, void *data)
 
 /**
  * http request handler
- * ^/voicemail/users/<context>/<mailbox>
+ * ^/voicemail/users/<detail>
  * @param req
  * @param data
  */

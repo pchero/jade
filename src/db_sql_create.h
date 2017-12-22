@@ -727,6 +727,7 @@ static const char* g_sql_create_voicemail_user =
 "create table voicemail_user("
 
 // basic info
+"   id      varchar(255),"
 "   context varchar(255),"
 "   mailbox varchar(255),"
 
@@ -773,7 +774,7 @@ static const char* g_sql_create_voicemail_user =
 // timestamp. UTC."
 "   tm_update         datetime(6),"   // update time."
 
-"   primary key(context, mailbox)"
+"   primary key(id)"
 ");";
 
 
