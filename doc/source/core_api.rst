@@ -49,6 +49,9 @@ Returns
 
             "account_code": "<string>",
             "language": "<string>",
+            
+            "hangup_cause": <number>,
+            "hangup_cause_desc": "<string>",
 
             "variables": {},
 
@@ -72,33 +75,35 @@ Example
   {
     "api_ver": "0.1",
     "result": {
-      "list": [
-        {
-          "account_code": "",
-          "application": "MusicOnHold",
-          "application_data": "",
-          "bridge_id": null,
-          "caller_id_name": "pjagent-01",
-          "caller_id_num": "pjagent-01",
-          "channel": "PJSIP/pjagent-01-00000000",
-          "channel_state": 6,
-          "channel_state_desc": "Up",
-          "connected_line_name": "<unknown>",
-          "connected_line_num": "<unknown>",
-          "context": "sample_musiconhold",
-          "duration": null,
-          "exten": "s",
-          "language": "en",
-          "linked_id": "1513550354.0",
-          "priority": "3",
-          "tm_update": "2017-12-17T22:39:14.527265941Z",
-          "unique_id": "1513550354.0",
-          "variables": {}
-        }
-      ]
+        "list": [
+            {
+                "account_code": "",
+                "application": "Queue",
+                "application_data": "",
+                "bridge_id": null,
+                "caller_id_name": "pjagent-01",
+                "caller_id_num": "pjagent-01",
+                "channel": "PJSIP/pjagent-01-00000007",
+                "channel_state": 4,
+                "channel_state_desc": "Ring",
+                "connected_line_name": "<unknown>",
+                "connected_line_num": "<unknown>",
+                "context": "queue_sales",
+                "duration": null,
+                "exten": "s",
+                "hangup_cause": null,
+                "hangup_cause_desc": null,
+                "language": "en",
+                "linked_id": "1513946896.7",
+                "priority": "2",
+                "tm_update": "2017-12-22T12:48:17.211205731Z",
+                "unique_id": "1513946896.7",
+                "variables": {}
+            }
+        ]
     },
     "statuscode": 200,
-    "timestamp": "2017-12-17T22:39:33.510857696Z"
+    "timestamp": "2017-12-22T12:48:26.824442473Z"
   }
 
 
@@ -159,6 +164,9 @@ Returns
        "application": "<string>",
        "application_data": "<string>",
        
+       "hangup_cause": <number>,
+       "hangup_cause_desc": "<string>",
+       
        "variables": {},
        
        "tm_update": "<timestamp>"
@@ -190,42 +198,46 @@ Return parameters
 * ``application``: Application name.
 * ``application_data``: Application data.
 
+* ``hangup_cause``: Hangup reason.
+* ``hangup_cause_desc``: Hangup reason description.
+
 * ``variables``: List of channel's variables.
 
 Example
 +++++++
 ::
 
-   $ curl -X GET localhost:8081/core/channels/1513550354.0
+  $ curl -X GET localhost:8081/core/channels/1513946896.7
       
-   {
+  {
     "api_ver": "0.1",
     "result": {
         "account_code": "",
-        "application": "MusicOnHold",
+        "application": "Queue",
         "application_data": "",
         "bridge_id": null,
         "caller_id_name": "pjagent-01",
         "caller_id_num": "pjagent-01",
-        "channel": "PJSIP/pjagent-01-00000000",
-        "channel_state": 6,
-        "channel_state_desc": "Up",
+        "channel": "PJSIP/pjagent-01-00000007",
+        "channel_state": 4,
+        "channel_state_desc": "Ring",
         "connected_line_name": "<unknown>",
         "connected_line_num": "<unknown>",
-        "context": "sample_musiconhold",
+        "context": "queue_sales",
         "duration": null,
         "exten": "s",
+        "hangup_cause": null,
+        "hangup_cause_desc": null,
         "language": "en",
-        "linked_id": "1513550354.0",
-        "priority": "3",
-        "tm_update": "2017-12-17T22:39:14.527265941Z",
-        "unique_id": "1513550354.0",
+        "linked_id": "1513946896.7",
+        "priority": "2",
+        "tm_update": "2017-12-22T12:48:17.211205731Z",
+        "unique_id": "1513946896.7",
         "variables": {}
     },
     "statuscode": 200,
-    "timestamp": "2017-12-17T23:01:05.73339390Z"
-   }
-
+    "timestamp": "2017-12-22T12:49:31.608415721Z"
+  }
 
 .. _delete_core_channels_detail:
 

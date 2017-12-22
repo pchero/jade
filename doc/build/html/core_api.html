@@ -83,6 +83,9 @@
          &quot;account_code&quot;: &quot;&lt;string&gt;&quot;,
          &quot;language&quot;: &quot;&lt;string&gt;&quot;,
 
+         &quot;hangup_cause&quot;: &lt;number&gt;,
+         &quot;hangup_cause_desc&quot;: &quot;&lt;string&gt;&quot;,
+
          &quot;variables&quot;: {},
 
          &quot;tm_update&quot;: &quot;&lt;timestamp&gt;&quot;
@@ -111,33 +114,35 @@
 {
   &quot;api_ver&quot;: &quot;0.1&quot;,
   &quot;result&quot;: {
-    &quot;list&quot;: [
-      {
-        &quot;account_code&quot;: &quot;&quot;,
-        &quot;application&quot;: &quot;MusicOnHold&quot;,
-        &quot;application_data&quot;: &quot;&quot;,
-        &quot;bridge_id&quot;: null,
-        &quot;caller_id_name&quot;: &quot;pjagent-01&quot;,
-        &quot;caller_id_num&quot;: &quot;pjagent-01&quot;,
-        &quot;channel&quot;: &quot;PJSIP/pjagent-01-00000000&quot;,
-        &quot;channel_state&quot;: 6,
-        &quot;channel_state_desc&quot;: &quot;Up&quot;,
-        &quot;connected_line_name&quot;: &quot;&lt;unknown&gt;&quot;,
-        &quot;connected_line_num&quot;: &quot;&lt;unknown&gt;&quot;,
-        &quot;context&quot;: &quot;sample_musiconhold&quot;,
-        &quot;duration&quot;: null,
-        &quot;exten&quot;: &quot;s&quot;,
-        &quot;language&quot;: &quot;en&quot;,
-        &quot;linked_id&quot;: &quot;1513550354.0&quot;,
-        &quot;priority&quot;: &quot;3&quot;,
-        &quot;tm_update&quot;: &quot;2017-12-17T22:39:14.527265941Z&quot;,
-        &quot;unique_id&quot;: &quot;1513550354.0&quot;,
-        &quot;variables&quot;: {}
-      }
-    ]
+      &quot;list&quot;: [
+          {
+              &quot;account_code&quot;: &quot;&quot;,
+              &quot;application&quot;: &quot;Queue&quot;,
+              &quot;application_data&quot;: &quot;&quot;,
+              &quot;bridge_id&quot;: null,
+              &quot;caller_id_name&quot;: &quot;pjagent-01&quot;,
+              &quot;caller_id_num&quot;: &quot;pjagent-01&quot;,
+              &quot;channel&quot;: &quot;PJSIP/pjagent-01-00000007&quot;,
+              &quot;channel_state&quot;: 4,
+              &quot;channel_state_desc&quot;: &quot;Ring&quot;,
+              &quot;connected_line_name&quot;: &quot;&lt;unknown&gt;&quot;,
+              &quot;connected_line_num&quot;: &quot;&lt;unknown&gt;&quot;,
+              &quot;context&quot;: &quot;queue_sales&quot;,
+              &quot;duration&quot;: null,
+              &quot;exten&quot;: &quot;s&quot;,
+              &quot;hangup_cause&quot;: null,
+              &quot;hangup_cause_desc&quot;: null,
+              &quot;language&quot;: &quot;en&quot;,
+              &quot;linked_id&quot;: &quot;1513946896.7&quot;,
+              &quot;priority&quot;: &quot;2&quot;,
+              &quot;tm_update&quot;: &quot;2017-12-22T12:48:17.211205731Z&quot;,
+              &quot;unique_id&quot;: &quot;1513946896.7&quot;,
+              &quot;variables&quot;: {}
+          }
+      ]
   },
   &quot;statuscode&quot;: 200,
-  &quot;timestamp&quot;: &quot;2017-12-17T22:39:33.510857696Z&quot;
+  &quot;timestamp&quot;: &quot;2017-12-22T12:48:26.824442473Z&quot;
 }
 </pre></div>
 </div>
@@ -192,6 +197,9 @@
     &quot;application&quot;: &quot;&lt;string&gt;&quot;,
     &quot;application_data&quot;: &quot;&lt;string&gt;&quot;,
 
+    &quot;hangup_cause&quot;: &lt;number&gt;,
+    &quot;hangup_cause_desc&quot;: &quot;&lt;string&gt;&quot;,
+
     &quot;variables&quot;: {},
 
     &quot;tm_update&quot;: &quot;&lt;timestamp&gt;&quot;
@@ -217,39 +225,43 @@
 <li><tt class="docutils literal"><span class="pre">language</span></tt>: Language.</li>
 <li><tt class="docutils literal"><span class="pre">application</span></tt>: Application name.</li>
 <li><tt class="docutils literal"><span class="pre">application_data</span></tt>: Application data.</li>
+<li><tt class="docutils literal"><span class="pre">hangup_cause</span></tt>: Hangup reason.</li>
+<li><tt class="docutils literal"><span class="pre">hangup_cause_desc</span></tt>: Hangup reason description.</li>
 <li><tt class="docutils literal"><span class="pre">variables</span></tt>: List of channel&#8217;s variables.</li>
 </ul>
 </div>
 <div class="section" id="id5">
 <h3>Example<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET localhost:8081/core/channels/1513550354.0
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET localhost:8081/core/channels/1513946896.7
 
 {
- &quot;api_ver&quot;: &quot;0.1&quot;,
- &quot;result&quot;: {
-     &quot;account_code&quot;: &quot;&quot;,
-     &quot;application&quot;: &quot;MusicOnHold&quot;,
-     &quot;application_data&quot;: &quot;&quot;,
-     &quot;bridge_id&quot;: null,
-     &quot;caller_id_name&quot;: &quot;pjagent-01&quot;,
-     &quot;caller_id_num&quot;: &quot;pjagent-01&quot;,
-     &quot;channel&quot;: &quot;PJSIP/pjagent-01-00000000&quot;,
-     &quot;channel_state&quot;: 6,
-     &quot;channel_state_desc&quot;: &quot;Up&quot;,
-     &quot;connected_line_name&quot;: &quot;&lt;unknown&gt;&quot;,
-     &quot;connected_line_num&quot;: &quot;&lt;unknown&gt;&quot;,
-     &quot;context&quot;: &quot;sample_musiconhold&quot;,
-     &quot;duration&quot;: null,
-     &quot;exten&quot;: &quot;s&quot;,
-     &quot;language&quot;: &quot;en&quot;,
-     &quot;linked_id&quot;: &quot;1513550354.0&quot;,
-     &quot;priority&quot;: &quot;3&quot;,
-     &quot;tm_update&quot;: &quot;2017-12-17T22:39:14.527265941Z&quot;,
-     &quot;unique_id&quot;: &quot;1513550354.0&quot;,
-     &quot;variables&quot;: {}
- },
- &quot;statuscode&quot;: 200,
- &quot;timestamp&quot;: &quot;2017-12-17T23:01:05.73339390Z&quot;
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;result&quot;: {
+      &quot;account_code&quot;: &quot;&quot;,
+      &quot;application&quot;: &quot;Queue&quot;,
+      &quot;application_data&quot;: &quot;&quot;,
+      &quot;bridge_id&quot;: null,
+      &quot;caller_id_name&quot;: &quot;pjagent-01&quot;,
+      &quot;caller_id_num&quot;: &quot;pjagent-01&quot;,
+      &quot;channel&quot;: &quot;PJSIP/pjagent-01-00000007&quot;,
+      &quot;channel_state&quot;: 4,
+      &quot;channel_state_desc&quot;: &quot;Ring&quot;,
+      &quot;connected_line_name&quot;: &quot;&lt;unknown&gt;&quot;,
+      &quot;connected_line_num&quot;: &quot;&lt;unknown&gt;&quot;,
+      &quot;context&quot;: &quot;queue_sales&quot;,
+      &quot;duration&quot;: null,
+      &quot;exten&quot;: &quot;s&quot;,
+      &quot;hangup_cause&quot;: null,
+      &quot;hangup_cause_desc&quot;: null,
+      &quot;language&quot;: &quot;en&quot;,
+      &quot;linked_id&quot;: &quot;1513946896.7&quot;,
+      &quot;priority&quot;: &quot;2&quot;,
+      &quot;tm_update&quot;: &quot;2017-12-22T12:48:17.211205731Z&quot;,
+      &quot;unique_id&quot;: &quot;1513946896.7&quot;,
+      &quot;variables&quot;: {}
+  },
+  &quot;statuscode&quot;: 200,
+  &quot;timestamp&quot;: &quot;2017-12-22T12:49:31.608415721Z&quot;
 }
 </pre></div>
 </div>
