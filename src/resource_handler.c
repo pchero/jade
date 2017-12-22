@@ -25,12 +25,14 @@
 extern app* g_app;
 
 
-static bool isert_item(const char* table, const json_t* j_data);
+static bool insert_item(const char* table, const json_t* j_data);
+static bool update_item(const char* table, const char* key_column, const json_t* j_data);
 static json_t* get_items(const char* table, const char* item);
 static json_t* get_detail_item_key_string(const char* table, const char* key, const char* val);
 static json_t* get_detail_items_key_string(const char* table, const char* key, const char* val);
 
-static bool delete_items_number(const char* table, const char* key, const int val);
+
+//static bool delete_items_number(const char* table, const char* key, const int val);
 static bool delete_items_string(const char* table, const char* key, const char* val);
 
 static bool init_db(void);
@@ -251,7 +253,7 @@ static bool init_core_database(void)
  * @param item
  * @return
  */
-static bool isert_item(const char* table, const json_t* j_data)
+static bool insert_item(const char* table, const json_t* j_data)
 {
   int ret;
 
@@ -266,6 +268,71 @@ static bool isert_item(const char* table, const json_t* j_data)
     slog(LOG_ERR, "Could not insert queue_param.");
     return false;
   }
+  return true;
+}
+
+/**
+ * Update item info.
+ * @param table
+ * @param key_name
+ * @param j_data
+ * @return
+ */
+static bool update_item(const char* table, const char* key_column, const json_t* j_data)
+{
+  char* tmp;
+  char* sql;
+  char* sql_tmp;
+  int ret;
+  json_t* j_key;
+
+  if((table == NULL) || (key_column == NULL) || (j_data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  // get key
+  j_key = json_object_get(j_data, key_column);
+  if(j_key == NULL) {
+    slog(LOG_ERR, "Could not get key column info. key_colum[%s]", key_column);
+    return false;
+  }
+
+  // create update sql_tmp
+  tmp = db_ctx_get_update_str(j_data);
+  asprintf(&sql_tmp, "update %s set %s where %s",
+      table,
+      tmp,
+      key_column
+      );
+  sfree(tmp);
+
+  // create update sql
+  if(json_is_string(j_key)) {
+    asprintf(&sql, "%s=\"%s\";", sql_tmp, json_string_value(j_key));
+  }
+  else if(json_is_integer(j_key)) {
+    asprintf(&sql, "%s=%"JSON_INTEGER_FORMAT";",sql_tmp, json_integer_value(j_key));
+  }
+  else if(json_is_real(j_key)) {
+    asprintf(&sql, "%s=%f;", sql_tmp, json_real_value(j_key));
+  }
+  else {
+    // wrong format
+    slog(LOG_ERR, "Could not get key info.");
+    sfree(sql_tmp);
+    return false;
+  }
+  sfree(sql_tmp);
+
+  // execute
+  ret = db_ctx_exec(g_db_ast, sql);
+  sfree(sql);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not update info.");
+    return false;
+  }
+
   return true;
 }
 
@@ -336,31 +403,31 @@ static bool delete_items_string(const char* table, const char* key, const char* 
   return true;
 }
 
-/**
- * delete all selected items with number value.
- * @return
- */
-static bool delete_items_number(const char* table, const char* key, const int val)
-{
-  int ret;
-  char* sql;
-
-  if((table == NULL) || (key == NULL)) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return false;
-  }
-  slog(LOG_DEBUG, "Fired delete_items_number. table[%s], key[%s], val[%d]", table, key, val);
-
-  asprintf(&sql, "delete from %s where %s=%d;", table, key, val);
-  ret = db_ctx_exec(g_db_ast, sql);
-  sfree(sql);
-  if(ret == false) {
-    slog(LOG_WARNING, "Could not delete items.");
-    return false;
-  }
-
-  return true;
-}
+///**
+// * delete all selected items with number value.
+// * @return
+// */
+//static bool delete_items_number(const char* table, const char* key, const int val)
+//{
+//  int ret;
+//  char* sql;
+//
+//  if((table == NULL) || (key == NULL)) {
+//    slog(LOG_WARNING, "Wrong input parameter.");
+//    return false;
+//  }
+//  slog(LOG_DEBUG, "Fired delete_items_number. table[%s], key[%s], val[%d]", table, key, val);
+//
+//  asprintf(&sql, "delete from %s where %s=%d;", table, key, val);
+//  ret = db_ctx_exec(g_db_ast, sql);
+//  sfree(sql);
+//  if(ret == false) {
+//    slog(LOG_WARNING, "Could not delete items.");
+//    return false;
+//  }
+//
+//  return true;
+//}
 
 
 /**
@@ -572,7 +639,7 @@ json_t* get_database_info(const char* key)
  * Get all registry account array
  * @return
  */
-json_t* get_registries_all_account(void)
+json_t* get_sip_registries_all_account(void)
 {
   char* sql;
   int ret;
@@ -614,7 +681,7 @@ json_t* get_registries_all_account(void)
  * Get corresponding registry info.
  * @return
  */
-json_t* get_registry_info(const char* account)
+json_t* get_sip_registry_info(const char* account)
 {
   char* sql;
   int ret;
@@ -645,7 +712,7 @@ json_t* get_registry_info(const char* account)
  * Get all registries array
  * @return
  */
-json_t* get_registries_all(void)
+json_t* get_sip_registries_all(void)
 {
   json_t* j_res;
 
@@ -712,7 +779,7 @@ int create_queue_param_info(const json_t* j_data)
   }
 
   // insert queue info
-  ret = isert_item("queue_param", j_data);
+  ret = insert_item("queue_param", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert queue_param.");
     return false;
@@ -850,7 +917,7 @@ int create_queue_member_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired create_queue_member_info.");
 
   // create member info
-  ret = isert_item("queue_member", j_data);
+  ret = insert_item("queue_member", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert queue_member.");
     return false;
@@ -1152,7 +1219,7 @@ int create_queue_entry_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired create_queue_entry_info.");
 
   // insert item
-  ret = isert_item("queue_entry", j_data);
+  ret = insert_item("queue_entry", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert queue_entry.");
     return false;
@@ -1273,7 +1340,7 @@ bool create_core_channel_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired create_core_channel_info.");
 
   // insert item
-  ret = isert_item("channel", j_data);
+  ret = insert_item("channel", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert core_channel.");
     return false;
@@ -1282,7 +1349,7 @@ bool create_core_channel_info(const json_t* j_data)
   // publish
   // get data info
   tmp_const = json_string_value(json_object_get(j_data, "unique_id"));
-  j_tmp = get_channel_info(tmp_const);
+  j_tmp = get_core_channel_info(tmp_const);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get core_channel info. unique_id[%s]", tmp_const);
     return false;
@@ -1302,7 +1369,7 @@ bool create_core_channel_info(const json_t* j_data)
  * Get all channel's unique id array
  * @return
  */
-json_t* get_channels_all_unique_id(void)
+json_t* get_core_channels_all_unique_id(void)
 {
   char* sql;
   int ret;
@@ -1355,7 +1422,7 @@ json_t* get_channels_all_unique_id(void)
  * Get all channel's array
  * @return
  */
-json_t* get_channels_all(void)
+json_t* get_core_channels_all(void)
 {
   json_t* j_res;
 
@@ -1367,7 +1434,7 @@ json_t* get_channels_all(void)
  * Get corresponding channel info.
  * @return
  */
-json_t* get_channel_info(const char* unique_id)
+json_t* get_core_channel_info(const char* unique_id)
 {
   char* sql;
   int ret;
@@ -1399,10 +1466,8 @@ json_t* get_channel_info(const char* unique_id)
  * update channel info.
  * @return
  */
-int update_channel_info(const json_t* j_data)
+int update_core_channel_info(const json_t* j_data)
 {
-  char* tmp;
-  char* sql;
   int ret;
   json_t* j_tmp;
   const char* key;
@@ -1412,28 +1477,16 @@ int update_channel_info(const json_t* j_data)
     return false;
   }
 
-  key = json_string_value(json_object_get(j_data, "unique_id"));
-  if(key == NULL) {
-    slog(LOG_ERR, "Could not get channel key info.");
-    return false;
-  }
-
-  tmp = db_ctx_get_update_str(j_data);
-  asprintf(&sql, "update channel set %s where unique_id=\"%s\";",
-      tmp,
-      key
-      );
-  sfree(tmp);
-
-  ret = db_ctx_exec(g_db_ast, sql);
-  sfree(sql);
+  // update
+  ret = update_item("channel", "unique_id", j_data);
   if(ret == false) {
-    slog(LOG_WARNING, "Could not update channel info. unique_id[%s]", key);
+    slog(LOG_ERR, "Could not update pjsip_auth info.");
     return false;
   }
 
-  // get info
-  j_tmp = get_channel_info(key);
+  // get updated info
+  key = json_string_value(json_object_get(j_data, "unique_id"));
+  j_tmp = get_core_channel_info(key);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get channel info. unique_id[%s]", key);
     return false;
@@ -1454,7 +1507,7 @@ int update_channel_info(const json_t* j_data)
  * delete channel info.
  * @return
  */
-int delete_channel_info(const char* key)
+int delete_core_channel_info(const char* key)
 {
   json_t* j_tmp;
   int ret;
@@ -1464,7 +1517,7 @@ int delete_channel_info(const char* key)
     return false;
   }
 
-  j_tmp = get_channel_info(key);
+  j_tmp = get_core_channel_info(key);
   if(j_tmp == NULL) {
     slog(LOG_NOTICE, "The channel is already deleted. key[%s]", key);
     return false;
@@ -1492,7 +1545,7 @@ int delete_channel_info(const char* key)
  * Get all agent's id array
  * @return
  */
-json_t* get_agents_all_id(void)
+json_t* get_agent_agents_all_id(void)
 {
   char* sql;
   int ret;
@@ -1536,7 +1589,7 @@ json_t* get_agents_all_id(void)
  * Get all agents array
  * @return
  */
-json_t* get_agents_all(void)
+json_t* get_agent_agents_all(void)
 {
   json_t* j_res;
 
@@ -1552,7 +1605,7 @@ json_t* get_agents_all(void)
  * Get corresponding agent detail info.
  * @return
  */
-json_t* get_agent_info(const char* id)
+json_t* get_agent_agent_info(const char* id)
 {
   char* sql;
   int ret;
@@ -1584,7 +1637,7 @@ json_t* get_agent_info(const char* id)
  * Get all system's all id array
  * @return
  */
-json_t* get_systems_all_id(void)
+json_t* get_core_systems_all_id(void)
 {
   json_t* j_res;
 
@@ -1599,7 +1652,7 @@ json_t* get_systems_all_id(void)
  * Get all system's array
  * @return
  */
-json_t* get_systems_all(void)
+json_t* get_core_systems_all(void)
 {
   json_t* j_res;
 
@@ -1615,7 +1668,7 @@ json_t* get_systems_all(void)
  * Get corresponding system detail info.
  * @return
  */
-json_t* get_system_info(const char* id)
+json_t* get_core_system_info(const char* id)
 {
   json_t* j_res;
 
@@ -1728,7 +1781,7 @@ int create_park_parkinglot_info(const json_t* j_tmp)
   }
   slog(LOG_DEBUG, "Fired create_park_parkinglot_info.");
 
-  ret = isert_item("parking_lot", j_tmp);
+  ret = insert_item("parking_lot", j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to parking_lot.");
     return false;
@@ -1801,7 +1854,7 @@ int create_park_parkedcall_info(const json_t* j_tmp)
     return false;
   }
 
-  ret = isert_item("parked_call", j_tmp);
+  ret = insert_item("parked_call", j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to parked_call.");
     return false;
@@ -2041,7 +2094,7 @@ int create_core_module(json_t* j_tmp)
     return false;
   }
 
-  ret = isert_item("core_module", j_tmp);
+  ret = insert_item("core_module", j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert core_module.");
     return false;
@@ -2099,9 +2152,9 @@ bool create_sip_peer_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired create_sip_peer_info.");
 
   // insert queue info
-  ret = isert_item("peer", j_data);
+  ret = insert_item("peer", j_data);
   if(ret == false) {
-    slog(LOG_ERR, "Could not insert queue_param.");
+    slog(LOG_ERR, "Could not insert sip peer..");
     return false;
   }
 
@@ -2115,10 +2168,7 @@ bool create_sip_peer_info(const json_t* j_data)
  */
 bool update_sip_peer_info(const json_t* j_data)
 {
-  char* tmp;
-  char* sql;
   int ret;
-  const char* key;
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -2126,26 +2176,9 @@ bool update_sip_peer_info(const json_t* j_data)
   }
   slog(LOG_DEBUG, "Fired update_sip_peer_info.");
 
-  // get key
-  key = json_string_value(json_object_get(j_data, "key"));
-  if(key == NULL) {
-    slog(LOG_ERR, "Could not get sip peer key info.");
-    return false;
-  }
-
-  // create update sql
-  tmp = db_ctx_get_update_str(j_data);
-  asprintf(&sql, "update peer set %s where peer=\"%s\";",
-      tmp,
-      key
-      );
-  sfree(tmp);
-
-  // execute
-  ret = db_ctx_exec(g_db_ast, sql);
-  sfree(sql);
+  ret = update_item("peer", "peer", j_data);
   if(ret == false) {
-    slog(LOG_WARNING, "Could not update info. key[%s]", key);
+    slog(LOG_WARNING, "Could not update sip peer info.");
     return false;
   }
 
@@ -2168,7 +2201,442 @@ bool delete_sip_peer_info(const char* key)
 
   ret = delete_items_string("peer", "peer", key);
   if(ret == false) {
-    slog(LOG_WARNING, "Could not delete queue info. name[%s]", key);
+    slog(LOG_WARNING, "Could not delete sip peer info. name[%s]", key);
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Create sip registry info.
+ * @param j_data
+ * @return
+ */
+bool create_sip_registry_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired create_sip_registry_info.");
+
+  // insert queue info
+  ret = insert_item("registry", j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert sip registry.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Update sip registry info.
+ * @param j_data
+ * @return
+ */
+bool update_sip_registry_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired update_sip_registry_info.");
+
+  ret = update_item("registry", "account", j_data);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not update sip registry info.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * delete sip registry info.
+ * @return
+ */
+bool delete_sip_registry_info(const char* key)
+{
+  int ret;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired delete_sip_registry_info. registry[%s]", key);
+
+  ret = delete_items_string("peer", "registry", key);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not delete sip registry info. account[%s]", key);
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Create agent agent info.
+ * @param j_data
+ * @return
+ */
+bool create_agent_agent_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired create_agent_agent_info.");
+
+  // insert queue info
+  ret = insert_item("agent", j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert agent agent.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Update agent agent info.
+ * @param j_data
+ * @return
+ */
+bool update_agent_agent_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired update_agent_agent_info.");
+
+  ret = update_item("agent", "id", j_data);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not update agent agent info.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * delete agent agent info.
+ * @return
+ */
+bool delete_agent_agent_info(const char* key)
+{
+  int ret;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired delete_agent_agent_info. id[%s]", key);
+
+  ret = delete_items_string("agent", "id", key);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not delete agent agent info. id[%s]", key);
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Create pjsip endpoint info.
+ * @param j_data
+ * @return
+ */
+bool create_pjsip_endpoint_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired create_pjsip_endpoint_info.");
+
+  // insert queue info
+  ret = insert_item("pjsip_endpoint", j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert pjsip endpoint.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Update pjsip endpoint info.
+ * @param j_data
+ * @return
+ */
+bool update_pjsip_endpoint_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired update_pjsip_endpoint_info.");
+
+  ret = update_item("pjsip_endpoint", "object_name", j_data);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not update pjsip endpoint info.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * delete pjsip endpoint info.
+ * @return
+ */
+bool delete_pjsip_endpoint_info(const char* key)
+{
+  int ret;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired delete_pjsip_endpoint_info. key[%s]", key);
+
+  ret = delete_items_string("pjsip_endpoint", "object_name", key);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not delete pjsip_endpoint info. key[%s]", key);
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Create pjsip auth info.
+ * @param j_data
+ * @return
+ */
+bool create_pjsip_auth_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired create_pjsip_auth_info.");
+
+  // insert queue info
+  ret = insert_item("pjsip_auth", j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert pjsip auth.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Update pjsip auth info.
+ * @param j_data
+ * @return
+ */
+bool update_pjsip_auth_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired update_pjsip_auth_info.");
+
+  // update
+  ret = update_item("pjsip_auth", "object_name", j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update pjsip_auth info.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * delete pjsip auth info.
+ * @return
+ */
+bool delete_pjsip_auth_info(const char* key)
+{
+  int ret;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired delete_pjsip_auth_info. key[%s]", key);
+
+  ret = delete_items_string("pjsip_auth", "object_name", key);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not delete pjsip_auth info. key[%s]", key);
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Create pjsip aor info.
+ * @param j_data
+ * @return
+ */
+bool create_pjsip_aor_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired create_pjsip_aor_info.");
+
+  // insert queue info
+  ret = insert_item("pjsip_aor", j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert pjsip aor.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Update pjsip aor info.
+ * @param j_data
+ * @return
+ */
+bool update_pjsip_aor_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired update_pjsip_aor_info.");
+
+  // update
+  ret = update_item("pjsip_aor", "object_name", j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update pjsip_aor info.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * delete pjsip aor info.
+ * @return
+ */
+bool delete_pjsip_aor_info(const char* key)
+{
+  int ret;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired delete_pjsip_aor_info. key[%s]", key);
+
+  ret = delete_items_string("pjsip_aor", "object_name", key);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not delete pjsip_aor info. key[%s]", key);
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Create pjsip contact info.
+ * @param j_data
+ * @return
+ */
+bool create_pjsip_contact_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired create_pjsip_contact_info.");
+
+  // insert queue info
+  ret = insert_item("pjsip_contact", j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert pjsip contact.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Update pjsip contact info.
+ * @param j_data
+ * @return
+ */
+bool update_pjsip_contact_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired update_pjsip_contact_info.");
+
+  // update
+  ret = update_item("pjsip_contact", "object_name", j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update pjsip_contact info.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * delete pjsip contact info.
+ * @return
+ */
+bool delete_pjsip_contact_info(const char* key)
+{
+  int ret;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired delete_pjsip_contact_info. key[%s]", key);
+
+  ret = delete_items_string("pjsip_contact", "object_name", key);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not delete pjsip_contact info. key[%s]", key);
     return false;
   }
 

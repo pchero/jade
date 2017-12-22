@@ -31,7 +31,7 @@ void htp_get_agent_agents(evhtp_request_t *req, void *data)
   }
   slog(LOG_INFO, "Fired htp_get_agent_agents.");
 
-  j_tmp = get_agents_all();
+  j_tmp = get_agent_agents_all();
   if(j_tmp == NULL) {
     simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
@@ -77,7 +77,7 @@ void htp_get_agent_agents_detail(evhtp_request_t *req, void *data)
   }
 
   // get channel info.
-  j_tmp = get_agent_info(id);
+  j_tmp = get_agent_agent_info(id);
   sfree(id);
   if(j_tmp == NULL) {
     slog(LOG_NOTICE, "Could not get agent info.");

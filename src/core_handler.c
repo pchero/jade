@@ -30,7 +30,7 @@ void htp_get_core_channels(evhtp_request_t *req, void *data)
   }
   slog(LOG_INFO, "Fired htp_get_core_channels_detail.");
 
-  j_tmp = get_channels_all();
+  j_tmp = get_core_channels_all();
   if(j_tmp == NULL) {
     simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
@@ -74,7 +74,7 @@ void htp_get_core_channels_detail(evhtp_request_t *req, void *data)
   }
 
   // get channel info.
-  j_tmp = get_channel_info(unique_id);
+  j_tmp = get_core_channel_info(unique_id);
   sfree(unique_id);
   if(j_tmp == NULL) {
     slog(LOG_NOTICE, "Could not get channel info.");
@@ -160,7 +160,7 @@ void htp_get_core_systems_detail(evhtp_request_t *req, void *data)
   }
 
   // get channel info.
-  j_tmp = get_system_info(id);
+  j_tmp = get_core_system_info(id);
   if(j_tmp == NULL) {
     slog(LOG_NOTICE, "Could not get system info.");
     simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
@@ -193,7 +193,7 @@ void htp_get_core_systems(evhtp_request_t *req, void *data)
   }
   slog(LOG_INFO, "Fired htp_get_core_systems.");
 
-  j_tmp = get_systems_all();
+  j_tmp = get_core_systems_all();
   if(j_tmp == NULL) {
     simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;

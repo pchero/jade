@@ -117,7 +117,7 @@ void htp_get_sip_registries_detail(evhtp_request_t *req, void *data)
   }
 
   // get info.
-  j_tmp = get_registry_info(id);
+  j_tmp = get_sip_registry_info(id);
   if(j_tmp == NULL) {
     slog(LOG_NOTICE, "Could not get registry info.");
     simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
@@ -150,7 +150,7 @@ void htp_get_sip_registries(evhtp_request_t *req, void *data)
   }
   slog(LOG_INFO, "Fired htp_get_sip_registries.");
 
-  j_tmp = get_registries_all();
+  j_tmp = get_sip_registries_all();
   if(j_tmp == NULL) {
     simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;

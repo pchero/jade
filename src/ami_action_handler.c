@@ -60,7 +60,7 @@ int ami_action_hangup_by_uniqueid(const char* unique_id)
   }
   slog(LOG_DEBUG, "Fired ami_action_hangup_by_uniqueid. unique_id[%s]", unique_id);
 
-  j_tmp = get_channel_info(unique_id);
+  j_tmp = get_core_channel_info(unique_id);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get channel info.");
     return false;

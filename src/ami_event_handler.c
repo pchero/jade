@@ -1336,7 +1336,7 @@ static void ami_event_hangup(json_t* j_msg)
   sfree(timestamp);
 
   // update info
-  ret = update_channel_info(j_tmp);
+  ret = update_core_channel_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not update channel info.");
@@ -1344,7 +1344,7 @@ static void ami_event_hangup(json_t* j_msg)
   }
 
   // delete channel info.
-  ret = delete_channel_info(unique_id);
+  ret = delete_core_channel_info(unique_id);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete channel info. unique_id[%s]", unique_id);
     return;
@@ -1479,7 +1479,8 @@ static void ami_event_registryentry(json_t* j_msg)
     return;
   }
 
-  ret = db_ctx_insert_or_replace(g_db_ast, "registry", j_tmp);
+  // create info
+  ret = create_sip_registry_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to registry.");
@@ -1520,7 +1521,7 @@ static void ami_event_rename(json_t* j_msg)
   }
 
   // get channel info
-  j_tmp = get_channel_info(unique_id);
+  j_tmp = get_core_channel_info(unique_id);
   if(j_tmp == NULL) {
     slog(LOG_NOTICE, "Could not get correct channel info.");
     return;
@@ -1533,7 +1534,7 @@ static void ami_event_rename(json_t* j_msg)
   sfree(timestamp);
 
   // update channel info.
-  ret = update_channel_info(j_tmp);
+  ret = update_core_channel_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not update channel info.");
@@ -1605,7 +1606,8 @@ static void ami_event_agents(json_t* j_msg)
     return;
   }
 
-  ret = db_ctx_insert_or_replace(g_db_ast, "agent", j_tmp);
+  // create info
+  ret = create_agent_agent_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to agent.");
@@ -1625,8 +1627,6 @@ static void ami_event_agentlogin(json_t* j_msg)
   json_t* j_tmp;
   int ret;
   char* timestamp;
-  char* tmp;
-  char* sql;
 
   if(j_msg == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -1677,16 +1677,9 @@ static void ami_event_agentlogin(json_t* j_msg)
     return;
   }
 
-  tmp = db_ctx_get_update_str(j_tmp);
+  // update info
+  ret = update_agent_agent_info(j_tmp);
   json_decref(j_tmp);
-  asprintf(&sql, "update agent set %s where id=\"%s\";",
-      tmp,
-      json_string_value(json_object_get(j_msg, "Agent"))
-      );
-  sfree(tmp);
-
-  ret = db_ctx_exec(g_db_ast, sql);
-  sfree(sql);
   if(ret == false) {
     slog(LOG_WARNING, "Could not update agent info. agent[%s]", json_string_value(json_object_get(j_msg, "Agent")));
     return;
@@ -1705,8 +1698,6 @@ static void ami_event_agentlogoff(json_t* j_msg)
   json_t* j_tmp;
   int ret;
   char* timestamp;
-  char* tmp;
-  char* sql;
 
   if(j_msg == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -1757,16 +1748,8 @@ static void ami_event_agentlogoff(json_t* j_msg)
     return;
   }
 
-  tmp = db_ctx_get_update_str(j_tmp);
+  ret = update_agent_agent_info(j_tmp);
   json_decref(j_tmp);
-  asprintf(&sql, "update agent set %s where id=\"%s\";",
-      tmp,
-      json_string_value(json_object_get(j_msg, "Agent"))
-      );
-  sfree(tmp);
-
-  ret = db_ctx_exec(g_db_ast, sql);
-  sfree(sql);
   if(ret == false) {
     slog(LOG_WARNING, "Could not update agent info. agent[%s]", json_string_value(json_object_get(j_msg, "Agent")));
     return;
@@ -2160,7 +2143,7 @@ static void ami_event_varset(json_t* j_msg)
   slog(LOG_DEBUG, "Check value. key[%s], val[%s]", key, val);
 
   // get channel info
-  j_chan = get_channel_info(unique_id);
+  j_chan = get_core_channel_info(unique_id);
   if(j_chan == NULL) {
     slog(LOG_ERR, "Could not get channel info.");
     return;
@@ -2192,7 +2175,7 @@ static void ami_event_varset(json_t* j_msg)
   sfree(timestamp);
 
   // update info
-  ret = update_channel_info(j_chan);
+  ret = update_core_channel_info(j_chan);
   json_decref(j_chan);
   if(ret == false) {
     slog(LOG_ERR, "Could not update to channel.");
@@ -2212,7 +2195,6 @@ static void ami_event_endpointlist(json_t* j_msg)
   json_t* j_data;
   json_t* j_tmp;
   char* timestamp;
-  const char* tmp_const;
   const char* name;
   int ret;
 
@@ -2222,59 +2204,34 @@ static void ami_event_endpointlist(json_t* j_msg)
   }
   slog(LOG_DEBUG, "Fired ami_event_endpointlist.");
 
-  name = json_string_value(json_object_get(j_msg, "ObjectName"));
-  if(name == NULL) {
-    slog(LOG_ERR, "Could not get URI info.");
-    return;
-  }
-
-  j_data = get_pjsip_endpoint_info(name);
-  if(j_data == NULL) {
-    j_data = json_pack("{s:s}", "object_name", name);
-  }
-
-  // type
-  tmp_const = json_string_value(json_object_get(j_msg, "ObjectType"));
-  if(tmp_const != NULL) {
-    json_object_set_new(j_data, "object_type", json_string(tmp_const));
-  }
-
-  // transport
-  tmp_const = json_string_value(json_object_get(j_msg, "Transport"));
-  if(tmp_const != NULL) {
-    json_object_set_new(j_data, "transport", json_string(tmp_const));
-  }
-
-  // aors
-  tmp_const = json_string_value(json_object_get(j_msg, "Aor"));
-  if(tmp_const != NULL) {
-    json_object_set_new(j_data, "aors", json_string(tmp_const));
-  }
-
-  // auth
-  tmp_const = json_string_value(json_object_get(j_msg, "Auths"));
-  if(tmp_const != NULL) {
-    json_object_set_new(j_data, "auth", json_string(tmp_const));
-  }
-
-  // outbound_auth
-  tmp_const = json_string_value(json_object_get(j_msg, "OutboundAuths"));
-  if(tmp_const != NULL) {
-    json_object_set_new(j_data, "outbound_auth", json_string(tmp_const));
-  }
-
   timestamp = get_utc_timestamp();
-  json_object_set_new(j_data, "tm_update", json_string(timestamp));
+  j_data = json_pack("{"
+      "s:s, s:s, "
+      "s:s, s:s, s:s, s:s, "
+      "s:s"
+      "}",
+
+      "object_name",  json_string_value(json_object_get(j_msg, "ObjectName"))? : "",
+      "object_type",  json_string_value(json_object_get(j_msg, "ObjectType"))? : "",
+
+      "transport",      json_string_value(json_object_get(j_msg, "Transport"))? : "",
+      "aors",           json_string_value(json_object_get(j_msg, "Aor"))? : "",
+      "auth",           json_string_value(json_object_get(j_msg, "Auths"))? : "",
+      "outbound_auth",  json_string_value(json_object_get(j_msg, "OutboundAuths"))? : "",
+
+      "tm_update",  timestamp
+      );
   sfree(timestamp);
 
-  ret = db_ctx_insert_or_replace(g_db_ast, "pjsip_endpoint", j_data);
+  // create info
+  ret = create_pjsip_endpoint_info(j_data);
   json_decref(j_data);
   if(ret == false) {
-    slog(LOG_ERR, "Could not insert to pjsip_endpoint.");
-    return;
+    slog(LOG_ERR, "Could not create endpoint info.");
   }
 
   // send request for detail info
+  name = json_string_value(json_object_get(j_msg, "ObjectName"));
   j_tmp = json_pack("{s:s, s:s}",
       "Action", "PJSIPShowEndpoint",
       "Endpoint", name
@@ -2557,8 +2514,8 @@ static void ami_event_endpointdetail(json_t* j_msg)
     return;
   }
 
-  // insert or replace
-  ret = db_ctx_insert_or_replace(g_db_ast, "pjsip_endpoint", j_tmp);
+  // update info
+  ret = update_pjsip_endpoint_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to pjsip_endpoint.");
@@ -2594,12 +2551,8 @@ static void ami_event_contactstatus(json_t* j_msg)
     return;
   }
 
-  // get contact status
-  // if not exist, create new.
-  j_data = get_pjsip_contact_info(uri);
-  if(j_data == NULL) {
-    j_data = json_pack("{s:s}", "uri", uri);
-  }
+  // create update info
+  j_data = json_pack("{s:s}", "uri", uri);
 
   // status
   tmp_const = json_string_value(json_object_get(j_msg, "ContactStatus"));
@@ -2628,7 +2581,7 @@ static void ami_event_contactstatus(json_t* j_msg)
   // user_agent
   tmp_const = json_string_value(json_object_get(j_msg, "UserAgent"));
   if(tmp_const != NULL) {
-    json_object_set_new(j_data, "tmp_const", json_string(tmp_const));
+    json_object_set_new(j_data, "user_agent", json_string(tmp_const));
   }
 
   // reg_expire
@@ -2653,7 +2606,8 @@ static void ami_event_contactstatus(json_t* j_msg)
   json_object_set_new(j_data, "tm_update", json_string(timestamp));
   sfree(timestamp);
 
-  ret = db_ctx_insert_or_replace(g_db_ast, "pjsip_contact", j_data);
+  // update info
+  ret = update_pjsip_contact_info(j_data);
   json_decref(j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to pjsip_contact.");
@@ -2721,7 +2675,8 @@ static void ami_event_contactstatusdetail(json_t* j_msg)
       );
   sfree(timestamp);
 
-  ret = db_ctx_insert_or_replace(g_db_ast, "pjsip_contact", j_data);
+  // create info
+  ret = create_pjsip_contact_info(j_data);
   json_decref(j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to pjsip_contact.");
@@ -2798,7 +2753,7 @@ static void ami_event_aordetail(json_t* j_msg)
       );
   sfree(timestamp);
 
-  ret = db_ctx_insert_or_replace(g_db_ast, "pjsip_aor", j_data);
+  ret = create_pjsip_aor_info(j_data);
   json_decref(j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to pjsip_aor.");
@@ -2860,7 +2815,8 @@ static void ami_event_authdetail(json_t* j_msg)
       );
   sfree(timestamp);
 
-  ret = db_ctx_insert_or_replace(g_db_ast, "pjsip_auth", j_data);
+  // create info
+  ret = create_pjsip_auth_info(j_data);
   json_decref(j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to pjsip_aor.");
@@ -3113,7 +3069,7 @@ static void ami_event_newstate(json_t* j_msg)
   }
 
   // update channel info.
-  ret = update_channel_info(j_tmp);
+  ret = update_core_channel_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not update channel info.");
@@ -3182,7 +3138,7 @@ static void ami_event_newexten(json_t* j_msg)
   }
 
   // update channel info.
-  ret = update_channel_info(j_tmp);
+  ret = update_core_channel_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not update channel info.");
