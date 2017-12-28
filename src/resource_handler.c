@@ -1526,6 +1526,7 @@ int delete_core_channel_info(const char* key)
   ret = delete_items_string("channel", "unique_id", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete channel info. unique_id[%s]", key);
+    json_decref(j_tmp);
     return false;
   }
 
@@ -1845,46 +1846,122 @@ json_t* get_park_parkedcall_info(const char* parkee_unique_id)
  * Create parked call detail info.
  * @return
  */
-int create_park_parkedcall_info(const json_t* j_tmp)
+bool create_park_parkedcall_info(const json_t* j_data)
 {
   int ret;
+  const char* tmp_const;
+  json_t* j_tmp;
 
-  if(j_tmp == NULL) {
+  if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
 
-  ret = insert_item("parked_call", j_tmp);
+  ret = insert_item("parked_call", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to parked_call.");
+    return false;
+  }
+
+  // publish
+  // get queue info
+  tmp_const = json_string_value(json_object_get(j_data, "parkee_unique_id"));
+  j_tmp = get_park_parkedcall_info(tmp_const);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get park parkedcall info. parkee_unique_id[%s]", tmp_const);
+    return false;
+  }
+
+  // publish event
+  ret = publish_event_park_parkedcall(DEF_PUB_TYPE_CREATE, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
+
+  return true;
+}
+
+/**
+ * Update parked call detail info.
+ * @return
+ */
+bool update_park_parkedcall_info(const json_t* j_data)
+{
+  int ret;
+  const char* tmp_const;
+  json_t* j_tmp;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired update_park_parkedcall_info.");
+
+  ret = update_item("parked_call", "parkee_unique_id", j_data);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not update park parked_call info.");
+    return false;
+  }
+
+  // publish
+  // get queue info
+  tmp_const = json_string_value(json_object_get(j_data, "parkee_unique_id"));
+  j_tmp = get_park_parkedcall_info(tmp_const);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get park parkedcall info. parkee_unique_id[%s]", tmp_const);
+    return false;
+  }
+
+  // publish event
+  ret = publish_event_park_parkedcall(DEF_PUB_TYPE_UPDATE, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
     return false;
   }
 
   return true;
 }
 
+
 /**
  * Delete parked call detail info.
  * @return
  */
-int delete_park_parkedcall_info(const char* key)
+bool delete_park_parkedcall_info(const char* key)
 {
   int ret;
-  char* sql;
+  json_t* j_tmp;
 
   if(key == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
 
-  asprintf(&sql, "delete from parked_call where parkee_unique_id=\"%s\";", key);
-
-  ret = db_ctx_exec(g_db_ast, sql);
-  sfree(sql);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not delete parked_call.");
+  j_tmp = get_park_parkedcall_info(key);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "The channel is already deleted. key[%s]", key);
     return false;
   }
+
+  ret = delete_items_string("parked_call", "parkee_unique_id", key);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not delete park parkedcall info. unique_id[%s]", key);
+    json_decref(j_tmp);
+    return false;
+  }
+
+  // publish delete event.
+  ret = publish_event_park_parkedcall(DEF_PUB_TYPE_DELETE, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
   return true;
 }
 

@@ -170,7 +170,7 @@ bool publish_event_queue_entry(const char* type, json_t* j_data)
 
 /**
  * Publish event.
- * queue.entry.<type>
+ * core.channel.<type>
  * @param type
  * @param j_data
  * @return
@@ -197,6 +197,48 @@ bool publish_event_core_channel(const char* type, json_t* j_data)
 
   // create event name
   asprintf(&event, "core.channel.%s", type);
+
+  // publish event
+  ret = publish_event(topic, event, j_data);
+  sfree(topic);
+  sfree(event);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Publish event.
+ * park.parkedcall.<type>
+ * @param type
+ * @param j_data
+ * @return
+ */
+bool publish_event_park_parkedcall(const char* type, json_t* j_data)
+{
+  const char* tmp_const;
+  char* tmp;
+  char* topic;
+  char* event;
+  int ret;
+
+  if((type == NULL) || (j_data == NULL)){
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired publish_event_park_parkedcall.");
+
+  // create topic
+  tmp_const = json_string_value(json_object_get(j_data, "parking_lot"));
+  tmp = uri_encode(tmp_const);
+  asprintf(&topic, "/park/parkinglots/%s", tmp? : "");
+  sfree(tmp);
+
+  // create event name
+  asprintf(&event, "park.parkedcall.%s", type);
 
   // publish event
   ret = publish_event(topic, event, j_data);

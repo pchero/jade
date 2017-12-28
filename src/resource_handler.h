@@ -86,8 +86,9 @@ int create_park_parkinglot_info(const json_t* j_tmp);
 json_t* get_park_parkedcalls_all();
 json_t* get_park_parkedcalls_all_parkee_unique_id(void);
 json_t* get_park_parkedcall_info(const char* parkee_unique_id);
-int create_park_parkedcall_info(const json_t* j_tmp);
-int delete_park_parkedcall_info(const char* key);
+bool create_park_parkedcall_info(const json_t* j_tmp);
+bool update_park_parkedcall_info(const json_t* j_data);
+bool delete_park_parkedcall_info(const char* key);
 
 
 //////// pjsip

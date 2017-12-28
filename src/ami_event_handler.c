@@ -1907,21 +1907,12 @@ static void ami_event_parkedcallswap(json_t* j_msg)
   json_t* j_tmp;
   int ret;
   char* timestamp;
-  const char* tmp_const;
 
   if(j_msg == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
   slog(LOG_DEBUG, "Fired ami_event_parkedcallswap.");
-
-  // remove old parked call
-  tmp_const = json_string_value(json_object_get(j_msg, "ParkeeUniqueid"));
-  ret = delete_park_parkedcall_info(tmp_const);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not delete parked_call.");
-    return;
-  }
 
   // insert new parked call
   timestamp = get_utc_timestamp();
@@ -1979,7 +1970,7 @@ static void ami_event_parkedcallswap(json_t* j_msg)
     return;
   }
 
-  ret = create_park_parkedcall_info(j_tmp);
+  ret = update_park_parkedcall_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to parked_call.");
