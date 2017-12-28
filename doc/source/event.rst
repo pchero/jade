@@ -49,4 +49,5 @@ EVENT
 *****
 
 .. include:: core_event.rst
+.. include:: park_event.rst
 .. include:: queue_event.rst
