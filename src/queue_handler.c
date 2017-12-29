@@ -25,6 +25,7 @@ static bool is_setting_section(const char* section);
 
 static json_t* create_queue_info_json(json_t* j_data);
 
+static bool update_queue_current_setting_info(json_t* j_data);
 
 
 /**
@@ -490,6 +491,84 @@ void htp_get_queue_statuses_detail(evhtp_request_t *req, void *data)
 }
 
 /**
+ * GET ^/queue/setting request handler.
+ * @param req
+ * @param data
+ */
+void htp_get_queue_setting(evhtp_request_t *req, void *data)
+{
+  json_t* j_tmp;
+  json_t* j_res;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired htp_get_queue_setting.");
+
+  // get info
+  j_tmp = get_ast_current_config_info(DEF_QUEUE_CONFNAME);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get queue conf.");
+    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", j_tmp);
+
+  // response
+  simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * PUT ^/queue/setting request handler.
+ * @param req
+ * @param data
+ */
+void htp_put_queue_setting(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_data;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired htp_put_queue_setting.");
+
+  j_data = get_json_from_request_data(req);
+  if(j_data == NULL) {
+    slog(LOG_ERR, "Could not get data.");
+    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // update setting
+  ret = update_queue_current_setting_info(j_data);
+  json_decref(j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update voicemail setting info.");
+    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = create_default_result(EVHTP_RES_OK);
+
+  // response
+  simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
  * Create queue info.
  * @param j_data
  * @return
@@ -654,4 +733,29 @@ static bool is_setting_section(const char* section)
   }
 
   return false;
+}
+
+/**
+ * Update queue current setting(configuration) info.
+ * @param filename
+ * @return
+ */
+static bool update_queue_current_setting_info(json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired update_queue_current_setting_info");
+
+  // update setting
+  ret = update_ast_current_config_info(DEF_QUEUE_CONFNAME, j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update queue setting.");
+    return false;
+  }
+
+  return true;
 }
