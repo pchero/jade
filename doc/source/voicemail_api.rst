@@ -203,7 +203,8 @@ Returns
     $defhdr,
     "reuslt": {
       "list": [
-        "<filename>": {
+        {
+          "filename": "<string>",
           ...
         }
       ]
@@ -226,7 +227,7 @@ Example
     "result": {
         "list": [
             {
-                "voicemail.conf.2017-12-18T11:23:36.665818303Z": {
+                {
                     "default": {
                         "1234": "> 4242,Example Mailbox,root@localhost"
                     },
@@ -258,7 +259,8 @@ Example
                         "eastern": "America/New_York|'vm-received' Q 'digits/at' IMp",
                         "european": "Europe/Copenhagen|'vm-received' a d b 'digits/at' HM",
                         "military": "Zulu|'vm-received' q 'digits/at' H N 'hours' 'phonetic/z_p'"
-                    }
+                    },
+                    "filename": "voicemail.conf.2017-12-18T11:23:36.665818303Z"
                 }
             }
         ]
