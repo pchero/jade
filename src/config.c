@@ -468,7 +468,9 @@ static int write_ast_config_info(const char* filename, json_t* j_conf)
   }
   sfree(target);
 
+  // write config
   json_object_foreach(j_conf, section, j_item) {
+    slog(LOG_DEBUG, "Writing section info. section[%s]", section);
     fprintf(f, "[%s]\n", section);
     json_object_foreach(j_item, key, j_val) {
 
@@ -477,10 +479,12 @@ static int write_ast_config_info(const char* filename, json_t* j_conf)
       if(ret == true) {
         json_array_foreach(j_val, idx, j_val_tmp) {
           fprintf(f, "%s=%s\n", key, json_string_value(j_val_tmp));
+          slog(LOG_DEBUG, "Writing item info. key[%s] value[%s]", key, json_string_value(j_val_tmp));
         }
       }
       else {
         fprintf(f, "%s=%s\n", key, json_string_value(j_val));
+        slog(LOG_DEBUG, "Writing item info. key[%s] value[%s]", key, json_string_value(j_val));
       }
     }
   }
@@ -521,13 +525,18 @@ json_t* get_ast_backup_config_info(const char* filename)
   return j_conf;
 }
 
+/**
+ * Get all configs info.
+ * Add the "filename" item to all the configs.
+ * @param filename
+ * @return
+ */
 json_t* get_ast_backup_configs_info_all(const char* filename)
 {
   json_t* j_res;
   json_t* j_list;
   json_t* j_tmp;
   json_t* j_conf;
-  json_t* j_conf_tmp;
   const char* tmp_const;
   int idx;
 
@@ -554,11 +563,11 @@ json_t* get_ast_backup_configs_info_all(const char* filename)
       continue;
     }
 
-    j_conf_tmp = json_object();
-    json_object_set_new(j_conf_tmp, tmp_const, j_conf);
+    // set file name info
+    json_object_set_new(j_conf, "filename", json_string(tmp_const));
 
     // add to array
-    json_array_append_new(j_res, j_conf_tmp);
+    json_array_append_new(j_res, j_conf);
   }
   json_decref(j_list);
 
