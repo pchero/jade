@@ -35,6 +35,10 @@ This module makes easy to managing the calls.
 ## Manual
 * https://rawgit.com/pchero/jade/master/doc/build/html/index.html
 
+## Demo
+You can try apis to here.
+* http://project.pchero21.com/jade/
+
 ## Library issue
 * libevhtp
   * The libevhtp repository has been changed(https://github.com/criticalstack/libevhtp).
