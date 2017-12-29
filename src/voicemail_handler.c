@@ -1287,13 +1287,22 @@ static int delete_voicemail_user(const char* context, const char* mailbox)
 static json_t* get_voicemail_backup_setting_info(const char* filename)
 {
   json_t* j_res;
+  int ret;
 
   if(filename == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return NULL;
   }
-  slog(LOG_DEBUG, "Fired get_voicemail_setting. filename[%s]", filename);
+  slog(LOG_DEBUG, "Fired get_voicemail_backup_setting_info. filename[%s]", filename);
 
+  // check filename
+  ret = is_voicemail_setting_filename(filename);
+  if(ret == false) {
+    slog(LOG_ERR, "Given filename is not voicemail config filename.");
+    return NULL;
+  }
+
+  // get config info
   j_res = get_ast_backup_config_info(filename);
 
   return j_res;
@@ -1382,7 +1391,7 @@ static bool is_voicemail_setting_filename(const char* filename)
     return false;
   }
 
-  tmp_const = strstr(filename, "voicemail.conf");
+  tmp_const = strstr(filename, DEF_VOICEMAIL_CONFNAME);
   if(tmp_const == NULL) {
     return false;
   }

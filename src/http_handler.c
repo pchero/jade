@@ -932,11 +932,11 @@ static void cb_htp_queue_settings_detail(evhtp_request_t *req, void *data)
 
   // fire handlers
   if(method == htp_method_GET) {
-    htp_get_voicemail_settings_detail(req, data);
+    htp_get_queue_settings_detail(req, data);
     return;
   }
   else if (method == htp_method_DELETE) {
-    htp_delete_voicemail_settings_detail(req, data);
+    htp_delete_queue_settings_detail(req, data);
     return;
   }
   else {
@@ -975,7 +975,7 @@ static void cb_htp_queue_settings(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    htp_get_voicemail_settings(req, data);
+    htp_get_queue_settings(req, data);
     return;
   }
   else {
