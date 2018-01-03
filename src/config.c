@@ -248,6 +248,11 @@ static int ast_conf_handler(const mTCHAR *section, const mTCHAR *key, const mTCH
     j_sec = json_object_get(j_res, section);
   }
 
+  if(key == NULL) {
+    // there is no key. section only
+    return 1;
+  }
+
 
   // check item existence.
   // if there's key already, add it as a array.
