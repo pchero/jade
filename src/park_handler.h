@@ -21,5 +21,7 @@ void htp_get_park_parkedcalls(evhtp_request_t *req, void *data);
 
 void htp_get_park_parkedcalls_detail(evhtp_request_t *req, void *data);
 
+void htp_get_park_setting(evhtp_request_t *req, void *data);
+void htp_put_park_setting(evhtp_request_t *req, void *data);
 
 #endif /* SRC_PARK_HANDLER_H_ */

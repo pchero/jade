@@ -54,11 +54,12 @@ static void cb_htp_core_systems(evhtp_request_t *req, void *data);
 static void cb_htp_core_systems_detail(evhtp_request_t *req, void *data);
 
 
-// sip
-static void cb_htp_sip_peers(evhtp_request_t *req, void *data);
-static void cb_htp_sip_peers_detail(evhtp_request_t *req, void *data);
-static void cb_htp_sip_registries(evhtp_request_t *req, void *data);
-static void cb_htp_sip_registries_detail(evhtp_request_t *req, void *data);
+// park
+static void cb_htp_park_parkinglots(evhtp_request_t *req, void *data);
+static void cb_htp_park_parkinglots_detail(evhtp_request_t *req, void *data);
+static void cb_htp_park_parkedcalls(evhtp_request_t *req, void *data);
+static void cb_htp_park_parkedcalls_detail(evhtp_request_t *req, void *data);
+static void cb_htp_park_setting(evhtp_request_t *req, void *data);
 
 
 // pjsip
@@ -86,6 +87,12 @@ static void cb_htp_queue_statuses(evhtp_request_t *req, void *data);
 static void cb_htp_queue_statuses_detail(evhtp_request_t *req, void *data);
 
 
+// sip
+static void cb_htp_sip_peers(evhtp_request_t *req, void *data);
+static void cb_htp_sip_peers_detail(evhtp_request_t *req, void *data);
+static void cb_htp_sip_registries(evhtp_request_t *req, void *data);
+static void cb_htp_sip_registries_detail(evhtp_request_t *req, void *data);
+
 
 // voicemail/
 static void cb_htp_voicemail_setting(evhtp_request_t *req, void *data);
@@ -105,15 +112,6 @@ static void cb_htp_databases_key(evhtp_request_t *req, void *data);
 // device_states
 static void cb_htp_device_states(evhtp_request_t *req, void *data);
 static void cb_htp_device_states_detail(evhtp_request_t *req, void *data);
-
-// parking_lots
-static void cb_htp_park_parkinglots(evhtp_request_t *req, void *data);
-static void cb_htp_park_parkinglots_detail(evhtp_request_t *req, void *data);
-
-// parked_calls
-static void cb_htp_park_parkedcalls(evhtp_request_t *req, void *data);
-static void cb_htp_park_parkedcalls_detail(evhtp_request_t *req, void *data);
-
 
 
 
@@ -191,13 +189,16 @@ bool init_http_handler(void)
 
 
   //// ^/park/
-  // parking_lots
+  // parkinglots
   evhtp_set_regex_cb(g_htp, "^/park/parkinglots/(.*)", cb_htp_park_parkinglots_detail, NULL);
   evhtp_set_regex_cb(g_htp, "^/park/parkinglots$", cb_htp_park_parkinglots, NULL);
 
-  // parked_calls
+  // parkedcalls
   evhtp_set_regex_cb(g_htp, "^/park/parkedcalls/(.*)", cb_htp_park_parkedcalls_detail, NULL);
   evhtp_set_regex_cb(g_htp, "^/park/parkedcalls$", cb_htp_park_parkedcalls, NULL);
+
+  // setting
+  evhtp_set_regex_cb(g_htp, "^/park/setting$", cb_htp_park_setting, NULL);
 
 
 
@@ -1846,6 +1847,50 @@ static void cb_htp_park_parkedcalls_detail(evhtp_request_t *req, void *data)
 
   // should not reach to here.
   simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  return;
+}
+
+/**
+ * http request handler
+ * ^/park/setting$
+ * @param req
+ * @param data
+ */
+static void cb_htp_park_setting(evhtp_request_t *req, void *data)
+{
+  int method;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_park_setting.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if((method != htp_method_GET) && (method != htp_method_PUT)) {
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // fire handlers
+  if(method == htp_method_GET) {
+    htp_get_park_setting(req, data);
+    return;
+  }
+  else if(method == htp_method_PUT) {
+    htp_put_park_setting(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+
   return;
 }
 

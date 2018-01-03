@@ -25,6 +25,8 @@ static bool delete_parkinglot_info(const char* parkinglot);
 static bool create_parkinglot_info(json_t* j_data);
 static bool update_parkinglot_info(const char* name, json_t* j_data);
 
+static bool update_park_current_setting_info(json_t* j_data);
+
 static bool is_setting_section(const char* context);
 static json_t* create_parkinglot_info_json(json_t* j_data);
 
@@ -333,6 +335,84 @@ void htp_get_park_parkedcalls_detail(evhtp_request_t *req, void *data)
   return;
 }
 
+/**
+ * GET ^/park/setting request handler.
+ * @param req
+ * @param data
+ */
+void htp_get_park_setting(evhtp_request_t *req, void *data)
+{
+  json_t* j_tmp;
+  json_t* j_res;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired htp_get_park_setting.");
+
+  // get info
+  j_tmp = get_ast_current_config_info(DEF_PARK_CONFNAME);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get park conf.");
+    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", j_tmp);
+
+  // response
+  simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * PUT ^/park/setting request handler.
+ * @param req
+ * @param data
+ */
+void htp_put_park_setting(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_data;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired htp_put_park_setting.");
+
+  j_data = get_json_from_request_data(req);
+  if(j_data == NULL) {
+    slog(LOG_ERR, "Could not get data.");
+    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // update setting
+  ret = update_park_current_setting_info(j_data);
+  json_decref(j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update park setting info.");
+    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = create_default_result(EVHTP_RES_OK);
+
+  // response
+  simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
 static bool is_setting_section(const char* context)
 {
   int ret;
@@ -500,3 +580,27 @@ static bool update_parkinglot_info(const char* name, json_t* j_data)
   return true;
 }
 
+/**
+ * Update park current setting(configuration) info.
+ * @param filename
+ * @return
+ */
+static bool update_park_current_setting_info(json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired update_park_current_setting_info");
+
+  // update setting
+  ret = update_ast_current_config_info(DEF_PARK_CONFNAME, j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update park setting.");
+    return false;
+  }
+
+  return true;
+}
