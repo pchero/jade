@@ -14,6 +14,7 @@ void htp_get_park_parkinglots(evhtp_request_t *req, void *data);
 void htp_post_park_parkinglots(evhtp_request_t *req, void *data);
 
 void htp_get_park_parkinglots_detail(evhtp_request_t *req, void *data);
+void htp_put_park_parkinglots_detail(evhtp_request_t *req, void *data);
 void htp_delete_park_parkinglots_detail(evhtp_request_t *req, void *data);
 
 void htp_get_park_parkedcalls(evhtp_request_t *req, void *data);

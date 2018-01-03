@@ -21,11 +21,11 @@
 #define DEF_SETTING_CONTEXT_2   "default"
 
 
-static bool delete_parkinglot(const char* parkinglot);
-static bool create_parkinglot(json_t* j_data);
+static bool delete_parkinglot_info(const char* parkinglot);
+static bool create_parkinglot_info(json_t* j_data);
+static bool update_parkinglot_info(const char* name, json_t* j_data);
 
-
-static bool is_setting_context(const char* context);
+static bool is_setting_section(const char* context);
 static json_t* create_parkinglot_info_json(json_t* j_data);
 
 
@@ -87,7 +87,7 @@ void htp_post_park_parkinglots(evhtp_request_t *req, void *data)
   }
 
   // create parking lot info
-  ret = create_parkinglot(j_data);
+  ret = create_parkinglot_info(j_data);
   json_decref(j_data);
   if(ret == false) {
     simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
@@ -152,6 +152,64 @@ void htp_get_park_parkinglots_detail(evhtp_request_t *req, void *data)
 }
 
 /**
+ * htp request handler.
+ * PUT ^/park/parkinglots/<detail> request handler.
+ * @param req
+ * @param data
+ */
+void htp_put_park_parkinglots_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_data;
+  const char* tmp_const;
+  char* detail;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired htp_put_park_parkinglots_detail.");
+
+  // name parse
+  tmp_const = req->uri->path->file;
+  detail = uri_decode(tmp_const);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get name info.");
+    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // get data
+  j_data = get_json_from_request_data(req);
+  if(j_data == NULL) {
+    slog(LOG_ERR, "Could not get correct data from request.");
+    sfree(detail);
+    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // update parkinglot
+  ret = update_parkinglot_info(detail, j_data);
+  sfree(detail);
+  json_decref(j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update queue info.");
+    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = create_default_result(EVHTP_RES_OK);
+
+  // response
+  simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
  * DELETE ^/park/parkinglots/<detail> request handler.
  * @param req
  * @param data
@@ -179,7 +237,7 @@ void htp_delete_park_parkinglots_detail(evhtp_request_t *req, void *data)
   }
 
   // delete parking lot
-  ret = delete_parkinglot(detail);
+  ret = delete_parkinglot_info(detail);
   sfree(detail);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete detail info.");
@@ -275,7 +333,7 @@ void htp_get_park_parkedcalls_detail(evhtp_request_t *req, void *data)
   return;
 }
 
-static bool is_setting_context(const char* context)
+static bool is_setting_section(const char* context)
 {
   int ret;
 
@@ -302,7 +360,7 @@ static bool is_setting_context(const char* context)
  * @param parkinglot
  * @return
  */
-static bool delete_parkinglot(const char* parkinglot)
+static bool delete_parkinglot_info(const char* parkinglot)
 {
   int ret;
 
@@ -312,7 +370,7 @@ static bool delete_parkinglot(const char* parkinglot)
   }
   slog(LOG_DEBUG, "Fired delete_parkinglot. parkinglot[%s]", parkinglot);
 
-  ret = is_setting_context(parkinglot);
+  ret = is_setting_section(parkinglot);
   if(ret == true) {
     slog(LOG_ERR, "Given context is setting context.");
     return false;
@@ -332,7 +390,7 @@ static bool delete_parkinglot(const char* parkinglot)
  * Create parking lot info.
  * @return
  */
-static bool create_parkinglot(json_t* j_data)
+static bool create_parkinglot_info(json_t* j_data)
 {
   const char* name;
   int ret;
@@ -352,7 +410,7 @@ static bool create_parkinglot(json_t* j_data)
   }
 
   // is setting context?
-  ret = is_setting_context(name);
+  ret = is_setting_section(name);
   if(ret == true) {
     slog(LOG_NOTICE, "Given context is setting context.");
     return false;
@@ -400,5 +458,45 @@ static json_t* create_parkinglot_info_json(json_t* j_data)
   return j_res;
 }
 
+/**
+ * Update parkinglot info.
+ * @param name
+ * @param j_data
+ * @return
+ */
+static bool update_parkinglot_info(const char* name, json_t* j_data)
+{
+  json_t* j_tmp;
+  int ret;
 
+  if((name == NULL) || (j_data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired update_parkinglot_info.");
+
+  // check setting section
+  ret = is_setting_section(name);
+  if(ret == true) {
+    slog(LOG_ERR, "Given parkinglot name is setting section. name[%s]", name);
+    return false;
+  }
+
+  // create json
+  j_tmp = create_parkinglot_info_json(j_data);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not create queue info json.");
+    return false;
+  }
+
+  // update parkinglot info
+  ret = update_ast_current_config_section_data(DEF_PARK_CONFNAME, name, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update queue info.");
+    return false;
+  }
+
+  return true;
+}
 
