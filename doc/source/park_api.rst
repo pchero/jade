@@ -3,8 +3,8 @@
 
 .. _park_parkedcalls:
 
-/park/parked_calls
-==================
+/park/parkedcalls
+=================
 
 Methods
 -------
@@ -20,7 +20,7 @@ Call
 ++++
 ::
 
-   GET /park/parked_calls
+   GET /park/parkedcalls
 
 Returns
 +++++++
