@@ -1737,7 +1737,7 @@ static void cb_htp_park_parkinglots_detail(evhtp_request_t *req, void *data)
 
   // method check
   method = evhtp_request_get_method(req);
-  if(method != htp_method_GET) {
+  if((method != htp_method_GET) && (method != htp_method_DELETE)) {
     simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
@@ -1746,6 +1746,9 @@ static void cb_htp_park_parkinglots_detail(evhtp_request_t *req, void *data)
   if(method == htp_method_GET) {
     htp_get_park_parkinglots_detail(req, data);
     return;
+  }
+  else if(method == htp_method_DELETE) {
+    htp_delete_park_parkinglots_detail(req, data);
   }
   else {
     // should not reach to here.
