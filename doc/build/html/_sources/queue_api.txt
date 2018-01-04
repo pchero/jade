@@ -686,6 +686,316 @@ Example
     "timestamp": "2017-12-21T02:58:36.537005271Z"
   }
 
+
+  
+.. _queue_setting:
+
+/queue/setting
+==============
+
+Methods
+-------
+GET : Get current queue setting.
+
+PUT : Update queue setting.
+
+.. _get_queue_setting:
+
+Method: GET
+-----------
+GET : Get current queue setting.
+
+This result does not mean to currently running setting. 
+It shows only setting file.
+
+Call
+++++
+::
+
+  GET ^/queue/setting
+  
+Returns
++++++++
+::
+
+  {
+    $defhdr,
+    "result": {
+      ...
+    }
+  }
+
+Return parameters
+
+* See detail at queue setting.
+
+Example
++++++++
+::
+
+  $ curl -X GET localhost:8081/queue/setting
+  
+  {
+    "api_ver": "0.1",
+    "result": {
+        "general": {
+            "monitor-type": "MixMonitor",
+            "persistentmembers": "yes"
+        },
+        "sales_1": {
+            "joinempty": "yes",
+            "member": "> Agent/10001",
+            "musicclass": "default",
+            "servicelevel": "5",
+            "strategy": "ringall"
+        },
+        "sales_2": {
+            "member": ">Agent/10001"
+        }
+    },
+    "statuscode": 200,
+    "timestamp": "2017-12-29T18:42:29.837707790Z"
+  }
+
+
+.. _put_queue_setting:
+
+Method: PUT
+-----------
+PUT : Update queue setting.
+
+Update only setting file. To adapt to module, required module reload.
+
+Call
+++++
+::
+
+  PUT ^/queue/setting
+  
+  {
+    ...
+  }
+
+Data parameters
+
+* queue setting info.
+  
+Returns
++++++++
+::
+
+  {
+    $defhdr
+  }
+   
+Example
++++++++
+::
+
+  $ curl -X PUT localhost:8081/queue/setting -d
+  '{
+    "general": {
+      "monitor-type": "MixMonitor", 
+      "persistentmembers": "yes"
+    }, 
+    "sales_1": {
+      "member": "> Agent/10001", 
+      "servicelevel": "5", 
+      "musicclass": "default", 
+      "joinempty": "yes", 
+      "strategy": "ringall"
+    }, 
+    "sales_2":{
+      "member": ">Agent/10001"
+    }
+  }'
+  
+  {"api_ver": "0.1", "timestamp": "2017-12-29T18:42:26.918568447Z", "statuscode": 200}
+  
+
+.. _queue_settings:
+
+/queue/settings
+===============
+
+Methods
+-------
+GET : Get all backup queue settings.
+
+.. _get_queue_settings:
+
+Method: GET
+-----------
+GET : Get all backup queue settings.
+
+
+Call
+++++
+::
+
+  GET ^/queue/settings
+  
+Returns
++++++++
+::
+
+  {
+    $defhdr,
+    "reuslt": {
+      "list": [
+        {
+          "filename": "<string>",
+          ...
+        }
+      ]
+    }
+  }
+
+Return parameters
+
+* ``list``: array of backup files.
+    * ``filename``: backup filename.
+   
+Example
++++++++
+::
+
+  $ curl -X GET localhost:8081/queue/settings
+  
+  {
+    "api_ver": "0.1",
+    "result": {
+        "list": [
+            {
+                "filename": "queues.conf.2017-12-29T18:42:26.903334168Z",
+                "general": {
+                    "monitor-type": "MixMonitor",
+                    "persistentmembers": "yes"
+                },
+                "sales_1": {
+                    "joinempty": "yes",
+                    "member": "> Agent/10001",
+                    "musicclass": "default",
+                    "servicelevel": "5",
+                    "strategy": "ringall"
+                }
+            }
+        ]
+    },
+    "statuscode": 200,
+    "timestamp": "2017-12-29T19:24:15.982413934Z"
+  }
+
+
+.. _queue_settings_detail:
+
+/queue/settings/<detail>
+========================
+
+Methods
+-------
+GET : Get specified backup queue settings.
+
+DELETE : Delete given backup queue setting.
+
+.. _get_queue_settings_detail:
+
+Method: GET
+-----------
+GET : Get backup queue settings of given info.
+
+
+Call
+++++
+::
+
+  GET ^/queue/settings/<detail>
+  
+Method parameters
+
+* ``detail``: backup filename.
+  
+Returns
++++++++
+::
+
+  {
+    $defhdr,
+    "reuslt": {
+      ...
+    }
+  }
+
+* See detail queue setting.
+   
+Example
++++++++
+::
+
+  $ curl -X GET http://localhost:8081/queue/settings/queues.conf.2017-12-29T18:42:58.560668575Z
+  
+  {
+    "api_ver": "0.1",
+    "result": {
+        "list": {
+            "general": {
+                "monitor-type": "MixMonitor",
+                "persistentmembers": "yes"
+            },
+            "sales_1": {
+                "joinempty": "yes",
+                "member": "> Agent/10001",
+                "musicclass": "default",
+                "servicelevel": "5",
+                "strategy": "ringall"
+            },
+            "sales_2": {
+                "member": ">Agent/10001"
+            }
+        }
+    },
+    "statuscode": 200,
+    "timestamp": "2017-12-29T19:24:03.824751186Z"
+  }
+
+  
+.. _delete_queue_settings_detail:
+  
+Method: DELETE
+--------------
+DELETE : Delete given backup queue setting.
+
+
+Call
+++++
+::
+
+  DELETE ^/queue/settings/<detail>
+  
+Method parameters
+
+* ``detail``: backup filename.
+  
+Returns
++++++++
+::
+
+  {
+    $defhdr
+  }
+   
+Example
++++++++
+::
+
+  $ curl -X DELETE http://localhost:8081/queue/settings/queues.conf.2017-12-29T18:42:58.560668575Z
+  
+  {
+    "api_ver": "0.1",
+    "statuscode": 200,
+    "timestamp": "2017-12-29T19:24:10.313549997Z"
+  }
+
   
   
 .. _queue_statuses:

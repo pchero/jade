@@ -1,0 +1,957 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>/park/parkedcalls &mdash; jade 0.0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="jade 0.0.1 documentation" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li><a href="index.html">jade 0.0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="park-parkedcalls">
+<span id="park-api"></span><span id="id1"></span><h1>/park/parkedcalls<a class="headerlink" href="#park-parkedcalls" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="methods">
+<h2>Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h2>
+<p>GET : Get list of all parked_calls info.</p>
+</div>
+<div class="section" id="method-get">
+<span id="get-park-parkedcalls"></span><h2>Method: GET<a class="headerlink" href="#method-get" title="Permalink to this headline">¶</a></h2>
+<p>Get list of all parked_calls info.</p>
+<div class="section" id="call">
+<h3>Call<a class="headerlink" href="#call" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">GET</span> <span class="o">/</span><span class="n">park</span><span class="o">/</span><span class="n">parkedcalls</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="returns">
+<h3>Returns<a class="headerlink" href="#returns" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr,
+  &quot;reuslt&quot;: {
+    &quot;list&quot;: [
+      {
+        ...
+      },
+      ...
+    ]
+  }
+}
+</pre></div>
+</div>
+<p>Return parameters</p>
+<ul>
+<li><dl class="first docutils">
+<dt><tt class="docutils literal"><span class="pre">list</span></tt> <span class="classifier-delimiter">:</span> <span class="classifier">array of itmes.</span></dt>
+<dd><ul class="first last simple">
+<li>See detail parkedcall detail info.</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</div>
+<div class="section" id="example">
+<h3>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET localhost:8081/park/parkedcalls
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;result&quot;: {
+      &quot;list&quot;: [
+          {
+              &quot;parkee_account_code&quot;: &quot;&quot;,
+              &quot;parkee_caller_id_name&quot;: &quot;pjagent-01&quot;,
+              &quot;parkee_caller_id_num&quot;: &quot;pjagent-01&quot;,
+              &quot;parkee_channel&quot;: &quot;PJSIP/pjagent-01-00000044&quot;,
+              &quot;parkee_channel_state&quot;: &quot;6&quot;,
+              &quot;parkee_channel_state_desc&quot;: &quot;Up&quot;,
+              &quot;parkee_connected_line_name&quot;: &quot;&lt;unknown&gt;&quot;,
+              &quot;parkee_connected_line_num&quot;: &quot;&lt;unknown&gt;&quot;,
+              &quot;parkee_context&quot;: &quot;sample_park&quot;,
+              &quot;parkee_exten&quot;: &quot;s&quot;,
+              &quot;parkee_linked_id&quot;: &quot;1514423807.111&quot;,
+              &quot;parkee_priority&quot;: &quot;2&quot;,
+              &quot;parkee_unique_id&quot;: &quot;1514423807.111&quot;,
+              &quot;parker_dial_string&quot;: &quot;PJSIP/pjagent-01&quot;,
+              &quot;parking_duration&quot;: 0,
+              &quot;parking_lot&quot;: &quot;default&quot;,
+              &quot;parking_space&quot;: &quot;701&quot;,
+              &quot;parking_timeout&quot;: 45,
+              &quot;tm_update&quot;: &quot;2017-12-28T01:16:48.343347741Z&quot;
+          }
+      ]
+  },
+  &quot;statuscode&quot;: 200,
+  &quot;timestamp&quot;: &quot;2017-12-28T01:17:10.187476889Z&quot;
+}
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="park-parkedcalls-detail">
+<span id="id2"></span><h1>/park/parkedcalls/&lt;detail&gt;<a class="headerlink" href="#park-parkedcalls-detail" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id3">
+<h2>Methods<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<p>GET : Get parked_call&#8217;s detail info of given info.</p>
+<p>DELETE : Hangup the given parked call info.</p>
+</div>
+<div class="section" id="get-park-parkedcalls-detail">
+<span id="id4"></span><h2>Method: GET<a class="headerlink" href="#get-park-parkedcalls-detail" title="Permalink to this headline">¶</a></h2>
+<p>Get parked_call&#8217;s detail info of given info.</p>
+<div class="section" id="id5">
+<h3>Call<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>GET /park/parkedcalls/&lt;detail&gt;
+</pre></div>
+</div>
+<p>Method parameters</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">detail</span></tt>: Parkee&#8217;s unique id.</li>
+</ul>
+</div>
+<div class="section" id="id6">
+<h3>Returns<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr,
+  &quot;reuslt&quot;: {
+    &quot;parkee_unique_id&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;parkee_linked_id&quot;: &quot;&lt;string&gt;&quot;,
+
+    &quot;parkee_channel&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;parkee_channel_state&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;parkee_channel_state_desc&quot;: &quot;&lt;string&gt;&quot;,
+
+    &quot;parkee_caller_id_name&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;parkee_caller_id_num&quot;: &quot;&lt;string&gt;&quot;,
+
+    &quot;parkee_connected_line_name&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;parkee_connected_line_num&quot;: &quot;&lt;string&gt;,
+
+    &quot;parkee_account_code&quot;: &quot;&lt;string&gt;&quot;,
+
+    &quot;parkee_context&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;parkee_exten&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;parkee_priority&quot;: &quot;&lt;string&gt;&quot;,
+
+    &quot;parker_dial_string&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;parking_duration&quot;: &lt;integer&gt;,
+    &quot;parking_lot&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;parking_space&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;parking_timeout&quot;: &lt;integer&gt;,
+
+    &quot;tm_update&quot;: &quot;&lt;timestamp&gt;&quot;
+  }
+}
+</pre></div>
+</div>
+<p>Return parameters</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">parkee_unique_id</span></tt>: Parkee&#8217;s unique id.</li>
+<li><tt class="docutils literal"><span class="pre">parkee_linked_id</span></tt>: Parkee&#8217;s linked id.</li>
+<li><tt class="docutils literal"><span class="pre">parkee_channel</span></tt>: Parkee&#8217;s channel name.</li>
+<li><tt class="docutils literal"><span class="pre">parkee_channel_state</span></tt>: Parkee&#8217;s channele state.</li>
+<li><tt class="docutils literal"><span class="pre">parkee_channel_state_desc</span></tt>: Parkee&#8217;s channel state description.</li>
+<li><tt class="docutils literal"><span class="pre">parkee_caller_id_name</span></tt>: Parkee&#8217;s caller id name.</li>
+<li><tt class="docutils literal"><span class="pre">parkee_caller_id_num</span></tt>: Parkee&#8217;s caller id number.</li>
+<li><tt class="docutils literal"><span class="pre">parkee_connected_line_name</span></tt>: Parkee&#8217;s connected line name.</li>
+<li><tt class="docutils literal"><span class="pre">parkee_connected_line_num</span></tt>: Parkee&#8217;s connected line number.</li>
+<li><tt class="docutils literal"><span class="pre">parkee_account_code</span></tt>: Parkee&#8217;s account code.</li>
+<li><tt class="docutils literal"><span class="pre">parkee_context</span></tt>: Parkee&#8217;s current context.</li>
+<li><tt class="docutils literal"><span class="pre">parkee_exten</span></tt>: Parkee&#8217;s current exten.</li>
+<li><tt class="docutils literal"><span class="pre">parkee_priority</span></tt>: Parkee&#8217;s current priority.</li>
+<li><tt class="docutils literal"><span class="pre">parker_dial_string</span></tt>: Dial String that can be used to call back the parker on ParkingTimeout.</li>
+<li><tt class="docutils literal"><span class="pre">parking_duration</span></tt>: Time the parkee has been in the parking bridge since tm_update(in seconds).</li>
+<li><tt class="docutils literal"><span class="pre">parking_lot</span></tt>: Name of the parking lot that the parkee is parked in.</li>
+<li><tt class="docutils literal"><span class="pre">parking_space</span></tt>: Parking Space that the parkee is parked in.</li>
+<li><tt class="docutils literal"><span class="pre">parking_timeout</span></tt>: Time remaining until the parkee is forcefully removed from parking in seconds since tm_update.</li>
+</ul>
+</div>
+<div class="section" id="id7">
+<h3>Example<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET localhost:8081/park/parkedcalls/1514423984.115
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;result&quot;: {
+      &quot;parkee_account_code&quot;: &quot;&quot;,
+      &quot;parkee_caller_id_name&quot;: &quot;pjagent-01&quot;,
+      &quot;parkee_caller_id_num&quot;: &quot;pjagent-01&quot;,
+      &quot;parkee_channel&quot;: &quot;PJSIP/pjagent-01-00000046&quot;,
+      &quot;parkee_channel_state&quot;: &quot;6&quot;,
+      &quot;parkee_channel_state_desc&quot;: &quot;Up&quot;,
+      &quot;parkee_connected_line_name&quot;: &quot;&lt;unknown&gt;&quot;,
+      &quot;parkee_connected_line_num&quot;: &quot;&lt;unknown&gt;&quot;,
+      &quot;parkee_context&quot;: &quot;sample_park&quot;,
+      &quot;parkee_exten&quot;: &quot;s&quot;,
+      &quot;parkee_linked_id&quot;: &quot;1514423984.115&quot;,
+      &quot;parkee_priority&quot;: &quot;2&quot;,
+      &quot;parkee_unique_id&quot;: &quot;1514423984.115&quot;,
+      &quot;parker_dial_string&quot;: &quot;PJSIP/pjagent-01&quot;,
+      &quot;parking_duration&quot;: 0,
+      &quot;parking_lot&quot;: &quot;default&quot;,
+      &quot;parking_space&quot;: &quot;701&quot;,
+      &quot;parking_timeout&quot;: 45,
+      &quot;tm_update&quot;: &quot;2017-12-28T01:19:44.271005802Z&quot;
+  },
+  &quot;statuscode&quot;: 200,
+  &quot;timestamp&quot;: &quot;2017-12-28T01:19:53.629685348Z&quot;
+}
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="method-delete">
+<span id="delete-park-parkedcalls-detail"></span><h2>Method: DELETE<a class="headerlink" href="#method-delete" title="Permalink to this headline">¶</a></h2>
+<p>Hangup the given parked call info.</p>
+<div class="section" id="id8">
+<h3>Call<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>DELETE /park/parkedcalls/&lt;detail&gt;
+</pre></div>
+</div>
+<p>Method parameters</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">detail</span></tt>: Parkee&#8217;s unique id.</li>
+</ul>
+</div>
+<div class="section" id="id9">
+<h3>Returns<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr
+}
+</pre></div>
+</div>
+</div>
+<div class="section" id="id10">
+<h3>Example<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X DELETE localhost:8081/park/parkedcalls/1515019232.8
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;statuscode&quot;: 200,
+  &quot;timestamp&quot;: &quot;2018-01-03T22:40:50.55634319Z&quot;
+}
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="park-parkinglots">
+<span id="id11"></span><h1>/park/parkinglots<a class="headerlink" href="#park-parkinglots" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id12">
+<h2>Methods<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h2>
+<p>GET : Get list of all parking lot info.</p>
+<p>POST : Create new parking lot info.</p>
+</div>
+<div class="section" id="get-park-parkinglots">
+<span id="id13"></span><h2>Method: GET<a class="headerlink" href="#get-park-parkinglots" title="Permalink to this headline">¶</a></h2>
+<p>Get list of all parking lots info.</p>
+<div class="section" id="id14">
+<h3>Call<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">GET</span> <span class="o">/</span><span class="n">park</span><span class="o">/</span><span class="n">parkinglots</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id15">
+<h3>Returns<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr,
+  &quot;reuslt&quot;: {
+    &quot;list&quot;: [
+      {
+        ...
+      },
+      ...
+    ]
+  }
+}
+</pre></div>
+</div>
+<p>Return parameters</p>
+<ul>
+<li><dl class="first docutils">
+<dt><tt class="docutils literal"><span class="pre">list</span></tt> <span class="classifier-delimiter">:</span> <span class="classifier">array of itmes.</span></dt>
+<dd><ul class="first last simple">
+<li>See detail at parking lot detail info.</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</div>
+<div class="section" id="id16">
+<h3>Example<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET localhost:8081/park/parkinglots
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;result&quot;: {
+      &quot;list&quot;: [
+          {
+              &quot;name&quot;: &quot;default&quot;,
+              &quot;start_space&quot;: &quot;701&quot;,
+              &quot;stop_spcae&quot;: &quot;720&quot;,
+              &quot;timeout&quot;: 45,
+              &quot;tm_update&quot;: &quot;2017-12-28T01:16:46.350523532Z&quot;
+          }
+      ]
+  },
+  &quot;statuscode&quot;: 200,
+  &quot;timestamp&quot;: &quot;2017-12-28T01:21:57.180448453Z&quot;
+}
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="method-post">
+<span id="post-park-parkinglots"></span><h2>Method: POST<a class="headerlink" href="#method-post" title="Permalink to this headline">¶</a></h2>
+<p>Create new parking lot info.</p>
+<div class="section" id="id17">
+<h3>Call<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">POST</span> <span class="o">/</span><span class="n">park</span><span class="o">/</span><span class="n">parkinglots</span>
+
+<span class="p">{</span>
+  <span class="o">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id18">
+<h3>Returns<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr
+}
+</pre></div>
+</div>
+</div>
+<div class="section" id="id19">
+<h3>Example<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X POST localhost:8081/park/parkinglots -d
+&#39;{&quot;name&quot;: &quot;test_parkinglot&quot;, &quot;context&quot;: &quot;&gt; edvina_park&quot;, \
+&quot;parkpos&quot;: &quot;&gt; 800-850&quot;, &quot;findslot&quot;: &quot;&gt; next&quot;, \
+&quot;comebacktoorigin&quot;: &quot;no&quot;, &quot;comebackdialtime&quot;: &quot;90&quot;, \
+&quot;comebackcontext&quot;: &quot;edvinapark-timeout&quot;, &quot;parkedmusicclass&quot;: &quot;edvina&quot; }&#39;
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;timestamp&quot;: &quot;2018-01-03T21:12:39.553826772Z&quot;,
+  &quot;statuscode&quot;: 200
+}
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="park-parkinglots-detail">
+<span id="id20"></span><h1>/park/parkinglots/&lt;detail&gt;<a class="headerlink" href="#park-parkinglots-detail" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id21">
+<h2>Methods<a class="headerlink" href="#id21" title="Permalink to this headline">¶</a></h2>
+<p>GET : Get parking lot&#8217;s detail info of given detail.</p>
+<p>PUT : Update parking lot&#8217;s detail info of given detail.</p>
+<p>DELETE : Delete the given parking lot info.</p>
+</div>
+<div class="section" id="get-park-parkinglots-detail">
+<span id="id22"></span><h2>Method: GET<a class="headerlink" href="#get-park-parkinglots-detail" title="Permalink to this headline">¶</a></h2>
+<p>Get parking lot&#8217;s detail info of given info.</p>
+<div class="section" id="id23">
+<h3>Call<a class="headerlink" href="#id23" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>GET /park/parkinglots/&lt;detail&gt;
+</pre></div>
+</div>
+<p>Method parameters</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">detail</span></tt>: url encoded parking lot&#8217;s name.</li>
+</ul>
+</div>
+<div class="section" id="id24">
+<h3>Returns<a class="headerlink" href="#id24" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr,
+  &quot;reuslt&quot;: {
+    &quot;name&quot;: &quot;&lt;string&gt;&quot;,
+
+    &quot;start_space&quot;: &quot;&lt;string&gt;&quot;,
+    &quot;stop_spcae&quot;: &quot;&lt;string&gt;&quot;,
+
+    &quot;timeout&quot;: &lt;integer&gt;,
+
+    &quot;tm_update&quot;: &quot;&lt;timestamp&gt;&quot;
+  }
+}
+</pre></div>
+</div>
+<p>Return parameters</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">name</span></tt>: Parking lot&#8217;s name.</li>
+<li><tt class="docutils literal"><span class="pre">start_space</span></tt>: Parking lot&#8217;s start space.</li>
+<li><tt class="docutils literal"><span class="pre">stop_spcae</span></tt>: Parking lot&#8217;s stop space.</li>
+<li><tt class="docutils literal"><span class="pre">timeout</span></tt>: Timeout second in the parking lot.</li>
+</ul>
+</div>
+<div class="section" id="id25">
+<h3>Example<a class="headerlink" href="#id25" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET localhost:8081/park/parkinglots/default
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;result&quot;: {
+      &quot;name&quot;: &quot;default&quot;,
+      &quot;start_space&quot;: &quot;701&quot;,
+      &quot;stop_spcae&quot;: &quot;720&quot;,
+      &quot;timeout&quot;: 45,
+      &quot;tm_update&quot;: &quot;2017-12-28T01:16:46.350523532Z&quot;
+  },
+  &quot;statuscode&quot;: 200,
+  &quot;timestamp&quot;: &quot;2017-12-28T01:25:47.123913131Z&quot;
+}
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="method-put">
+<span id="put-park-parkinglots-detail"></span><h2>Method: PUT<a class="headerlink" href="#method-put" title="Permalink to this headline">¶</a></h2>
+<p>Update parking lot&#8217;s detail info of given detail.</p>
+<div class="section" id="id26">
+<h3>Call<a class="headerlink" href="#id26" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>PUT /park/parkinglots/&lt;detail&gt;
+
+{
+  ...
+}
+</pre></div>
+</div>
+<p>Method parameters</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">detail</span></tt>: url encoded parking lot&#8217;s name.</li>
+</ul>
+</div>
+<div class="section" id="id27">
+<h3>Returns<a class="headerlink" href="#id27" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr
+}
+</pre></div>
+</div>
+</div>
+<div class="section" id="id28">
+<h3>Example<a class="headerlink" href="#id28" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X PUT localhost:8081/park/parkinglots/test_parkinglot -d \
+&#39;{&quot;context&quot;: &quot;&gt; edvina_park&quot;, &quot;parkpos&quot;: &quot;&gt; 800-900&quot;, &quot;findslot&quot;: &quot;&gt; next&quot;, \
+&quot;comebacktoorigin&quot;: &quot;no&quot;, &quot;comebackdialtime&quot;: &quot;90&quot;, \
+&quot;comebackcontext&quot;: &quot;edvinapark-timeout&quot;, &quot;parkedmusicclass&quot;: &quot;edvina&quot; }&#39;
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;timestamp&quot;: &quot;2018-01-03T22:17:22.76376966Z&quot;,
+  &quot;statuscode&quot;: 200
+}
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="delete-park-parkinglots-detail">
+<span id="id29"></span><h2>Method: DELETE<a class="headerlink" href="#delete-park-parkinglots-detail" title="Permalink to this headline">¶</a></h2>
+<p>DELETE : Delete the given parking lot info.</p>
+<div class="section" id="id30">
+<h3>Call<a class="headerlink" href="#id30" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>DELETE /park/parkinglots/&lt;detail&gt;
+</pre></div>
+</div>
+</div>
+<div class="section" id="id31">
+<h3>Returns<a class="headerlink" href="#id31" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr
+}
+</pre></div>
+</div>
+</div>
+<div class="section" id="id32">
+<h3>Example<a class="headerlink" href="#id32" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X DELETE localhost:8081/park/parkinglots/test_parkinglot
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;timestamp&quot;: &quot;2018-01-03T21:50:01.672074605Z&quot;,
+  &quot;statuscode&quot;: 200
+}
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="park-setting">
+<h1>/park/setting<a class="headerlink" href="#park-setting" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id33">
+<h2>Methods<a class="headerlink" href="#id33" title="Permalink to this headline">¶</a></h2>
+<p>GET : Get current park setting.</p>
+<p>PUT : Update park setting.</p>
+</div>
+<div class="section" id="get-park-setting">
+<span id="id34"></span><h2>Method: GET<a class="headerlink" href="#get-park-setting" title="Permalink to this headline">¶</a></h2>
+<p>GET : Get current park setting.</p>
+<p>This result does not mean to currently running setting.
+It shows only setting file.</p>
+<div class="section" id="id35">
+<h3>Call<a class="headerlink" href="#id35" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>GET ^/park/setting
+</pre></div>
+</div>
+</div>
+<div class="section" id="id36">
+<h3>Returns<a class="headerlink" href="#id36" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr,
+  &quot;result&quot;: {
+    ...
+  }
+}
+</pre></div>
+</div>
+<p>Return parameters</p>
+<ul class="simple">
+<li>See detail at park setting.</li>
+</ul>
+</div>
+<div class="section" id="id37">
+<h3>Example<a class="headerlink" href="#id37" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET localhost:8081/park/setting
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;result&quot;: {
+      &quot;default&quot;: {
+          &quot;context&quot;: &quot;&gt; parkedcalls&quot;,
+          &quot;parkext&quot;: &quot;&gt; 700&quot;,
+          &quot;parkpos&quot;: &quot;&gt; 701-720&quot;
+      },
+      &quot;general&quot;: {},
+      &quot;test_parkinglot&quot;: {
+          &quot;comebackcontext&quot;: &quot;edvinapark-timeout&quot;,
+          &quot;comebackdialtime&quot;: &quot;90&quot;,
+          &quot;comebacktoorigin&quot;: &quot;no&quot;,
+          &quot;context&quot;: &quot;&gt; edvina_park&quot;,
+          &quot;findslot&quot;: &quot;&gt; next&quot;,
+          &quot;parkedmusicclass&quot;: &quot;edvina&quot;,
+          &quot;parkpos&quot;: &quot;&gt; 800-900&quot;
+      }
+  },
+  &quot;statuscode&quot;: 200,
+  &quot;timestamp&quot;: &quot;2018-01-03T22:51:19.20572144Z&quot;
+}
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="put-park-setting">
+<span id="id38"></span><h2>Method: PUT<a class="headerlink" href="#put-park-setting" title="Permalink to this headline">¶</a></h2>
+<p>PUT : Update park setting.</p>
+<p>Update only setting file. To adapt to module, required module reload.</p>
+<div class="section" id="id39">
+<h3>Call<a class="headerlink" href="#id39" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>PUT ^/park/setting
+
+{
+  ...
+}
+</pre></div>
+</div>
+<p>Data parameters</p>
+<ul class="simple">
+<li>park setting info.</li>
+</ul>
+</div>
+<div class="section" id="id40">
+<h3>Returns<a class="headerlink" href="#id40" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr
+}
+</pre></div>
+</div>
+</div>
+<div class="section" id="id41">
+<h3>Example<a class="headerlink" href="#id41" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X PUT localhost:8081/park/setting -d
+&#39;
+{
+  &quot;default&quot;: {
+    &quot;context&quot;: &quot;&gt; parkedcalls&quot;,
+    &quot;parkext&quot;: &quot;&gt; 700&quot;,
+    &quot;parkpos&quot;: &quot;&gt; 701-720&quot;
+  },
+  &quot;general&quot;: {},
+  &quot;test_parkinglot&quot;: {
+    &quot;comebackcontext&quot;: &quot;edvinapark-timeout&quot;,
+    &quot;comebackdialtime&quot;: &quot;90&quot;,
+    &quot;comebacktoorigin&quot;: &quot;no&quot;,
+    &quot;context&quot;: &quot;&gt; edvina_park&quot;,
+    &quot;findslot&quot;: &quot;&gt; next&quot;,
+    &quot;parkedmusicclass&quot;: &quot;edvina&quot;,
+    &quot;parkpos&quot;: &quot;&gt; 800-1000&quot;
+  }
+}
+&#39;
+
+{&quot;api_ver&quot;: &quot;0.1&quot;, &quot;timestamp&quot;: &quot;2018-01-03T22:59:02.195183096Z&quot;, &quot;statuscode&quot;: 200}
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="park-settings">
+<span id="id42"></span><h1>/park/settings<a class="headerlink" href="#park-settings" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id43">
+<h2>Methods<a class="headerlink" href="#id43" title="Permalink to this headline">¶</a></h2>
+<p>GET : Get all backup park settings.</p>
+</div>
+<div class="section" id="get-park-settings">
+<span id="id44"></span><h2>Method: GET<a class="headerlink" href="#get-park-settings" title="Permalink to this headline">¶</a></h2>
+<p>GET : Get all backup park settings.</p>
+<div class="section" id="id45">
+<h3>Call<a class="headerlink" href="#id45" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>GET ^/park/settings
+</pre></div>
+</div>
+</div>
+<div class="section" id="id46">
+<h3>Returns<a class="headerlink" href="#id46" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr,
+  &quot;reuslt&quot;: {
+    &quot;list&quot;: [
+      {
+        &quot;filename&quot;: &quot;&lt;string&gt;&quot;,
+        ...
+      }
+    ]
+  }
+}
+</pre></div>
+</div>
+<p>Return parameters</p>
+<ul>
+<li><dl class="first docutils">
+<dt><tt class="docutils literal"><span class="pre">list</span></tt>: array of backup files.</dt>
+<dd><ul class="first last simple">
+<li><tt class="docutils literal"><span class="pre">filename</span></tt>: backup filename.</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</div>
+<div class="section" id="id47">
+<h3>Example<a class="headerlink" href="#id47" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET localhost:8081/park/settings
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;result&quot;: {
+      &quot;list&quot;: [
+          {
+              &quot;default&quot;: {
+                  &quot;context&quot;: &quot;&gt; parkedcalls&quot;,
+                  &quot;parkext&quot;: &quot;&gt; 700&quot;,
+                  &quot;parkpos&quot;: &quot;&gt; 701-720&quot;
+              },
+              &quot;filename&quot;: &quot;res_parking.conf.2018-01-03T21:12:39.537427535Z&quot;,
+              &quot;general&quot;: {}
+          },
+          ...
+      ]
+  },
+  &quot;statuscode&quot;: 200,
+  &quot;timestamp&quot;: &quot;2018-01-03T23:07:58.415769305Z&quot;
+}
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="park-settings-detail">
+<span id="id48"></span><h1>/park/settings/&lt;detail&gt;<a class="headerlink" href="#park-settings-detail" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id49">
+<h2>Methods<a class="headerlink" href="#id49" title="Permalink to this headline">¶</a></h2>
+<p>GET : Get specified backup park settings.</p>
+<p>DELETE : Delete given backup park setting.</p>
+</div>
+<div class="section" id="get-park-settings-detail">
+<span id="id50"></span><h2>Method: GET<a class="headerlink" href="#get-park-settings-detail" title="Permalink to this headline">¶</a></h2>
+<p>GET : Get backup park settings of given info.</p>
+<div class="section" id="id51">
+<h3>Call<a class="headerlink" href="#id51" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>GET ^/park/settings/&lt;detail&gt;
+</pre></div>
+</div>
+<p>Method parameters</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">detail</span></tt>: backup filename.</li>
+</ul>
+</div>
+<div class="section" id="id52">
+<h3>Returns<a class="headerlink" href="#id52" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr,
+  &quot;reuslt&quot;: {
+    ...
+  }
+}
+</pre></div>
+</div>
+<ul class="simple">
+<li>See detail park setting.</li>
+</ul>
+</div>
+<div class="section" id="id53">
+<h3>Example<a class="headerlink" href="#id53" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X GET localhost:8081/park/settings/res_parking.conf.2018-01-03T22:59:02.177676713Z
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;result&quot;: {
+      &quot;list&quot;: {
+          &quot;default&quot;: {
+              &quot;context&quot;: &quot;&gt; parkedcalls&quot;,
+              &quot;parkext&quot;: &quot;&gt; 700&quot;,
+              &quot;parkpos&quot;: &quot;&gt; 701-720&quot;
+          },
+          &quot;general&quot;: {},
+          &quot;test_parkinglot&quot;: {
+              &quot;comebackcontext&quot;: &quot;edvinapark-timeout&quot;,
+              &quot;comebackdialtime&quot;: &quot;90&quot;,
+              &quot;comebacktoorigin&quot;: &quot;no&quot;,
+              &quot;context&quot;: &quot;&gt; edvina_park&quot;,
+              &quot;findslot&quot;: &quot;&gt; next&quot;,
+              &quot;parkedmusicclass&quot;: &quot;edvina&quot;,
+              &quot;parkpos&quot;: &quot;&gt; 800-900&quot;
+          }
+      }
+  },
+  &quot;statuscode&quot;: 200,
+  &quot;timestamp&quot;: &quot;2018-01-03T23:26:00.784492928Z&quot;
+}
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="delete-park-settings-detail">
+<span id="id54"></span><h2>Method: DELETE<a class="headerlink" href="#delete-park-settings-detail" title="Permalink to this headline">¶</a></h2>
+<p>DELETE : Delete given backup park setting.</p>
+<div class="section" id="id55">
+<h3>Call<a class="headerlink" href="#id55" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>DELETE ^/park/settings/&lt;detail&gt;
+</pre></div>
+</div>
+<p>Method parameters</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">detail</span></tt>: backup filename.</li>
+</ul>
+</div>
+<div class="section" id="id56">
+<h3>Returns<a class="headerlink" href="#id56" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>{
+  $defhdr
+}
+</pre></div>
+</div>
+</div>
+<div class="section" id="id57">
+<h3>Example<a class="headerlink" href="#id57" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -X DELETE localhost:8081/park/settings/res_parking.conf.2018-01-03T22:59:02.177676713Z
+
+{
+  &quot;api_ver&quot;: &quot;0.1&quot;,
+  &quot;statuscode&quot;: 200,
+  &quot;timestamp&quot;: &quot;2018-01-03T23:26:10.361720786Z&quot;
+}
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">/park/parkedcalls</a><ul>
+<li><a class="reference internal" href="#methods">Methods</a></li>
+<li><a class="reference internal" href="#method-get">Method: GET</a><ul>
+<li><a class="reference internal" href="#call">Call</a></li>
+<li><a class="reference internal" href="#returns">Returns</a></li>
+<li><a class="reference internal" href="#example">Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#park-parkedcalls-detail">/park/parkedcalls/&lt;detail&gt;</a><ul>
+<li><a class="reference internal" href="#id3">Methods</a></li>
+<li><a class="reference internal" href="#get-park-parkedcalls-detail">Method: GET</a><ul>
+<li><a class="reference internal" href="#id5">Call</a></li>
+<li><a class="reference internal" href="#id6">Returns</a></li>
+<li><a class="reference internal" href="#id7">Example</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#method-delete">Method: DELETE</a><ul>
+<li><a class="reference internal" href="#id8">Call</a></li>
+<li><a class="reference internal" href="#id9">Returns</a></li>
+<li><a class="reference internal" href="#id10">Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#park-parkinglots">/park/parkinglots</a><ul>
+<li><a class="reference internal" href="#id12">Methods</a></li>
+<li><a class="reference internal" href="#get-park-parkinglots">Method: GET</a><ul>
+<li><a class="reference internal" href="#id14">Call</a></li>
+<li><a class="reference internal" href="#id15">Returns</a></li>
+<li><a class="reference internal" href="#id16">Example</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#method-post">Method: POST</a><ul>
+<li><a class="reference internal" href="#id17">Call</a></li>
+<li><a class="reference internal" href="#id18">Returns</a></li>
+<li><a class="reference internal" href="#id19">Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#park-parkinglots-detail">/park/parkinglots/&lt;detail&gt;</a><ul>
+<li><a class="reference internal" href="#id21">Methods</a></li>
+<li><a class="reference internal" href="#get-park-parkinglots-detail">Method: GET</a><ul>
+<li><a class="reference internal" href="#id23">Call</a></li>
+<li><a class="reference internal" href="#id24">Returns</a></li>
+<li><a class="reference internal" href="#id25">Example</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#method-put">Method: PUT</a><ul>
+<li><a class="reference internal" href="#id26">Call</a></li>
+<li><a class="reference internal" href="#id27">Returns</a></li>
+<li><a class="reference internal" href="#id28">Example</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#delete-park-parkinglots-detail">Method: DELETE</a><ul>
+<li><a class="reference internal" href="#id30">Call</a></li>
+<li><a class="reference internal" href="#id31">Returns</a></li>
+<li><a class="reference internal" href="#id32">Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#park-setting">/park/setting</a><ul>
+<li><a class="reference internal" href="#id33">Methods</a></li>
+<li><a class="reference internal" href="#get-park-setting">Method: GET</a><ul>
+<li><a class="reference internal" href="#id35">Call</a></li>
+<li><a class="reference internal" href="#id36">Returns</a></li>
+<li><a class="reference internal" href="#id37">Example</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#put-park-setting">Method: PUT</a><ul>
+<li><a class="reference internal" href="#id39">Call</a></li>
+<li><a class="reference internal" href="#id40">Returns</a></li>
+<li><a class="reference internal" href="#id41">Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#park-settings">/park/settings</a><ul>
+<li><a class="reference internal" href="#id43">Methods</a></li>
+<li><a class="reference internal" href="#get-park-settings">Method: GET</a><ul>
+<li><a class="reference internal" href="#id45">Call</a></li>
+<li><a class="reference internal" href="#id46">Returns</a></li>
+<li><a class="reference internal" href="#id47">Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#park-settings-detail">/park/settings/&lt;detail&gt;</a><ul>
+<li><a class="reference internal" href="#id49">Methods</a></li>
+<li><a class="reference internal" href="#get-park-settings-detail">Method: GET</a><ul>
+<li><a class="reference internal" href="#id51">Call</a></li>
+<li><a class="reference internal" href="#id52">Returns</a></li>
+<li><a class="reference internal" href="#id53">Example</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#delete-park-settings-detail">Method: DELETE</a><ul>
+<li><a class="reference internal" href="#id55">Call</a></li>
+<li><a class="reference internal" href="#id56">Returns</a></li>
+<li><a class="reference internal" href="#id57">Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/park_api.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li><a href="index.html">jade 0.0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2017, pchero.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

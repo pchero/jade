@@ -203,7 +203,8 @@ Returns
     $defhdr,
     "reuslt": {
       "list": [
-        "<filename>": {
+        {
+          "filename": "<string>",
           ...
         }
       ]
@@ -226,7 +227,7 @@ Example
     "result": {
         "list": [
             {
-                "voicemail.conf.2017-12-18T11:23:36.665818303Z": {
+                {
                     "default": {
                         "1234": "> 4242,Example Mailbox,root@localhost"
                     },
@@ -258,7 +259,8 @@ Example
                         "eastern": "America/New_York|'vm-received' Q 'digits/at' IMp",
                         "european": "Europe/Copenhagen|'vm-received' a d b 'digits/at' HM",
                         "military": "Zulu|'vm-received' q 'digits/at' H N 'hours' 'phonetic/z_p'"
-                    }
+                    },
+                    "filename": "voicemail.conf.2017-12-18T11:23:36.665818303Z"
                 }
             }
         ]
@@ -407,6 +409,8 @@ Methods
 GET : Get list of all voicemail users.
 POST : Create new voicemail user.
 
+.. _get_voicemail_users:
+
 Method: GET
 -----------
 Get list of all voicemail users.
@@ -421,63 +425,65 @@ Returns
 +++++++
 ::
 
-   {
-     $defhdr,
-     "reuslt": {
-       "list": [
-         {
-            "context": "<string>",
-            "mailbox": "<string>",
+  {
+    $defhdr,
+    "reuslt": {
+      "list": [
+        {
+          "id": "<string>", 
+          "context": "<string>",
+          "mailbox": "<string>",
 
-            "email": "<string>",
-            "full_name": "<string>",
-            "pager": "<string>",
+          "email": "<string>",
+          "full_name": "<string>",
+          "pager": "<string>",
 
-            "server_email": "<string>",
-            "mail_command": "<string>",
-            "attach_message": "<string>",
-            "attachment_format": "<string>",
-            "delete_message": "<string>",
+          "server_email": "<string>",
+          "mail_command": "<string>",
+          "attach_message": "<string>",
+          "attachment_format": "<string>",
+          "delete_message": "<string>",
 
-            "call_operator": "<string>",
-            "callback": "<string>",
-            "can_review": "<string>",
+          "call_operator": "<string>",
+          "callback": "<string>",
+          "can_review": "<string>",
 
-            "dialout": "<string>",
-            "exit_context": "<string>",
-            "from_string": "<string>",
-            "language": "<string>",
+          "dialout": "<string>",
+          "exit_context": "<string>",
+          "from_string": "<string>",
+          "language": "<string>",
 
-            "max_message_count": <integer>,
-            "max_message_length": <integer>,
-            "new_message_count": <integer>,
-            "old_message_count": <integer>,
+          "max_message_count": <integer>,
+          "max_message_length": <integer>,
+          "new_message_count": <integer>,
+          "old_message_count": <integer>,
 
-            "imap_flag": "<string>",
-            "imap_port": "<string>",
-            "imap_server": "<string>",
-            "imap_user": "<string>",
+          "imap_flag": "<string>",
+          "imap_port": "<string>",
+          "imap_server": "<string>",
+          "imap_user": "<string>",
 
 
-            "say_cid": "<string>",
-            "say_duration_minimum": <integer>,
-            "say_envelope": "<string>",
+          "say_cid": "<string>",
+          "say_duration_minimum": <integer>,
+          "say_envelope": "<string>",
 
-            "timezone": "<string>",
-            
-            "unique_id": "<string>",
-            "volume_gain": <real>,
+          "timezone": "<string>",
+          
+          "unique_id": "<string>",
+          "volume_gain": <real>,
 
-            "tm_update": "<string>"
-         },
-          ...
-       ]
-     }
-   }
+          "tm_update": "<string>"
+        },
+         ...
+      ]
+    }
+  }
 
 Return parameters
 
 * ``list`` : array of items.
+   * ``id``: user id.
    * ``context``: Context name.
    * ``mailbox``: Mailbox name.
 
@@ -545,6 +551,7 @@ Example
                 "exit_context": "",
                 "from_string": "",
                 "full_name": "pjagent 01",
+                "id": "pjagent-01@vm-demo",
                 "imap_flag": "",
                 "imap_port": "",
                 "imap_server": "",
@@ -722,7 +729,264 @@ Example
     "timestamp": "2017-12-15T23:07:53.444934604Z"
   }
 
+
+.. _voicemail_users_detail:
+
+/voicemail/users/<detail>
+=========================
+
+Methods
+-------
+GET : Get list of all voicemail users.
+
+PUT : Update voicemail user info.
+
+DELETE : Delete voicemail user.
+
+.. _get_voicemail_users_detail:
+
+Method: GET
+-----------
+Get detail info of given voicemail users.
+
+Call
+++++
+::
+
+  GET ^/voicemail/users/<detail>
   
+Method parameter
+
+* ``detail``: uri encoded voicemail user id.
+  
+Returns
++++++++
+::
+
+  {
+    $defhdr,
+    "reuslt": {
+      "id": "<string>", 
+      "context": "<string>",
+      "mailbox": "<string>",
+
+      "email": "<string>",
+      "full_name": "<string>",
+      "pager": "<string>",
+
+      "server_email": "<string>",
+      "mail_command": "<string>",
+      "attach_message": "<string>",
+      "attachment_format": "<string>",
+      "delete_message": "<string>",
+
+      "call_operator": "<string>",
+      "callback": "<string>",
+      "can_review": "<string>",
+
+      "dialout": "<string>",
+      "exit_context": "<string>",
+      "from_string": "<string>",
+      "language": "<string>",
+
+      "max_message_count": <integer>,
+      "max_message_length": <integer>,
+      "new_message_count": <integer>,
+      "old_message_count": <integer>,
+
+      "imap_flag": "<string>",
+      "imap_port": "<string>",
+      "imap_server": "<string>",
+      "imap_user": "<string>",
+
+
+      "say_cid": "<string>",
+      "say_duration_minimum": <integer>,
+      "say_envelope": "<string>",
+
+      "timezone": "<string>",
+      
+      "unique_id": "<string>",
+      "volume_gain": <real>,
+
+      "tm_update": "<string>"
+    }
+  }
+
+Return parameters
+
+* ``id``: user id.
+* ``context``: Context name.
+* ``mailbox``: Mailbox name.
+
+* ``email``: Email address(mail receiver)
+* ``full_name``: Full name
+* ``pager``: Pager info
+
+* ``server_email``: Server's mail address.(mail sender)
+* ``mail_command``: Mail sending command.
+* ``attach_message``: Voicemail attachment.
+* ``attachment_format``: Attached voicemail format.
+* ``delete_message``: Delete voicemail after send to email or not.
+
+* ``call_operator``: 
+* ``callback``: 
+* ``can_review``: 
+
+* ``dialout``: 
+* ``exit_context``: 
+* ``from_string``: 
+* ``language``: 
+
+* ``max_message_count``: Maximum message count.
+* ``max_message_length``:  Maximum message length.
+* ``new_message_count``: New message count.
+* ``old_message_count``: Old message count.
+
+* ``imap_flag``: 
+* ``imap_port``: 
+* ``imap_server``: 
+* ``imap_user``: 
+
+* ``say_cid``: 
+* ``say_duration_minimum``: 
+* ``say_envelope``: 
+
+* ``timezone``: 
+
+* ``unique_id``: 
+* ``volume_gain``: 
+
+* ``tm_update``: 
+
+   
+Example
++++++++
+::
+
+  $ curl -X GET localhost:8081/voicemail/users/6001%40vm-demo
+  
+  {
+    "api_ver": "0.1",
+    "result": {
+        "attach_message": "No",
+        "attachment_format": "",
+        "call_operator": "No",
+        "callback": "",
+        "can_review": "No",
+        "context": "vm-demo",
+        "delete_message": "No",
+        "dialout": "",
+        "email": "alice@example.com",
+        "exit_context": "",
+        "from_string": "",
+        "full_name": "Alice Jones",
+        "id": "6001@vm-demo",
+        "imap_flag": "",
+        "imap_port": "",
+        "imap_server": "",
+        "imap_user": "",
+        "language": "",
+        "mail_command": "/usr/sbin/sendmail -t",
+        "mailbox": "6001",
+        "max_message_count": 10,
+        "max_message_length": 0,
+        "new_message_count": 1,
+        "old_message_count": 0,
+        "pager": "alice2@example.com",
+        "say_cid": "No",
+        "say_duration_minimum": 2,
+        "say_envelope": "Yes",
+        "server_email": "asterisk",
+        "timezone": "central",
+        "tm_update": "2017-12-22T21:06:44.567703838Z",
+        "unique_id": "",
+        "volume_gain": 0.0
+    },
+    "statuscode": 200,
+    "timestamp": "2017-12-22T21:10:46.138227663Z"
+  }
+
+.. _put_voicemail_users_detail:
+
+Method: PUT
+-----------
+Update detail info of given voicemail user.
+
+Call
+++++
+::
+
+  PUT ^/voicemail/users/<detail>
+  
+  {
+    ...
+  }
+  
+Method parameter
+
+* ``detail``: uri encoded voicemail user id.
+
+Data parameter
+
+* ``...``: voicemail user info.
+  
+Returns
++++++++
+::
+
+  {
+    $defhdr
+  }
+   
+Example
++++++++
+::
+
+  $ curl -X PUT localhost:8081/voicemail/users/6001%40vm-demo -d
+    '{"full_name": "pchero"}'
+
+  {
+    "api_ver": "0.1",
+    "statuscode": 200,
+    "timestamp": "2017-12-22T21:31:39.996111906Z"
+  }
+
+.. _delete_voicemail_users_detail:
+
+Method: DELETE
+--------------
+Delete given voicemail user.
+
+Call
+++++
+::
+
+  DELETE ^/voicemail/users/<detail>
+    
+Method parameter
+
+* ``detail``: uri encoded voicemail user id.
+  
+Returns
++++++++
+::
+
+  {
+    $defhdr
+  }
+   
+Example
++++++++
+::
+
+  $ curl -X DELETE localhost:8081/voicemail/users/6001%40vm-demo
+
+  {
+    "api_ver": "0.1",
+    "statuscode": 200,
+    "timestamp": "2017-12-22T21:33:39.996111906Z"
+  }
 
 /voicemail/vms
 ==============
