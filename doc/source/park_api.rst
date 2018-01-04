@@ -90,6 +90,8 @@ Methods
 -------
 GET : Get parked_call's detail info of given info.
 
+DELETE : Hangup the given parked call info.
+
 .. _get_park_parkedcalls_detail:
 
 Method: GET
@@ -203,6 +205,43 @@ Example
   }
 
 
+.. _delete_park_parkedcalls_detail:
+
+Method: DELETE
+--------------
+Hangup the given parked call info.
+
+Call
+++++
+::
+
+   DELETE /park/parkedcalls/<detail>
+
+Method parameters
+
+* ``detail``: Parkee's unique id.
+
+Returns
++++++++
+::
+
+   {
+     $defhdr
+   }
+
+Example
++++++++
+::
+
+  $ curl -X DELETE localhost:8081/park/parkedcalls/1515019232.8
+  
+  {
+    "api_ver": "0.1",
+    "statuscode": 200,
+    "timestamp": "2018-01-03T22:40:50.55634319Z"
+  }
+
+
 .. _park_parkinglots:
 
 /park/parkinglots
@@ -210,7 +249,9 @@ Example
 
 Methods
 -------
-GET : Get list of all parking lots info.
+GET : Get list of all parking lot info.
+
+POST : Create new parking lot info.
 
 .. _get_park_parkinglots:
 
@@ -269,6 +310,48 @@ Example
   }
 
 
+.. _post_park_parkinglots:
+
+Method: POST
+------------
+Create new parking lot info.
+
+Call
+++++
+::
+
+  POST /park/parkinglots
+   
+  {
+    ...
+  }
+
+Returns
++++++++
+::
+
+  {
+    $defhdr
+  }
+
+
+Example
++++++++
+::
+
+  $ curl -X POST localhost:8081/park/parkinglots -d 
+  '{"name": "test_parkinglot", "context": "> edvina_park", \
+  "parkpos": "> 800-850", "findslot": "> next", \
+  "comebacktoorigin": "no", "comebackdialtime": "90", \
+  "comebackcontext": "edvinapark-timeout", "parkedmusicclass": "edvina" }'
+  
+  {
+    "api_ver": "0.1",
+    "timestamp": "2018-01-03T21:12:39.553826772Z",
+    "statuscode": 200
+  }
+  
+
 .. _park_parkinglots_detail:
   
 /park/parkinglots/<detail>
@@ -276,7 +359,11 @@ Example
 
 Methods
 -------
-GET : Get parking lot's detail info of given info.
+GET : Get parking lot's detail info of given detail.
+
+PUT : Update parking lot's detail info of given detail.
+
+DELETE : Delete the given parking lot info.
 
 .. _get_park_parkinglots_detail:
 
@@ -339,4 +426,393 @@ Example
     },
     "statuscode": 200,
     "timestamp": "2017-12-28T01:25:47.123913131Z"
+  }
+
+
+
+.. _put_park_parkinglots_detail:
+
+Method: PUT
+-----------
+Update parking lot's detail info of given detail.
+
+Call
+++++
+::
+
+  PUT /park/parkinglots/<detail>
+  
+  {
+    ...
+  }
+
+
+Method parameters
+
+* ``detail``: url encoded parking lot's name.
+
+Returns
++++++++
+::
+
+  {
+    $defhdr
+  }
+
+Example
++++++++
+::
+
+  $ curl -X PUT localhost:8081/park/parkinglots/test_parkinglot -d \
+  '{"context": "> edvina_park", "parkpos": "> 800-900", "findslot": "> next", \
+  "comebacktoorigin": "no", "comebackdialtime": "90", \
+  "comebackcontext": "edvinapark-timeout", "parkedmusicclass": "edvina" }'
+  
+  {
+    "api_ver": "0.1",
+    "timestamp": "2018-01-03T22:17:22.76376966Z",
+    "statuscode": 200
+  }
+
+  
+  
+.. _delete_park_parkinglots_detail:
+
+Method: DELETE
+-----------
+DELETE : Delete the given parking lot info.
+
+Call
+++++
+::
+
+  DELETE /park/parkinglots/<detail>
+
+Returns
++++++++
+::
+
+  {
+    $defhdr
+  }
+
+Example
++++++++
+::
+
+  $ curl -X DELETE localhost:8081/park/parkinglots/test_parkinglot
+  
+  {
+    "api_ver": "0.1",
+    "timestamp": "2018-01-03T21:50:01.672074605Z",
+    "statuscode": 200
+  }
+
+  
+  
+/park/setting
+==============
+
+Methods
+-------
+GET : Get current park setting.
+
+PUT : Update park setting.
+
+.. _get_park_setting:
+
+Method: GET
+-----------
+GET : Get current park setting.
+
+This result does not mean to currently running setting. 
+It shows only setting file.
+
+Call
+++++
+::
+
+  GET ^/park/setting
+  
+Returns
++++++++
+::
+
+  {
+    $defhdr,
+    "result": {
+      ...
+    }
+  }
+
+Return parameters
+
+* See detail at park setting.
+
+Example
++++++++
+::
+
+  $ curl -X GET localhost:8081/park/setting
+  
+  {
+    "api_ver": "0.1",
+    "result": {
+        "default": {
+            "context": "> parkedcalls",
+            "parkext": "> 700",
+            "parkpos": "> 701-720"
+        },
+        "general": {},
+        "test_parkinglot": {
+            "comebackcontext": "edvinapark-timeout",
+            "comebackdialtime": "90",
+            "comebacktoorigin": "no",
+            "context": "> edvina_park",
+            "findslot": "> next",
+            "parkedmusicclass": "edvina",
+            "parkpos": "> 800-900"
+        }
+    },
+    "statuscode": 200,
+    "timestamp": "2018-01-03T22:51:19.20572144Z"
+  }
+
+
+.. _put_park_setting:
+
+Method: PUT
+-----------
+PUT : Update park setting.
+
+Update only setting file. To adapt to module, required module reload.
+
+Call
+++++
+::
+
+  PUT ^/park/setting
+  
+  {
+    ...
+  }
+
+Data parameters
+
+* park setting info.
+  
+Returns
++++++++
+::
+
+  {
+    $defhdr
+  }
+   
+Example
++++++++
+::
+
+  $ curl -X PUT localhost:8081/park/setting -d 
+  '
+  {
+    "default": {
+      "context": "> parkedcalls",
+      "parkext": "> 700",
+      "parkpos": "> 701-720"
+    },
+    "general": {},
+    "test_parkinglot": {
+      "comebackcontext": "edvinapark-timeout",
+      "comebackdialtime": "90",
+      "comebacktoorigin": "no",
+      "context": "> edvina_park",
+      "findslot": "> next",
+      "parkedmusicclass": "edvina",
+      "parkpos": "> 800-1000"
+    }
+  }
+  '
+  
+  {"api_ver": "0.1", "timestamp": "2018-01-03T22:59:02.195183096Z", "statuscode": 200}
+  
+
+.. _park_settings:
+
+/park/settings
+==============
+
+Methods
+-------
+GET : Get all backup park settings.
+
+.. _get_park_settings:
+
+Method: GET
+-----------
+GET : Get all backup park settings.
+
+
+Call
+++++
+::
+
+  GET ^/park/settings
+  
+Returns
++++++++
+::
+
+  {
+    $defhdr,
+    "reuslt": {
+      "list": [
+        {
+          "filename": "<string>",
+          ...
+        }
+      ]
+    }
+  }
+
+Return parameters
+
+* ``list``: array of backup files.
+    * ``filename``: backup filename.
+   
+Example
++++++++
+::
+
+  $ curl -X GET localhost:8081/park/settings
+  
+  {
+    "api_ver": "0.1",
+    "result": {
+        "list": [
+            {
+                "default": {
+                    "context": "> parkedcalls",
+                    "parkext": "> 700",
+                    "parkpos": "> 701-720"
+                },
+                "filename": "res_parking.conf.2018-01-03T21:12:39.537427535Z",
+                "general": {}
+            },
+            ...
+        ]
+    },
+    "statuscode": 200,
+    "timestamp": "2018-01-03T23:07:58.415769305Z"
+  }
+
+  
+.. _park_settings_detail:
+
+/park/settings/<detail>
+========================
+
+Methods
+-------
+GET : Get specified backup park settings.
+
+DELETE : Delete given backup park setting.
+
+.. _get_park_settings_detail:
+
+Method: GET
+-----------
+GET : Get backup park settings of given info.
+
+
+Call
+++++
+::
+
+  GET ^/park/settings/<detail>
+  
+Method parameters
+
+* ``detail``: backup filename.
+  
+Returns
++++++++
+::
+
+  {
+    $defhdr,
+    "reuslt": {
+      ...
+    }
+  }
+
+* See detail park setting.
+   
+Example
++++++++
+::
+
+  $ curl -X GET localhost:8081/park/settings/res_parking.conf.2018-01-03T22:59:02.177676713Z
+  
+  {
+    "api_ver": "0.1",
+    "result": {
+        "list": {
+            "default": {
+                "context": "> parkedcalls",
+                "parkext": "> 700",
+                "parkpos": "> 701-720"
+            },
+            "general": {},
+            "test_parkinglot": {
+                "comebackcontext": "edvinapark-timeout",
+                "comebackdialtime": "90",
+                "comebacktoorigin": "no",
+                "context": "> edvina_park",
+                "findslot": "> next",
+                "parkedmusicclass": "edvina",
+                "parkpos": "> 800-900"
+            }
+        }
+    },
+    "statuscode": 200,
+    "timestamp": "2018-01-03T23:26:00.784492928Z"
+  }
+
+  
+.. _delete_park_settings_detail:
+  
+Method: DELETE
+--------------
+DELETE : Delete given backup park setting.
+
+
+Call
+++++
+::
+
+  DELETE ^/park/settings/<detail>
+  
+Method parameters
+
+* ``detail``: backup filename.
+  
+Returns
++++++++
+::
+
+  {
+    $defhdr
+  }
+   
+Example
++++++++
+::
+
+  $ curl -X DELETE localhost:8081/park/settings/res_parking.conf.2018-01-03T22:59:02.177676713Z
+  
+  {
+    "api_ver": "0.1",
+    "statuscode": 200,
+    "timestamp": "2018-01-03T23:26:10.361720786Z"
   }
