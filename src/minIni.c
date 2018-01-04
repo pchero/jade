@@ -488,6 +488,8 @@ int  ini_browse(INI_CALLBACK Callback, void *UserData, const TCHAR *Filename)
       *ep = '\0';
       ini_strncpy(LocalBuffer, sp + 1, INI_BUFFERSIZE, QUOTE_NONE);
       lenSec = (int)_tcslen(LocalBuffer) + 1;
+      if (!Callback(LocalBuffer, NULL, NULL, UserData))
+        break;
       continue;
     } /* if */
     /* not a new section, test for a key/value pair */

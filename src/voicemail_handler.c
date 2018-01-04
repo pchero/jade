@@ -1214,7 +1214,7 @@ static bool create_voicemail_user(json_t* j_data)
   int ret;
 
   if(j_data == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter\n");
+    slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
   slog(LOG_DEBUG, "Fired create_voicemail_user");

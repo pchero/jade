@@ -556,7 +556,7 @@ void htp_put_queue_setting(evhtp_request_t *req, void *data)
   ret = update_queue_current_setting_info(j_data);
   json_decref(j_data);
   if(ret == false) {
-    slog(LOG_ERR, "Could not update voicemail setting info.");
+    slog(LOG_ERR, "Could not update queue setting info.");
     simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
@@ -960,7 +960,7 @@ static bool remove_queue_backup_setting_info(const char* filename)
   // remove
   ret = remove_ast_backup_config_info(filename);
   if(ret == false) {
-    slog(LOG_ERR, "Could not remove voicemail backup conf.");
+    slog(LOG_ERR, "Could not remove queue backup conf.");
     return false;
   }
 
