@@ -218,3 +218,11 @@ static int s_sendmore(void* socket, const char* data)
   size = zmq_send(socket, data, strlen(data), ZMQ_SNDMORE);
   return size;
 }
+
+/**
+ * Return zmq context
+ */
+void* get_zmq_context(void)
+{
+  return g_zmq_contxt;
+}

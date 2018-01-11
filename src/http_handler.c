@@ -31,7 +31,6 @@
 #define API_VER "0.1"
 
 extern app* g_app;
-extern struct event_base* g_base;
 evhtp_t* g_htp = NULL;
 
 #define DEF_REG_MSGNAME "msg[0-9]{4}"
@@ -124,7 +123,7 @@ bool init_http_handler(void)
   int http_port;
   int ret;
 
-  g_htp = evhtp_new(g_base, NULL);
+  g_htp = evhtp_new(g_app->evt_base, NULL);
 
   http_addr = json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "http_addr"));
   tmp_const = json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "http_port"));

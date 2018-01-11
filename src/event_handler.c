@@ -25,7 +25,6 @@
 #define DEF_MAX_EVENT_COUNT 128
 
 extern app* g_app;
-extern struct event_base*  g_base;
 struct event* g_ev_ast[DEF_MAX_EVENT_COUNT] = { NULL };  ///< asterisk events
 
 static void cb_signal_term(int sock, short which, void* arg);
@@ -37,6 +36,7 @@ static void cb_pid_update(int sock, short which, void* arg);
 
 static bool pid_update(void);
 
+
 bool init_event_handler(void)
 {
   struct event* ev;
@@ -44,9 +44,16 @@ bool init_event_handler(void)
   struct timeval tv;
   int ret;
 
+  // initiate event base
+  g_app->evt_base = event_base_new();
+  if(g_app->evt_base == NULL) {
+    slog(LOG_ERR, "Could not initiate event_base.");
+    return false;
+  }
+
   //// add signal handler
   // sigterm
-  ev = evsignal_new(g_base, SIGTERM, cb_signal_term, NULL);
+  ev = evsignal_new(g_app->evt_base, SIGTERM, cb_signal_term, NULL);
   if(ev == NULL) {
     slog(LOG_ERR, "Could not create event for the signal handler. signal[%s]", "SIGTERM");
     return false;
@@ -59,7 +66,7 @@ bool init_event_handler(void)
   add_event_handler(ev);
 
   // sigint
-  ev = evsignal_new(g_base, SIGINT, cb_signal_int, NULL);
+  ev = evsignal_new(g_app->evt_base, SIGINT, cb_signal_int, NULL);
   if(ev == NULL) {
     slog(LOG_ERR, "Could not create event for the signal handler. signal[%s]", "SIGINT");
     return false;
@@ -72,7 +79,7 @@ bool init_event_handler(void)
   add_event_handler(ev);
 
   // sigpipe
-  ev = evsignal_new(g_base, SIGPIPE, cb_signal_pipe, NULL);
+  ev = evsignal_new(g_app->evt_base, SIGPIPE, cb_signal_pipe, NULL);
   if(ev == NULL) {
     slog(LOG_ERR, "Could not create event for the signal handler. signal[%s]", "SIGPIPE");
     return false;
@@ -85,7 +92,7 @@ bool init_event_handler(void)
   add_event_handler(ev);
 
   // sighup
-  ev = evsignal_new(g_base, SIGHUP, cb_signal_hup, NULL);
+  ev = evsignal_new(g_app->evt_base, SIGHUP, cb_signal_hup, NULL);
   if(ev == NULL) {
     slog(LOG_ERR, "Could not create event for the signal handler. signal[%s]", "SIGHUP");
     return false;
@@ -101,7 +108,7 @@ bool init_event_handler(void)
   tv.tv_sec = DEF_PID_TIMEOUT_SEC;
   tv.tv_usec = 0;
   ev_pid = calloc(sizeof(struct event), 1);
-  event_assign(ev_pid, g_base, -1, 0, cb_pid_update, ev_pid);
+  event_assign(ev_pid, g_app->evt_base, -1, 0, cb_pid_update, ev_pid);
   event_add(ev_pid, &tv);
   add_event_handler(ev_pid);
 
@@ -134,7 +141,7 @@ void term_event_handler(void)
 static void cb_signal_term(int sock, short which, void* arg)
 {
   slog(LOG_INFO, "Fired cb_signal_term.");
-  event_base_loopbreak(g_base);
+  event_base_loopbreak(g_app->evt_base);
 
   return;
 }
@@ -149,7 +156,7 @@ static void cb_signal_term(int sock, short which, void* arg)
 static void cb_signal_int(evutil_socket_t sig, short events, void *user_data)
 {
   slog(LOG_INFO, "Fired cb_signal_int.");
-  event_base_loopbreak(g_base);
+  event_base_loopbreak(g_app->evt_base);
 
   return;
 }

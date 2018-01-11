@@ -18,26 +18,13 @@
 #include "misc_handler.h"
 #include "ob_event_handler.h"
 #include "zmq_handler.h"
+#include "websock_handler.h"
 
 app* g_app;
 db_ctx_t* g_db_ast;
-struct event_base*  g_base = NULL;
 
-
-static bool init_event(void);
 static bool option_parse(int argc, char** argv);
 static void print_help(void);
-
-
-static bool init_event(void)
-{
-  if(g_base == NULL) {
-    printf("New event base.\n");
-    g_base = event_base_new();
-  }
-
-  return true;
-}
 
 /**
  * Initiate jade_backend
@@ -49,6 +36,7 @@ bool init(void)
   
   g_app = calloc(sizeof(app), 1);
   g_app->j_conf = NULL;
+  g_app->evt_base = NULL;
 
   ret = init_log();
   if(ret == false) {
@@ -62,13 +50,14 @@ bool init(void)
     printf("Could not initiate config.");
     return false;
   }
+  slog(LOG_NOTICE, "Finished init_config.");
 
-  ret = init_event();
+  ret = init_event_handler();
   if(ret == false) {
-    slog(LOG_ERR, "Could not initiate event.");
+    slog(LOG_ERR, "Could not initiate event_handler.");
     return false;
   }
-  slog(LOG_NOTICE, "Finished init_event.");
+  slog(LOG_DEBUG, "Finished init_event_handler.");
 
   ret = init_resource_handler();
   if(ret == false) {
@@ -97,12 +86,12 @@ bool init(void)
   }
   slog(LOG_DEBUG, "Finished init_http_handler.");
   
-  ret = init_event_handler();
+  ret = init_websock_handler();
   if(ret == false) {
-    slog(LOG_ERR, "Could not initiate event_handler.");
+    slog(LOG_ERR, "Could not initiate websock_handler.");
     return false;
   }
-  slog(LOG_DEBUG, "Finished init_event_handler.");
+  slog(LOG_DEBUG, "Finished init_websock_handler.");
 
   ret = init_outbound();
   if(ret == false) {
@@ -138,7 +127,8 @@ bool terminate(void)
   db_ctx_term(g_db_ast);
   g_db_ast = NULL;
 
-  event_base_free(g_base);
+  event_base_free(g_app->evt_base);
+  g_app->evt_base = NULL;
 
   return true;
 }
@@ -161,7 +151,7 @@ int main(int argc, char** argv)
   }
   slog(LOG_INFO, "Started backend service.");
     
-  event_base_loop(g_base, 0);
+  event_base_loop(g_app->evt_base, 0);
 
   terminate();
 

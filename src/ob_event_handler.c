@@ -38,8 +38,6 @@
 #define DEF_ONE_SEC_IN_MICRO_SEC  1000000
 #define DEF_MAX_EVENT_COUNT 128
 
-
-extern struct event_base*  g_base;
 extern app* g_app;
 
 db_ctx_t* g_db_ob = NULL;                               ///< outbound database handler
@@ -109,62 +107,62 @@ static bool init_ob_event_handler(void)
   tm_slow.tv_usec = event_delay % DEF_ONE_SEC_IN_MICRO_SEC;
 
   // check start.
-  ev = event_new(g_base, -1, EV_TIMEOUT | EV_PERSIST, cb_campaign_start, NULL);
+  ev = event_new(g_app->evt_base, -1, EV_TIMEOUT | EV_PERSIST, cb_campaign_start, NULL);
   event_add(ev, &tm_fast);
   g_ev_ob[cnt++] = ev;
 
   // check starting
-  ev = event_new(g_base, -1, EV_TIMEOUT | EV_PERSIST, cb_campaign_starting, NULL);
+  ev = event_new(g_app->evt_base, -1, EV_TIMEOUT | EV_PERSIST, cb_campaign_starting, NULL);
   event_add(ev, &tm_slow);
   g_ev_ob[cnt++] = ev;
 
   // check stopping.
-  ev = event_new(g_base, -1, EV_TIMEOUT | EV_PERSIST, cb_campaign_stopping, NULL);
+  ev = event_new(g_app->evt_base, -1, EV_TIMEOUT | EV_PERSIST, cb_campaign_stopping, NULL);
   event_add(ev, &tm_slow);
   g_ev_ob[cnt++] = ev;
 
   // check force stopping
-  ev = event_new(g_base, -1, EV_TIMEOUT | EV_PERSIST, cb_campaign_stopping_force, NULL);
+  ev = event_new(g_app->evt_base, -1, EV_TIMEOUT | EV_PERSIST, cb_campaign_stopping_force, NULL);
   event_add(ev, &tm_slow);
   g_ev_ob[cnt++] = ev;
 
   // check dialing end
-  ev = event_new(g_base, -1, EV_TIMEOUT | EV_PERSIST, cb_check_dialing_end, NULL);
+  ev = event_new(g_app->evt_base, -1, EV_TIMEOUT | EV_PERSIST, cb_check_dialing_end, NULL);
   event_add(ev, &tm_fast);
   g_ev_ob[cnt++] = ev;
 
   // check end
-  ev = event_new(g_base, -1, EV_TIMEOUT | EV_PERSIST, cb_check_campaign_end, NULL);
+  ev = event_new(g_app->evt_base, -1, EV_TIMEOUT | EV_PERSIST, cb_check_campaign_end, NULL);
   event_add(ev, &tm_slow);
   g_ev_ob[cnt++] = ev;
 
   // check campaign scheduling start
-  ev = event_new(g_base, -1, EV_TIMEOUT | EV_PERSIST, cb_check_campaign_schedule_start, NULL);
+  ev = event_new(g_app->evt_base, -1, EV_TIMEOUT | EV_PERSIST, cb_check_campaign_schedule_start, NULL);
   event_add(ev, &tm_slow);
   g_ev_ob[cnt++] = ev;
 
   // check campaign scheduling end
-  ev = event_new(g_base, -1, EV_TIMEOUT | EV_PERSIST, cb_check_campaign_schedule_end, NULL);
+  ev = event_new(g_app->evt_base, -1, EV_TIMEOUT | EV_PERSIST, cb_check_campaign_schedule_end, NULL);
   event_add(ev, &tm_slow);
   g_ev_ob[cnt++] = ev;
 
   // refresh dialing
-  ev = event_new(g_base, -1, EV_TIMEOUT | EV_PERSIST, cb_check_dialing_refresh, NULL);
+  ev = event_new(g_app->evt_base, -1, EV_TIMEOUT | EV_PERSIST, cb_check_dialing_refresh, NULL);
   event_add(ev, &tm_slow);
   g_ev_ob[cnt++] = ev;
 
   // check timeout dialing
-  ev = event_new(g_base, -1, EV_TIMEOUT | EV_PERSIST, cb_check_dialing_timeout, NULL);
+  ev = event_new(g_app->evt_base, -1, EV_TIMEOUT | EV_PERSIST, cb_check_dialing_timeout, NULL);
   event_add(ev, &tm_slow);
   g_ev_ob[cnt++] = ev;
 
   // check error dialing
-  ev = event_new(g_base, -1, EV_TIMEOUT | EV_PERSIST, cb_check_dialing_error, NULL);
+  ev = event_new(g_app->evt_base, -1, EV_TIMEOUT | EV_PERSIST, cb_check_dialing_error, NULL);
   event_add(ev, &tm_slow);
   g_ev_ob[cnt++] = ev;
 
   // check error dl
-  ev = event_new(g_base, -1, EV_TIMEOUT | EV_PERSIST, cb_check_dl_error, NULL);
+  ev = event_new(g_app->evt_base, -1, EV_TIMEOUT | EV_PERSIST, cb_check_dl_error, NULL);
   event_add(ev, &tm_slow);
   g_ev_ob[cnt++] = ev;
 
@@ -256,7 +254,7 @@ bool init_outbound(void)
 
   slog(LOG_INFO, "initiate outbound module.");
 
-  if(g_base == NULL) {
+  if(g_app->evt_base == NULL) {
     slog(LOG_ERR, "Could not initiate libevent. err[%d:%s]", errno, strerror(errno));
     return false;
   }
