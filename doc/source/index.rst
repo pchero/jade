@@ -18,6 +18,7 @@ Contents:
    structure
    api
    event
+   websocket
    ob_basic
    ob_structure
    ob_tutorial

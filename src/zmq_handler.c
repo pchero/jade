@@ -15,6 +15,8 @@
 
 #include "zmq_handler.h"
 
+#define DEF_LOCAL_ADDR "ipc:///tmp/jade_local.pub"
+
 extern app* g_app;
 
 void* g_zmq_contxt = NULL;    // zmq context for zmq_handler.
@@ -126,6 +128,13 @@ static bool init_zmq_sock_pub(void)
     return false;
   }
 
+  // bind local
+  ret = zmq_bind(g_zmq_sock_pub, DEF_LOCAL_ADDR);
+  if(ret != 0) {
+    slog(LOG_ERR, "Could not bind publish socket. err[%d:%s]", errno, strerror(errno));
+    return false;
+  }
+
   return true;
 }
 
@@ -217,4 +226,21 @@ static int s_sendmore(void* socket, const char* data)
 
   size = zmq_send(socket, data, strlen(data), ZMQ_SNDMORE);
   return size;
+}
+
+/**
+ * Return zmq context
+ */
+void* get_zmq_context(void)
+{
+  return g_zmq_contxt;
+}
+
+/**
+ * Return inproc address for pub
+ * @return
+ */
+const char* get_zmq_pub_addr(void)
+{
+  return DEF_LOCAL_ADDR;
 }

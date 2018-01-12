@@ -31,7 +31,6 @@
 #define MAX_AMI_RECV_BUF_LEN  409600
 
 extern app* g_app;
-extern struct event_base*  g_base;
 
 static int g_ami_sock = 0;
 static char g_ami_buffer[MAX_AMI_RECV_BUF_LEN];
@@ -145,7 +144,7 @@ static void cb_ami_connect(__attribute__((unused)) int fd, __attribute__((unused
   }
 
   // add ami event handler
-  ev = event_new(g_base, g_ami_sock, EV_READ | EV_PERSIST, cb_ami_message_receive_handler, NULL);
+  ev = event_new(g_app->evt_base, g_ami_sock, EV_READ | EV_PERSIST, cb_ami_message_receive_handler, NULL);
   event_add(ev, NULL);
 
   // update event ami handler
@@ -487,17 +486,17 @@ bool init_data_handler(void)
   tm_event.tv_usec = 0;
 
   // ami connect
-  ev = event_new(g_base, -1, EV_TIMEOUT | EV_PERSIST, cb_ami_connect, NULL);
+  ev = event_new(g_app->evt_base, -1, EV_TIMEOUT | EV_PERSIST, cb_ami_connect, NULL);
   event_add(ev, &tm_event);
   add_event_handler(ev);
 
   // check ami connection
-  ev = event_new(g_base, -1, EV_TIMEOUT | EV_PERSIST, cb_ami_connection_check, NULL);
+  ev = event_new(g_app->evt_base, -1, EV_TIMEOUT | EV_PERSIST, cb_ami_connection_check, NULL);
   event_add(ev, &tm_event);
   add_event_handler(ev);
 
   // check ami status
-  ev = event_new(g_base, -1, EV_TIMEOUT | EV_PERSIST, cb_ami_status_check, NULL);
+  ev = event_new(g_app->evt_base, -1, EV_TIMEOUT | EV_PERSIST, cb_ami_status_check, NULL);
   event_add(ev, &tm_event);
   add_event_handler(ev);
 

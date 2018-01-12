@@ -15,6 +15,8 @@ bool init_zmq_handler(void);
 void term_zmq_handler(void);
 
 bool publish_message(const char* pub_target, json_t* j_data);
+void* get_zmq_context(void);
+const char* get_zmq_pub_addr(void);
 
 
 #endif /* SRC_ZMQ_HANDLER_H_ */

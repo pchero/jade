@@ -9,11 +9,13 @@
 #define BACKEND_SRC_COMMON_H_
 
 #include <jansson.h>
+#include <event.h>
 
 #include "db_ctx_handler.h"
 
 typedef struct _app {
-  json_t* j_conf;
+  json_t*             j_conf;   ///< jade configuration
+  struct event_base*  evt_base; ///< event base
 } app;
 
 typedef enum _E_USE

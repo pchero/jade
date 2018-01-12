@@ -32,6 +32,8 @@
 #define DEF_GENERAL_HTTP_ADDR "0.0.0.0"
 #define DEF_GENERAL_HTTP_PORT "8081"
 #define DEF_GENERAL_ZMQ_ADDR_PUBLISH "tcp://*:8082"   // zmq address for publish
+#define DEF_GENERAL_WEBSOCK_ADDR "0.0.0.0"
+#define DEF_GENERAL_WEBSOCK_PORT "8083"
 #define DEF_GENERAL_LOGLEVEL  "5"
 #define DEF_GENERAL_DATABASE_NAME ":memory:"
 #define DEF_GENERAL_EVENT_TIME_FAST "100000"
@@ -149,7 +151,7 @@ static bool load_config(void)
       	"s:s, s:s, s:s, s:s, s:s, "
       	"s:s, "
       	"s:s, s:s, "
-        "s:s, "
+        "s:s, s:s, s:s, "
       	"s:s, s:s, "
       	"s:s, s:s "
 			"},"	// general
@@ -169,6 +171,8 @@ static bool load_config(void)
         "http_port",        DEF_GENERAL_HTTP_PORT,
 
         "zmq_addr_pub",     DEF_GENERAL_ZMQ_ADDR_PUBLISH,
+        "websock_addr",     DEF_GENERAL_WEBSOCK_ADDR,
+        "websock_port",     DEF_GENERAL_WEBSOCK_PORT,
 
         "event_time_fast",  DEF_GENERAL_EVENT_TIME_FAST,
         "event_time_slow",  DEF_GENERAL_EVENT_TIME_SLOW,
