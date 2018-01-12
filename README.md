@@ -31,6 +31,7 @@ This module makes easy to managing the calls.
 * libssl
 * libonig
 * libzmq
+* libwebsock(https://github.com/pchero/libwebsock)
 
 ## Manual
 * https://rawgit.com/pchero/jade/master/doc/build/html/index.html

@@ -1,10 +1,15 @@
 
+#define _GNU_SOURCE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <websock/websock.h>
 #include <zmq.h>
 #include <jansson.h>
 #include <stdbool.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 #include "common.h"
 #include "slog.h"
@@ -16,6 +21,8 @@ struct websock_session {
   libwebsock_client_state* state;   // websock state
   void* zmq_sock;                   // zeromq socket for subscribe
   void* evt;                        // event for socket
+  char* addr;				///< client's ip address
+  json_t* j_subs;		///< client's subscription list
 };
 
 extern app* g_app;
@@ -30,6 +37,10 @@ static int onclose(libwebsock_client_state *state);
 static void zmq_sub_message_recv(int fd, short ev, void* arg);
 static json_t* recv_zmq_msg(void* socket);
 static char* s_recv (void *socket);
+
+
+static void remove_subscription(struct websock_session* session, const char* topic);
+static void add_subscription(struct websock_session* session, const char* topic);
 
 /**
  *
@@ -50,6 +61,14 @@ static void destroy_websock_session(struct websock_session* session)
     event_free(session->evt);
   }
 
+  if(session->addr != NULL) {
+    sfree(session->addr);
+  }
+
+  if(session->j_subs != NULL) {
+    json_decref(session->j_subs);
+  }
+
   sfree(session);
 
   return;
@@ -66,6 +85,7 @@ static int onmessage(libwebsock_client_state *state, libwebsock_message *msg)
   json_t* j_msg;
   const char* type;
   const char* topic;
+  char* tmp;
   struct websock_session* session;
   int ret;
 
@@ -103,23 +123,31 @@ static int onmessage(libwebsock_client_state *state, libwebsock_message *msg)
     json_decref(j_msg);
     return 0;
   }
+  slog(LOG_DEBUG, "Received message info. type[%s], topic[%s]", type, topic);
 
   session = state->data;
   if(session == NULL) {
     slog(LOG_WARNING, "Could not get session info.");
+    json_decref(j_msg);
     return 0;
   }
 
   // message parse
   if(strcmp(type, "subscribe") == 0) {
     ret = zmq_setsockopt(session->zmq_sock, ZMQ_SUBSCRIBE, topic, strlen(topic));
-    if(ret != 0) {
+    if(ret == 0) {
+      add_subscription(session, topic);
+    }
+    else {
       slog(LOG_ERR, "Could not subscribe topic. topic[%s], err[%d:%s]", topic, errno, strerror(errno));
     }
   }
   else if(strcmp(type, "unsubscribe") == 0) {
     ret = zmq_setsockopt(session->zmq_sock, ZMQ_UNSUBSCRIBE, topic, strlen(topic));
-    if(ret != 0) {
+    if(ret == 0) {
+      remove_subscription(session, topic);
+    }
+    else {
       slog(LOG_ERR, "Could not unsubscribe topic. topic[%s], err[%d:%s]", topic, errno, strerror(errno));
     }
   }
@@ -127,6 +155,10 @@ static int onmessage(libwebsock_client_state *state, libwebsock_message *msg)
     slog(LOG_ERR, "Wrong message type. tyep[%s]", type);
   }
   json_decref(j_msg);
+
+  tmp = json_dumps(session->j_subs, JSON_ENCODE_ANY);
+  slog(LOG_INFO, "Updated websock client subsciption. client[%s], subs[%s]", session->addr, tmp);
+  sfree(tmp);
 
   return 0;
 }
@@ -146,28 +178,37 @@ static int onopen(libwebsock_client_state* state)
   struct event* evt;
   void* zmq_context;
   const char* addr;
+  struct sockaddr_in client_addr;
+  socklen_t client_len;
+  char* tmp;
 
   if(state == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return 0;
   }
-  slog(LOG_DEBUG, "Fired onopen");
+  slog(LOG_DEBUG, "Fired onopen.");
 
   // create session info
   session = calloc(1, sizeof(struct websock_session));
   session->state = state;
+  session->j_subs = json_array();
+
+  // get client address
+  client_len = sizeof(client_addr);
+  getpeername(state->sockfd, (struct sockaddr *)&client_addr, &client_len);
+  tmp = inet_ntoa(client_addr.sin_addr);
+  asprintf(&tmp, "%s:%d", inet_ntoa(client_addr.sin_addr), client_addr.sin_port);
+  session->addr = tmp;
+  slog(LOG_INFO, "Connected new websock client. address[%s]", session->addr);
 
   // get zmq info
   zmq_context = get_zmq_context();
-  addr = json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "zmq_addr_pub"));
-  if((zmq_context == NULL) || (addr == NULL)) {
-    slog(LOG_ERR, "Could not get zmq info.");
-    return 1;
-  }
+  addr = get_zmq_pub_addr();
+  slog(LOG_DEBUG, "Connecting to the local pub socket. addr[%s]", addr);
 
   // create and connect zmq.
   zmq_sock = zmq_socket(zmq_context, ZMQ_SUB);
-  ret = zmq_connect(zmq_sock, "tcp://localhost:8082");
+  ret = zmq_connect(zmq_sock, addr);
   if(ret != 0) {
     slog(LOG_ERR, "Could not connect to zmq socket. err[%d:%s]", errno, strerror(errno));
     // destroy
@@ -213,11 +254,16 @@ static int onopen(libwebsock_client_state* state)
  */
 static int onclose(libwebsock_client_state *state)
 {
+  struct websock_session* session;
+
   if(state == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return 1;
   }
-  slog(LOG_DEBUG, "Fired onclose.");
+  slog(LOG_DEBUG, "Fired onclose");
+
+  session = state->data;
+  slog(LOG_INFO, "Webosck client disconnected. addr[%s]", session->addr);
 
   destroy_websock_session(state->data);
 
@@ -359,6 +405,63 @@ static char* s_recv (void *socket)
 
   return res;
 }
+
+static void add_subscription(struct websock_session* session, const char* topic)
+{
+  int idx;
+  json_t* j_tmp;
+  const char* tmp_const;
+  int ret;
+  bool flg_exist;
+
+  if((session == NULL) || (topic == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+
+  // check exist
+  flg_exist = false;
+  json_array_foreach(session->j_subs, idx, j_tmp) {
+    tmp_const = json_string_value(j_tmp);
+    ret = strcmp(tmp_const, topic);
+    if(ret == 0) {
+      flg_exist = true;
+      break;
+    }
+  }
+
+  if(flg_exist == false) {
+    json_array_append_new(session->j_subs, json_string(topic));
+  }
+
+  return;
+}
+
+static void remove_subscription(struct websock_session* session, const char* topic)
+{
+  int idx;
+  json_t* j_tmp;
+  const char* tmp_const;
+  int ret;
+
+  if((session == NULL) || (topic == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+
+  // remove item
+  json_array_foreach(session->j_subs, idx, j_tmp) {
+    tmp_const = json_string_value(j_tmp);
+    ret = strcmp(tmp_const, topic);
+    if(ret == 0) {
+      json_array_remove(session->j_subs, idx);
+      break;
+    }
+  }
+
+  return;
+}
+
 
 bool init_websock_handler(void)
 {
