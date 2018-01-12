@@ -4,9 +4,17 @@ Asterisk based call manager.
 
 This module makes easy to managing the calls.
 
-## Call manapulating
-* Call monitoring.
-* Call handling.
+## RESTful API
+* RESTful APIs.
+* Event subsciption via ZeroMQ or Websocket.
+
+## Asterisk resource control
+* Channel control.
+* Queue control.
+* Voicemail control.
+* PJSIP contorl.
+* SIP control.
+* More..
 
 ## Stratigical outbound call managing
 * Call balancing
