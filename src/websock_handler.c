@@ -195,7 +195,11 @@ static int onopen(libwebsock_client_state* state)
 
   // get client address
   client_len = sizeof(client_addr);
-  getpeername(state->sockfd, (struct sockaddr *)&client_addr, &client_len);
+  ret = getpeername(state->sockfd, (struct sockaddr *)&client_addr, &client_len);
+  if(ret != 0) {
+    slog(LOG_ERR, "Could not get peer info. err[%d:%s]", errno, strerror(errno));
+    return 1;
+  }
   tmp = inet_ntoa(client_addr.sin_addr);
   asprintf(&tmp, "%s:%d", inet_ntoa(client_addr.sin_addr), client_addr.sin_port);
   session->addr = tmp;
