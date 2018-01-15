@@ -172,7 +172,7 @@ bool init_http_handler(void)
   evhtp_set_regex_cb(g_htp, "^/ob/plans$", cb_htp_ob_plans, NULL);
 
   // campaigns
-  evhtp_set_regex_cb(g_htp, "^/ob/campaigns/(/"DEF_REG_UUID")", cb_htp_ob_campaigns_uuid, NULL);
+  evhtp_set_regex_cb(g_htp, "^/ob/campaigns/("DEF_REG_UUID")", cb_htp_ob_campaigns_uuid, NULL);
   evhtp_set_regex_cb(g_htp, "^/ob/campaigns$", cb_htp_ob_campaigns, NULL);
 
   // dlmas
