@@ -1,54 +1,66 @@
 Jade
 ====
-Asterisk based call manager.
+The jade is a free and open source unified communication system, which can fulfill a variety of roles for a range of industries and organizations who wish to contact to large numbers of people by phone or else in a short space of time.
 
-This module makes easy to managing the calls.
+The jade has been built using an Asterisk so that it can support almost of Asterisk's features. 
 
-## RESTful API
-* RESTful APIs.
-* Event subsciption via ZeroMQ or Websocket.
+The jade can be used by anyone who has a need for mass outbound/inbound calling, voicemail system, agent call distributing, call recording and IVR service. 
+Or may be used by either companies who wish to make calls on their own behalf, or by SaaS (Software as a Service) companies that want to provide bulk dialling and SMS broadcasting facilities to their own customers.
 
-## Asterisk resource control
-* Channel control.
-* Queue control.
-* Voicemail control.
-* PJSIP contorl.
-* SIP control.
-* More..
+## Features
+* Restful API
 
-## Stratigical outbound call managing
-* Call balancing
-* Stratigical retrying
-* Customer info based dial list
-* Call capsulization
-* Dynamic resource management
-* Campaign scheduling
-* Set variables
-* Monitoring
-* Detail dial result
+* Event subscription via ZeroMQ and Websocket
 
-## Requirements
-* Asterisk-13.6 or later
-* Asterisk-14.3 or later
-* Asterisk-manager module
-* libsqlite3
-* libevent2
-* libbsd
-* libjansson
-* libevhtp(https://github.com/criticalstack/libevhtp)
-* libssl
-* libonig
-* libzmq
-* libwebsock(https://github.com/pchero/libwebsock)
+* Strategical inbound/outbound call distributing
+  * Call balancing
+  * Strategical call retrying
+  * Call monitoring
+  * Result report
+  * Scheduling dial
+
+* Asterisk resource control
+  * Channel
+  * Voicemail
+  * Agent
+  * Queue
+  * Park
+  * PJSIP
+  * SIP
+
+* SMS(WIP)
+
+* Mail(WIP)
+
+* Chat(WIP)
+* Video call(WIP)
+* Conference call(WIP)
 
 ## Manual
 * https://rawgit.com/pchero/jade/master/doc/build/html/index.html
 
+## Related project
+* jade-admin(https://github.com/pchero/jade-admin)
+  * Simple web application for jade.
+  * Administrator tools for jade.
+* jade-adgent(WIP)
+  * Simple web application for jade.
+  * Agent tools for jade.
+
 ## Demo
-You can try apis to here.
-* http://project.pchero21.com/jade/
+* jade
+  * You can try apis to here.
+  * http://project.pchero21.com/jade/
+
+* jade-admin
+  * You can try jade-admin web application at here.
+  * http://project.pchero21.com/jade-admin/
 
 ## Library issue
+* libwebsocket
+  * v2.4.1 has memory leak problem(https://github.com/warmcat/libwebsockets/pull/1155)
+  * Fixed in master branch.
+
 * libevhtp
   * The libevhtp repository has been changed(https://github.com/criticalstack/libevhtp).
   * The libevhtp-v1.2.10, v1.2.11, v1.2.11n has memory leak problem(https://github.com/ellzey/libevhtp/issues/177).
