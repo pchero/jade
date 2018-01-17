@@ -87,13 +87,6 @@ bool init(void)
   }
   slog(LOG_DEBUG, "Finished init_http_handler.");
   
-//  ret = init_websock_handler();
-//  if(ret == false) {
-//    slog(LOG_ERR, "Could not initiate websock_handler.");
-//    return false;
-//  }
-//  slog(LOG_DEBUG, "Finished init_websock_handler.");
-
   ret = init_websocket_handler();
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate websocket_handler.");
