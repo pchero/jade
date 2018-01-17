@@ -27,7 +27,6 @@ static bool init_zmq_context(void);
 static bool init_zmq_sock_pub(void);
 static void* get_zmq_sock_pub(void);
 
-static int s_send(void* socket, const char* data);
 static int s_sendmore(void* socket, const char* data);
 
 
@@ -195,7 +194,7 @@ bool publish_message(const char* pub_target, json_t* j_data)
  * The only string data can be sent.
  * @return sent length
  */
-static int s_send(void* socket, const char* data)
+int s_send(void* socket, const char* data)
 {
   int size;
 
@@ -207,6 +206,40 @@ static int s_send(void* socket, const char* data)
   size = zmq_send(socket, data, strlen(data), 0);
 
   return size;
+}
+
+/**
+ @brief Receive zmq message.
+ Receive 0MQ string from socket and convert into C string Caller must free
+ returned string. Returns NULL if the context is being terminated.
+ @param socket
+ @return
+ */
+char* s_recv(void* socket)
+{
+  char buffer[40960];
+  int size;
+  char* res;
+
+  if(socket == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  size = zmq_recv(socket, buffer, sizeof(buffer), ZMQ_NOBLOCK);
+  if(size == -1) {
+    slog(LOG_ERR, "Could not receive zmq message.");
+    return NULL;
+  }
+  else if(size > sizeof(buffer)) {
+    slog(LOG_WARNING, "Over sized message received. len[%d]", size);
+    size = sizeof(buffer);
+  }
+
+  buffer[size] = 0;
+  res = strdup(buffer);
+
+  return res;
 }
 
 /**

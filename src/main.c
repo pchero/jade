@@ -18,7 +18,7 @@
 #include "misc_handler.h"
 #include "ob_event_handler.h"
 #include "zmq_handler.h"
-#include "websock_handler.h"
+#include "websocket_handler.h"
 
 app* g_app;
 db_ctx_t* g_db_ast;
@@ -86,12 +86,12 @@ bool init(void)
   }
   slog(LOG_DEBUG, "Finished init_http_handler.");
   
-  ret = init_websock_handler();
+  ret = init_websocket_handler();
   if(ret == false) {
-    slog(LOG_ERR, "Could not initiate websock_handler.");
+    slog(LOG_ERR, "Could not initiate websocket_handler.");
     return false;
   }
-  slog(LOG_DEBUG, "Finished init_websock_handler.");
+  slog(LOG_DEBUG, "Finished init_websocket_handler.");
 
   ret = init_outbound();
   if(ret == false) {
@@ -120,8 +120,10 @@ bool terminate(void)
   // terminate outbound module.
   term_outbound();
 
-  // terminate zme
+  // terminate zmq
   term_zmq_handler();
+
+  term_websocket_handler();
 
   // terminate database
   db_ctx_term(g_db_ast);
