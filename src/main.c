@@ -18,7 +18,6 @@
 #include "misc_handler.h"
 #include "ob_event_handler.h"
 #include "zmq_handler.h"
-#include "websock_handler.h"
 #include "websocket_handler.h"
 
 app* g_app;
