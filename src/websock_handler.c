@@ -36,8 +36,6 @@ static int onclose(libwebsock_client_state *state);
 
 static void zmq_sub_message_recv(int fd, short ev, void* arg);
 static json_t* recv_zmq_msg(void* socket);
-static char* s_recv (void *socket);
-
 
 static void remove_subscription(struct websock_session* session, const char* topic);
 static void add_subscription(struct websock_session* session, const char* topic);
@@ -376,38 +374,6 @@ static void zmq_sub_message_recv(int fd, short ev, void* arg)
   }
 
   return;
-}
-
-/**
- * Receive zmq message.
- * @param socket
- * @return
- */
-static char* s_recv (void *socket)
-{
-  char buffer[40960];
-  int size;
-  char* res;
-
-  if(socket == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return NULL;
-  }
-
-  size = zmq_recv(socket, buffer, sizeof(buffer), ZMQ_NOBLOCK);
-  if(size == -1) {
-    slog(LOG_ERR, "Could not receive zmq message.");
-    return NULL;
-  }
-  else if(size > sizeof(buffer)) {
-    slog(LOG_WARNING, "Over sized message received. len[%d]", size);
-    size = sizeof(buffer);
-  }
-
-  buffer[size] = 0;
-  res = strdup(buffer);
-
-  return res;
 }
 
 static void add_subscription(struct websock_session* session, const char* topic)

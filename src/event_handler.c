@@ -40,7 +40,6 @@ static bool pid_update(void);
 bool init_event_handler(void)
 {
   struct event* ev;
-  struct event* ev_pid;
   struct timeval tv;
   int ret;
 
@@ -107,10 +106,9 @@ bool init_event_handler(void)
   // add pid update
   tv.tv_sec = DEF_PID_TIMEOUT_SEC;
   tv.tv_usec = 0;
-  ev_pid = calloc(sizeof(struct event), 1);
-  event_assign(ev_pid, g_app->evt_base, -1, 0, cb_pid_update, ev_pid);
-  event_add(ev_pid, &tv);
-  add_event_handler(ev_pid);
+  ev = event_new(g_app->evt_base, -1, EV_TIMEOUT | EV_PERSIST, cb_pid_update, NULL);
+  event_add(ev, &tv);
+  add_event_handler(ev);
 
   return true;
 }
@@ -201,7 +199,6 @@ static void cb_signal_hup(evutil_socket_t sig, short events, void *user_data)
 
 static void cb_pid_update(int sock, short which, void* arg)
 {
-  struct timeval tv;
   int ret;
 
   slog(LOG_INFO, "Fired cb_pid_update.");
@@ -210,11 +207,6 @@ static void cb_pid_update(int sock, short which, void* arg)
   if(ret == false) {
     slog(LOG_NOTICE, "Could not update pid correctly.");
   }
-
-  // Now reschedule timer cb
-  tv.tv_sec=3;
-  tv.tv_usec=0;
-  event_add((struct event *) arg, &tv);
 }
 
 static bool pid_update(void)
