@@ -55,6 +55,7 @@ Or may be used by either companies who wish to make calls on their own behalf, o
 * jade-admin
   * You can try jade-admin web application at here.
   * http://project.pchero21.com/jade-admin/
+  * ![Screen Preview](https://raw.githubusercontent.com/pchero/jade-admin/master/jade-admin.png)
 
 ## Library issue
 * libwebsocket
