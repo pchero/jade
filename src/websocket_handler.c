@@ -324,9 +324,10 @@ bool add_session_message(struct client_session* session, json_t* j_msg)
   // create message
   // Add the padding data(LWS_PRE) is important.
   // See detail (https://libwebsockets.org/lws-api-doc-master/html/group__sending-data.html)
-  message = calloc(1, strlen(tmp) + LWS_PRE);
-  strlcpy(message + LWS_PRE, tmp, strlen(tmp));
+  message = calloc(1, LWS_PRE + strlen(tmp) + 1);
+  strcpy(message + LWS_PRE, tmp);
   sfree(tmp);
+//  slog(LOG_DEBUG, "Copied message. msg[%s]", message + LWS_PRE);
 
   entry->msg = message;
 
