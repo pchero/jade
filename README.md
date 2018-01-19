@@ -41,11 +41,12 @@ Or may be used by either companies who wish to make calls on their own behalf, o
 
 ## Related project
 * jade-admin(https://github.com/pchero/jade-admin)
-  * Simple web application for jade.
+  * Angular based simple web application for jade.
   * Administrator tools for jade.
-* jade-adgent(WIP)
-  * Simple web application for jade.
+* jade-agent(https://github.com/pchero/jade-agent) - WIP
+  * Angular based simple web application for jade.
   * Agent tools for jade.
+  * WebRTC support
 
 ## Demo
 * jade
