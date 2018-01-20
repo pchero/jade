@@ -15,6 +15,11 @@
 #include "ami_action_handler.h"
 
 
+/**
+ * AMI action handler.
+ * Action: hangup
+ * @param j_msg
+ */
 int ami_action_hangup(const char* channel)
 {
   json_t* j_tmp;
@@ -44,7 +49,7 @@ int ami_action_hangup(const char* channel)
 }
 
 /**
- * AMI event handler.
+ * AMI action handler.
  * Action: hangup
  * @param j_msg
  */
@@ -77,7 +82,7 @@ int ami_action_hangup_by_uniqueid(const char* unique_id)
 }
 
 /**
- * AMI event handler.
+ * AMI action handler.
  * Action: ModuleLoad
  */
 int ami_action_moduleload(const char* name, const char* type)
