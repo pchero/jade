@@ -285,16 +285,16 @@ static void ami_response_handler(json_t* j_msg)
     return;
   }
 
-//  // action response parse
-//  if(strcasecmp(type, "command.databaseshowall") == 0) {
-//    res_action = ami_response_handler_databaseshowall(j_action, j_msg);
-//  }
+  //// Action response parse.
 
   if(strcasecmp(type, "coresettings") == 0) {
     res_action = ami_response_handler_coresettings(j_action, j_msg);
   }
   else if(strcasecmp(type, "corestatus") == 0) {
     res_action = ami_response_handler_corestatus(j_action, j_msg);
+  }
+  else if(strcasecmp(type, "modulecheck") == 0) {
+    res_action = ami_response_handler_modulecheck(j_action, j_msg);
   }
 
   // outbound
@@ -308,7 +308,15 @@ static void ami_response_handler(json_t* j_msg)
     slog(LOG_ERR, "Could not find correct action response handler. action_id[%s], type[%s]", action_id, type);
     res_action = ACTION_RES_ERROR;
   }
+
+
+  //// End action response parse.
+
+  // release info.
   json_decref(j_action);
+
+  /////
+  /// result check
 
   if(res_action == ACTION_RES_CONTINUE) {
     slog(LOG_DEBUG, "The action response is not finished. Waiting for next event. action_id[%s]", action_id);
@@ -321,71 +329,6 @@ static void ami_response_handler(json_t* j_msg)
   delete_action(action_id);
   return;
 }
-
-//static ACTION_RES ami_response_handler_databaseshowall(json_t* j_action, json_t* j_msg)
-//{
-//  char* tmp;
-//  const char* tmp_const;
-//  int idx;
-//  json_t* j_val;
-//  json_t* j_tmp;
-//  char* value;
-//  char* dump;
-//  char* key;
-//  int ret;
-//  char* sql;
-//
-//  if(j_msg == NULL) {
-//    slog(LOG_WARNING, "Wrong input parameter.");
-//    return ACTION_RES_ERROR;
-//  }
-//  slog(LOG_DEBUG, "Fired ami_response_handler_databaseshow.");
-//
-//  // delete all database info.
-//  asprintf(&sql, "delete from database;");
-//  ret = db_ctx_exec(g_db_ast, sql);
-//  sfree(sql);
-//  if(ret == false) {
-//    slog(LOG_ERR, "Could not clean up the database.");
-//    return ACTION_RES_ERROR;
-//  }
-//
-//  tmp = json_dumps(j_msg, JSON_ENCODE_ANY);
-//  slog(LOG_DEBUG, "received message. msg[%s]", tmp);
-//  sfree(tmp);
-//
-//  // need to parse
-//  json_array_foreach(json_object_get(j_msg, "Output"), idx, j_val) {
-//    tmp_const = json_string_value(j_val);
-//
-//    // get key/value
-//    value = strdup(tmp_const);
-//    dump = value;
-//    key = strsep(&value, ":");
-//    if((key == NULL) || (value == NULL)) {
-//      sfree(dump);
-//      continue;
-//    }
-//    trim(key);
-//    trim(value);
-//
-//    slog(LOG_DEBUG, "Check database key/value. key[%s], value[%s]", key, value);
-//    j_tmp = json_pack("{s:s, s:s}",
-//        "key",    key,
-//        "value",  value
-//        );
-//
-//    ret = db_ctx_insert_or_replace(g_db_ast, "database", j_tmp);
-//    json_decref(j_tmp);
-//    if(ret == false) {
-//      slog(LOG_ERR, "Could not insert/replace the database data. key[%s], value[%s]", key, value);
-//    }
-//
-//    sfree(dump);
-//  }
-//
-//  return ACTION_RES_COMPLETE;
-//}
 
 /**
  * AMI event handler.

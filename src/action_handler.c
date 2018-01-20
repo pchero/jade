@@ -18,8 +18,8 @@
 bool insert_action(const char* id, const char* type, const json_t* j_data)
 {
   int ret;
-  char* tmp;
   json_t* j_tmp;
+  json_t* j_data_tmp;
 
   if((id == NULL) || (type == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -37,9 +37,8 @@ bool insert_action(const char* id, const char* type, const json_t* j_data)
 
   // data
   if(j_data != NULL) {
-    tmp = json_dumps(j_data, JSON_ENCODE_ANY);
-    json_object_set_new(j_tmp, "data", json_string(tmp));
-    sfree(tmp);
+    j_data_tmp = json_deep_copy(j_data);
+    json_object_set_new(j_tmp, "data", j_data_tmp);
   }
 
   ret = db_ctx_insert(g_db_ast, "action", j_tmp);

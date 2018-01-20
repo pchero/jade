@@ -2226,6 +2226,30 @@ json_t* get_core_module_info(const char* key)
 }
 
 /**
+ * Update core module info.
+ * @param j_data
+ * @return
+ */
+bool update_core_module_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired update_core_module_info.");
+
+  ret = update_item("core_module", "name", j_data);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not update core module info.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
  * Create sip peer info.
  * @param j_data
  * @return
