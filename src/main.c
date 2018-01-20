@@ -19,6 +19,7 @@
 #include "ob_event_handler.h"
 #include "zmq_handler.h"
 #include "websocket_handler.h"
+#include "conf_handler.h"
 
 app* g_app;
 db_ctx_t* g_db_ast;
@@ -98,6 +99,14 @@ bool init(void)
     slog(LOG_ERR, "Could not initiate ob_handler.");
     return false;
   }
+  slog(LOG_DEBUG, "Finished init_outbound.");
+
+  ret = init_conf_handler();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate conf_handler.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Finished init_conf_handler.");
 
   ret = init_misc_handler();
   if(ret == false) {

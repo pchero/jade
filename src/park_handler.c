@@ -9,7 +9,7 @@
 #include "slog.h"
 #include "http_handler.h"
 #include "utils.h"
-#include "config.h"
+#include "conf_handler.h"
 
 #include "resource_handler.h"
 

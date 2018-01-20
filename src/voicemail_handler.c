@@ -18,7 +18,7 @@
 #include "resource_handler.h"
 #include "http_handler.h"
 #include "ami_handler.h"
-#include "config.h"
+#include "conf_handler.h"
 
 //#include "ini.h"
 #include "minIni.h"
