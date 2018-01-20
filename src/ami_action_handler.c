@@ -9,8 +9,11 @@
 #include <jansson.h>
 
 #include "slog.h"
+#include "common.h"
+#include "utils.h"
 #include "ami_handler.h"
 #include "resource_handler.h"
+#include "action_handler.h"
 
 #include "ami_action_handler.h"
 

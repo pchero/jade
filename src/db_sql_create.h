@@ -84,8 +84,11 @@ static const char* g_sql_create_core_module =
 
 // identity
 "   name      varchar(255) not null,"
+
+// info
 "   size      int,"
 "   load      varchar(255),"
+"   version   varchar(255),"
 
 // timestamp. UTC."
 "   tm_update     datetime(6),"

@@ -41,6 +41,7 @@ json_t* get_core_system_info(const char* id);
 int create_core_module(json_t* j_tmp);
 json_t* get_core_modules_all(void);
 json_t* get_core_module_info(const char* key);
+bool update_core_module_info(const json_t* j_data);
 
 
 // database

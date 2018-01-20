@@ -12,6 +12,7 @@
 
 ACTION_RES ami_response_handler_corestatus(json_t* j_action, json_t* j_msg);
 ACTION_RES ami_response_handler_coresettings(json_t* j_action, json_t* j_msg);
+ACTION_RES ami_response_handler_modulecheck(json_t* j_action, json_t* j_msg);
 
 
 #endif /* BACKEND_SRC_AMI_RESPONSE_HANDLER_H_ */

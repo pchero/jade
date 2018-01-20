@@ -18,6 +18,7 @@
 #include "slog.h"
 #include "utils.h"
 #include "resource_handler.h"
+#include "ami_action_handler.h"
 
 #include "misc_handler.h"
 
@@ -41,6 +42,7 @@ bool init_misc_handler(void)
 
 /**
  * Check installed asterisk modules and update into db.
+ * And send module check request to the Asterisk.
  * @return
  */
 static bool init_modules_info(void)
@@ -49,7 +51,7 @@ static bool init_modules_info(void)
   struct dirent **namelist;
   int i;
   int cnt;
-  char* filename;
+  char* module_name;
   char* full_filename;
   const char* dir;
   struct stat file_stat;
@@ -99,8 +101,8 @@ static bool init_modules_info(void)
     }
 
     // strip extension
-    filename = strip_ext(namelist[i]->d_name);
-    if(filename == NULL) {
+    module_name = strip_ext(namelist[i]->d_name);
+    if(module_name == NULL) {
       slog(LOG_ERR, "Could not strip file info.");
       free(namelist[i]);
       continue;
@@ -108,17 +110,21 @@ static bool init_modules_info(void)
 
     // create data
     j_tmp = json_pack("{s:s, s:i, s:s, s:s}",
-        "name", filename,
+        "name", module_name,
         "size", file_stat.st_size,
         "load", "unknown",
 
         "tm_update", timestamp
         );
-    sfree(filename);
 
     // insert
-    create_core_module(j_tmp);
+    ret = create_core_module(j_tmp);
     json_decref(j_tmp);
+    if(ret == true) {
+      // send modulecheck request
+      ami_action_modulecheck(module_name);
+    }
+    sfree(module_name);
 
     free(namelist[i]);
   }
