@@ -226,7 +226,7 @@ ACTION_RES ami_response_handler_modulecheck(json_t* j_action, json_t* j_msg)
       "s:s, s:s, s:s, s:s "
       "}",
 
-      "name",       json_string_value(json_object_get(j_action_data, "name"))? : "",
+      "name",       json_string_value(json_object_get(j_action_data, "Module"))? : "",
       "load",       load,
       "version",    json_string_value(json_object_get(j_msg, "Version"))? : "unknown",
       "tm_update",  timestamp
