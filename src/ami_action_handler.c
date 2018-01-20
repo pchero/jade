@@ -83,6 +83,55 @@ int ami_action_hangup_by_uniqueid(const char* unique_id)
 
 /**
  * AMI action handler.
+ * Action: ModuleCheck
+ */
+bool ami_action_modulecheck(const char* name)
+{
+  json_t* j_data;
+  char* action_id;
+  int ret;
+
+  if(name == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired ami_action_modulecheck. name[%s]", name);
+
+  action_id = gen_uuid();
+
+  // create request
+  j_data = json_pack("{s:s, s:s, s:s}",
+      "Action",     "ModuleCheck",
+      "Module",     name,
+      "ActionID",   action_id
+      );
+  sfree(action_id);
+  if(j_data == NULL) {
+    slog(LOG_ERR, "Could not create action request.");
+    return false;
+  }
+
+  // send action request
+  ret = send_ami_cmd(j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not send ami action");
+    json_decref(j_data);
+    return false;
+  }
+
+  // insert action
+  ret = insert_action(json_string_value(json_object_get(j_data, "ActionID")), "modulecheck", j_data);
+  json_decref(j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert action.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * AMI action handler.
  * Action: ModuleLoad
  */
 int ami_action_moduleload(const char* name, const char* type)
