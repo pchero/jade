@@ -1210,7 +1210,7 @@ static void cb_htp_queue_entries_detail(evhtp_request_t *req, void *data)
 
   // method check
   method = evhtp_request_get_method(req);
-  if(method != htp_method_GET) {
+  if((method != htp_method_GET) && (method != htp_method_DELETE)) {
     simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
@@ -1218,6 +1218,11 @@ static void cb_htp_queue_entries_detail(evhtp_request_t *req, void *data)
   // fire handlers
   if(method == htp_method_GET) {
     htp_get_queue_entries_detail(req, data);
+    return;
+  }
+  else if(method == htp_method_DELETE) {
+    // synonym of delete /core/channels/<detail>
+    htp_delete_core_channels_detail(req, data);
     return;
   }
   else {
