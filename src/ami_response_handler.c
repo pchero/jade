@@ -185,12 +185,19 @@ ACTION_RES ami_response_handler_modulecheck(json_t* j_action, json_t* j_msg)
   const char* load;
   int ret;
   json_t* j_tmp;
+  json_t* j_action_data;
 
   if((j_action == NULL) || (j_msg == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return ACTION_RES_ERROR;
   }
   slog(LOG_DEBUG, "Fired ami_response_handler_modulecheck.");
+
+  j_action_data = json_object_get(j_action, "data");
+  if(j_action_data == NULL) {
+    slog(LOG_ERR, "Could not get action data.");
+    return ACTION_RES_ERROR;
+  }
 
   // for debug
   tmp = json_dumps(j_msg, JSON_ENCODE_ANY);
@@ -216,9 +223,10 @@ ACTION_RES ami_response_handler_modulecheck(json_t* j_action, json_t* j_msg)
   // create update
   timestamp = get_utc_timestamp();
   j_tmp = json_pack("{"
-      "s:s, s:s, s:s "
+      "s:s, s:s, s:s, s:s "
       "}",
 
+      "name",       json_string_value(json_object_get(j_action_data, "name"))? : "",
       "load",       load,
       "version",    json_string_value(json_object_get(j_msg, "Version"))? : "unknown",
       "tm_update",  timestamp

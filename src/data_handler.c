@@ -37,8 +37,8 @@ static char g_ami_buffer[MAX_AMI_RECV_BUF_LEN];
 struct event* g_ev_ami_handler = NULL;
 
 static void cb_ami_message_receive_handler(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg);
-static void cb_ami_connect(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg);
-static void cb_ami_connection_check(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg);
+static void cb_ami_connect_check(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg);
+static void cb_ami_ping_check(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg);
 static void cb_ami_status_check(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg);
 
 static bool init_ami_connect(void);
@@ -120,15 +120,16 @@ static void cb_ami_message_receive_handler(__attribute__((unused)) int fd, __att
 }
 
 /**
+ * Check the ami connection.
+ * If the ami disconnected, try re-connect.
  * Callback function for asterisk ami connect.
  * @param fd
  * @param event
  * @param arg
  */
-static void cb_ami_connect(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg)
+static void cb_ami_connect_check(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg)
 {
   int ret;
-  struct event* ev;
 
   ret = is_ev_ami_handler_running();
   if(ret == true) {
@@ -142,13 +143,6 @@ static void cb_ami_connect(__attribute__((unused)) int fd, __attribute__((unused
     slog(LOG_ERR, "Could not connect to asterisk ami.");
     return;
   }
-
-  // add ami event handler
-  ev = event_new(g_app->evt_base, g_ami_sock, EV_READ | EV_PERSIST, cb_ami_message_receive_handler, NULL);
-  event_add(ev, NULL);
-
-  // update event ami handler
-  update_ev_ami_handler(ev);
 
   return;
 }
@@ -230,17 +224,17 @@ static void cb_ami_status_check(__attribute__((unused)) int fd, __attribute__((u
 }
 
 /**
- * Check the ami connection info.
+ * Send ami ping.
  * @param fd
  * @param event
  * @param arg
  */
-static void cb_ami_connection_check(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg)
+static void cb_ami_ping_check(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg)
 {
   json_t* j_tmp;
   int ret;
 
-  slog(LOG_DEBUG, "Fired cb_ami_connection_check.");
+  slog(LOG_DEBUG, "Fired cb_ami_ping_check.");
 
   j_tmp = json_pack("{s:s}",
       "Action", "Ping"
@@ -309,6 +303,7 @@ static bool ami_login(void)
 static bool ami_connect(void)
 {
   int ret;
+  struct event* ev;
 
   // init ami connect
   ret = init_ami_connect();
@@ -334,6 +329,13 @@ static bool ami_connect(void)
     slog(LOG_ERR, "Could not send init info.");
     return false;
   }
+
+  // add ami event handler
+  ev = event_new(g_app->evt_base, g_ami_sock, EV_READ | EV_PERSIST, cb_ami_message_receive_handler, NULL);
+  event_add(ev, NULL);
+
+  // update event ami handler
+  update_ev_ami_handler(ev);
 
   return true;
 }
@@ -481,17 +483,28 @@ bool init_data_handler(void)
 {
   struct timeval tm_event;
   struct event* ev;
+  int ret;
 
   tm_event.tv_sec = 1;
   tm_event.tv_usec = 0;
 
+  slog(LOG_DEBUG, "Fired init_data_handler.");
+
+
   // ami connect
-  ev = event_new(g_app->evt_base, -1, EV_TIMEOUT | EV_PERSIST, cb_ami_connect, NULL);
+  ret = ami_connect();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not connect to ami.");
+    return false;
+  }
+
+  // add ami connect check
+  ev = event_new(g_app->evt_base, -1, EV_TIMEOUT | EV_PERSIST, cb_ami_connect_check, NULL);
   event_add(ev, &tm_event);
   add_event_handler(ev);
 
-  // check ami connection
-  ev = event_new(g_app->evt_base, -1, EV_TIMEOUT | EV_PERSIST, cb_ami_connection_check, NULL);
+  // add ping check
+  ev = event_new(g_app->evt_base, -1, EV_TIMEOUT | EV_PERSIST, cb_ami_ping_check, NULL);
   event_add(ev, &tm_event);
   add_event_handler(ev);
 
