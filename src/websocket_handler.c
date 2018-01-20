@@ -257,8 +257,10 @@ static void destroy_client_session(struct client_session* session)
   // free all members.
   sfree(session->addr);
   zmq_close(session->zmq_sock);
-  event_del(session->evt);
-  event_free(session->evt);
+  if(session->evt != NULL) {
+    event_del(session->evt);
+    event_free(session->evt);
+  }
   json_decref(session->j_subs);
 
   return;
