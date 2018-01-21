@@ -691,6 +691,7 @@ Example
 
 
 .. include:: core_api.rst
+.. include:: dialplan_api.rst
 .. include:: ob_api.rst
 .. include:: park_api.rst
 .. include:: pjsip_api.rst
