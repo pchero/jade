@@ -25,6 +25,7 @@
 #include "pjsip_handler.h"
 #include "queue_handler.h"
 #include "park_handler.h"
+#include "dialplan_handler.h"
 
 
 
@@ -34,6 +35,10 @@ extern app* g_app;
 evhtp_t* g_htp = NULL;
 
 #define DEF_REG_MSGNAME "msg[0-9]{4}"
+
+
+static char* get_data_from_request(evhtp_request_t* req);
+
 
 // ping
 static void cb_htp_ping(evhtp_request_t *req, void *a);
@@ -51,6 +56,10 @@ static void cb_htp_core_modules(evhtp_request_t *req, void *data);
 static void cb_htp_core_modules_detail(evhtp_request_t *req, void *data);
 static void cb_htp_core_systems(evhtp_request_t *req, void *data);
 static void cb_htp_core_systems_detail(evhtp_request_t *req, void *data);
+
+
+// dialplan
+static void cb_htp_dialplan_setting(evhtp_request_t *req, void *data);
 
 
 // park
@@ -159,6 +168,11 @@ bool init_http_handler(void)
   evhtp_set_regex_cb(g_htp, "^/core/systems/(.*)", cb_htp_core_systems_detail, NULL);
   evhtp_set_regex_cb(g_htp, "^/core/systems$", cb_htp_core_systems, NULL);
 
+
+
+  //// ^/dialplan/
+  // setting
+  evhtp_set_regex_cb(g_htp, "^/dialplan/setting$", cb_htp_dialplan_setting, NULL);
 
 
   ////// ^/ob/
@@ -440,11 +454,15 @@ json_t* create_default_result(int code)
   return j_res;
 }
 
-json_t* get_json_from_request_data(evhtp_request_t* req)
+/**
+ * Get data from request
+ * @param req
+ * @return
+ */
+static char* get_data_from_request(evhtp_request_t* req)
 {
   const char* tmp_const;
   char* tmp;
-  json_t* j_data;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -457,9 +475,35 @@ json_t* get_json_from_request_data(evhtp_request_t* req)
     return NULL;
   }
 
-  // create json
+  // copy data
   tmp = strndup(tmp_const, evbuffer_get_length(req->buffer_in));
   slog(LOG_DEBUG, "Requested data. data[%s]", tmp);
+
+  return tmp;
+}
+
+/**
+ * Get data json format
+ * @param req
+ * @return
+ */
+json_t* get_json_from_request_data(evhtp_request_t* req)
+{
+  char* tmp;
+  json_t* j_data;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  // get data
+  tmp = get_data_from_request(req);
+  if(tmp == NULL) {
+    return NULL;
+  }
+
+  // create json
   j_data = json_loads(tmp, JSON_DECODE_ANY, NULL);
   sfree(tmp);
   if(j_data == NULL) {
@@ -467,6 +511,20 @@ json_t* get_json_from_request_data(evhtp_request_t* req)
   }
 
   return j_data;
+}
+
+/**
+ * Get data text format
+ * @param req
+ * @return
+ */
+char* get_text_from_request_data(evhtp_request_t* req)
+{
+  char* tmp;
+
+  tmp = get_data_from_request(req);
+
+  return tmp;
 }
 
 /**
@@ -2591,5 +2649,50 @@ static void cb_htp_pjsip_contacts_detail(evhtp_request_t *req, void *data)
 
   // should not reach to here.
   simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  return;
+}
+
+
+/**
+ * http request handler
+ * ^/dialplan/setting$
+ * @param req
+ * @param data
+ */
+static void cb_htp_dialplan_setting(evhtp_request_t *req, void *data)
+{
+  int method;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_dialplan_setting.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if((method != htp_method_GET) && (method != htp_method_PUT)) {
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // fire handlers
+  if(method == htp_method_GET) {
+    htp_get_dialplan_setting(req, data);
+    return;
+  }
+  else if(method == htp_method_PUT) {
+    htp_put_dialplan_setting(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+
   return;
 }

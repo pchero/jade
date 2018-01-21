@@ -478,7 +478,7 @@ bool update_ast_current_config_info(const char* filename, json_t* j_conf)
  * @param filename
  * @return
  */
-bool update_ast_config_info_raw(const char* filename, const char* data)
+bool update_ast_current_config_info_raw(const char* filename, const char* data)
 {
   const char* conf_dir;
   char* target;
@@ -488,7 +488,7 @@ bool update_ast_config_info_raw(const char* filename, const char* data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
-  slog(LOG_ERR, "Not implemented yet");
+  slog(LOG_ERR, "Fired update_ast_current_config_info_raw.");
 
   conf_dir = json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "directory_conf"));
   if(conf_dir == NULL) {
@@ -515,7 +515,7 @@ bool update_ast_config_info_raw(const char* filename, const char* data)
 
   sfree(target);
 
-  return false;
+  return true;
 }
 
 
