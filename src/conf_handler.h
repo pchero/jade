@@ -16,8 +16,8 @@ bool init_conf_handler(void);
 json_t* get_ast_current_config_info(const char* filename);
 char* get_ast_current_config_info_raw(const char* filename);
 
-int update_ast_current_config_info(const char* filename, json_t* j_conf);
-int update_ast_config_info_raw(const char* filename, const char* data);
+bool update_ast_current_config_info(const char* filename, json_t* j_conf);
+bool update_ast_config_info_raw(const char* filename, const char* data);
 
 bool create_ast_current_config_content(const char* filename, const char* section, const char* key, const char* val);
 bool update_ast_current_config_content(const char* filename, const char* section, const char* key, const char* val);
