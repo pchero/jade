@@ -23,15 +23,19 @@ extern app* g_app;
 #define DEF_JADE_LIB_DIR          "/var/lib/jade"
 #define DEF_AST_CONF_BACKUP_DIR   "confs"
 
+#define MAX_CONF_BUF    1048576   // 10 Mb(1024 * 1024)
 
 static int write_ast_config_info(const char* filename, json_t* j_conf);
+static bool write_ast_config_info_raw(const char* filename, const char* data);
+
 static char* get_ast_backup_conf_dir(void);
 static json_t* get_ast_backup_filenames(const char* filename);
 static int ast_conf_handler(const mTCHAR *section, const mTCHAR *key, const mTCHAR *value, void *data);
 static int backup_ast_config_info(const char* filename);
 static bool create_lib_dirs(void);
-static json_t* get_ast_config_info(const char* filename);
 
+static json_t* get_ast_config_info(const char* filename);
+static char* get_ast_config_info_raw(const char* filename);
 
 bool init_conf_handler(void)
 {
@@ -49,13 +53,11 @@ bool init_conf_handler(void)
 static int write_ast_config_info(const char* filename, json_t* j_conf)
 {
   const char* section;
-  const char* dir;
   const char* key;
-  char* target;
   json_t* j_item;
   json_t* j_val;
   json_t* j_val_tmp;
-  FILE *f;
+  FILE *fp;
   int ret;
   int idx;
 
@@ -65,38 +67,60 @@ static int write_ast_config_info(const char* filename, json_t* j_conf)
   }
   slog(LOG_DEBUG, "Fired write_ast_config_info. filename[%s]", filename);
 
-  // create target
-  dir = json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "directory_conf"));
-  asprintf(&target, "%s/%s", dir, filename);
-
-  f = fopen(target, "w+");
-  if(f == NULL) {
-    slog(LOG_ERR, "Could not open the conf file. filename[%s], err[%d:%s]", target, errno, strerror(errno));
+  fp = fopen(filename, "w+");
+  if(fp == NULL) {
+    slog(LOG_ERR, "Could not open the conf file. filename[%s], err[%d:%s]", filename, errno, strerror(errno));
     return false;
   }
-  sfree(target);
 
   // write config
   json_object_foreach(j_conf, section, j_item) {
     slog(LOG_DEBUG, "Writing section info. section[%s]", section);
-    fprintf(f, "[%s]\n", section);
+    fprintf(fp, "[%s]\n", section);
     json_object_foreach(j_item, key, j_val) {
 
       // check is array
       ret = json_is_array(j_val);
       if(ret == true) {
         json_array_foreach(j_val, idx, j_val_tmp) {
-          fprintf(f, "%s=%s\n", key, json_string_value(j_val_tmp));
+          fprintf(fp, "%s=%s\n", key, json_string_value(j_val_tmp));
           slog(LOG_DEBUG, "Writing item info. key[%s] value[%s]", key, json_string_value(j_val_tmp));
         }
       }
       else {
-        fprintf(f, "%s=%s\n", key, json_string_value(j_val));
+        fprintf(fp, "%s=%s\n", key, json_string_value(j_val));
         slog(LOG_DEBUG, "Writing item info. key[%s] value[%s]", key, json_string_value(j_val));
       }
     }
   }
-  fclose(f);
+  fclose(fp);
+
+  return true;
+}
+
+static bool write_ast_config_info_raw(const char* filename, const char* data)
+{
+  FILE *fp;
+  int ret;
+
+  if((filename == NULL) || (data == NULL) || (strlen(data) == 0)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired write_ast_config_info_raw. filename[%s]", filename);
+
+  fp = fopen(filename, "w+");
+  if(fp == NULL) {
+    slog(LOG_ERR, "Could not open the conf file. filename[%s], err[%d:%s]", filename, errno, strerror(errno));
+    return false;
+  }
+
+  ret = fwrite(data, 1, strlen(data), fp);
+  fclose(fp);
+  if(ret == 0) {
+    slog(LOG_ERR, "Could not write config info.");
+    return false;
+  }
 
   return true;
 }
@@ -221,8 +245,8 @@ static int backup_ast_config_info(const char* filename)
   char* target;
   char* timestamp;
   char* backup_dir;
-  const char* conf_dir;
   char* cmd;
+  char* tmp;
   int ret;
 
   if(filename == NULL) {
@@ -233,15 +257,15 @@ static int backup_ast_config_info(const char* filename)
 
   timestamp = get_utc_timestamp();
   backup_dir = get_ast_backup_conf_dir();
-  conf_dir = json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "directory_conf"));
 
   // create full target filename
-  asprintf(&target, "%s/%s.%s", backup_dir, filename, timestamp);
+  tmp = basename(filename);
+  asprintf(&target, "%s/%s.%s", backup_dir, tmp, timestamp);
   sfree(backup_dir);
   sfree(timestamp);
 
   // create cmd for copy config file to backdup dir
-  asprintf(&cmd, "cp -r %s/%s %s", conf_dir, filename, target);
+  asprintf(&cmd, "cp -r %s %s", filename, target);
   sfree(target);
   slog(LOG_DEBUG, "Copy config file. cmd[%s]", cmd);
 
@@ -306,6 +330,43 @@ static json_t* get_ast_config_info(const char* filename)
 }
 
 /**
+ * Get config file in a raw format
+ * @param filename
+ * @return
+ */
+static char* get_ast_config_info_raw(const char* filename)
+{
+  FILE* fp;
+  char buf[MAX_CONF_BUF];
+  char* res;
+  int ret;
+
+  if(filename == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  fp = fopen(filename, "r");
+  if(fp == NULL) {
+    slog(LOG_ERR, "Could not open the conf file. filename[%s], err[%d:%s]", filename, errno, strerror(errno));
+    return NULL;
+  }
+
+  ret = fread(buf, 1, MAX_CONF_BUF, fp);
+  if(ret == 0) {
+    fclose(fp);
+    slog(LOG_ERR, "Could not read conf file. err[%d:%s]", errno, strerror(errno));
+    return NULL;
+  }
+  buf[ret] = '\0';
+  fclose(fp);
+
+  res = strdup(buf);
+
+  return res;
+}
+
+/**
  * Get current config info from given filename.
  * @param filename
  * @return
@@ -341,14 +402,27 @@ json_t* get_ast_current_config_info(const char* filename)
  */
 char* get_ast_current_config_info_raw(const char* filename)
 {
+  const char* dir;
+  char* target;
+  char* res;
+
   if(filename == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return NULL;
   }
+  slog(LOG_DEBUG, "Fired get_ast_current_config_info_raw.");
 
-  // todo: not implemented yet.
-  slog(LOG_ERR, "Not implemented yet.");
-  return NULL;
+  dir = json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "directory_conf"));
+  asprintf(&target, "%s/%s", dir, filename);
+
+  res = get_ast_config_info_raw(target);
+  sfree(target);
+  if(res == NULL) {
+    slog(LOG_ERR, "Could not get config file info.");
+    return NULL;
+  }
+
+  return res;
 }
 
 
@@ -358,27 +432,42 @@ char* get_ast_current_config_info_raw(const char* filename)
  * @param filename
  * @return
  */
-int update_ast_current_config_info(const char* filename, json_t* j_conf)
+bool update_ast_current_config_info(const char* filename, json_t* j_conf)
 {
   int ret;
+  char* target;
+  const char* conf_dir;
 
   if((j_conf == NULL) || (filename == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
 
+  // create target
+  conf_dir = json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "directory_conf"));
+  if(conf_dir == NULL) {
+    slog(LOG_ERR, "Could not get conf directory info.");
+    return false;
+  }
+  asprintf(&target, "%s/%s", conf_dir, filename);
+
   // backup current config
-  ret = backup_ast_config_info(filename);
+  ret = backup_ast_config_info(target);
   if(ret == false) {
     slog(LOG_ERR, "Could not backup current config file. filename[%s]", filename);
+    sfree(target);
     return false;
   }
 
-  ret = write_ast_config_info(filename, j_conf);
+  // overwrite data
+  ret = write_ast_config_info(target, j_conf);
   if(ret == false) {
     slog(LOG_ERR, "Could not update config. filename[%s]", filename);
+    sfree(target);
     return false;
   }
+
+  sfree(target);
 
   return true;
 }
@@ -389,15 +478,44 @@ int update_ast_current_config_info(const char* filename, json_t* j_conf)
  * @param filename
  * @return
  */
-int update_ast_config_info_raw(const char* filename, const char* data)
+bool update_ast_current_config_info_raw(const char* filename, const char* data)
 {
+  const char* conf_dir;
+  char* target;
+  int ret;
+
   if((filename == NULL) || (data == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
-  slog(LOG_ERR, "Not implemented yet");
+  slog(LOG_ERR, "Fired update_ast_current_config_info_raw.");
 
-  return false;
+  conf_dir = json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "directory_conf"));
+  if(conf_dir == NULL) {
+    slog(LOG_ERR, "Could not get conf directory info.");
+    return false;
+  }
+  asprintf(&target, "%s/%s", conf_dir, filename);
+
+  // backup current config
+  ret = backup_ast_config_info(target);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not backup current config file. filename[%s]", filename);
+    sfree(target);
+    return false;
+  }
+
+  // overwrite data
+  ret = write_ast_config_info_raw(target, data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update config. filename[%s]", filename);
+    sfree(target);
+    return false;
+  }
+
+  sfree(target);
+
+  return true;
 }
 
 
