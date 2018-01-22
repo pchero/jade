@@ -271,7 +271,7 @@ bool publish_event_core_agi(const char* type, json_t* j_data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
-  slog(LOG_DEBUG, "Fired publish_event_core_agi.");
+  slog(LOG_DEBUG, "Fired publish_event_core_channel.");
 
   // create topic
   tmp_const = json_string_value(json_object_get(j_data, "caller_id_name"));
