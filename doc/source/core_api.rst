@@ -1,6 +1,321 @@
 .. _core_api:
 
 
+.. _core_agis:
+
+/core/agis
+==========
+
+Methods
+-------
+GET : Get list of all agis info.
+
+.. _get_core_agis:
+
+Method: GET
+-----------
+Get list of all agis info.
+
+Call
+++++
+::
+
+   GET /core/agis
+
+Returns
++++++++
+::
+
+   {
+     $defhdr,
+     "reuslt": {
+       "list": [
+         {
+            "unique_id": "<string>",
+            "linked_id": "<string>",
+                
+            "channel": "<string>",
+            "channel_state": <integer>,
+            "channel_state_desc": "<string>",
+
+            "context": "<string>",
+            "exten": "<string>",
+            "priority": "<string>",
+
+            "caller_id_name": "<string>",
+            "caller_id_num": "<string>",
+
+            "connected_line_name": "<string>",
+            "connected_line_num": "<string>",
+
+            "account_code": "<string>",
+            "language": "<string>",
+            
+            "env": {...},
+            "cmd": {...},
+
+            "tm_update": "<timestamp>"
+         },
+         ...
+       ]
+     }
+   }
+  
+* ``list`` : array of agis.
+    * See detail at :ref:`get_core_agis_detail`.
+
+
+Example
++++++++
+::
+
+  $ curl -X GET localhost:8081/core/agis
+  
+  {
+    "api_ver": "0.1",
+    "result": {
+        "list": [
+            {
+                "account_code": "",
+                "caller_id_name": "pjagent-02",
+                "caller_id_num": "pjagent-02",
+                "channel": "PJSIP/pjagent-02-00000007",
+                "channel_state": 4,
+                "channel_state_desc": "Ring",
+                "cmd": {},
+                "connected_line_name": "<unknown>",
+                "connected_line_num": "<unknown>",
+                "context": "sample-agi-async",
+                "env": {
+                    "agi_accountcode": "",
+                    "agi_arg_1": "test argument 1",
+                    "agi_arg_2": "test argument 2",
+                    "agi_callerid": "pjagent-02",
+                    "agi_calleridname": "pjagent-02",
+                    "agi_callingani2": "0",
+                    "agi_callingpres": "0",
+                    "agi_callingtns": "0",
+                    "agi_callington": "0",
+                    "agi_channel": "PJSIP/pjagent-02-00000007",
+                    "agi_context": "sample-agi-async",
+                    "agi_dnid": "4006",
+                    "agi_enhanced": "0.0",
+                    "agi_extension": "s",
+                    "agi_language": "en",
+                    "agi_priority": "2",
+                    "agi_rdnis": "unknown",
+                    "agi_request": "async",
+                    "agi_threadid": "1953600544",
+                    "agi_type": "PJSIP",
+                    "agi_uniqueid": "1516639454.9",
+                    "agi_version": "GIT-master-516ab38M"
+                },
+                "exten": "s",
+                "language": "en",
+                "linked_id": "1516639454.9",
+                "priority": "2",
+                "tm_update": "2018-01-22T16:44:14.739567617Z",
+                "unique_id": "1516639454.9"
+            }
+        ]
+    },
+    "statuscode": 200,
+    "timestamp": "2018-01-22T16:44:31.678361591Z"
+  }
+
+
+/core/agis/<detail>
+=======================
+
+Methods
+-------
+GET : Get agi's detail info of given agi info.
+
+DELETE : Hangup the given agi.
+
+
+.. _get_core_agis_detail:
+
+Method: GET
+-----------
+Get agi's detail info of given agi info.
+
+Call
+++++
+::
+
+   GET /core/agis/<detail>
+  
+   
+Method parameters
+
+* ``detail``: unique id.
+
+Returns
++++++++
+::
+
+   {
+     $defhdr,
+     "reuslt": {
+       "unique_id": "<string>",
+       "linked_id": "<string>",
+              
+       "channel": "<string>",
+       "channel_state": <integer>,
+       "channel_state_desc": "<string>",
+
+       "context": "<string>",
+       "exten": "<string>",
+       "priority": "<string>",
+
+       "caller_id_name": "<string>",
+       "caller_id_num": "<string>",
+       
+       "connected_line_name": "<string>",
+       "connected_line_num": "<string>",
+
+       "account_code": "<string>",
+       "language": "<string>",
+        
+       "env": {
+         "<key>": "<string>",
+         ...
+       },
+       "cmd": {
+         "<command-id>": {
+           "command": "<string>",
+           "result": "<string>",
+           "tm_create": "<timestamp>"
+           "tm_update": "<timestamp>"
+       },
+              
+       "tm_update": "<timestamp>"
+     }
+   }
+
+Return parameters
+
+* ``unique_id``: Channel's unique id.
+* ``linked_id``: Channel's linked id.
+
+* ``channel``: Channel's name.
+* ``channel_state``: Channel's state.
+* ``channel_state_desc``: Channel's state description.
+
+* ``context``: Context.
+* ``exten``: Extension.
+* ``priority``: Priority
+
+* ``caller_id_name``: Caller's id name.
+* ``caller_id_num``: Caller's id number.
+
+* ``connected_line_name``: Caller's line name.
+* ``connected_line_num``: Caller's line number.
+
+* ``account_code``: Account code.
+* ``language``: Language.
+
+* ``env``: agi channel environment key-values.
+* ``cmd``: Command list
+    * ``command-id``: Command id.
+        * ``command``: Command.
+        * ``result``: Command result.
+        * ``tm_create``: Command created timestamp.
+        * ``tm_update``: Command updated timestamp.
+
+Example
++++++++
+::
+
+  $ curl localhost:8081/core/agis/1516639454.9
+  
+  {
+    "api_ver": "0.1",
+    "result": {
+        "account_code": "",
+        "caller_id_name": "pjagent-02",
+        "caller_id_num": "pjagent-02",
+        "channel": "PJSIP/pjagent-02-00000007",
+        "channel_state": 4,
+        "channel_state_desc": "Ring",
+        "cmd": {},
+        "connected_line_name": "<unknown>",
+        "connected_line_num": "<unknown>",
+        "context": "sample-agi-async",
+        "env": {
+            "agi_accountcode": "",
+            "agi_arg_1": "test argument 1",
+            "agi_arg_2": "test argument 2",
+            "agi_callerid": "pjagent-02",
+            "agi_calleridname": "pjagent-02",
+            "agi_callingani2": "0",
+            "agi_callingpres": "0",
+            "agi_callingtns": "0",
+            "agi_callington": "0",
+            "agi_channel": "PJSIP/pjagent-02-00000007",
+            "agi_context": "sample-agi-async",
+            "agi_dnid": "4006",
+            "agi_enhanced": "0.0",
+            "agi_extension": "s",
+            "agi_language": "en",
+            "agi_priority": "2",
+            "agi_rdnis": "unknown",
+            "agi_request": "async",
+            "agi_threadid": "1953600544",
+            "agi_type": "PJSIP",
+            "agi_uniqueid": "1516639454.9",
+            "agi_version": "GIT-master-516ab38M"
+        },
+        "exten": "s",
+        "language": "en",
+        "linked_id": "1516639454.9",
+        "priority": "2",
+        "tm_update": "2018-01-22T16:44:14.739567617Z",
+        "unique_id": "1516639454.9"
+    },
+    "statuscode": 200,
+    "timestamp": "2018-01-22T16:44:49.638007048Z"
+  }
+
+.. _delete_core_channels_detail:
+
+Method: DELETE
+--------------
+Hangup the given agi.
+
+Call
+++++
+::
+
+   DELETE /core/agis/<detail>
+  
+   
+Method parameters
+
+* ``detail``: unique id.
+
+Returns
++++++++
+::
+
+   {
+     $defhdr
+   }
+
+Example
++++++++
+::
+
+  $ curl -X DELETE localhost:8081/core/agis/1516639454.9
+  
+  {
+    "api_ver": "0.1",
+    "statuscode": 200,
+    "timestamp": "2018-01-22T16:45:26.945414749Z"
+  }
+
+.. _core_channels:
 
 /core/channels
 ==============
@@ -127,7 +442,7 @@ Call
 ++++
 ::
 
-   GET /channels/<detail>
+   GET /core/channels/<detail>
   
    
 Method parameters
@@ -249,7 +564,7 @@ Call
 ++++
 ::
 
-   DELETE /channels/<detail>
+   DELETE /core/channels/<detail>
   
    
 Method parameters

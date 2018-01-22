@@ -251,3 +251,45 @@ bool publish_event_park_parkedcall(const char* type, json_t* j_data)
 
   return true;
 }
+
+/**
+ * Publish event.
+ * core.agi.<type>
+ * @param type
+ * @param j_data
+ * @return
+ */
+bool publish_event_core_agi(const char* type, json_t* j_data)
+{
+  const char* tmp_const;
+  char* tmp;
+  char* topic;
+  char* event;
+  int ret;
+
+  if((type == NULL) || (j_data == NULL)){
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired publish_event_core_channel.");
+
+  // create topic
+  tmp_const = json_string_value(json_object_get(j_data, "caller_id_name"));
+  tmp = uri_encode(tmp_const);
+  asprintf(&topic, "/core/agis/%s", tmp? : "");
+  sfree(tmp);
+
+  // create event name
+  asprintf(&event, "core.agi.%s", type);
+
+  // publish event
+  ret = publish_event(topic, event, j_data);
+  sfree(topic);
+  sfree(event);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
+  return true;
+}

@@ -24,6 +24,14 @@ json_t* get_agent_agent_info(const char* id);
 
 
 ////// core
+// core_agi
+json_t* get_core_agis_all(void);
+json_t* get_core_agi_info(const char* unique_id);
+bool create_core_agi_info(const json_t* j_data);
+bool update_core_agi_info(const json_t* j_data);
+bool update_core_agi_info_cmd_result(const char* key, const char* cmd_id, const char* result);
+bool delete_core_agi_info(const char* key);
+
 // core_channel
 json_t* get_core_channels_all_unique_id(void);
 json_t* get_core_channels_all(void);
@@ -32,7 +40,7 @@ bool create_core_channel_info(const json_t* j_data);
 int update_core_channel_info(const json_t* j_tmp);
 int delete_core_channel_info(const char* key);
 
-// system
+// core_system
 json_t* get_core_systems_all_id(void);
 json_t* get_core_systems_all(void);
 json_t* get_core_system_info(const char* id);

@@ -27,6 +27,9 @@ static void ami_response_handler(json_t* j_msg);
 static void ami_event_agentlogin(json_t* j_msg);
 static void ami_event_agentlogoff(json_t* j_msg);
 static void ami_event_agents(json_t* j_msg);
+static void ami_event_asyncagiend(json_t* j_msg);
+static void ami_event_asyncagiexec(json_t* j_msg);
+static void ami_event_asyncagistart(json_t* j_msg);
 static void ami_event_aordetail(json_t* j_msg);
 static void ami_event_authdetail(json_t* j_msg);
 static void ami_event_contactstatus(json_t* j_msg);
@@ -123,6 +126,15 @@ void ami_message_handler(const char* msg)
   }
   else if(strcasecmp(event, "Agents") == 0) {
     ami_event_agents(j_msg);
+  }
+  else if(strcasecmp(event, "AsyncAGIEnd") == 0) {
+    ami_event_asyncagiend(j_msg);
+  }
+  else if(strcasecmp(event, "AsyncAGIExec") == 0) {
+    ami_event_asyncagiexec(j_msg);
+  }
+  else if(strcasecmp(event, "AsyncAGIStart") == 0) {
+    ami_event_asyncagistart(j_msg);
   }
   else if(strcasecmp(event, "AorDetail") == 0) {
     ami_event_aordetail(j_msg);
@@ -3083,6 +3095,258 @@ static void ami_event_newexten(json_t* j_msg)
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not update channel info.");
+    return;
+  }
+
+  return;
+}
+
+/**
+ * AMI event handler.
+ * Event: AsyncAGIStart
+ * @param j_msg
+ */
+static void ami_event_asyncagistart(json_t* j_msg)
+{
+  json_t* j_tmp;
+  json_t* j_env;
+  int ret;
+  char* timestamp;
+  const char* env_tmp;
+  char* env;
+
+  if(j_msg == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired ami_event_asyncagistart.");
+
+  // get env
+  j_env = NULL;
+  env_tmp = json_string_value(json_object_get(j_msg, "Env"));
+  if(env_tmp != NULL) {
+    env = uri_decode(env_tmp);
+    slog(LOG_DEBUG, "Check value. env[%s]", env);
+    j_env = parse_ami_agi_env(env);
+    sfree(env);
+  }
+
+  // creat info
+  timestamp = get_utc_timestamp();
+  j_tmp = json_pack("{"
+      "s:s, s:s, "
+      "s:s, s:i, s:s, "
+      "s:s, s:s, s:s, s:s, s:s, s:s, "
+      "s:s, s:s, s:s, "
+      "s:{}, "
+      "s:s"
+      "}",
+
+      "unique_id",  json_string_value(json_object_get(j_msg, "Uniqueid"))? : "",
+      "linked_id",  json_string_value(json_object_get(j_msg, "Linkedid"))? : "",
+
+      "channel",   json_string_value(json_object_get(j_msg, "Channel"))? : "",
+      "channel_state",      json_string_value(json_object_get(j_msg, "ChannelState"))? atoi(json_string_value(json_object_get(j_msg, "ChannelState"))): 0,
+      "channel_state_desc", json_string_value(json_object_get(j_msg, "ChannelStateDesc"))? : "",
+
+      "caller_id_num",        json_string_value(json_object_get(j_msg, "CallerIDNum"))? : "",
+      "caller_id_name",       json_string_value(json_object_get(j_msg, "CallerIDName"))? : "",
+      "connected_line_num",   json_string_value(json_object_get(j_msg, "ConnectedLineNum"))? : "",
+      "connected_line_name",  json_string_value(json_object_get(j_msg, "ConnectedLineName"))? : "",
+      "language",             json_string_value(json_object_get(j_msg, "Language"))? : "",
+      "account_code",         json_string_value(json_object_get(j_msg, "AccountCode"))? : "",
+
+      "context",    json_string_value(json_object_get(j_msg, "Context"))? : "",
+      "exten",      json_string_value(json_object_get(j_msg, "Exten"))? : "",
+      "priority",   json_string_value(json_object_get(j_msg, "Priority"))? : "",
+
+      "cmd",
+
+      "tm_update",  timestamp
+      );
+  sfree(timestamp);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not create message.");
+    return;
+  }
+
+  if(j_env != NULL) {
+    json_object_set_new(j_tmp, "env", j_env);
+  }
+
+  // insert info
+  ret = create_core_agi_info(j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert to core_agi.");
+    return;
+  }
+
+  return;
+}
+
+/**
+ * AMI event handler.
+ * Event: AsyncAGIEnd
+ * @param j_msg
+ */
+static void ami_event_asyncagiend(json_t* j_msg)
+{
+  int ret;
+  const char* unique_id;
+  char* timestamp;
+  json_t* j_tmp;
+
+  if(j_msg == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired ami_event_asyncagiend.");
+
+  unique_id = json_string_value(json_object_get(j_msg, "Uniqueid"));
+  if(unique_id == NULL) {
+    slog(LOG_ERR, "Could not get unique id info.");
+    return;
+  }
+
+  // update channel info
+  timestamp = get_utc_timestamp();
+  j_tmp = json_pack("{"
+      "s:s, s:s, "
+      "s:s, s:i, s:s, "
+      "s:s, s:s, s:s, s:s, s:s, s:s, "
+      "s:s, s:s, s:s, "
+      "s:s"
+      "}",
+
+      "unique_id",  json_string_value(json_object_get(j_msg, "Uniqueid"))? : "",
+      "linked_id",  json_string_value(json_object_get(j_msg, "Linkedid"))? : "",
+
+      "channel",   json_string_value(json_object_get(j_msg, "Channel"))? : "",
+      "channel_state",      json_string_value(json_object_get(j_msg, "ChannelState"))? atoi(json_string_value(json_object_get(j_msg, "ChannelState"))): 0,
+      "channel_state_desc", json_string_value(json_object_get(j_msg, "ChannelStateDesc"))? : "",
+
+      "caller_id_num",        json_string_value(json_object_get(j_msg, "CallerIDNum"))? : "",
+      "caller_id_name",       json_string_value(json_object_get(j_msg, "CallerIDName"))? : "",
+      "connected_line_num",   json_string_value(json_object_get(j_msg, "ConnectedLineNum"))? : "",
+      "connected_line_name",  json_string_value(json_object_get(j_msg, "ConnectedLineName"))? : "",
+      "language",             json_string_value(json_object_get(j_msg, "Language"))? : "",
+      "account_code",         json_string_value(json_object_get(j_msg, "AccountCode"))? : "",
+
+      "context",    json_string_value(json_object_get(j_msg, "Context"))? : "",
+      "exten",      json_string_value(json_object_get(j_msg, "Exten"))? : "",
+      "priority",   json_string_value(json_object_get(j_msg, "Priority"))? : "",
+
+      "tm_update",  timestamp
+      );
+  sfree(timestamp);
+
+  // update info
+  ret = update_core_agi_info(j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update core_agi info.");
+    return;
+  }
+
+  // delete core_agi info.
+  ret = delete_core_agi_info(unique_id);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not delete core_agi info. unique_id[%s]", unique_id);
+    return;
+  }
+
+  return;
+}
+
+/**
+ * AMI event handler.
+ * Event: AsyncAGIExec
+ * @param j_msg
+ */
+static void ami_event_asyncagiexec(json_t* j_msg)
+{
+  int ret;
+  char* command_id;
+  char* tmp;
+  char* result;
+  const char* unique_id;
+  const char* tmp_const;
+  char* timestamp;
+  json_t* j_tmp;
+
+  if(j_msg == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired ami_event_asyncagiexec.");
+
+  unique_id = json_string_value(json_object_get(j_msg, "Uniqueid"));
+  if(unique_id == NULL) {
+    slog(LOG_ERR, "Could not get unique id info.");
+    return;
+  }
+
+  // update channel info
+  timestamp = get_utc_timestamp();
+  j_tmp = json_pack("{"
+      "s:s, s:s, "
+      "s:s, s:i, s:s, "
+      "s:s, s:s, s:s, s:s, s:s, s:s, "
+      "s:s, s:s, s:s, "
+      "s:s"
+      "}",
+
+      "unique_id",  json_string_value(json_object_get(j_msg, "Uniqueid"))? : "",
+      "linked_id",  json_string_value(json_object_get(j_msg, "Linkedid"))? : "",
+
+      "channel",   json_string_value(json_object_get(j_msg, "Channel"))? : "",
+      "channel_state",      json_string_value(json_object_get(j_msg, "ChannelState"))? atoi(json_string_value(json_object_get(j_msg, "ChannelState"))): 0,
+      "channel_state_desc", json_string_value(json_object_get(j_msg, "ChannelStateDesc"))? : "",
+
+      "caller_id_num",        json_string_value(json_object_get(j_msg, "CallerIDNum"))? : "",
+      "caller_id_name",       json_string_value(json_object_get(j_msg, "CallerIDName"))? : "",
+      "connected_line_num",   json_string_value(json_object_get(j_msg, "ConnectedLineNum"))? : "",
+      "connected_line_name",  json_string_value(json_object_get(j_msg, "ConnectedLineName"))? : "",
+      "language",             json_string_value(json_object_get(j_msg, "Language"))? : "",
+      "account_code",         json_string_value(json_object_get(j_msg, "AccountCode"))? : "",
+
+      "context",    json_string_value(json_object_get(j_msg, "Context"))? : "",
+      "exten",      json_string_value(json_object_get(j_msg, "Exten"))? : "",
+      "priority",   json_string_value(json_object_get(j_msg, "Priority"))? : "",
+
+      "tm_update",  timestamp
+      );
+  sfree(timestamp);
+
+  update_core_agi_info(j_tmp);
+  json_decref(j_tmp);
+
+
+  // get result
+  tmp_const = json_string_value(json_object_get(j_msg, "Result"));
+  result = uri_decode(tmp_const);
+  if(result == NULL) {
+    return;
+  }
+
+  // get command id
+  tmp_const = json_string_value(json_object_get(j_msg, "CommandId"));
+  if(tmp_const == NULL) {
+    tmp = gen_uuid();
+    asprintf(&command_id, "unknown-%s", tmp);
+    sfree(tmp);
+  }
+  else {
+    command_id = strdup(tmp_const);
+  }
+
+  // update cmd result info.
+  ret = update_core_agi_info_cmd_result(unique_id, command_id, result);
+  sfree(command_id);
+  sfree(result);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update core_agi cmd result info.");
     return;
   }
 

@@ -50,6 +50,8 @@ static void cb_htp_agent_agents_detail(evhtp_request_t *req, void *data);
 
 
 // core
+static void cb_htp_core_agis(evhtp_request_t *req, void *data);
+static void cb_htp_core_agis_detail(evhtp_request_t *req, void *data);
 static void cb_htp_core_channels(evhtp_request_t *req, void *data);
 static void cb_htp_core_channels_detail(evhtp_request_t *req, void *data);
 static void cb_htp_core_modules(evhtp_request_t *req, void *data);
@@ -156,6 +158,10 @@ bool init_http_handler(void)
 
 
   //// ^/core/
+  // agis
+  evhtp_set_regex_cb(g_htp, "^/core/agis/(.*)", cb_htp_core_agis_detail, NULL);
+  evhtp_set_regex_cb(g_htp, "^/core/agis$", cb_htp_core_agis, NULL);
+
   // channels
   evhtp_set_regex_cb(g_htp, "^/core/channels/(.*)", cb_htp_core_channels_detail, NULL);
   evhtp_set_regex_cb(g_htp, "^/core/channels$", cb_htp_core_channels, NULL);
@@ -1291,6 +1297,89 @@ static void cb_htp_queue_entries_detail(evhtp_request_t *req, void *data)
 
   // should not reach to here.
   simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  return;
+}
+
+/**
+ * http request handler
+ * ^/core/agis
+ * @param req
+ * @param data
+ */
+static void cb_htp_core_agis(evhtp_request_t *req, void *data)
+{
+  int method;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_core_agis.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if(method != htp_method_GET) {
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  if(method == htp_method_GET) {
+    htp_get_core_agis(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+
+  return;
+}
+
+/**
+ * http request handler
+ * ^/core/agis/<detail>
+ * @param req
+ * @param data
+ */
+static void cb_htp_core_agis_detail(evhtp_request_t *req, void *data)
+{
+  int method;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_core_agis_detail.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if((method != htp_method_GET) && (method != htp_method_DELETE)) {
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  if(method == htp_method_GET) {
+    htp_get_core_agis_detail(req, data);
+    return;
+  }
+  else if(method == htp_method_DELETE) {
+    // synonym of delete /core/channels/<detail>
+    htp_delete_core_channels_detail(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+
   return;
 }
 
