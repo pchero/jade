@@ -67,9 +67,9 @@ static bool init_db(void)
   // init database
   const char* tmp_const;
 
-  tmp_const = json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "database_name"));
+  tmp_const = json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "database_name_ast"));
   if(tmp_const == NULL) {
-    slog(LOG_ERR, "Could not get database_name info.");
+    slog(LOG_ERR, "Could not get database_name_ast info.");
     return false;
   }
 
