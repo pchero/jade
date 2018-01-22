@@ -25,6 +25,7 @@ json_t* get_agent_agent_info(const char* id);
 
 ////// core
 // core_agi
+json_t* get_core_agis_all(void);
 json_t* get_core_agi_info(const char* unique_id);
 bool create_core_agi_info(const json_t* j_data);
 bool update_core_agi_info(const json_t* j_data);

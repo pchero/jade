@@ -135,6 +135,83 @@ void htp_delete_core_channels_detail(evhtp_request_t *req, void *data)
 }
 
 /**
+ * GET ^/core/agis request handler.
+ * @param req
+ * @param data
+ */
+void htp_get_core_agis(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired htp_get_core_agis.");
+
+  j_tmp = get_core_agis_all();
+  if(j_tmp == NULL) {
+    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", json_object());
+  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
+
+  simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * GET ^/core/agis/<detail> request handler.
+ * @param req
+ * @param data
+ */
+void htp_get_core_agis_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+  char* unique_id;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired htp_get_core_agis_detail.");
+
+  // get agi unique_id
+  unique_id = uri_decode(req->uri->path->file);
+  if(unique_id == NULL) {
+    slog(LOG_NOTICE, "Could not get uuid info.");
+    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // get agi info.
+  j_tmp = get_core_agi_info(unique_id);
+  sfree(unique_id);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get agi info.");
+    simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", j_tmp);
+
+  simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
  * GET ^/core/systems/ request handler.
  * @param req
  * @param data

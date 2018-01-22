@@ -1541,6 +1541,18 @@ int delete_core_channel_info(const char* key)
 }
 
 /**
+ * Get all core_agi's info array
+ * @return
+ */
+json_t* get_core_agis_all(void)
+{
+  json_t* j_res;
+
+  j_res = get_items("core_agi", "*");
+  return j_res;
+}
+
+/**
  * Get corresponding core_agi info.
  * @return
  */
