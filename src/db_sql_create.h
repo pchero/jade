@@ -27,7 +27,47 @@ static const char* g_sql_create_action =
 ");";
 
 
-// channel
+// core_agi
+static const char* g_sql_drop_core_agi = "drop table if exists core_agi;";
+static const char* g_sql_create_core_agi =
+"create table core_agi("
+
+// identity
+"   unique_id   varchar(255) not null,"
+"   linked_id   varchar(255),"
+
+// channel info
+"   channel             varchar(255),"    ///< channel name
+"   channel_state       int,"
+"   channel_state_desc  varchar(255),"
+
+// dial info
+"   caller_id_num       varchar(255),"
+"   caller_id_name      varchar(255),"
+
+"   connected_line_num  varchar(255),"
+"   connected_line_name varchar(255),"
+
+"   language            varchar(255),"
+"   account_code        varchar(255),"
+
+// dialplan
+"   context     varchar(255),"
+"   exten       varchar(255),"
+"   priority    varchar(255),"
+
+// etc
+"   env         text,"
+"   cmd         text,"
+
+// timestamp. UTC."
+"   tm_update     datetime(6),"
+
+"   primary key(unique_id)"
+");";
+
+
+// core_channel
 static const char* g_sql_drop_channel = "drop table if exists channel;";
 static const char* g_sql_create_channel =
 "create table channel("

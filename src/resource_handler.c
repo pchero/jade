@@ -108,7 +108,15 @@ static bool init_core_database(void)
     return false;
   }
 
-  // core
+  // core_agi
+  db_ctx_exec(g_db_ast, g_sql_drop_core_agi);
+  ret = db_ctx_exec(g_db_ast, g_sql_create_core_agi);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create table. table[%s]", "core_agi");
+    return false;
+  }
+
+  // core_module
   db_ctx_exec(g_db_ast, g_sql_drop_core_module);
   ret = db_ctx_exec(g_db_ast, g_sql_create_core_module);
   if(ret == false) {
@@ -116,7 +124,7 @@ static bool init_core_database(void)
     return false;
   }
 
-  // channel
+  // core_channel
   db_ctx_exec(g_db_ast, g_sql_drop_channel);
   ret = db_ctx_exec(g_db_ast, g_sql_create_channel);
   if(ret == false) {
@@ -1480,7 +1488,7 @@ int update_core_channel_info(const json_t* j_data)
   // update
   ret = update_item("channel", "unique_id", j_data);
   if(ret == false) {
-    slog(LOG_ERR, "Could not update pjsip_auth info.");
+    slog(LOG_ERR, "Could not update core_channel info.");
     return false;
   }
 
@@ -1541,6 +1549,152 @@ int delete_core_channel_info(const char* key)
   return true;
 }
 
+/**
+ * Get corresponding core_agi info.
+ * @return
+ */
+json_t* get_core_agi_info(const char* unique_id)
+{
+  json_t* j_res;
+
+  if(unique_id == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_core_agi_info. unique_id[%s]", unique_id);
+
+  j_res = get_detail_item_key_string("core_agi", "unique_id", unique_id);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
+/**
+ * create core_agi info.
+ * @return
+ */
+bool create_core_agi_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired create_core_agi_info.");
+
+  // insert item
+  ret = insert_item("core_agi", j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert core_channel.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * update core_agi info.
+ * @return
+ */
+bool update_core_agi_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired update_core_agi_info.");
+
+  // update
+  ret = update_item("core_agi", "unique_id", j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update core_agi info.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Update core_agi cmd result info
+ * @param key
+ * @param cmd_id
+ * @param result
+ * @return
+ */
+bool update_core_agi_info_cmd_result(const char* key, const char* cmd_id, const char* result)
+{
+  int ret;
+  json_t* j_agi;
+  json_t* j_cmd;
+  char* timestamp;
+
+  if((key == NULL) || (cmd_id == NULL) || (result == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  // get agi info.
+  j_agi = get_core_agi_info(key);
+  if(j_agi == NULL) {
+    slog(LOG_ERR, "Could not get core_agi info.");
+    return false;
+  }
+
+  // update cmd result
+  // if there's no corresponding cmd_id info,
+  // create new one.
+  timestamp = get_utc_timestamp();
+  j_cmd = json_object_get(json_object_get(j_agi, "cmd"), cmd_id);
+  if(j_cmd == NULL) {
+    j_cmd = json_object();
+    json_object_set_new(json_object_get(j_agi, "cmd"), cmd_id, j_cmd);
+  }
+  json_object_set_new(j_cmd, "result", json_string(result));
+  json_object_set_new(j_cmd, "tm_update", json_string(timestamp));
+
+  // update agi info
+  json_object_set_new(j_agi, "tm_update", json_string(timestamp));
+  sfree(timestamp);
+
+  // update info
+  ret = update_core_agi_info(j_agi);
+  json_decref(j_agi);
+  if(ret == false) {
+    return false;
+  }
+
+  return true;
+
+}
+
+
+/**
+ * delete core_agi info.
+ * @return
+ */
+bool delete_core_agi_info(const char* key)
+{
+  int ret;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired delete_core_agi_info.");
+
+  ret = delete_items_string("core_agi", "unique_id", key);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not delete core_agi info. unique_id[%s]", key);
+    return false;
+  }
+
+  return true;
+}
 
 /**
  * Get all agent's id array

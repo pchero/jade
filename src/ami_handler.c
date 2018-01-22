@@ -42,6 +42,8 @@
 #define CMD_ECHO 1
 #define CMD_WINDOW_SIZE 31
 
+#define MAX_AMI_ITEM_LEN   40960
+
 static int g_ami_socket = -1;
 
 
@@ -167,7 +169,7 @@ int send_ami_cmd_raw(const char* cmd)
 json_t* parse_ami_msg(const char* msg)
 {
 	json_t* j_tmp;
-	char tmp[4096];
+	char tmp[MAX_AMI_ITEM_LEN];
 	int ret;
 	int i;
 	int j;
@@ -243,6 +245,54 @@ json_t* parse_ami_msg(const char* msg)
 
   return j_tmp;
 }
+
+json_t* parse_ami_agi_env(const char* msg)
+{
+  char tmp[40960];
+  int i;
+  int j;
+  char* value;
+  char* dump;
+  char* key;
+  json_t* j_res;
+
+  if(msg == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.\n");
+    return NULL;
+  }
+
+  j = 0;
+  bzero(tmp, sizeof(tmp));
+  j_res = json_object();
+  for(i = 0; i < strlen(msg); i++) {
+    tmp[j] = msg[i];
+    j++;
+    if(msg[i] != '\n') {
+      continue;
+    }
+
+    // get key/value
+    value = strdup(tmp);
+    dump = value;
+    key = strsep(&value, ":");
+    bzero(tmp, sizeof(tmp));
+    j = 0;
+
+    if((key == NULL) || (value == NULL)) {
+      sfree(dump);
+      continue;
+    }
+    trim(key);
+    trim(value);
+
+    json_object_set_new(j_res, key, json_string(value));
+    free(dump);
+  }
+
+  return j_res;
+
+}
+
 
 /**
  * Set ami socket.
