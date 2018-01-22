@@ -1373,6 +1373,7 @@ bool create_core_channel_info(const json_t* j_data)
 
   return true;
 }
+
 /**
  * Get all channel's unique id array
  * @return
@@ -1387,17 +1388,7 @@ json_t* get_core_channels_all_unique_id(void)
 
   asprintf(&sql, "select * from channel;");
   ret = db_ctx_query(g_db_ast, sql);
-  sfree(sql);/**
-   * Get all channel's array
-   * @return
-   */
-  json_t* get_channels_all(void)
-  {
-    json_t* j_res;
-
-    j_res = get_items("channel", "*");
-    return j_res;
-  }
+  sfree(sql);
 
   if(ret == false) {
     slog(LOG_WARNING, "Could not get correct channel info.");
@@ -1578,6 +1569,8 @@ json_t* get_core_agi_info(const char* unique_id)
 bool create_core_agi_info(const json_t* j_data)
 {
   int ret;
+  const char* tmp_const;
+  json_t* j_tmp;
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -1592,6 +1585,23 @@ bool create_core_agi_info(const json_t* j_data)
     return false;
   }
 
+  // publish
+  // get data info
+  tmp_const = json_string_value(json_object_get(j_data, "unique_id"));
+  j_tmp = get_core_agi_info(tmp_const);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get core_agi info. unique_id[%s]", tmp_const);
+    return false;
+  }
+
+  // publish event
+  ret = publish_event_core_agi(DEF_PUB_TYPE_CREATE, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
   return true;
 }
 
@@ -1602,6 +1612,8 @@ bool create_core_agi_info(const json_t* j_data)
 bool update_core_agi_info(const json_t* j_data)
 {
   int ret;
+  const char* tmp_const;
+  json_t* j_tmp;
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -1613,6 +1625,23 @@ bool update_core_agi_info(const json_t* j_data)
   ret = update_item("core_agi", "unique_id", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update core_agi info.");
+    return false;
+  }
+
+  // publish
+  // get data info
+  tmp_const = json_string_value(json_object_get(j_data, "unique_id"));
+  j_tmp = get_core_agi_info(tmp_const);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get core_agi info. unique_id[%s]", tmp_const);
+    return false;
+  }
+
+  // publish event
+  ret = publish_event_core_agi(DEF_PUB_TYPE_UPDATE, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
     return false;
   }
 
@@ -1680,6 +1709,7 @@ bool update_core_agi_info_cmd_result(const char* key, const char* cmd_id, const 
 bool delete_core_agi_info(const char* key)
 {
   int ret;
+  json_t* j_tmp;
 
   if(key == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -1687,9 +1717,25 @@ bool delete_core_agi_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired delete_core_agi_info.");
 
+  // get data info
+  j_tmp = get_core_agi_info(key);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get core_channel info. unique_id[%s]", key);
+    return false;
+  }
+
   ret = delete_items_string("core_agi", "unique_id", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete core_agi info. unique_id[%s]", key);
+    return false;
+  }
+
+  // publish
+  // publish event
+  ret = publish_event_core_agi(DEF_PUB_TYPE_DELETE, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
     return false;
   }
 
