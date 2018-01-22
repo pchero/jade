@@ -27,7 +27,7 @@ extern app* g_app;
 db_ctx_t* g_db_ast;
 db_ctx_t* g_db_jade;
 
-
+// db
 static bool insert_item(db_ctx_t* ctx, const char* table, const json_t* j_data);
 static bool update_item(db_ctx_t* ctx, const char* table, const char* key_column, const json_t* j_data);
 static json_t* get_items(db_ctx_t* ctx, const char* table, const char* item);
@@ -36,7 +36,7 @@ static json_t* get_detail_items_key_string(db_ctx_t* ctx, const char* table, con
 static bool delete_items_string(db_ctx_t* ctx, const char* table, const char* key, const char* val);
 
 
-
+// db_ast
 static bool insert_ast_item(const char* table, const json_t* j_data);
 static bool update_ast_item(const char* table, const char* key_column, const json_t* j_data);
 static json_t* get_ast_items(const char* table, const char* item);
@@ -44,9 +44,12 @@ static json_t* get_ast_detail_item_key_string(const char* table, const char* key
 static json_t* get_ast_detail_items_key_string(const char* table, const char* key, const char* val);
 static bool delete_ast_items_string(const char* table, const char* key, const char* val);
 
-
+// db_jade
 static bool insert_jade_item(const char* table, const json_t* j_data);
 static bool update_jade_item(const char* table, const char* key_column, const json_t* j_data);
+static bool delete_jade_items_string(const char* table, const char* key, const char* val);
+static json_t* get_jade_items(const char* table, const char* item);
+static json_t* get_jade_detail_item_key_string(const char* table, const char* key, const char* val);
 
 
 
@@ -310,7 +313,7 @@ static bool init_jade_database(void)
   int ret;
 
   // dp_dpma
-  db_ctx_exec(g_db_jade, g_sql_drop_dp_dpma);
+//  db_ctx_exec(g_db_jade, g_sql_drop_dp_dpma);
   ret = db_ctx_exec(g_db_jade, g_sql_create_dp_dpma);
   if(ret == false) {
     slog(LOG_ERR, "Could not create table. table[%s]", "dp_dpma");
@@ -318,7 +321,7 @@ static bool init_jade_database(void)
   }
 
   // dp_dialplan
-  db_ctx_exec(g_db_jade, g_sql_drop_dp_dialplan);
+//  db_ctx_exec(g_db_jade, g_sql_drop_dp_dialplan);
   ret = db_ctx_exec(g_db_jade, g_sql_create_dp_dialplan);
   if(ret == false) {
     slog(LOG_ERR, "Could not create table. table[%s]", "dp_dialplan");
@@ -780,6 +783,53 @@ static bool delete_jade_items_string(const char* table, const char* key, const c
 
   return true;
 }
+
+/**
+ *
+ * @param table
+ * @param item
+ * @return
+ */
+static json_t* get_jade_items(const char* table, const char* item)
+{
+  json_t* j_res;
+
+  if((table == NULL) || (item == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_jade_items. table[%s], item[%s]", table, item);
+
+  j_res = get_items(g_db_jade, table, item);
+
+  return j_res;
+}
+
+/**
+ * Get detail info of key="val" from table. get only 1 item.
+ * "select * from <table> where <key>=<val>;"
+ * @param table
+ * @param item
+ * @return
+ */
+static json_t* get_jade_detail_item_key_string(const char* table, const char* key, const char* val)
+{
+  json_t* j_res;
+
+  if((table == NULL) || (key == NULL) || (val == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_jade_detail_item_key_string. table[%s], key[%s], val[%s]", table, key, val);
+
+  j_res = get_detail_item_key_string(g_db_jade, table, key, val);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
 
 
 /**
@@ -3234,6 +3284,38 @@ bool delete_pjsip_contact_info(const char* key)
 }
 
 /**
+ * Get all dp_dpma array
+ * @return
+ */
+json_t* get_dp_dpmas_all(void)
+{
+  json_t* j_res;
+
+  j_res = get_jade_items("dp_dpma", "*");
+  return j_res;
+}
+
+/**
+ * Get corresponding dp_dpma detail info.
+ * @return
+ */
+json_t* get_dp_dpma_info(const char* key)
+{
+  json_t* j_res;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_dp_dpma_info. key[%s]", key);
+
+  j_res = get_jade_detail_item_key_string("dp_dpma", "uuid", key);
+
+  return j_res;
+}
+
+
+/**
  * Create dp dpma info.
  * @param j_data
  * @return
@@ -3380,3 +3462,4 @@ bool delete_dp_dialplan_info(const char* key)
 
   return true;
 }
+

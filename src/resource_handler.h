@@ -52,6 +52,8 @@ bool update_core_module_info(const json_t* j_data);
 
 ///////// dialplan
 // dpma
+json_t* get_dp_dpmas_all(void);
+json_t* get_dp_dpma_info(const char* key);
 bool create_dp_dpma_info(const json_t* j_data);
 bool update_dp_dpma_info(const json_t* j_data);
 bool delete_dp_dpma_info(const char* key);

@@ -825,7 +825,7 @@ static const char* g_sql_create_voicemail_user =
 // dp_dpma
 static const char* g_sql_drop_dp_dpma = "drop table if exists dp_dpma;";
 static const char* g_sql_create_dp_dpma =
-"create table dp_dpma("
+"create table if not exists dp_dpma("
 
 // identify
 "   uuid    varchar(255),"
@@ -844,7 +844,7 @@ static const char* g_sql_create_dp_dpma =
 // dp_dialplan
 static const char* g_sql_drop_dp_dialplan = "drop table if exists dp_dialplan;";
 static const char* g_sql_create_dp_dialplan =
-"create table dp_dialplan("
+"create table if not exists dp_dialplan("
 
 // identify
 "   uuid        varchar(255),"  // identity.
