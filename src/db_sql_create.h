@@ -821,4 +821,48 @@ static const char* g_sql_create_voicemail_user =
 ");";
 
 
+//// dialplan
+// dp_dpma
+static const char* g_sql_drop_dp_dpma = "drop table if exists dp_dpma;";
+static const char* g_sql_create_dp_dpma =
+"create table dp_dpma("
+
+// identify
+"   uuid    varchar(255),"
+
+// info
+"   name        varchar(255),"
+"   detail      varchar(1023),"
+
+// timestamp. UTC."
+"   tm_create         datetime(6),"   // create time
+"   tm_update         datetime(6),"   // update time.
+
+"   primary key(uuid)"
+");";
+
+// dp_dialplan
+static const char* g_sql_drop_dp_dialplan = "drop table if exists dp_dialplan;";
+static const char* g_sql_create_dp_dialplan =
+"create table dp_dialplan("
+
+// identify
+"   uuid        varchar(255),"  // identity.
+"   dpma_uuid   varchar(255),"
+"   sequence    int,"
+
+// info
+"   name        varchar(255),"
+"   detail      varchar(1023),"
+"   command     varchar(1023),"
+
+// timestamp. UTC."
+"   tm_create         datetime(6),"   // create time
+"   tm_update         datetime(6),"   // update time.
+
+"   primary key(dpma_uuid, sequence)"   ///
+");";
+
+
+
 #endif /* SRC_DB_SQL_CREATE_H_ */

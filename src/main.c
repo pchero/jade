@@ -22,7 +22,7 @@
 #include "conf_handler.h"
 
 app* g_app;
-db_ctx_t* g_db_ast;
+
 
 static bool option_parse(int argc, char** argv);
 static void print_help(void);
@@ -134,9 +134,7 @@ bool terminate(void)
 
   term_websocket_handler();
 
-  // terminate database
-  db_ctx_term(g_db_ast);
-  g_db_ast = NULL;
+  term_resource_handler();
 
   event_base_free(g_app->evt_base);
   g_app->evt_base = NULL;

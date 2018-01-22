@@ -12,6 +12,7 @@
 #include <jansson.h>
 
 bool init_resource_handler(void);
+void term_resource_handler(void);
 
 //////// agent
 // agent
@@ -31,7 +32,6 @@ bool create_core_agi_info(const json_t* j_data);
 bool update_core_agi_info(const json_t* j_data);
 bool update_core_agi_info_cmd_result(const char* key, const char* cmd_id, const char* result);
 bool delete_core_agi_info(const char* key);
-
 // core_channel
 json_t* get_core_channels_all_unique_id(void);
 json_t* get_core_channels_all(void);
@@ -39,12 +39,10 @@ json_t* get_core_channel_info(const char* unique_id);
 bool create_core_channel_info(const json_t* j_data);
 int update_core_channel_info(const json_t* j_tmp);
 int delete_core_channel_info(const char* key);
-
 // core_system
 json_t* get_core_systems_all_id(void);
 json_t* get_core_systems_all(void);
 json_t* get_core_system_info(const char* id);
-
 // core_module
 int create_core_module(json_t* j_tmp);
 json_t* get_core_modules_all(void);
@@ -52,12 +50,25 @@ json_t* get_core_module_info(const char* key);
 bool update_core_module_info(const json_t* j_data);
 
 
+///////// dialplan
+// dpma
+bool create_dp_dpma_info(const json_t* j_data);
+bool update_dp_dpma_info(const json_t* j_data);
+bool delete_dp_dpma_info(const char* key);
+// dialplan
+bool create_dp_dialplan_info(const json_t* j_data);
+bool update_dp_dialplan_info(const json_t* j_data);
+bool delete_dp_dialplan_info(const char* key);
+
+
 // database
 json_t* get_databases_all_key(void);
 json_t* get_database_info(const char* key);
 
 
-// queue
+
+///////// queue
+// queue entry
 json_t* get_queue_entry_info(const char* key);
 json_t* get_queue_entry_info_by_id_name(const char* channel, const char* queue_name);
 json_t* get_queue_entries_all(void);
@@ -65,20 +76,20 @@ json_t* get_queue_entries_all_by_queuename(const char* name);
 json_t* get_queue_entries_all_unique_id_queue_name(void);
 int delete_queue_entry_info(const char* key);
 int create_queue_entry_info(const json_t* j_tmp);
-
+// queue members
 json_t* get_queue_members_all(void);
 json_t* get_queue_members_all_by_queuename(const char* name);
 json_t* get_queue_members_all_name_queue(void);
 json_t* get_queue_member_info(const char* id);
 int create_queue_member_info(const json_t* j_data);
 int delete_queue_member_info(const char* key);
-
+// queue param
 json_t* get_queue_param_info(const char* name);
 json_t* get_queue_params_all(void);
 json_t* get_queue_params_all_name(void);
 int create_queue_param_info(const json_t* j_tmp);
 int delete_queue_param_info(const char* key);
-
+// queue status
 json_t* get_queue_status_info(const char* name);
 json_t* get_queue_statuses_all(void);
 
@@ -87,11 +98,14 @@ json_t* get_queue_statuses_all(void);
 json_t* get_device_states_all_device(void);
 json_t* get_device_state_info(const char* device);
 
-// park
+
+/////// park
+// parkinglot
 json_t* get_park_parkinglots_all(void);
 json_t* get_park_parkinglots_all_name(void);
 json_t* get_park_parkinglot_info(const char* name);
 int create_park_parkinglot_info(const json_t* j_tmp);
+// parkedcalls
 json_t* get_park_parkedcalls_all();
 json_t* get_park_parkedcalls_all_parkee_unique_id(void);
 json_t* get_park_parkedcall_info(const char* parkee_unique_id);
