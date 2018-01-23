@@ -58,6 +58,9 @@ bool create_dp_dpma_info(const json_t* j_data);
 bool update_dp_dpma_info(const json_t* j_data);
 bool delete_dp_dpma_info(const char* key);
 // dialplan
+json_t* get_dp_dialplans_all(void);
+json_t* get_dp_dialplan_info(const char* key);
+json_t* get_dp_dialplan_info_by_dpma_seq(const char* dpma_uuid, int seq);
 bool create_dp_dialplan_info(const json_t* j_data);
 bool update_dp_dialplan_info(const json_t* j_data);
 bool delete_dp_dialplan_info(const char* key);

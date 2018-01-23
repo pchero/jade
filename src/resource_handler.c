@@ -34,6 +34,7 @@ static json_t* get_items(db_ctx_t* ctx, const char* table, const char* item);
 static json_t* get_detail_item_key_string(db_ctx_t* ctx, const char* table, const char* key, const char* val);
 static json_t* get_detail_items_key_string(db_ctx_t* ctx, const char* table, const char* key, const char* val);
 static bool delete_items_string(db_ctx_t* ctx, const char* table, const char* key, const char* val);
+static json_t* get_detail_item_by_obj(db_ctx_t* ctx, const char* table, json_t* j_obj);
 
 
 // db_ast
@@ -50,7 +51,7 @@ static bool update_jade_item(const char* table, const char* key_column, const js
 static bool delete_jade_items_string(const char* table, const char* key, const char* val);
 static json_t* get_jade_items(const char* table, const char* item);
 static json_t* get_jade_detail_item_key_string(const char* table, const char* key, const char* val);
-
+static json_t* get_jade_detail_item_by_obj(const char* table, json_t* j_obj);
 
 
 static bool init_db(void);
@@ -567,6 +568,83 @@ static json_t* get_detail_items_key_string(db_ctx_t* ctx, const char* table, con
 }
 
 /**
+ * Get detail info of key="val" from table. Get all items.
+ * "select * from <table> where <key>=<val>;"
+ * @param table
+ * @param item
+ * @return
+ */
+static json_t* get_detail_item_by_obj(db_ctx_t* ctx, const char* table, json_t* j_obj)
+{
+  int ret;
+  json_t* j_res;
+  char* sql;
+  char* sql_tmp;
+  char* sql_cond;
+  const char* key;
+  json_t* j_val;
+
+  if((ctx == NULL) || (table == NULL) || (j_obj == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_detail_items_by_obj. table[%s]", table);
+
+
+  sql_tmp = NULL;
+  sql_cond = NULL;
+  json_object_foreach(j_obj, key, j_val) {
+    if(sql_cond == NULL) {
+      if(json_is_string(j_val) == true) {
+        asprintf(&sql_cond, "%s=\"%s\"", key, json_string_value(j_val));
+      }
+      else if(json_is_integer(j_val) == true) {
+        asprintf(&sql_cond, "%s=%"JSON_INTEGER_FORMAT, key, json_integer_value(j_val));
+      }
+      else if(json_is_number(j_val) == true) {
+        asprintf(&sql_cond, "%s=%f", key, json_number_value(j_val));
+      }
+    }
+    else {
+      if(json_is_string(j_val) == true) {
+        asprintf(&sql_tmp, "%s and %s=\"%s\"", sql_cond, key, json_string_value(j_val));
+      }
+      else if(json_is_integer(j_val) == true) {
+        asprintf(&sql_tmp, "%s and %s=%"JSON_INTEGER_FORMAT, sql_cond, key, json_integer_value(j_val));
+      }
+      else if(json_is_number(j_val) == true) {
+        asprintf(&sql_tmp, "%s and %s=%f", sql_cond, key, json_number_value(j_val));
+      }
+      else {
+        // not support type.
+        asprintf(&sql_tmp, "%s", sql_cond);
+      }
+
+      sfree(sql_cond);
+      sql_cond = sql_tmp;
+      sql_tmp = NULL;
+    }
+  }
+
+  asprintf(&sql, "select * from %s where %s;", table, sql_cond);
+  sfree(sql_cond);
+  ret = db_ctx_query(ctx, sql);
+  sfree(sql);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not get detail info.");
+    return NULL;
+  }
+
+  j_res = db_ctx_get_record(ctx);
+  db_ctx_free(ctx);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
+/**
  *
  * @param table
  * @param item
@@ -828,6 +906,24 @@ static json_t* get_jade_detail_item_key_string(const char* table, const char* ke
   }
 
   return j_res;
+}
+
+static json_t* get_jade_detail_item_by_obj(const char* table, json_t* j_obj)
+{
+  json_t* j_res;
+
+  if((table == NULL) || (j_obj == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  j_res = get_detail_item_by_obj(g_db_jade, table, j_obj);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+
 }
 
 
@@ -3388,6 +3484,67 @@ bool delete_dp_dpma_info(const char* key)
 
   return true;
 }
+
+/**
+ * Get all dp_dialplan array
+ * @return
+ */
+json_t* get_dp_dialplans_all(void)
+{
+  json_t* j_res;
+
+  j_res = get_jade_items("dp_dialplan", "*");
+  return j_res;
+}
+
+/**
+ * Get corresponding dp_dialplan detail info.
+ * @return
+ */
+json_t* get_dp_dialplan_info(const char* key)
+{
+  json_t* j_res;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_dp_dialplan_info. key[%s]", key);
+
+  j_res = get_jade_detail_item_key_string("dp_dialplan", "uuid", key);
+
+  return j_res;
+}
+
+/**
+ * Get corresponding dp_dialplan detail info.
+ * @return
+ */
+json_t* get_dp_dialplan_info_by_dpma_seq(const char* dpma_uuid, int seq)
+{
+  json_t* j_res;
+  json_t* j_obj;
+
+  if(dpma_uuid == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_dp_dialplan_info_by_dpma_seq. dpma_uuid[%s], sequence[%d]", dpma_uuid, seq);
+
+  j_obj = json_pack("{s:s, s:i}",
+      "dpma_uuid",  dpma_uuid,
+      "sequence",   seq
+      );
+
+  j_res = get_jade_detail_item_by_obj("dp_dialplan", j_obj);
+  json_decref(j_obj);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
 
 /**
  * Create dp_dialplan info.

@@ -823,7 +823,7 @@ static const char* g_sql_create_voicemail_user =
 
 //// dialplan
 // dp_dpma
-static const char* g_sql_drop_dp_dpma = "drop table if exists dp_dpma;";
+//static const char* g_sql_drop_dp_dpma = "drop table if exists dp_dpma;";
 static const char* g_sql_create_dp_dpma =
 "create table if not exists dp_dpma("
 
@@ -842,7 +842,7 @@ static const char* g_sql_create_dp_dpma =
 ");";
 
 // dp_dialplan
-static const char* g_sql_drop_dp_dialplan = "drop table if exists dp_dialplan;";
+//static const char* g_sql_drop_dp_dialplan = "drop table if exists dp_dialplan;";
 static const char* g_sql_create_dp_dialplan =
 "create table if not exists dp_dialplan("
 
