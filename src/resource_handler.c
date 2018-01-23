@@ -24,19 +24,39 @@
 
 extern app* g_app;
 
+db_ctx_t* g_db_ast;
+db_ctx_t* g_db_jade;
 
-static bool insert_item(const char* table, const json_t* j_data);
-static bool update_item(const char* table, const char* key_column, const json_t* j_data);
-static json_t* get_items(const char* table, const char* item);
-static json_t* get_detail_item_key_string(const char* table, const char* key, const char* val);
-static json_t* get_detail_items_key_string(const char* table, const char* key, const char* val);
+// db
+static bool insert_item(db_ctx_t* ctx, const char* table, const json_t* j_data);
+static bool update_item(db_ctx_t* ctx, const char* table, const char* key_column, const json_t* j_data);
+static json_t* get_items(db_ctx_t* ctx, const char* table, const char* item);
+static json_t* get_detail_item_key_string(db_ctx_t* ctx, const char* table, const char* key, const char* val);
+static json_t* get_detail_items_key_string(db_ctx_t* ctx, const char* table, const char* key, const char* val);
+static bool delete_items_string(db_ctx_t* ctx, const char* table, const char* key, const char* val);
+static json_t* get_detail_item_by_obj(db_ctx_t* ctx, const char* table, json_t* j_obj);
 
 
-//static bool delete_items_number(const char* table, const char* key, const int val);
-static bool delete_items_string(const char* table, const char* key, const char* val);
+// db_ast
+static bool insert_ast_item(const char* table, const json_t* j_data);
+static bool update_ast_item(const char* table, const char* key_column, const json_t* j_data);
+static json_t* get_ast_items(const char* table, const char* item);
+static json_t* get_ast_detail_item_key_string(const char* table, const char* key, const char* val);
+static json_t* get_ast_detail_items_key_string(const char* table, const char* key, const char* val);
+static bool delete_ast_items_string(const char* table, const char* key, const char* val);
+
+// db_jade
+static bool insert_jade_item(const char* table, const json_t* j_data);
+static bool update_jade_item(const char* table, const char* key_column, const json_t* j_data);
+static bool delete_jade_items_string(const char* table, const char* key, const char* val);
+static json_t* get_jade_items(const char* table, const char* item);
+static json_t* get_jade_detail_item_key_string(const char* table, const char* key, const char* val);
+static json_t* get_jade_detail_item_by_obj(const char* table, json_t* j_obj);
+
 
 static bool init_db(void);
-static bool init_core_database(void);
+static bool init_ast_database(void);
+static bool init_jade_database(void);
 
 
 /**
@@ -53,13 +73,27 @@ bool init_resource_handler(void)
     return false;
   }
 
-  ret = init_core_database();
+  ret = init_ast_database();
   if(ret == false) {
-    slog(LOG_ERR, "Could not initiate core database.");
+    slog(LOG_ERR, "Could not initiate ast database.");
+    return false;
+  }
+
+  ret = init_jade_database();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate jade database.");
     return false;
   }
 
   return true;
+}
+
+void term_resource_handler(void)
+{
+  slog(LOG_DEBUG, "Fired term_resource_handler.");
+
+  db_ctx_term(g_db_ast);
+  db_ctx_term(g_db_jade);
 }
 
 static bool init_db(void)
@@ -67,28 +101,43 @@ static bool init_db(void)
   // init database
   const char* tmp_const;
 
-  tmp_const = json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "database_name"));
+  // init database_ast
+  tmp_const = json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "database_name_ast"));
   if(tmp_const == NULL) {
-    slog(LOG_ERR, "Could not get database_name info.");
+    slog(LOG_ERR, "Could not get database_name_ast info.");
     return false;
   }
 
   g_db_ast = db_ctx_init(tmp_const);
   if(g_db_ast == NULL) {
-    slog(LOG_WARNING, "Could not initiate db.");
+    slog(LOG_WARNING, "Could not initiate db_ast.");
     return false;
   }
+
+  // init database_jade
+  tmp_const = json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "database_name_jade"));
+  if(tmp_const == NULL) {
+    slog(LOG_ERR, "Could not get database_name_jade info.");
+    return false;
+  }
+
+  g_db_jade = db_ctx_init(tmp_const);
+  if(g_db_jade == NULL) {
+    slog(LOG_WARNING, "Could not initiate db_jade.");
+    return false;
+  }
+
   slog(LOG_NOTICE, "Finished db_init.");
 
   return true;
 }
 
 /**
- * Initialize core database.
+ * Initialize ast database.
  * @return Success: true\n
  * Failure: false
  */
-static bool init_core_database(void)
+static bool init_ast_database(void)
 {
   int ret;
 
@@ -256,26 +305,55 @@ static bool init_core_database(void)
 }
 
 /**
+ * Initialize jade database.
+ * @return Success: true\n
+ * Failure: false
+ */
+static bool init_jade_database(void)
+{
+  int ret;
+
+  // dp_dpma
+//  db_ctx_exec(g_db_jade, g_sql_drop_dp_dpma);
+  ret = db_ctx_exec(g_db_jade, g_sql_create_dp_dpma);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create table. table[%s]", "dp_dpma");
+    return false;
+  }
+
+  // dp_dialplan
+//  db_ctx_exec(g_db_jade, g_sql_drop_dp_dialplan);
+  ret = db_ctx_exec(g_db_jade, g_sql_create_dp_dialplan);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create table. table[%s]", "dp_dialplan");
+    return false;
+  }
+
+  return true;
+}
+
+/**
  *
  * @param table
  * @param item
  * @return
  */
-static bool insert_item(const char* table, const json_t* j_data)
+static bool insert_item(db_ctx_t* ctx, const char* table, const json_t* j_data)
 {
   int ret;
 
-  if((table == NULL) || (j_data == NULL)) {
+  if((ctx == NULL) || (table == NULL) || (j_data == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
   slog(LOG_DEBUG, "Fired create_item. table[%s]", table);
 
-  ret = db_ctx_insert_or_replace(g_db_ast, table, j_data);
+  ret = db_ctx_insert_or_replace(ctx, table, j_data);
   if(ret == false) {
-    slog(LOG_ERR, "Could not insert queue_param.");
+    slog(LOG_ERR, "Could not insert item.");
     return false;
   }
+
   return true;
 }
 
@@ -286,7 +364,7 @@ static bool insert_item(const char* table, const json_t* j_data)
  * @param j_data
  * @return
  */
-static bool update_item(const char* table, const char* key_column, const json_t* j_data)
+static bool update_item(db_ctx_t* ctx, const char* table, const char* key_column, const json_t* j_data)
 {
   char* tmp;
   char* sql;
@@ -294,7 +372,7 @@ static bool update_item(const char* table, const char* key_column, const json_t*
   int ret;
   json_t* j_key;
 
-  if((table == NULL) || (key_column == NULL) || (j_data == NULL)) {
+  if((ctx == NULL) || (table == NULL) || (key_column == NULL) || (j_data == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
@@ -334,7 +412,7 @@ static bool update_item(const char* table, const char* key_column, const json_t*
   sfree(sql_tmp);
 
   // execute
-  ret = db_ctx_exec(g_db_ast, sql);
+  ret = db_ctx_exec(ctx, sql);
   sfree(sql);
   if(ret == false) {
     slog(LOG_WARNING, "Could not update info.");
@@ -350,21 +428,21 @@ static bool update_item(const char* table, const char* key_column, const json_t*
  * @param item
  * @return
  */
-static json_t* get_items(const char* table, const char* item)
+static json_t* get_items(db_ctx_t* ctx, const char* table, const char* item)
 {
   int ret;
   json_t* j_res;
   json_t* j_tmp;
   char* sql;
 
-  if((table == NULL) || (item == NULL)) {
+  if((ctx == NULL) || (table == NULL) || (item == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return NULL;
   }
   slog(LOG_DEBUG, "Fired get_items. table[%s], item[%s]", table, item);
 
   asprintf(&sql, "select %s from %s;", item, table);
-  ret = db_ctx_query(g_db_ast, sql);
+  ret = db_ctx_query(ctx, sql);
   sfree(sql);
   if(ret == false) {
     slog(LOG_WARNING, "Could not get correct databases name info.");
@@ -373,7 +451,7 @@ static json_t* get_items(const char* table, const char* item)
 
   j_res = json_array();
   while(1) {
-    j_tmp = db_ctx_get_record(g_db_ast);
+    j_tmp = db_ctx_get_record(ctx);
     if(j_tmp == NULL) {
       break;
     }
@@ -389,19 +467,19 @@ static json_t* get_items(const char* table, const char* item)
  * delete all selected items with string value.
  * @return
  */
-static bool delete_items_string(const char* table, const char* key, const char* val)
+static bool delete_items_string(db_ctx_t* ctx, const char* table, const char* key, const char* val)
 {
   int ret;
   char* sql;
 
-  if((table == NULL) || (key == NULL) || (val == NULL)) {
+  if((ctx == NULL) || (table == NULL) || (key == NULL) || (val == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
   slog(LOG_DEBUG, "Fired delete_items_string. table[%s], key[%s], val[%s]", table, key, val);
 
   asprintf(&sql, "delete from %s where %s=\"%s\";", table, key, val);
-  ret = db_ctx_exec(g_db_ast, sql);
+  ret = db_ctx_exec(ctx, sql);
   sfree(sql);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete items.");
@@ -411,33 +489,6 @@ static bool delete_items_string(const char* table, const char* key, const char* 
   return true;
 }
 
-///**
-// * delete all selected items with number value.
-// * @return
-// */
-//static bool delete_items_number(const char* table, const char* key, const int val)
-//{
-//  int ret;
-//  char* sql;
-//
-//  if((table == NULL) || (key == NULL)) {
-//    slog(LOG_WARNING, "Wrong input parameter.");
-//    return false;
-//  }
-//  slog(LOG_DEBUG, "Fired delete_items_number. table[%s], key[%s], val[%d]", table, key, val);
-//
-//  asprintf(&sql, "delete from %s where %s=%d;", table, key, val);
-//  ret = db_ctx_exec(g_db_ast, sql);
-//  sfree(sql);
-//  if(ret == false) {
-//    slog(LOG_WARNING, "Could not delete items.");
-//    return false;
-//  }
-//
-//  return true;
-//}
-
-
 /**
  * Get detail info of key="val" from table. get only 1 item.
  * "select * from <table> where <key>=<val>;"
@@ -445,28 +496,28 @@ static bool delete_items_string(const char* table, const char* key, const char* 
  * @param item
  * @return
  */
-static json_t* get_detail_item_key_string(const char* table, const char* key, const char* val)
+static json_t* get_detail_item_key_string(db_ctx_t* ctx, const char* table, const char* key, const char* val)
 {
   int ret;
   json_t* j_res;
   char* sql;
 
-  if((table == NULL) || (key == NULL) || (val == NULL)) {
+  if((ctx == NULL) || (table == NULL) || (key == NULL) || (val == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return NULL;
   }
   slog(LOG_DEBUG, "Fired get_detail_item_key_string. table[%s], key[%s], val[%s]", table, key, val);
 
   asprintf(&sql, "select * from %s where %s=\"%s\";", table, key, val);
-  ret = db_ctx_query(g_db_ast, sql);
+  ret = db_ctx_query(ctx, sql);
   sfree(sql);
   if(ret == false) {
     slog(LOG_WARNING, "Could not get detail info.");
     return NULL;
   }
 
-  j_res = db_ctx_get_record(g_db_ast);
-  db_ctx_free(g_db_ast);
+  j_res = db_ctx_get_record(ctx);
+  db_ctx_free(ctx);
   if(j_res == NULL) {
     return NULL;
   }
@@ -482,21 +533,21 @@ static json_t* get_detail_item_key_string(const char* table, const char* key, co
  * @param item
  * @return
  */
-static json_t* get_detail_items_key_string(const char* table, const char* key, const char* val)
+static json_t* get_detail_items_key_string(db_ctx_t* ctx, const char* table, const char* key, const char* val)
 {
   int ret;
   json_t* j_res;
   json_t* j_tmp;
   char* sql;
 
-  if((table == NULL) || (key == NULL) || (val == NULL)) {
+  if((ctx == NULL) || (table == NULL) || (key == NULL) || (val == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return NULL;
   }
   slog(LOG_DEBUG, "Fired get_detail_items_key_string. table[%s], key[%s], val[%s]", table, key, val);
 
   asprintf(&sql, "select * from %s where %s=\"%s\";", table, key, val);
-  ret = db_ctx_query(g_db_ast, sql);
+  ret = db_ctx_query(ctx, sql);
   sfree(sql);
   if(ret == false) {
     slog(LOG_WARNING, "Could not get detail info.");
@@ -505,16 +556,376 @@ static json_t* get_detail_items_key_string(const char* table, const char* key, c
 
   j_res = json_array();
   while(true) {
-    j_tmp = db_ctx_get_record(g_db_ast);
+    j_tmp = db_ctx_get_record(ctx);
     if(j_tmp == NULL) {
       break;
     }
     json_array_append_new(j_res, j_tmp);
   }
-  db_ctx_free(g_db_ast);
+  db_ctx_free(ctx);
 
   return j_res;
 }
+
+/**
+ * Get detail info of key="val" from table. Get all items.
+ * "select * from <table> where <key>=<val>;"
+ * @param table
+ * @param item
+ * @return
+ */
+static json_t* get_detail_item_by_obj(db_ctx_t* ctx, const char* table, json_t* j_obj)
+{
+  int ret;
+  json_t* j_res;
+  char* sql;
+  char* sql_tmp;
+  char* sql_cond;
+  const char* key;
+  json_t* j_val;
+
+  if((ctx == NULL) || (table == NULL) || (j_obj == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_detail_items_by_obj. table[%s]", table);
+
+
+  sql_tmp = NULL;
+  sql_cond = NULL;
+  json_object_foreach(j_obj, key, j_val) {
+    if(sql_cond == NULL) {
+      if(json_is_string(j_val) == true) {
+        asprintf(&sql_cond, "%s=\"%s\"", key, json_string_value(j_val));
+      }
+      else if(json_is_integer(j_val) == true) {
+        asprintf(&sql_cond, "%s=%"JSON_INTEGER_FORMAT, key, json_integer_value(j_val));
+      }
+      else if(json_is_number(j_val) == true) {
+        asprintf(&sql_cond, "%s=%f", key, json_number_value(j_val));
+      }
+    }
+    else {
+      if(json_is_string(j_val) == true) {
+        asprintf(&sql_tmp, "%s and %s=\"%s\"", sql_cond, key, json_string_value(j_val));
+      }
+      else if(json_is_integer(j_val) == true) {
+        asprintf(&sql_tmp, "%s and %s=%"JSON_INTEGER_FORMAT, sql_cond, key, json_integer_value(j_val));
+      }
+      else if(json_is_number(j_val) == true) {
+        asprintf(&sql_tmp, "%s and %s=%f", sql_cond, key, json_number_value(j_val));
+      }
+      else {
+        // not support type.
+        asprintf(&sql_tmp, "%s", sql_cond);
+      }
+
+      sfree(sql_cond);
+      sql_cond = sql_tmp;
+      sql_tmp = NULL;
+    }
+  }
+
+  asprintf(&sql, "select * from %s where %s;", table, sql_cond);
+  sfree(sql_cond);
+  ret = db_ctx_query(ctx, sql);
+  sfree(sql);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not get detail info.");
+    return NULL;
+  }
+
+  j_res = db_ctx_get_record(ctx);
+  db_ctx_free(ctx);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
+/**
+ *
+ * @param table
+ * @param item
+ * @return
+ */
+static bool insert_ast_item(const char* table, const json_t* j_data)
+{
+  int ret;
+
+  if((table == NULL) || (j_data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired insert_ast_item. table[%s]", table);
+
+  ret = insert_item(g_db_ast, table, j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert ast info.");
+    return false;
+  }
+  return true;
+}
+
+/**
+ * Update item info.
+ * @param table
+ * @param key_name
+ * @param j_data
+ * @return
+ */
+static bool update_ast_item(const char* table, const char* key_column, const json_t* j_data)
+{
+  int ret;
+
+  if((table == NULL) || (key_column == NULL) || (j_data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired update_ast_item. table[%s]", table);
+
+  ret = update_item(g_db_ast, table, key_column, j_data);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not update ast info.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ *
+ * @param table
+ * @param item
+ * @return
+ */
+static json_t* get_ast_items(const char* table, const char* item)
+{
+  json_t* j_res;
+
+  if((table == NULL) || (item == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_ast_items. table[%s], item[%s]", table, item);
+
+  j_res = get_items(g_db_ast, table, item);
+
+  return j_res;
+}
+
+/**
+ * delete all selected items with string value.
+ * @return
+ */
+static bool delete_ast_items_string(const char* table, const char* key, const char* val)
+{
+  int ret;
+
+  if((table == NULL) || (key == NULL) || (val == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired delete_ast_items_string. table[%s], key[%s], val[%s]", table, key, val);
+
+  ret = delete_items_string(g_db_ast, table, key, val);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not delete items.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Get detail info of key="val" from table. get only 1 item.
+ * "select * from <table> where <key>=<val>;"
+ * @param table
+ * @param item
+ * @return
+ */
+static json_t* get_ast_detail_item_key_string(const char* table, const char* key, const char* val)
+{
+  json_t* j_res;
+
+  if((table == NULL) || (key == NULL) || (val == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_ast_detail_item_key_string. table[%s], key[%s], val[%s]", table, key, val);
+
+  j_res = get_detail_item_key_string(g_db_ast, table, key, val);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
+/**
+ * Get detail info of key="val" from table. Get all items.
+ * "select * from <table> where <key>=<val>;"
+ * @param table
+ * @param item
+ * @return
+ */
+static json_t* get_ast_detail_items_key_string(const char* table, const char* key, const char* val)
+{
+  json_t* j_res;
+
+  if((table == NULL) || (key == NULL) || (val == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_detail_items_key_string. table[%s], key[%s], val[%s]", table, key, val);
+
+  j_res = get_detail_items_key_string(g_db_ast, table, key, val);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
+
+/**
+ *
+ * @param table
+ * @param item
+ * @return
+ */
+static bool insert_jade_item(const char* table, const json_t* j_data)
+{
+  int ret;
+
+  if((table == NULL) || (j_data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired insert_jade_item. table[%s]", table);
+
+  ret = insert_item(g_db_jade, table, j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert jade info.");
+    return false;
+  }
+  return true;
+}
+
+/**
+ * Update item info.
+ * @param table
+ * @param key_name
+ * @param j_data
+ * @return
+ */
+static bool update_jade_item(const char* table, const char* key_column, const json_t* j_data)
+{
+  int ret;
+
+  if((table == NULL) || (key_column == NULL) || (j_data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired update_jade_item. table[%s]", table);
+
+  ret = update_item(g_db_jade, table, key_column, j_data);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not update jade info.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * delete all selected items with string value.
+ * @return
+ */
+static bool delete_jade_items_string(const char* table, const char* key, const char* val)
+{
+  int ret;
+
+  if((table == NULL) || (key == NULL) || (val == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired delete_jade_items_string. table[%s], key[%s], val[%s]", table, key, val);
+
+  ret = delete_items_string(g_db_jade, table, key, val);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not delete jade info.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ *
+ * @param table
+ * @param item
+ * @return
+ */
+static json_t* get_jade_items(const char* table, const char* item)
+{
+  json_t* j_res;
+
+  if((table == NULL) || (item == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_jade_items. table[%s], item[%s]", table, item);
+
+  j_res = get_items(g_db_jade, table, item);
+
+  return j_res;
+}
+
+/**
+ * Get detail info of key="val" from table. get only 1 item.
+ * "select * from <table> where <key>=<val>;"
+ * @param table
+ * @param item
+ * @return
+ */
+static json_t* get_jade_detail_item_key_string(const char* table, const char* key, const char* val)
+{
+  json_t* j_res;
+
+  if((table == NULL) || (key == NULL) || (val == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_jade_detail_item_key_string. table[%s], key[%s], val[%s]", table, key, val);
+
+  j_res = get_detail_item_key_string(g_db_jade, table, key, val);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
+static json_t* get_jade_detail_item_by_obj(const char* table, json_t* j_obj)
+{
+  json_t* j_res;
+
+  if((table == NULL) || (j_obj == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  j_res = get_detail_item_by_obj(g_db_jade, table, j_obj);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+
+}
+
 
 
 /**
@@ -527,7 +938,7 @@ json_t* get_sip_peers_all_peer(void)
 
   slog(LOG_DEBUG, "Fired get_peers_all_peer.");
 
-  j_res = get_items("peer", "peer");
+  j_res = get_ast_items("peer", "peer");
 
   return j_res;
 }
@@ -542,7 +953,7 @@ json_t* get_sip_peers_all(void)
 
   slog(LOG_DEBUG, "Fired get_peers_all.");
 
-  j_res = get_items("peer", "*");
+  j_res = get_ast_items("peer", "*");
 
   return j_res;
 }
@@ -562,7 +973,7 @@ json_t* get_sip_peer_info(const char* peer)
   }
   slog(LOG_DEBUG, "Fired get_peer_detail.");
 
-  j_res = get_detail_item_key_string("peer", "peer", peer);
+  j_res = get_ast_detail_item_key_string("peer", "peer", peer);
   return j_res;
 }
 
@@ -724,7 +1135,7 @@ json_t* get_sip_registries_all(void)
 {
   json_t* j_res;
 
-  j_res = get_items("registry", "*");
+  j_res = get_ast_items("registry", "*");
   return j_res;
 }
 
@@ -787,7 +1198,7 @@ int create_queue_param_info(const json_t* j_data)
   }
 
   // insert queue info
-  ret = insert_item("queue_param", j_data);
+  ret = insert_ast_item("queue_param", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert queue_param.");
     return false;
@@ -825,7 +1236,7 @@ int delete_queue_param_info(const char* key)
     return false;
   }
 
-  ret = delete_items_string("queue_param", "name", key);
+  ret = delete_ast_items_string("queue_param", "name", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete queue info. name[%s]", key);
     return false;
@@ -842,7 +1253,7 @@ json_t* get_queue_params_all(void)
 {
   json_t* j_res;
 
-  j_res = get_items("queue_param", "*");
+  j_res = get_ast_items("queue_param", "*");
   return j_res;
 }
 
@@ -860,7 +1271,7 @@ json_t* get_queue_param_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired get_queue_param_info.");
 
-  j_res = get_detail_item_key_string("queue_param", "name", key);
+  j_res = get_ast_detail_item_key_string("queue_param", "name", key);
 
   return j_res;
 }
@@ -925,7 +1336,7 @@ int create_queue_member_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired create_queue_member_info.");
 
   // create member info
-  ret = insert_item("queue_member", j_data);
+  ret = insert_ast_item("queue_member", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert queue_member.");
     return false;
@@ -962,14 +1373,14 @@ int delete_queue_member_info(const char* key)
   slog(LOG_DEBUG, "Fired delete_queue_member_info.");
 
   // get member info
-  j_tmp = get_detail_item_key_string("queue_member", "id", key);
+  j_tmp = get_ast_detail_item_key_string("queue_member", "id", key);
   if(j_tmp == NULL) {
     slog(LOG_NOTICE, "The key is already deleted.");
     return true;
   }
 
   // delete
-  ret = delete_items_string("queue_member", "id", key);
+  ret = delete_ast_items_string("queue_member", "id", key);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete queue member info.");
     json_decref(j_tmp);
@@ -995,7 +1406,7 @@ json_t* get_queue_members_all(void)
 {
   json_t* j_res;
 
-  j_res = get_items("queue_member", "*");
+  j_res = get_ast_items("queue_member", "*");
   return j_res;
 }
 
@@ -1014,7 +1425,7 @@ json_t* get_queue_members_all_by_queuename(const char* name)
   slog(LOG_DEBUG, "Fired get_queue_members_all_by_queuename. name[%s]", name);
 
   // get items
-  j_res = get_detail_items_key_string("queue_member", "queue_name", name);
+  j_res = get_ast_detail_items_key_string("queue_member", "queue_name", name);
 
   return j_res;
 }
@@ -1034,7 +1445,7 @@ json_t* get_queue_member_info(const char* id)
   slog(LOG_DEBUG, "Fired get_queue_member_info. id[%s]", id);
 
   // get queue member
-  j_tmp = get_detail_item_key_string("queue_member", "id", id);
+  j_tmp = get_ast_detail_item_key_string("queue_member", "id", id);
   if(j_tmp == NULL) {
     return NULL;
   }
@@ -1092,7 +1503,7 @@ json_t* get_queue_entries_all(void)
 {
   json_t* j_res;
 
-  j_res = get_items("queue_entry", "*");
+  j_res = get_ast_items("queue_entry", "*");
   return j_res;
 }
 
@@ -1111,7 +1522,7 @@ json_t* get_queue_entries_all_by_queuename(const char* name)
   slog(LOG_DEBUG, "Fired get_queue_entries_all_by_queuename. name[%s]", name);
 
   // get items
-  j_res = get_detail_items_key_string("queue_entry", "queue_name", name);
+  j_res = get_ast_detail_items_key_string("queue_entry", "queue_name", name);
 
   return j_res;
 }
@@ -1132,7 +1543,7 @@ json_t* get_queue_entry_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired get_queue_entry_info.");
 
-  j_res = get_detail_item_key_string("queue_entry", "unique_id", key);
+  j_res = get_ast_detail_item_key_string("queue_entry", "unique_id", key);
 
   return j_res;
 }
@@ -1186,14 +1597,14 @@ int delete_queue_entry_info(const char* key)
   slog(LOG_DEBUG, "Fired delete_queue_entry_info. key[%s]", key);
 
   // get data
-  j_data = get_detail_item_key_string("queue_entry", "unique_id", key);
+  j_data = get_ast_detail_item_key_string("queue_entry", "unique_id", key);
   if(j_data == NULL) {
     slog(LOG_NOTICE, "The queue_entry info is already deleted. unique_id[%s]", key);
     return true;
   }
 
   // delete
-  ret = delete_items_string("queue_entry", "unique_id", key);
+  ret = delete_ast_items_string("queue_entry", "unique_id", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete channel info. unique_id[%s]", key);
     json_decref(j_data);
@@ -1227,7 +1638,7 @@ int create_queue_entry_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired create_queue_entry_info.");
 
   // insert item
-  ret = insert_item("queue_entry", j_data);
+  ret = insert_ast_item("queue_entry", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert queue_entry.");
     return false;
@@ -1348,7 +1759,7 @@ bool create_core_channel_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired create_core_channel_info.");
 
   // insert item
-  ret = insert_item("channel", j_data);
+  ret = insert_ast_item("channel", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert core_channel.");
     return false;
@@ -1425,7 +1836,7 @@ json_t* get_core_channels_all(void)
 {
   json_t* j_res;
 
-  j_res = get_items("channel", "*");
+  j_res = get_ast_items("channel", "*");
   return j_res;
 }
 
@@ -1477,7 +1888,7 @@ int update_core_channel_info(const json_t* j_data)
   }
 
   // update
-  ret = update_item("channel", "unique_id", j_data);
+  ret = update_ast_item("channel", "unique_id", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update core_channel info.");
     return false;
@@ -1522,7 +1933,7 @@ int delete_core_channel_info(const char* key)
     return false;
   }
 
-  ret = delete_items_string("channel", "unique_id", key);
+  ret = delete_ast_items_string("channel", "unique_id", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete channel info. unique_id[%s]", key);
     json_decref(j_tmp);
@@ -1548,7 +1959,7 @@ json_t* get_core_agis_all(void)
 {
   json_t* j_res;
 
-  j_res = get_items("core_agi", "*");
+  j_res = get_ast_items("core_agi", "*");
   return j_res;
 }
 
@@ -1566,7 +1977,7 @@ json_t* get_core_agi_info(const char* unique_id)
   }
   slog(LOG_DEBUG, "Fired get_core_agi_info. unique_id[%s]", unique_id);
 
-  j_res = get_detail_item_key_string("core_agi", "unique_id", unique_id);
+  j_res = get_ast_detail_item_key_string("core_agi", "unique_id", unique_id);
   if(j_res == NULL) {
     return NULL;
   }
@@ -1591,7 +2002,7 @@ bool create_core_agi_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired create_core_agi_info.");
 
   // insert item
-  ret = insert_item("core_agi", j_data);
+  ret = insert_ast_item("core_agi", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert core_channel.");
     return false;
@@ -1634,7 +2045,7 @@ bool update_core_agi_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired update_core_agi_info.");
 
   // update
-  ret = update_item("core_agi", "unique_id", j_data);
+  ret = update_ast_item("core_agi", "unique_id", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update core_agi info.");
     return false;
@@ -1736,7 +2147,7 @@ bool delete_core_agi_info(const char* key)
     return false;
   }
 
-  ret = delete_items_string("core_agi", "unique_id", key);
+  ret = delete_ast_items_string("core_agi", "unique_id", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete core_agi info. unique_id[%s]", key);
     return false;
@@ -1808,7 +2219,7 @@ json_t* get_agent_agents_all(void)
 
   slog(LOG_DEBUG, "Fired get_agents_all.");
 
-  j_res = get_items("agent", "*");
+  j_res = get_ast_items("agent", "*");
 
   return j_res;
 }
@@ -1856,7 +2267,7 @@ json_t* get_core_systems_all_id(void)
 
   slog(LOG_DEBUG, "Fired get_systems_all_id.");
 
-  j_res = get_items("system", "id");
+  j_res = get_ast_items("system", "id");
 
   return j_res;
 }
@@ -1871,7 +2282,7 @@ json_t* get_core_systems_all(void)
 
   slog(LOG_DEBUG, "Fired get_systems_all.");
 
-  j_res = get_items("system", "*");
+  j_res = get_ast_items("system", "*");
 
   return j_res;
 }
@@ -1891,7 +2302,7 @@ json_t* get_core_system_info(const char* id)
   }
   slog(LOG_DEBUG, "Fired get_system_info. id[%s]", id);
 
-  j_res = get_detail_item_key_string("system", "id", id);
+  j_res = get_ast_detail_item_key_string("system", "id", id);
 
   return j_res;
 }
@@ -1907,7 +2318,7 @@ json_t* get_device_states_all_device(void)
 
   slog(LOG_DEBUG, "Fired get_device_states_all_device.");
 
-  j_res = get_items("device_state", "device");
+  j_res = get_ast_items("device_state", "device");
 
   return j_res;
 }
@@ -1926,7 +2337,7 @@ json_t* get_device_state_info(const char* name)
   }
   slog(LOG_DEBUG, "Fired get_device_state_info. device[%s]", name);
 
-  j_res = get_detail_item_key_string("device_state", "device", name);
+  j_res = get_ast_detail_item_key_string("device_state", "device", name);
 
   return j_res;
 }
@@ -1941,7 +2352,7 @@ json_t* get_park_parkinglots_all(void)
 
   slog(LOG_DEBUG, "Fired get_park_parkinglots_all.");
 
-  j_res = get_items("parking_lot", "*");
+  j_res = get_ast_items("parking_lot", "*");
 
   return j_res;
 }
@@ -1956,7 +2367,7 @@ json_t* get_park_parkinglots_all_name(void)
 
   slog(LOG_DEBUG, "Fired get_park_parkinglots_all_name.");
 
-  j_res = get_items("parking_lot", "name");
+  j_res = get_ast_items("parking_lot", "name");
 
   return j_res;
 }
@@ -1975,7 +2386,7 @@ json_t* get_park_parkinglot_info(const char* name)
   }
   slog(LOG_DEBUG, "Fired get_park_parkinglot_info. name[%s]", name);
 
-  j_res = get_detail_item_key_string("parking_lot", "name", name);
+  j_res = get_ast_detail_item_key_string("parking_lot", "name", name);
 
   return j_res;
 }
@@ -1994,7 +2405,7 @@ int create_park_parkinglot_info(const json_t* j_tmp)
   }
   slog(LOG_DEBUG, "Fired create_park_parkinglot_info.");
 
-  ret = insert_item("parking_lot", j_tmp);
+  ret = insert_ast_item("parking_lot", j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to parking_lot.");
     return false;
@@ -2014,7 +2425,7 @@ json_t* get_park_parkedcalls_all_parkee_unique_id(void)
 
   slog(LOG_DEBUG, "Fired get_park_parkedcalls_all_parkee_unique_id.");
 
-  j_res = get_items("parked_call", "parkee_unique_id");
+  j_res = get_ast_items("parked_call", "parkee_unique_id");
 
   return j_res;
 }
@@ -2029,7 +2440,7 @@ json_t* get_park_parkedcalls_all(void)
 
   slog(LOG_DEBUG, "Fired get_park_parkedcalls_all.");
 
-  j_res = get_items("parked_call", "*");
+  j_res = get_ast_items("parked_call", "*");
 
   return j_res;
 }
@@ -2049,7 +2460,7 @@ json_t* get_park_parkedcall_info(const char* parkee_unique_id)
   }
   slog(LOG_DEBUG, "Fired get_parked_call_info. name[%s]", parkee_unique_id);
 
-  j_res = get_detail_item_key_string("parked_call", "parkee_unique_id", parkee_unique_id);
+  j_res = get_ast_detail_item_key_string("parked_call", "parkee_unique_id", parkee_unique_id);
 
   return j_res;
 }
@@ -2069,7 +2480,7 @@ bool create_park_parkedcall_info(const json_t* j_data)
     return false;
   }
 
-  ret = insert_item("parked_call", j_data);
+  ret = insert_ast_item("parked_call", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to parked_call.");
     return false;
@@ -2112,7 +2523,7 @@ bool update_park_parkedcall_info(const json_t* j_data)
   }
   slog(LOG_DEBUG, "Fired update_park_parkedcall_info.");
 
-  ret = update_item("parked_call", "parkee_unique_id", j_data);
+  ret = update_ast_item("parked_call", "parkee_unique_id", j_data);
   if(ret == false) {
     slog(LOG_WARNING, "Could not update park parked_call info.");
     return false;
@@ -2159,7 +2570,7 @@ bool delete_park_parkedcall_info(const char* key)
     return false;
   }
 
-  ret = delete_items_string("parked_call", "parkee_unique_id", key);
+  ret = delete_ast_items_string("parked_call", "parkee_unique_id", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete park parkedcall info. unique_id[%s]", key);
     json_decref(j_tmp);
@@ -2192,7 +2603,7 @@ json_t* get_pjsip_endpoint_info(const char* name)
   }
   slog(LOG_DEBUG, "Fired get_pjsip_endpoint_info. object_name[%s]", name);
 
-  j_res = get_detail_item_key_string("pjsip_endpoint", "object_name", name);
+  j_res = get_ast_detail_item_key_string("pjsip_endpoint", "object_name", name);
 
   return j_res;
 }
@@ -2208,7 +2619,7 @@ json_t* get_pjsip_endpoints_all(void)
 
   slog(LOG_DEBUG, "Fired get_pjsip_endpoints_all.");
 
-  j_res = get_items("pjsip_endpoint", "*");
+  j_res = get_ast_items("pjsip_endpoint", "*");
 
   return j_res;
 }
@@ -2224,7 +2635,7 @@ json_t* get_pjsip_aors_all(void)
 
   slog(LOG_DEBUG, "Fired pjsip_aor.");
 
-  j_res = get_items("pjsip_aor", "*");
+  j_res = get_ast_items("pjsip_aor", "*");
 
   return j_res;
 }
@@ -2244,7 +2655,7 @@ json_t* get_pjsip_aor_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired get_pjsip_aors_info.");
 
-  j_res = get_detail_item_key_string("pjsip_aor", "object_name", key);
+  j_res = get_ast_detail_item_key_string("pjsip_aor", "object_name", key);
 
   return j_res;
 }
@@ -2260,7 +2671,7 @@ json_t* get_pjsip_auths_all(void)
 
   slog(LOG_DEBUG, "Fired get_pjsip_auths_all.");
 
-  j_res = get_items("pjsip_auth", "*");
+  j_res = get_ast_items("pjsip_auth", "*");
 
   return j_res;
 }
@@ -2280,7 +2691,7 @@ json_t* get_pjsip_auth_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired get_pjsip_auth_info.");
 
-  j_res = get_detail_item_key_string("pjsip_auth", "object_name", key);
+  j_res = get_ast_detail_item_key_string("pjsip_auth", "object_name", key);
 
   return j_res;
 }
@@ -2296,7 +2707,7 @@ json_t* get_pjsip_contacts_all(void)
 
   slog(LOG_DEBUG, "Fired get_pjsip_contacts_all.");
 
-  j_res = get_items("pjsip_contact", "*");
+  j_res = get_ast_items("pjsip_contact", "*");
 
   return j_res;
 }
@@ -2316,7 +2727,7 @@ json_t* get_pjsip_contact_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired get_pjsip_contact_info.");
 
-  j_res = get_detail_item_key_string("pjsip_contact", "id", key);
+  j_res = get_ast_detail_item_key_string("pjsip_contact", "id", key);
 
   return j_res;
 }
@@ -2336,7 +2747,7 @@ bool create_voicemail_user_info(json_t* j_tmp)
   }
   slog(LOG_DEBUG, "Fired create_voicemail_user_info.");
 
-  ret = insert_item("voicemail_user", j_tmp);
+  ret = insert_ast_item("voicemail_user", j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not create voicemail_user.");
     return false;
@@ -2360,7 +2771,7 @@ json_t* get_voicemail_user_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired get_voicemail_user_info. id[%s]", key);
 
-  j_res = get_detail_item_key_string("voicemail_user", "id", key);
+  j_res = get_ast_detail_item_key_string("voicemail_user", "id", key);
   if(j_res == NULL) {
     return NULL;
   }
@@ -2376,7 +2787,7 @@ json_t* get_voicemail_users_all()
   json_t* j_res;
   slog(LOG_DEBUG, "Fired get_voicemail_users_all.");
 
-  j_res = get_items("voicemail_user", "*");
+  j_res = get_ast_items("voicemail_user", "*");
 
   return j_res;
 }
@@ -2395,7 +2806,7 @@ int create_core_module(json_t* j_tmp)
     return false;
   }
 
-  ret = insert_item("core_module", j_tmp);
+  ret = insert_ast_item("core_module", j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert core_module.");
     return false;
@@ -2413,7 +2824,7 @@ json_t* get_core_modules_all(void)
   json_t* j_res;
   slog(LOG_DEBUG, "Fired get_core_modules_all.");
 
-  j_res = get_items("core_module", "*");
+  j_res = get_ast_items("core_module", "*");
 
   return j_res;
 }
@@ -2432,7 +2843,7 @@ json_t* get_core_module_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired get_core_module_info.");
 
-  j_res = get_detail_item_key_string("core_module", "name", key);
+  j_res = get_ast_detail_item_key_string("core_module", "name", key);
 
   return j_res;
 }
@@ -2452,7 +2863,7 @@ bool update_core_module_info(const json_t* j_data)
   }
   slog(LOG_DEBUG, "Fired update_core_module_info.");
 
-  ret = update_item("core_module", "name", j_data);
+  ret = update_ast_item("core_module", "name", j_data);
   if(ret == false) {
     slog(LOG_WARNING, "Could not update core module info.");
     return false;
@@ -2477,7 +2888,7 @@ bool create_sip_peer_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired create_sip_peer_info.");
 
   // insert queue info
-  ret = insert_item("peer", j_data);
+  ret = insert_ast_item("peer", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert sip peer..");
     return false;
@@ -2501,7 +2912,7 @@ bool update_sip_peer_info(const json_t* j_data)
   }
   slog(LOG_DEBUG, "Fired update_sip_peer_info.");
 
-  ret = update_item("peer", "peer", j_data);
+  ret = update_ast_item("peer", "peer", j_data);
   if(ret == false) {
     slog(LOG_WARNING, "Could not update sip peer info.");
     return false;
@@ -2524,7 +2935,7 @@ bool delete_sip_peer_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired delete_sip_peer_info. peer[%s]", key);
 
-  ret = delete_items_string("peer", "peer", key);
+  ret = delete_ast_items_string("peer", "peer", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete sip peer info. name[%s]", key);
     return false;
@@ -2549,7 +2960,7 @@ bool create_sip_registry_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired create_sip_registry_info.");
 
   // insert queue info
-  ret = insert_item("registry", j_data);
+  ret = insert_ast_item("registry", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert sip registry.");
     return false;
@@ -2573,7 +2984,7 @@ bool update_sip_registry_info(const json_t* j_data)
   }
   slog(LOG_DEBUG, "Fired update_sip_registry_info.");
 
-  ret = update_item("registry", "account", j_data);
+  ret = update_ast_item("registry", "account", j_data);
   if(ret == false) {
     slog(LOG_WARNING, "Could not update sip registry info.");
     return false;
@@ -2596,7 +3007,7 @@ bool delete_sip_registry_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired delete_sip_registry_info. registry[%s]", key);
 
-  ret = delete_items_string("peer", "registry", key);
+  ret = delete_ast_items_string("peer", "registry", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete sip registry info. account[%s]", key);
     return false;
@@ -2621,7 +3032,7 @@ bool create_agent_agent_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired create_agent_agent_info.");
 
   // insert queue info
-  ret = insert_item("agent", j_data);
+  ret = insert_ast_item("agent", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert agent agent.");
     return false;
@@ -2645,7 +3056,7 @@ bool update_agent_agent_info(const json_t* j_data)
   }
   slog(LOG_DEBUG, "Fired update_agent_agent_info.");
 
-  ret = update_item("agent", "id", j_data);
+  ret = update_ast_item("agent", "id", j_data);
   if(ret == false) {
     slog(LOG_WARNING, "Could not update agent agent info.");
     return false;
@@ -2668,7 +3079,7 @@ bool delete_agent_agent_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired delete_agent_agent_info. id[%s]", key);
 
-  ret = delete_items_string("agent", "id", key);
+  ret = delete_ast_items_string("agent", "id", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete agent agent info. id[%s]", key);
     return false;
@@ -2693,7 +3104,7 @@ bool create_pjsip_endpoint_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired create_pjsip_endpoint_info.");
 
   // insert queue info
-  ret = insert_item("pjsip_endpoint", j_data);
+  ret = insert_ast_item("pjsip_endpoint", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert pjsip endpoint.");
     return false;
@@ -2717,7 +3128,7 @@ bool update_pjsip_endpoint_info(const json_t* j_data)
   }
   slog(LOG_DEBUG, "Fired update_pjsip_endpoint_info.");
 
-  ret = update_item("pjsip_endpoint", "object_name", j_data);
+  ret = update_ast_item("pjsip_endpoint", "object_name", j_data);
   if(ret == false) {
     slog(LOG_WARNING, "Could not update pjsip endpoint info.");
     return false;
@@ -2740,7 +3151,7 @@ bool delete_pjsip_endpoint_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired delete_pjsip_endpoint_info. key[%s]", key);
 
-  ret = delete_items_string("pjsip_endpoint", "object_name", key);
+  ret = delete_ast_items_string("pjsip_endpoint", "object_name", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete pjsip_endpoint info. key[%s]", key);
     return false;
@@ -2765,7 +3176,7 @@ bool create_pjsip_auth_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired create_pjsip_auth_info.");
 
   // insert queue info
-  ret = insert_item("pjsip_auth", j_data);
+  ret = insert_ast_item("pjsip_auth", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert pjsip auth.");
     return false;
@@ -2790,7 +3201,7 @@ bool update_pjsip_auth_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired update_pjsip_auth_info.");
 
   // update
-  ret = update_item("pjsip_auth", "object_name", j_data);
+  ret = update_ast_item("pjsip_auth", "object_name", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update pjsip_auth info.");
     return false;
@@ -2813,7 +3224,7 @@ bool delete_pjsip_auth_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired delete_pjsip_auth_info. key[%s]", key);
 
-  ret = delete_items_string("pjsip_auth", "object_name", key);
+  ret = delete_ast_items_string("pjsip_auth", "object_name", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete pjsip_auth info. key[%s]", key);
     return false;
@@ -2838,7 +3249,7 @@ bool create_pjsip_aor_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired create_pjsip_aor_info.");
 
   // insert queue info
-  ret = insert_item("pjsip_aor", j_data);
+  ret = insert_ast_item("pjsip_aor", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert pjsip aor.");
     return false;
@@ -2863,7 +3274,7 @@ bool update_pjsip_aor_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired update_pjsip_aor_info.");
 
   // update
-  ret = update_item("pjsip_aor", "object_name", j_data);
+  ret = update_ast_item("pjsip_aor", "object_name", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update pjsip_aor info.");
     return false;
@@ -2886,7 +3297,7 @@ bool delete_pjsip_aor_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired delete_pjsip_aor_info. key[%s]", key);
 
-  ret = delete_items_string("pjsip_aor", "object_name", key);
+  ret = delete_ast_items_string("pjsip_aor", "object_name", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete pjsip_aor info. key[%s]", key);
     return false;
@@ -2910,8 +3321,8 @@ bool create_pjsip_contact_info(const json_t* j_data)
   }
   slog(LOG_DEBUG, "Fired create_pjsip_contact_info.");
 
-  // insert queue info
-  ret = insert_item("pjsip_contact", j_data);
+  // insert info
+  ret = insert_ast_item("pjsip_contact", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert pjsip contact.");
     return false;
@@ -2936,7 +3347,7 @@ bool update_pjsip_contact_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired update_pjsip_contact_info.");
 
   // update
-  ret = update_item("pjsip_contact", "object_name", j_data);
+  ret = update_ast_item("pjsip_contact", "object_name", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update pjsip_contact info.");
     return false;
@@ -2959,7 +3370,7 @@ bool delete_pjsip_contact_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired delete_pjsip_contact_info. key[%s]", key);
 
-  ret = delete_items_string("pjsip_contact", "object_name", key);
+  ret = delete_ast_items_string("pjsip_contact", "object_name", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete pjsip_contact info. key[%s]", key);
     return false;
@@ -2967,3 +3378,245 @@ bool delete_pjsip_contact_info(const char* key)
 
   return true;
 }
+
+/**
+ * Get all dp_dpma array
+ * @return
+ */
+json_t* get_dp_dpmas_all(void)
+{
+  json_t* j_res;
+
+  j_res = get_jade_items("dp_dpma", "*");
+  return j_res;
+}
+
+/**
+ * Get corresponding dp_dpma detail info.
+ * @return
+ */
+json_t* get_dp_dpma_info(const char* key)
+{
+  json_t* j_res;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_dp_dpma_info. key[%s]", key);
+
+  j_res = get_jade_detail_item_key_string("dp_dpma", "uuid", key);
+
+  return j_res;
+}
+
+
+/**
+ * Create dp dpma info.
+ * @param j_data
+ * @return
+ */
+bool create_dp_dpma_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired create_dp_dpma_info.");
+
+  // insert info
+  ret = insert_jade_item("dp_dpma", j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert dp_dpma contact.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Update dp_dpma info.
+ * @param j_data
+ * @return
+ */
+bool update_dp_dpma_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired update_dp_dpma_info.");
+
+  // update
+  ret = update_jade_item("dp_dpma", "uuid", j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update dp_dpma info.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Delete dp_dpma info.
+ * @param j_data
+ * @return
+ */
+bool delete_dp_dpma_info(const char* key)
+{
+  int ret;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired delete_dp_dpma_info. key[%s]", key);
+
+  ret = delete_jade_items_string("dp_dpma", "uuid", key);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not delete dp_dpma info. key[%s]", key);
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Get all dp_dialplan array
+ * @return
+ */
+json_t* get_dp_dialplans_all(void)
+{
+  json_t* j_res;
+
+  j_res = get_jade_items("dp_dialplan", "*");
+  return j_res;
+}
+
+/**
+ * Get corresponding dp_dialplan detail info.
+ * @return
+ */
+json_t* get_dp_dialplan_info(const char* key)
+{
+  json_t* j_res;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_dp_dialplan_info. key[%s]", key);
+
+  j_res = get_jade_detail_item_key_string("dp_dialplan", "uuid", key);
+
+  return j_res;
+}
+
+/**
+ * Get corresponding dp_dialplan detail info.
+ * @return
+ */
+json_t* get_dp_dialplan_info_by_dpma_seq(const char* dpma_uuid, int seq)
+{
+  json_t* j_res;
+  json_t* j_obj;
+
+  if(dpma_uuid == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_dp_dialplan_info_by_dpma_seq. dpma_uuid[%s], sequence[%d]", dpma_uuid, seq);
+
+  j_obj = json_pack("{s:s, s:i}",
+      "dpma_uuid",  dpma_uuid,
+      "sequence",   seq
+      );
+
+  j_res = get_jade_detail_item_by_obj("dp_dialplan", j_obj);
+  json_decref(j_obj);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
+
+/**
+ * Create dp_dialplan info.
+ * @param j_data
+ * @return
+ */
+bool create_dp_dialplan_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired create_dp_dialplan_info.");
+
+  // insert info
+  ret = insert_jade_item("dp_dialplan", j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert dp_dialplan contact.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Update dp_dialplan info.
+ * @param j_data
+ * @return
+ */
+bool update_dp_dialplan_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired update_dp_dialplan_info.");
+
+  // update
+  ret = update_jade_item("dp_dialplan", "uuid", j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update dp_dialplan info.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Delete dp_dialplan info.
+ * @param j_data
+ * @return
+ */
+bool delete_dp_dialplan_info(const char* key)
+{
+  int ret;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired delete_dp_dialplan_info. key[%s]", key);
+
+  ret = delete_jade_items_string("dp_dialplan", "uuid", key);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not delete dp_dialplan info. key[%s]", key);
+    return false;
+  }
+
+  return true;
+}
+

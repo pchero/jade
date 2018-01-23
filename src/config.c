@@ -29,7 +29,8 @@
 #define DEF_GENERAL_WEBSOCK_ADDR "0.0.0.0"
 #define DEF_GENERAL_WEBSOCK_PORT "8083"
 #define DEF_GENERAL_LOGLEVEL  "5"
-#define DEF_GENERAL_DATABASE_NAME ":memory:"
+#define DEF_GENERAL_DATABASE_NAME_AST   ":memory:"
+#define DEF_GENERAL_DATABASE_NAME_JADE  "./jade_database.db"
 #define DEF_GENERAL_EVENT_TIME_FAST "100000"
 #define DEF_GENERAL_EVENT_TIME_SLOW "3000000"
 #define DEF_GENERAL_DIR_CONF	"/etc/asterisk"
@@ -109,7 +110,7 @@ static bool load_config(void)
   j_conf_def = json_pack("{"
       "s:{"
       	"s:s, s:s, s:s, s:s, s:s, "
-      	"s:s, "
+      	"s:s, s:s, "
       	"s:s, s:s, "
         "s:s, s:s, s:s, "
       	"s:s, s:s, "
@@ -125,7 +126,8 @@ static bool load_config(void)
         "ami_password",     "",
         "loglevel",         DEF_GENERAL_LOGLEVEL,
 
-        "database_name",    DEF_GENERAL_DATABASE_NAME,
+        "database_name_ast",    DEF_GENERAL_DATABASE_NAME_AST,
+        "database_name_jade",   DEF_GENERAL_DATABASE_NAME_JADE,
 
         "http_addr",        DEF_GENERAL_HTTP_ADDR,
         "http_port",        DEF_GENERAL_HTTP_PORT,

@@ -60,8 +60,12 @@ static void cb_htp_core_systems(evhtp_request_t *req, void *data);
 static void cb_htp_core_systems_detail(evhtp_request_t *req, void *data);
 
 
-// dialplan
-static void cb_htp_dialplan_setting(evhtp_request_t *req, void *data);
+// dp
+static void cb_htp_dp_dialplans(evhtp_request_t *req, void *data);
+static void cb_htp_dp_dialplans_detail(evhtp_request_t *req, void *data);
+static void cb_htp_dp_dpmas(evhtp_request_t *req, void *data);
+static void cb_htp_dp_dpmas_detail(evhtp_request_t *req, void *data);
+static void cb_htp_dp_setting(evhtp_request_t *req, void *data);
 
 
 // park
@@ -176,9 +180,15 @@ bool init_http_handler(void)
 
 
 
-  //// ^/dialplan/
+  //// ^/dp/
+  // dialplans
+  evhtp_set_regex_cb(g_htp, "^/dp/dialplans/(.*)", cb_htp_dp_dialplans_detail, NULL);
+  evhtp_set_regex_cb(g_htp, "^/dp/dialplans$", cb_htp_dp_dialplans, NULL);
+  // dpmas
+  evhtp_set_regex_cb(g_htp, "^/dp/dpmas/(.*)", cb_htp_dp_dpmas_detail, NULL);
+  evhtp_set_regex_cb(g_htp, "^/dp/dpmas$", cb_htp_dp_dpmas, NULL);
   // setting
-  evhtp_set_regex_cb(g_htp, "^/dialplan/setting$", cb_htp_dialplan_setting, NULL);
+  evhtp_set_regex_cb(g_htp, "^/dp/setting$", cb_htp_dp_setting, NULL);
 
 
   ////// ^/ob/
@@ -2744,11 +2754,11 @@ static void cb_htp_pjsip_contacts_detail(evhtp_request_t *req, void *data)
 
 /**
  * http request handler
- * ^/dialplan/setting$
+ * ^/dp/setting$
  * @param req
  * @param data
  */
-static void cb_htp_dialplan_setting(evhtp_request_t *req, void *data)
+static void cb_htp_dp_setting(evhtp_request_t *req, void *data)
 {
   int method;
 
@@ -2756,7 +2766,7 @@ static void cb_htp_dialplan_setting(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_INFO, "Fired cb_htp_dialplan_setting.");
+  slog(LOG_INFO, "Fired cb_htp_dp_setting.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -2767,11 +2777,11 @@ static void cb_htp_dialplan_setting(evhtp_request_t *req, void *data)
 
   // fire handlers
   if(method == htp_method_GET) {
-    htp_get_dialplan_setting(req, data);
+    htp_get_dp_setting(req, data);
     return;
   }
   else if(method == htp_method_PUT) {
-    htp_put_dialplan_setting(req, data);
+    htp_put_dp_setting(req, data);
     return;
   }
   else {
@@ -2783,5 +2793,185 @@ static void cb_htp_dialplan_setting(evhtp_request_t *req, void *data)
   // should not reach to here.
   simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
 
+  return;
+}
+
+/**
+ * http request handler
+ * ^/dp/dpmas$
+ * @param req
+ * @param data
+ */
+static void cb_htp_dp_dpmas(evhtp_request_t *req, void *data)
+{
+  int method;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_dp_dpmas.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if((method != htp_method_GET) && (method != htp_method_POST)) {
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  if(method == htp_method_GET) {
+    htp_get_dp_dpmas(req, data);
+    return;
+  }
+  else if(method == htp_method_POST) {
+    htp_post_dp_dpmas(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+
+  return;
+}
+
+/**
+ * http request handler
+ * ^/dp/dpmas/(.*)
+ * @param req
+ * @param data
+ */
+static void cb_htp_dp_dpmas_detail(evhtp_request_t *req, void *data)
+{
+  int method;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_dp_dpmas_detail.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if((method != htp_method_GET) && (method != htp_method_PUT) && (method != htp_method_DELETE)) {
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // fire handlers
+  if(method == htp_method_GET) {
+    htp_get_dp_dpmas_detail(req, data);
+    return;
+  }
+  else if(method == htp_method_PUT) {
+    htp_put_dp_dpmas_detail(req, data);
+    return;
+  }
+  else if(method == htp_method_DELETE) {
+    htp_delete_dp_dpmas_detail(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  return;
+}
+
+/**
+ * http request handler
+ * ^/dp/dialplans$
+ * @param req
+ * @param data
+ */
+static void cb_htp_dp_dialplans(evhtp_request_t *req, void *data)
+{
+  int method;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_dp_dialplans.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if((method != htp_method_GET) && (method != htp_method_POST)) {
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  if(method == htp_method_GET) {
+    htp_get_dp_dialplans(req, data);
+    return;
+  }
+  else if(method == htp_method_POST) {
+    htp_post_dp_dialplans(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+
+  return;
+}
+
+/**
+ * http request handler
+ * ^/dp/dialplans/(.*)
+ * @param req
+ * @param data
+ */
+static void cb_htp_dp_dialplans_detail(evhtp_request_t *req, void *data)
+{
+  int method;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_dp_dialplans_detail.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if((method != htp_method_GET) && (method != htp_method_PUT) && (method != htp_method_DELETE)) {
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // fire handlers
+  if(method == htp_method_GET) {
+    htp_get_dp_dialplans_detail(req, data);
+    return;
+  }
+  else if(method == htp_method_PUT) {
+    htp_put_dp_dialplans_detail(req, data);
+    return;
+  }
+  else if(method == htp_method_DELETE) {
+    htp_delete_dp_dialplans_detail(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   return;
 }
