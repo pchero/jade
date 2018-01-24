@@ -35,6 +35,7 @@ static json_t* get_detail_item_key_string(db_ctx_t* ctx, const char* table, cons
 static json_t* get_detail_items_key_string(db_ctx_t* ctx, const char* table, const char* key, const char* val);
 static bool delete_items_string(db_ctx_t* ctx, const char* table, const char* key, const char* val);
 static json_t* get_detail_item_by_obj(db_ctx_t* ctx, const char* table, json_t* j_obj);
+static json_t* get_detail_items_by_obj_order(db_ctx_t* ctx, const char* table, json_t* j_obj, const char* order);
 
 
 // db_ast
@@ -52,6 +53,7 @@ static bool delete_jade_items_string(const char* table, const char* key, const c
 static json_t* get_jade_items(const char* table, const char* item);
 static json_t* get_jade_detail_item_key_string(const char* table, const char* key, const char* val);
 static json_t* get_jade_detail_item_by_obj(const char* table, json_t* j_obj);
+static json_t* get_jade_detail_items_by_obj_order(const char* table, json_t* j_obj, const char* order);
 
 
 static bool init_db(void);
@@ -579,10 +581,7 @@ static json_t* get_detail_item_by_obj(db_ctx_t* ctx, const char* table, json_t* 
   int ret;
   json_t* j_res;
   char* sql;
-  char* sql_tmp;
   char* sql_cond;
-  const char* key;
-  json_t* j_val;
 
   if((ctx == NULL) || (table == NULL) || (j_obj == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -590,40 +589,9 @@ static json_t* get_detail_item_by_obj(db_ctx_t* ctx, const char* table, json_t* 
   }
   slog(LOG_DEBUG, "Fired get_detail_items_by_obj. table[%s]", table);
 
-
-  sql_tmp = NULL;
-  sql_cond = NULL;
-  json_object_foreach(j_obj, key, j_val) {
-    if(sql_cond == NULL) {
-      if(json_is_string(j_val) == true) {
-        asprintf(&sql_cond, "%s=\"%s\"", key, json_string_value(j_val));
-      }
-      else if(json_is_integer(j_val) == true) {
-        asprintf(&sql_cond, "%s=%"JSON_INTEGER_FORMAT, key, json_integer_value(j_val));
-      }
-      else if(json_is_number(j_val) == true) {
-        asprintf(&sql_cond, "%s=%f", key, json_number_value(j_val));
-      }
-    }
-    else {
-      if(json_is_string(j_val) == true) {
-        asprintf(&sql_tmp, "%s and %s=\"%s\"", sql_cond, key, json_string_value(j_val));
-      }
-      else if(json_is_integer(j_val) == true) {
-        asprintf(&sql_tmp, "%s and %s=%"JSON_INTEGER_FORMAT, sql_cond, key, json_integer_value(j_val));
-      }
-      else if(json_is_number(j_val) == true) {
-        asprintf(&sql_tmp, "%s and %s=%f", sql_cond, key, json_number_value(j_val));
-      }
-      else {
-        // not support type.
-        asprintf(&sql_tmp, "%s", sql_cond);
-      }
-
-      sfree(sql_cond);
-      sql_cond = sql_tmp;
-      sql_tmp = NULL;
-    }
+  sql_cond = db_ctx_get_select_str(j_obj);
+  if(sql_cond == NULL) {
+    return NULL;
   }
 
   asprintf(&sql, "select * from %s where %s;", table, sql_cond);
@@ -640,6 +608,54 @@ static json_t* get_detail_item_by_obj(db_ctx_t* ctx, const char* table, json_t* 
   if(j_res == NULL) {
     return NULL;
   }
+
+  return j_res;
+}
+
+/**
+ * Get detail info of key="val" from table. Get all items.
+ * "select * from <table> where <key>=<val>;"
+ * @param table
+ * @param item
+ * @return
+ */
+static json_t* get_detail_items_by_obj_order(db_ctx_t* ctx, const char* table, json_t* j_obj, const char* order)
+{
+  int ret;
+  json_t* j_res;
+  json_t* j_tmp;
+  char* sql;
+  char* sql_cond;
+
+  if((ctx == NULL) || (table == NULL) || (j_obj == NULL) || (order == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_detail_items_by_obj. table[%s]", table);
+
+  sql_cond = db_ctx_get_select_str(j_obj);
+  if(sql_cond == NULL) {
+    return NULL;
+  }
+
+  asprintf(&sql, "select * from %s where %s order by %s;", table, sql_cond, order);
+  sfree(sql_cond);
+  ret = db_ctx_query(ctx, sql);
+  sfree(sql);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not get detail info.");
+    return NULL;
+  }
+
+  j_res = json_array();
+  while(true) {
+    j_tmp = db_ctx_get_record(ctx);
+    if(j_tmp == NULL) {
+      break;
+    }
+    json_array_append_new(j_res, j_tmp);
+  }
+  db_ctx_free(ctx);
 
   return j_res;
 }
@@ -925,6 +941,25 @@ static json_t* get_jade_detail_item_by_obj(const char* table, json_t* j_obj)
   return j_res;
 
 }
+
+static json_t* get_jade_detail_items_by_obj_order(const char* table, json_t* j_obj, const char* order)
+{
+  json_t* j_res;
+
+  if((table == NULL) || (j_obj == NULL) || (order == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  j_res = get_detail_items_by_obj_order(g_db_jade, table, j_obj, order);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+
+}
+
 
 
 
@@ -2073,29 +2108,62 @@ bool update_core_agi_info(const json_t* j_data)
 
 /**
  * Update core_agi cmd result info
- * @param key
- * @param cmd_id
- * @param result
  * @return
  */
-bool update_core_agi_info_cmd_result(const char* key, const char* cmd_id, const char* result)
+bool update_core_agi_info_cmd_result_done(const char* agi_uuid, const char* cmd_id, const char* result_org)
 {
   int ret;
   json_t* j_agi;
   json_t* j_cmd;
   char* timestamp;
+  char* result;
+  int result_code;
+  char* tmp;
+  char* parse;
+  char* org;
 
-  if((key == NULL) || (cmd_id == NULL) || (result == NULL)) {
+  if((agi_uuid == NULL) || (cmd_id == NULL) || (result_org == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
 
   // get agi info.
-  j_agi = get_core_agi_info(key);
+  j_agi = get_core_agi_info(agi_uuid);
   if(j_agi == NULL) {
     slog(LOG_ERR, "Could not get core_agi info.");
     return false;
   }
+
+  // parse result code
+  result_code = 0;
+  tmp = strdup(result_org);
+  org = tmp;
+  parse = strsep(&tmp, " ");
+  if(tmp != NULL) {
+    result_code = atoi(parse);
+  }
+  sfree(org);
+
+  // parse result message
+  result = NULL;
+  tmp = strdup(result_org);
+  org = tmp;
+  if(result_code == 200) {
+    parse = strsep(&tmp, "=");
+    if(tmp != NULL) {
+      tmp[strcspn(tmp, "\n")] = '\0';
+      result = strdup(tmp);
+    }
+  }
+  else {
+    // error code
+    parse = strsep(&tmp, " ");
+    if(tmp != NULL) {
+      tmp[strcspn(tmp, "\n")] = '\0';
+      result = strdup(tmp);
+    }
+  }
+  sfree(org);
 
   // update cmd result
   // if there's no corresponding cmd_id info,
@@ -2106,12 +2174,80 @@ bool update_core_agi_info_cmd_result(const char* key, const char* cmd_id, const 
     j_cmd = json_object();
     json_object_set_new(json_object_get(j_agi, "cmd"), cmd_id, j_cmd);
   }
+
+  // update cmd info
+  json_object_set_new(j_cmd, "status", json_string("done"));
   json_object_set_new(j_cmd, "result", json_string(result));
+  json_object_set_new(j_cmd, "result_code", json_integer(result_code));
+  json_object_set_new(j_cmd, "result_org", json_string(result_org));
   json_object_set_new(j_cmd, "tm_update", json_string(timestamp));
+  sfree(result);
 
   // update agi info
   json_object_set_new(j_agi, "tm_update", json_string(timestamp));
   sfree(timestamp);
+
+  // update info
+  ret = update_core_agi_info(j_agi);
+  json_decref(j_agi);
+  if(ret == false) {
+    return false;
+  }
+
+  return true;
+
+}
+
+/**
+ * Add core_agi cmd info
+ * @param key
+ * @param cmd_id
+ * @param result
+ * @return
+ */
+bool add_core_agi_info_cmd(const char* agi_uuid,
+    const char* cmd_uuid,
+    const char* status,
+    const char* command,
+    const char* dp_uuid
+    )
+{
+  int ret;
+  json_t* j_agi;
+  json_t* j_cmd;
+  char* timestamp;
+
+  if((agi_uuid == NULL) || (cmd_uuid == NULL) || (status == NULL) || (command == NULL) || (dp_uuid == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  // get agi info.
+  j_agi = get_core_agi_info(agi_uuid);
+  if(j_agi == NULL) {
+    slog(LOG_ERR, "Could not get core_agi info.");
+    return false;
+  }
+
+  // update cmd result
+  // if there's no corresponding cmd_id info,
+  // create new one.
+  timestamp = get_utc_timestamp();
+  j_cmd = json_pack("{"
+      "s:s, s:s, s:s, s:s, "
+      "s:s"
+      "}",
+
+      "status",     status,
+      "command",    command,
+      "dp_uuid",    dp_uuid,
+      "result",     "unknown",
+
+      "tm_create",  timestamp
+      );
+  sfree(timestamp);
+
+  json_object_set_new(json_object_get(j_agi, "cmd"), cmd_uuid, j_cmd);
 
   // update info
   ret = update_core_agi_info(j_agi);
@@ -3494,6 +3630,28 @@ json_t* get_dp_dialplans_all(void)
   json_t* j_res;
 
   j_res = get_jade_items("dp_dialplan", "*");
+  return j_res;
+}
+
+/**
+ * Get all dp_dialplans by dpma_uuid order by sequence
+ * @return
+ */
+json_t* get_dp_dialplans_by_dpma_uuid_order_sequence(const char* dpma_uuid)
+{
+  json_t* j_res;
+  json_t* j_obj;
+
+  if(dpma_uuid == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  j_obj = json_pack("{s:s}", "dpma_uuid", dpma_uuid);
+
+  j_res = get_jade_detail_items_by_obj_order("dp_dialplan", j_obj, "sequence");
+  json_decref(j_obj);
+
   return j_res;
 }
 

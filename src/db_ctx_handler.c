@@ -644,3 +644,23 @@ char* db_ctx_get_update_str(const json_t* j_data)
   return res;
 }
 
+/*
+ * Return the string for select given data.
+ */
+char* db_ctx_get_select_str(const json_t* j_data)
+{
+  char* res;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  res = db_ctx_get_update_str(j_data);
+  if(res == NULL) {
+    return NULL;
+  }
+
+  return res;
+}
+

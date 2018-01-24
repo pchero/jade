@@ -20,6 +20,7 @@
 
 #include "ob_ami_handler.h"
 #include "ob_dialing_handler.h"
+#include "dialplan_handler.h"
 
 static void ami_response_handler(json_t* j_msg);
 
@@ -3113,6 +3114,7 @@ static void ami_event_asyncagistart(json_t* j_msg)
   int ret;
   char* timestamp;
   const char* env_tmp;
+  const char* agi_uuid;
   char* env;
 
   if(j_msg == NULL) {
@@ -3181,6 +3183,10 @@ static void ami_event_asyncagistart(json_t* j_msg)
     slog(LOG_ERR, "Could not insert to core_agi.");
     return;
   }
+
+  // add cmds
+  agi_uuid = json_string_value(json_object_get(j_msg, "Uniqueid"));
+  ret = add_dialplan_cmds(agi_uuid);
 
   return;
 }
@@ -3267,8 +3273,8 @@ static void ami_event_asyncagiend(json_t* j_msg)
 static void ami_event_asyncagiexec(json_t* j_msg)
 {
   int ret;
-  char* command_id;
   char* tmp;
+  char* command_id;
   char* result;
   const char* unique_id;
   const char* tmp_const;
@@ -3342,7 +3348,7 @@ static void ami_event_asyncagiexec(json_t* j_msg)
   }
 
   // update cmd result info.
-  ret = update_core_agi_info_cmd_result(unique_id, command_id, result);
+  ret = update_core_agi_info_cmd_result_done(unique_id, command_id, result);
   sfree(command_id);
   sfree(result);
   if(ret == false) {

@@ -30,6 +30,7 @@ bool db_ctx_insert(db_ctx_t* ctx, const char* table, const json_t* j_data);
 bool db_ctx_insert_or_replace(db_ctx_t* ctx, const char* table, const json_t* j_data);
 
 char* db_ctx_get_update_str(const json_t* j_data);
+char* db_ctx_get_select_str(const json_t* j_data);
 
 bool db_ctx_free(db_ctx_t* ctx);
 
