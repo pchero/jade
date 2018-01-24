@@ -12,6 +12,8 @@ Or may be used by either companies who wish to make calls on their own behalf, o
 
 * Event subscription via ZeroMQ and Websocket
 
+* Static/Dynamic dialplan configuration
+
 * Strategical inbound/outbound call distributing
   * Call balancing
   * Strategical call retrying
@@ -29,9 +31,7 @@ Or may be used by either companies who wish to make calls on their own behalf, o
   * SIP
 
 * SMS(WIP)
-
 * Mail(WIP)
-
 * Chat(WIP)
 * Video call(WIP)
 * Conference call(WIP)
