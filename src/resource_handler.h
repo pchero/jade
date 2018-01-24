@@ -33,7 +33,7 @@ bool update_core_agi_info(const json_t* j_data);
 bool update_core_agi_info_cmd_result_done(const char* agi_uuid, const char* cmd_id, const char* result_org);
 
 bool delete_core_agi_info(const char* key);
-bool add_core_agi_info_cmd(const char* agi_uuid, const char* cmd_uuid, const char* status, const char* command, const char* dp_uuid);
+bool add_core_agi_info_cmd(const char* agi_uuid, const char* cmd_uuid, const char* command, const char* dp_uuid);
 // core_channel
 json_t* get_core_channels_all_unique_id(void);
 json_t* get_core_channels_all(void);

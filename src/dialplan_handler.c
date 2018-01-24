@@ -941,7 +941,7 @@ bool add_dialplan_cmds(const char* agi_uuid)
     }
 
     // add cmd
-    ret = add_core_agi_info_cmd(agi_uuid, uuid, "queued", command, dp_uuid);
+    ret = add_core_agi_info_cmd(agi_uuid, uuid, command, dp_uuid);
     sfree(uuid);
     if(ret == false) {
       slog(LOG_ERR, "Could not add cmd info.");

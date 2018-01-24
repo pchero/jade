@@ -2205,11 +2205,7 @@ bool update_core_agi_info_cmd_result_done(const char* agi_uuid, const char* cmd_
  * @param result
  * @return
  */
-bool add_core_agi_info_cmd(const char* agi_uuid,
-    const char* cmd_uuid,
-    const char* status,
-    const char* command,
-    const char* dp_uuid
+bool add_core_agi_info_cmd(const char* agi_uuid, const char* cmd_uuid, const char* command, const char* dp_uuid
     )
 {
   int ret;
@@ -2217,7 +2213,7 @@ bool add_core_agi_info_cmd(const char* agi_uuid,
   json_t* j_cmd;
   char* timestamp;
 
-  if((agi_uuid == NULL) || (cmd_uuid == NULL) || (status == NULL) || (command == NULL) || (dp_uuid == NULL)) {
+  if((agi_uuid == NULL) || (cmd_uuid == NULL) || (command == NULL) || (dp_uuid == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
@@ -2234,14 +2230,15 @@ bool add_core_agi_info_cmd(const char* agi_uuid,
   // create new one.
   timestamp = get_utc_timestamp();
   j_cmd = json_pack("{"
-      "s:s, s:s, s:s, s:s, "
+      "s:s, s:s, s:s, s:s, s:i"
       "s:s"
       "}",
 
-      "status",     status,
-      "command",    command,
-      "dp_uuid",    dp_uuid,
-      "result",     "unknown",
+      "status",         "queued",
+      "command",        command,
+      "dp_uuid",        dp_uuid,
+      "result",         "",
+      "result_code",    -1,
 
       "tm_create",  timestamp
       );
