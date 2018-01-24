@@ -15,6 +15,7 @@
 #include "conf_handler.h"
 #include "http_handler.h"
 #include "resource_handler.h"
+#include "ami_action_handler.h"
 
 
 #define DEF_DIALPLAN_CONFNAME   "extensions.conf"
@@ -869,3 +870,86 @@ static bool is_exist_dialplan_info(const char* dpma_uuid, int seq)
   return true;
 }
 
+/**
+ * Add the commands to the agi channel.
+ * @param unique_id
+ * @return
+ */
+bool add_dialplan_cmds(const char* agi_uuid)
+{
+  json_t* j_agi;
+  json_t* j_dps;
+  json_t* j_dp;
+  int ret;
+  int idx;
+  const char* dpma_uuid;
+  char* uuid;
+  const char* channel;
+  const char* dp_uuid;
+  const char* command;
+
+  if(agi_uuid == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired add_dialplan_cmds. agi_uuid[%s]", agi_uuid);
+
+  // get agi info
+  j_agi = get_core_agi_info(agi_uuid);
+  if(j_agi == NULL) {
+    slog(LOG_ERR, "Could not get agi info.");
+    return false;
+  }
+
+  // get dpma_uuid
+  // consider agi_arg_1 as a dpma_uuid
+  dpma_uuid = json_string_value(json_object_get(json_object_get(j_agi, "env"), "agi_arg_1"));
+  if(dpma_uuid == NULL) {
+    slog(LOG_NOTICE, "Could not get dpma_uuid info.");
+    json_decref(j_agi);
+    return false;
+  }
+
+  ret = is_exist_dpma_info(dpma_uuid);
+  if(ret == false) {
+    slog(LOG_ERR, "The given dpma_uuid is not exist.");
+    json_decref(j_agi);
+    return false;
+  }
+
+  // get dialplans
+  j_dps = get_dp_dialplans_by_dpma_uuid_order_sequence(dpma_uuid);
+  if(j_dps == NULL) {
+    slog(LOG_ERR, "Could not get dialplan info");
+    json_decref(j_agi);
+    return false;
+  }
+
+  // send agi request
+  json_array_foreach(j_dps, idx, j_dp) {
+    uuid = gen_uuid();
+
+    channel = json_string_value(json_object_get(j_agi, "channel"));
+    command = json_string_value(json_object_get(j_dp, "command"));
+    dp_uuid = json_string_value(json_object_get(j_dp, "uuid"));
+
+    // send ami action
+    ret = ami_action_agi(channel, command, uuid);
+    if(ret == false) {
+      sfree(uuid);
+      continue;
+    }
+
+    // add cmd
+    ret = add_core_agi_info_cmd(agi_uuid, uuid, "queued", command, dp_uuid);
+    sfree(uuid);
+    if(ret == false) {
+      slog(LOG_ERR, "Could not add cmd info.");
+      continue;
+    }
+  }
+  json_decref(j_dps);
+  json_decref(j_agi);
+
+  return true;
+}

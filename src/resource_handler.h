@@ -30,8 +30,10 @@ json_t* get_core_agis_all(void);
 json_t* get_core_agi_info(const char* unique_id);
 bool create_core_agi_info(const json_t* j_data);
 bool update_core_agi_info(const json_t* j_data);
-bool update_core_agi_info_cmd_result(const char* key, const char* cmd_id, const char* result);
+bool update_core_agi_info_cmd_result_done(const char* agi_uuid, const char* cmd_id, const char* result_org);
+
 bool delete_core_agi_info(const char* key);
+bool add_core_agi_info_cmd(const char* agi_uuid, const char* cmd_uuid, const char* status, const char* command, const char* dp_uuid);
 // core_channel
 json_t* get_core_channels_all_unique_id(void);
 json_t* get_core_channels_all(void);
@@ -59,6 +61,7 @@ bool update_dp_dpma_info(const json_t* j_data);
 bool delete_dp_dpma_info(const char* key);
 // dialplan
 json_t* get_dp_dialplans_all(void);
+json_t* get_dp_dialplans_by_dpma_uuid_order_sequence(const char* dpma_uuid);
 json_t* get_dp_dialplan_info(const char* key);
 json_t* get_dp_dialplan_info_by_dpma_seq(const char* dpma_uuid, int seq);
 bool create_dp_dialplan_info(const json_t* j_data);

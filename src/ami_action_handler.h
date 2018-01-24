@@ -8,11 +8,13 @@
 #ifndef SRC_AMI_ACTION_HANDLER_H_
 #define SRC_AMI_ACTION_HANDLER_H_
 
+#include <stdbool.h>
 
-int ami_action_hangup(const char* channel);
-int ami_action_hangup_by_uniqueid(const char* unique_id);
+bool ami_action_agi(const char* channel, const char* cmd, const char* cmd_id);
+bool ami_action_hangup(const char* channel);
+bool ami_action_hangup_by_uniqueid(const char* unique_id);
 bool ami_action_modulecheck(const char* name);
-int ami_action_moduleload(const char* name, const char* type);
+bool ami_action_moduleload(const char* name, const char* type);
 
 
 

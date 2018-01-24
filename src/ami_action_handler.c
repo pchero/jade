@@ -20,10 +20,45 @@
 
 /**
  * AMI action handler.
+ * Action: AGI
+ */
+bool ami_action_agi(const char* channel, const char* cmd, const char* cmd_id)
+{
+  json_t* j_tmp;
+  int ret;
+
+  if((channel == NULL) || (cmd == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired ami_action_agi. channel[%s], cmd[%s], cmd_id[%s]", channel, cmd, cmd_id? : "");
+
+
+  // create request
+  j_tmp = json_pack("{s:s, s:s, s:s, s:s}",
+      "Action",     "AGI",
+      "Channel",    channel,
+      "Command",    cmd,
+      "CommandID",  cmd_id? : ""
+      );
+
+  // send action request
+  ret = send_ami_cmd(j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not send ami action");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * AMI action handler.
  * Action: hangup
  * @param j_msg
  */
-int ami_action_hangup(const char* channel)
+bool ami_action_hangup(const char* channel)
 {
   json_t* j_tmp;
   int ret;
@@ -56,7 +91,7 @@ int ami_action_hangup(const char* channel)
  * Action: hangup
  * @param j_msg
  */
-int ami_action_hangup_by_uniqueid(const char* unique_id)
+bool ami_action_hangup_by_uniqueid(const char* unique_id)
 {
   int ret;
   const char* tmp_const;
@@ -137,7 +172,7 @@ bool ami_action_modulecheck(const char* name)
  * AMI action handler.
  * Action: ModuleLoad
  */
-int ami_action_moduleload(const char* name, const char* type)
+bool ami_action_moduleload(const char* name, const char* type)
 {
   json_t* j_tmp;
   int ret;
