@@ -1748,7 +1748,7 @@ static void ami_event_parkinglot(json_t* j_msg)
       "name", json_string_value(json_object_get(j_msg, "Name"))? : "",
 
       "start_space",  json_string_value(json_object_get(j_msg, "StartSpace"))? : "",
-      "stop_spcae",   json_string_value(json_object_get(j_msg, "StopSpace"))? : "",
+      "stop_space",   json_string_value(json_object_get(j_msg, "StopSpace"))? : "",
 
       "timeout",  json_string_value(json_object_get(j_msg, "Timeout"))? atoi(json_string_value(json_object_get(j_msg, "Timeout"))): 0,
 

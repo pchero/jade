@@ -412,7 +412,7 @@ static const char* g_sql_create_parking_lot =
 "   name varchar(255),"
 
 "   start_space varchar(255),"
-"   stop_spcae  varchar(255),"
+"   stop_space  varchar(255),"
 
 "   timeout int,"
 
