@@ -73,9 +73,9 @@ static void cb_htp_park_parkinglots(evhtp_request_t *req, void *data);
 static void cb_htp_park_parkinglots_detail(evhtp_request_t *req, void *data);
 static void cb_htp_park_parkedcalls(evhtp_request_t *req, void *data);
 static void cb_htp_park_parkedcalls_detail(evhtp_request_t *req, void *data);
-static void cb_htp_park_setting(evhtp_request_t *req, void *data);
-static void cb_htp_park_settings(evhtp_request_t *req, void *data);
-static void cb_htp_park_settings_detail(evhtp_request_t *req, void *data);
+static void cb_htp_park_config(evhtp_request_t *req, void *data);
+static void cb_htp_park_configs(evhtp_request_t *req, void *data);
+static void cb_htp_park_configs_detail(evhtp_request_t *req, void *data);
 
 
 // pjsip
@@ -220,6 +220,13 @@ bool init_http_handler(void)
 
 
   //// ^/park/
+  // config
+  evhtp_set_regex_cb(g_htp, "^/park/config$", cb_htp_park_config, NULL);
+
+  // configs
+  evhtp_set_regex_cb(g_htp, "^/park/configs/(.*)", cb_htp_park_configs_detail, NULL);
+  evhtp_set_regex_cb(g_htp, "^/park/configs$", cb_htp_park_configs, NULL);
+
   // parkinglots
   evhtp_set_regex_cb(g_htp, "^/park/parkinglots/(.*)", cb_htp_park_parkinglots_detail, NULL);
   evhtp_set_regex_cb(g_htp, "^/park/parkinglots$", cb_htp_park_parkinglots, NULL);
@@ -228,12 +235,7 @@ bool init_http_handler(void)
   evhtp_set_regex_cb(g_htp, "^/park/parkedcalls/(.*)", cb_htp_park_parkedcalls_detail, NULL);
   evhtp_set_regex_cb(g_htp, "^/park/parkedcalls$", cb_htp_park_parkedcalls, NULL);
 
-  // setting
-  evhtp_set_regex_cb(g_htp, "^/park/setting$", cb_htp_park_setting, NULL);
-
   // settings
-  evhtp_set_regex_cb(g_htp, "^/park/settings/(.*)", cb_htp_park_settings_detail, NULL);
-  evhtp_set_regex_cb(g_htp, "^/park/settings$", cb_htp_park_settings, NULL);
 
 
   //// ^/pjsip/
@@ -2018,11 +2020,11 @@ static void cb_htp_park_parkedcalls_detail(evhtp_request_t *req, void *data)
 
 /**
  * http request handler
- * ^/park/setting$
+ * ^/park/config$
  * @param req
  * @param data
  */
-static void cb_htp_park_setting(evhtp_request_t *req, void *data)
+static void cb_htp_park_config(evhtp_request_t *req, void *data)
 {
   int method;
 
@@ -2030,7 +2032,7 @@ static void cb_htp_park_setting(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_INFO, "Fired cb_htp_park_setting.");
+  slog(LOG_INFO, "Fired cb_htp_park_config.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -2041,11 +2043,11 @@ static void cb_htp_park_setting(evhtp_request_t *req, void *data)
 
   // fire handlers
   if(method == htp_method_GET) {
-    htp_get_park_setting(req, data);
+    htp_get_park_config(req, data);
     return;
   }
   else if(method == htp_method_PUT) {
-    htp_put_park_setting(req, data);
+    htp_put_park_config(req, data);
     return;
   }
   else {
@@ -2062,11 +2064,11 @@ static void cb_htp_park_setting(evhtp_request_t *req, void *data)
 
 /**
  * http request handler
- * ^/park/settings/(.*)
+ * ^/park/configs/(.*)
  * @param req
  * @param data
  */
-static void cb_htp_park_settings_detail(evhtp_request_t *req, void *data)
+static void cb_htp_park_configs_detail(evhtp_request_t *req, void *data)
 {
   int method;
 
@@ -2074,7 +2076,7 @@ static void cb_htp_park_settings_detail(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_INFO, "Fired cb_htp_park_settings_detail.");
+  slog(LOG_INFO, "Fired cb_htp_park_configs_detail.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -2085,11 +2087,11 @@ static void cb_htp_park_settings_detail(evhtp_request_t *req, void *data)
 
   // fire handlers
   if(method == htp_method_GET) {
-    htp_get_park_settings_detail(req, data);
+    htp_get_park_configs_detail(req, data);
     return;
   }
   else if (method == htp_method_DELETE) {
-    htp_delete_park_settings_detail(req, data);
+    htp_delete_park_configs_detail(req, data);
     return;
   }
   else {
@@ -2106,11 +2108,11 @@ static void cb_htp_park_settings_detail(evhtp_request_t *req, void *data)
 
 /**
  * http request handler
- * ^/park/settings$
+ * ^/park/configs$
  * @param req
  * @param data
  */
-static void cb_htp_park_settings(evhtp_request_t *req, void *data)
+static void cb_htp_park_configs(evhtp_request_t *req, void *data)
 {
   int method;
 
@@ -2118,7 +2120,7 @@ static void cb_htp_park_settings(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_INFO, "Fired cb_htp_park_settings.");
+  slog(LOG_INFO, "Fired cb_htp_park_configs.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -2128,7 +2130,7 @@ static void cb_htp_park_settings(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    htp_get_park_settings(req, data);
+    htp_get_park_configs(req, data);
     return;
   }
   else {

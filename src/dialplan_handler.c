@@ -58,7 +58,7 @@ void htp_get_dp_setting(evhtp_request_t *req, void *data)
   }
 
   // get info
-  tmp = get_ast_current_config_info_raw(DEF_DIALPLAN_CONFNAME);
+  tmp = get_ast_current_config_info_text(DEF_DIALPLAN_CONFNAME);
   if(tmp == NULL) {
     slog(LOG_ERR, "Could not get dialplan conf.");
     simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
@@ -102,7 +102,7 @@ void htp_put_dp_setting(evhtp_request_t *req, void *data)
   }
 
   // update setting
-  ret = update_ast_current_config_info_raw(DEF_DIALPLAN_CONFNAME, tmp);
+  ret = update_ast_current_config_info_text(DEF_DIALPLAN_CONFNAME, tmp);
   sfree(tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not update dialplan setting info.");

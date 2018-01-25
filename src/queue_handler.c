@@ -930,7 +930,7 @@ static json_t* get_queue_backup_setting_info(const char* filename)
   }
 
   // get config info
-  j_res = get_ast_backup_config_info(filename);
+  j_res = get_ast_backup_config_info_json(filename);
 
   return j_res;
 }
