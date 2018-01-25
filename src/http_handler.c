@@ -65,7 +65,7 @@ static void cb_htp_dp_dialplans(evhtp_request_t *req, void *data);
 static void cb_htp_dp_dialplans_detail(evhtp_request_t *req, void *data);
 static void cb_htp_dp_dpmas(evhtp_request_t *req, void *data);
 static void cb_htp_dp_dpmas_detail(evhtp_request_t *req, void *data);
-static void cb_htp_dp_setting(evhtp_request_t *req, void *data);
+static void cb_htp_dp_config(evhtp_request_t *req, void *data);
 
 
 // park
@@ -181,14 +181,15 @@ bool init_http_handler(void)
 
 
   //// ^/dp/
+  // config
+  evhtp_set_regex_cb(g_htp, "^/dp/config$", cb_htp_dp_config, NULL);
+
   // dialplans
   evhtp_set_regex_cb(g_htp, "^/dp/dialplans/(.*)", cb_htp_dp_dialplans_detail, NULL);
   evhtp_set_regex_cb(g_htp, "^/dp/dialplans$", cb_htp_dp_dialplans, NULL);
   // dpmas
   evhtp_set_regex_cb(g_htp, "^/dp/dpmas/(.*)", cb_htp_dp_dpmas_detail, NULL);
   evhtp_set_regex_cb(g_htp, "^/dp/dpmas$", cb_htp_dp_dpmas, NULL);
-  // setting
-  evhtp_set_regex_cb(g_htp, "^/dp/setting$", cb_htp_dp_setting, NULL);
 
 
   ////// ^/ob/
@@ -234,8 +235,6 @@ bool init_http_handler(void)
   // parkedcalls
   evhtp_set_regex_cb(g_htp, "^/park/parkedcalls/(.*)", cb_htp_park_parkedcalls_detail, NULL);
   evhtp_set_regex_cb(g_htp, "^/park/parkedcalls$", cb_htp_park_parkedcalls, NULL);
-
-  // settings
 
 
   //// ^/pjsip/
@@ -2756,11 +2755,11 @@ static void cb_htp_pjsip_contacts_detail(evhtp_request_t *req, void *data)
 
 /**
  * http request handler
- * ^/dp/setting$
+ * ^/dp/config$
  * @param req
  * @param data
  */
-static void cb_htp_dp_setting(evhtp_request_t *req, void *data)
+static void cb_htp_dp_config(evhtp_request_t *req, void *data)
 {
   int method;
 
@@ -2768,7 +2767,7 @@ static void cb_htp_dp_setting(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_INFO, "Fired cb_htp_dp_setting.");
+  slog(LOG_INFO, "Fired cb_htp_dp_config.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -2779,11 +2778,11 @@ static void cb_htp_dp_setting(evhtp_request_t *req, void *data)
 
   // fire handlers
   if(method == htp_method_GET) {
-    htp_get_dp_setting(req, data);
+    htp_get_dp_config(req, data);
     return;
   }
   else if(method == htp_method_PUT) {
-    htp_put_dp_setting(req, data);
+    htp_put_dp_config(req, data);
     return;
   }
   else {

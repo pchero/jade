@@ -33,29 +33,20 @@ static bool is_exist_dialplan_info(const char* dpma_uuid, int seq);
 static bool is_exist_dialplan_info_uuid(const char* uuid);
 
 /**
- * GET ^/dp/setting request handler.
+ * GET ^/dp/config request handler.
  * @param req
  * @param data
  */
-void htp_get_dp_setting(evhtp_request_t *req, void *data)
+void htp_get_dp_config(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
-  const char* format;
   char* tmp;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired htp_get_dp_setting.");
-
-  // the only text format support.
-  format = evhtp_kv_find(req->uri->query, "format");
-  if((format == NULL) || (strcmp(format, "text") != 0)) {
-    slog(LOG_NOTICE, "Could not get correct format.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
+  slog(LOG_DEBUG, "Fired htp_get_dp_config.");
 
   // get info
   tmp = get_ast_current_config_info_text(DEF_DIALPLAN_CONFNAME);
@@ -78,11 +69,11 @@ void htp_get_dp_setting(evhtp_request_t *req, void *data)
 }
 
 /**
- * PUT ^/dp/setting request handler.
+ * PUT ^/dp/config request handler.
  * @param req
  * @param data
  */
-void htp_put_dp_setting(evhtp_request_t *req, void *data)
+void htp_put_dp_config(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   char* tmp;
@@ -92,7 +83,7 @@ void htp_put_dp_setting(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired htp_put_dp_setting.");
+  slog(LOG_DEBUG, "Fired htp_put_dp_config.");
 
   tmp = get_text_from_request_data(req);
   if(tmp == NULL) {
@@ -101,11 +92,11 @@ void htp_put_dp_setting(evhtp_request_t *req, void *data)
     return;
   }
 
-  // update setting
+  // update config
   ret = update_ast_current_config_info_text(DEF_DIALPLAN_CONFNAME, tmp);
   sfree(tmp);
   if(ret == false) {
-    slog(LOG_ERR, "Could not update dialplan setting info.");
+    slog(LOG_ERR, "Could not update dialplan config info.");
     simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }

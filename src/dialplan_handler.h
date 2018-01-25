@@ -25,8 +25,8 @@ void htp_get_dp_dialplans_detail(evhtp_request_t *req, void *data);
 void htp_put_dp_dialplans_detail(evhtp_request_t *req, void *data);
 void htp_delete_dp_dialplans_detail(evhtp_request_t *req, void *data);
 
-void htp_get_dp_setting(evhtp_request_t *req, void *data);
-void htp_put_dp_setting(evhtp_request_t *req, void *data);
+void htp_get_dp_config(evhtp_request_t *req, void *data);
+void htp_put_dp_config(evhtp_request_t *req, void *data);
 
 
 bool add_dialplan_cmds(const char* agi_uuid);
