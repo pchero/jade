@@ -25,7 +25,9 @@ bool delete_ast_current_config_content(const char* filename, const char* section
 
 bool delete_ast_current_config_section(const char* filename, const char* section);
 bool update_ast_current_config_section_data(const char* filename, const char* section, json_t* j_data);
-bool create_ast_current_config_section_data(const char* filename, const char* section, json_t* j_data);
+bool create_ast_current_config_section_data(const char* filename, const char* section, const json_t* j_data);
+
+json_t* get_ast_settings_all(const char* filename);
 
 
 json_t* get_ast_backup_config_info_json(const char* filename);

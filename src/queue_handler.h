@@ -30,6 +30,9 @@ void htp_get_queue_configs(evhtp_request_t *req, void *data);
 void htp_get_queue_configs_detail(evhtp_request_t *req, void *data);
 void htp_delete_queue_configs_detail(evhtp_request_t *req, void *data);
 
+void htp_get_queue_settings(evhtp_request_t *req, void *data);
+void htp_post_queue_settings(evhtp_request_t *req, void *data);
+
 void htp_get_queue_statuses(evhtp_request_t *req, void *data);
 void htp_get_queue_statuses_detail(evhtp_request_t *req, void *data);
 

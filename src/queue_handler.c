@@ -26,6 +26,9 @@ static bool is_queue_config_filename(const char* filename);
 
 static json_t* create_queue_info_json(json_t* j_data);
 
+static json_t* get_queue_settings_all(void);
+static bool create_queue_setting(const json_t* j_data);
+
 static bool update_queue_current_config_info_text(const char* data);
 static json_t* get_queue_backup_configs_all(void);
 static char* get_queue_backup_config_info_text(const char* filename);
@@ -702,6 +705,83 @@ void htp_delete_queue_configs_detail(evhtp_request_t *req, void *data)
 }
 
 /**
+ * htp request handler.
+ * request: GET ^/queue/settings$
+ * @param req
+ * @param data
+ */
+void htp_get_queue_settings(evhtp_request_t *req, void *data)
+{
+  json_t* j_tmp;
+  json_t* j_res;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired htp_get_queue_settings.");
+
+  // get info
+  j_tmp = get_queue_settings_all();
+
+  // create result
+  j_res = create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", json_object());
+  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
+
+  // response
+  simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * htp request handler.
+ * request: POST ^/queue/settings$
+ * @param req
+ * @param data
+ */
+void htp_post_queue_settings(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_data;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired htp_post_queue_settings.");
+
+  // get data
+  j_data = get_json_from_request_data(req);
+  if(j_data == NULL) {
+  	slog(LOG_ERR, "Could not get data from request.");
+  	simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+  	return;
+  }
+
+  // create setting
+  ret = create_queue_setting(j_data);
+  json_decref(j_data);
+  if(ret == false) {
+  	slog(LOG_ERR, "Could not create queue setting.");
+  	simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+		return;
+  }
+
+  // create result
+  j_res = create_default_result(EVHTP_RES_OK);
+
+  // response
+  simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
  * Create queue info.
  * @param j_data
  * @return
@@ -988,4 +1068,45 @@ static bool is_queue_config_filename(const char* filename)
   }
 
   return true;
+}
+
+static json_t* get_queue_settings_all(void)
+{
+	json_t* j_res;
+
+	j_res = get_ast_settings_all(DEF_QUEUE_CONFNAME);
+
+	return j_res;
+}
+
+static bool create_queue_setting(const json_t* j_data)
+{
+	const char* name;
+	int ret;
+	const json_t* j_setting;
+
+	if(j_data == NULL) {
+		slog(LOG_WARNING, "Wrong input parameter.");
+		return false;
+	}
+
+	name = json_string_value(json_object_get(j_data, "name"));
+	if(name == NULL) {
+		slog(LOG_ERR, "Could not get setting name.");
+		return false;
+	}
+
+	j_setting = json_object_get(j_data, "setting");
+	if(j_setting == NULL) {
+		slog(LOG_ERR, "Could not get setting.");
+		return false;
+	}
+
+	ret = create_ast_current_config_section_data(DEF_QUEUE_CONFNAME, name, j_setting);
+	if(ret == false) {
+		slog(LOG_ERR, "Could not create queue setting.");
+		return false;
+	}
+
+	return true;
 }

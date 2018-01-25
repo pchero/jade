@@ -99,6 +99,7 @@ static void cb_htp_queue_queues_detail(evhtp_request_t *req, void *data);
 static void cb_htp_queue_config(evhtp_request_t *req, void *data);
 static void cb_htp_queue_configs(evhtp_request_t *req, void *data);
 static void cb_htp_queue_configs_detail(evhtp_request_t *req, void *data);
+static void cb_htp_queue_settings(evhtp_request_t *req, void *data);
 static void cb_htp_queue_statuses(evhtp_request_t *req, void *data);
 static void cb_htp_queue_statuses_detail(evhtp_request_t *req, void *data);
 
@@ -275,6 +276,9 @@ bool init_http_handler(void)
   // queues
   evhtp_set_regex_cb(g_htp, "^/queue/queues/(.*)", cb_htp_queue_queues_detail, NULL);
   evhtp_set_regex_cb(g_htp, "^/queue/queues$", cb_htp_queue_queues, NULL);
+
+  // settings
+  evhtp_set_regex_cb(g_htp, "^/queue/settings$", cb_htp_queue_settings, NULL);
 
   // statuses
   evhtp_set_regex_cb(g_htp, "^/queue/statuses/(.*)", cb_htp_queue_statuses_detail, NULL);
@@ -1298,6 +1302,49 @@ static void cb_htp_queue_entries_detail(evhtp_request_t *req, void *data)
   else if(method == htp_method_DELETE) {
     // synonym of delete /core/channels/<detail>
     htp_delete_core_channels_detail(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  return;
+}
+
+/**
+ * http request handler
+ * ^/queue/settings$
+ * @param req
+ * @param data
+ */
+static void cb_htp_queue_settings(evhtp_request_t *req, void *data)
+{
+  int method;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_queue_settings.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if((method != htp_method_GET) && (method != htp_method_POST)) {
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // fire handlers
+  if(method == htp_method_GET) {
+    htp_get_queue_settings(req, data);
+    return;
+  }
+  else if(method == htp_method_POST) {
+  	htp_post_queue_settings(req, data);
     return;
   }
   else {

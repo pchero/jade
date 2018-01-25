@@ -518,8 +518,6 @@ bool update_ast_current_config_info_text(const char* filename, const char* data)
   return true;
 }
 
-
-
 /**
  * Get config info from given filename.
  * @param filename
@@ -821,11 +819,12 @@ bool delete_ast_current_config_content(const char* filename, const char* section
  * @param filename
  * @return
  */
-bool create_ast_current_config_section_data(const char* filename, const char* section, json_t* j_data)
+bool create_ast_current_config_section_data(const char* filename, const char* section, const json_t* j_data)
 {
   int ret;
   json_t* j_conf;
   json_t* j_section;
+  json_t* j_data_tmp;
 
   if((filename == NULL) || (section == NULL) || (j_data == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -848,7 +847,8 @@ bool create_ast_current_config_section_data(const char* filename, const char* se
   }
 
   // set data
-  json_object_set(j_conf, section, j_data);
+  j_data_tmp = json_deep_copy(j_data);
+  json_object_set_new(j_conf, section, j_data_tmp);
 
   // update conf
   ret = update_ast_current_config_info(filename, j_conf);
@@ -946,4 +946,46 @@ bool delete_ast_current_config_section(const char* filename, const char* section
   }
 
   return true;
+}
+
+/**
+ * Returns array of all settings
+ * @param filename
+ * @return
+ */
+json_t* get_ast_settings_all(const char* filename)
+{
+	json_t* j_res;
+	json_t* j_conf;
+	json_t* j_val;
+	json_t* j_setting;
+	const char* key;
+
+	if(filename == NULL) {
+		slog(LOG_WARNING, "Wrong input parameter.");
+		return NULL;
+	}
+
+	j_conf = get_ast_current_config_info(filename);
+	if(j_conf == NULL) {
+		slog(LOG_ERR, "Could not get setting info.");
+		return NULL;
+	}
+
+	j_res = json_array();
+	json_object_foreach(j_conf, key, j_val) {
+		j_setting = json_pack("{s:s, s:O}",
+				"name",			key,
+				"setting",	j_val
+				);
+		if(j_setting == NULL) {
+			slog(LOG_ERR, "Could not create setting info. key[%s]", key);
+			continue;
+		}
+
+		json_array_append_new(j_res, j_setting);
+	}
+	json_decref(j_conf);
+
+	return j_res;
 }
