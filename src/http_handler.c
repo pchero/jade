@@ -111,9 +111,9 @@ static void cb_htp_sip_registries_detail(evhtp_request_t *req, void *data);
 
 
 // voicemail/
-static void cb_htp_voicemail_setting(evhtp_request_t *req, void *data);
-static void cb_htp_voicemail_settings(evhtp_request_t *req, void *data);
-static void cb_htp_voicemail_settings_detail(evhtp_request_t *req, void *data);
+static void cb_htp_voicemail_config(evhtp_request_t *req, void *data);
+static void cb_htp_voicemail_configs(evhtp_request_t *req, void *data);
+static void cb_htp_voicemail_configs_detail(evhtp_request_t *req, void *data);
 static void cb_htp_voicemail_users(evhtp_request_t *req, void *data);
 static void cb_htp_voicemail_users_detail(evhtp_request_t *req, void *data);
 static void cb_htp_voicemail_vms(evhtp_request_t *req, void *data);
@@ -294,12 +294,12 @@ bool init_http_handler(void)
 
 
   //// ^/voicemail/
-  // setting
-  evhtp_set_regex_cb(g_htp, "^/voicemail/setting$", cb_htp_voicemail_setting, NULL);
+  // config
+  evhtp_set_regex_cb(g_htp, "^/voicemail/config$", cb_htp_voicemail_config, NULL);
 
-  // settings
-  evhtp_set_regex_cb(g_htp, "^/voicemail/settings/(.*)", cb_htp_voicemail_settings_detail, NULL);
-  evhtp_set_regex_cb(g_htp, "^/voicemail/settings$", cb_htp_voicemail_settings, NULL);
+  // configs
+  evhtp_set_regex_cb(g_htp, "^/voicemail/configs/(.*)", cb_htp_voicemail_configs_detail, NULL);
+  evhtp_set_regex_cb(g_htp, "^/voicemail/configs$", cb_htp_voicemail_configs, NULL);
 
   // users
   evhtp_set_regex_cb(g_htp, "^/voicemail/users/(.*)", cb_htp_voicemail_users_detail, NULL);
@@ -2189,11 +2189,11 @@ static void cb_htp_voicemail_users(evhtp_request_t *req, void *data)
 
 /**
  * http request handler
- * ^/voicemail/setting$
+ * ^/voicemail/config$
  * @param req
  * @param data
  */
-static void cb_htp_voicemail_setting(evhtp_request_t *req, void *data)
+static void cb_htp_voicemail_config(evhtp_request_t *req, void *data)
 {
   int method;
 
@@ -2201,7 +2201,7 @@ static void cb_htp_voicemail_setting(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_INFO, "Fired cb_htp_voicemail_setting.");
+  slog(LOG_INFO, "Fired cb_htp_voicemail_config.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -2211,11 +2211,11 @@ static void cb_htp_voicemail_setting(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    htp_get_voicemail_setting(req, data);
+    htp_get_voicemail_config(req, data);
     return;
   }
   else if(method == htp_method_PUT) {
-    htp_put_voicemail_setting(req, data);
+    htp_put_voicemail_config(req, data);
     return;
   }
   else {
@@ -2232,11 +2232,11 @@ static void cb_htp_voicemail_setting(evhtp_request_t *req, void *data)
 
 /**
  * http request handler
- * ^/voicemail/settings$
+ * ^/voicemail/configs$
  * @param req
  * @param data
  */
-static void cb_htp_voicemail_settings(evhtp_request_t *req, void *data)
+static void cb_htp_voicemail_configs(evhtp_request_t *req, void *data)
 {
   int method;
 
@@ -2244,7 +2244,7 @@ static void cb_htp_voicemail_settings(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_INFO, "Fired cb_htp_voicemail_settings.");
+  slog(LOG_INFO, "Fired cb_htp_voicemail_configs.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -2254,7 +2254,7 @@ static void cb_htp_voicemail_settings(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    htp_get_voicemail_settings(req, data);
+    htp_get_voicemail_configs(req, data);
     return;
   }
   else {
@@ -2271,11 +2271,11 @@ static void cb_htp_voicemail_settings(evhtp_request_t *req, void *data)
 
 /**
  * http request handler
- * ^/voicemail/settings/(.*)
+ * ^/voicemail/configs/(.*)
  * @param req
  * @param data
  */
-static void cb_htp_voicemail_settings_detail(evhtp_request_t *req, void *data)
+static void cb_htp_voicemail_configs_detail(evhtp_request_t *req, void *data)
 {
   int method;
 
@@ -2283,7 +2283,7 @@ static void cb_htp_voicemail_settings_detail(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_INFO, "Fired cb_htp_voicemail_settings_detail.");
+  slog(LOG_INFO, "Fired cb_htp_voicemail_configs_detail.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -2294,11 +2294,11 @@ static void cb_htp_voicemail_settings_detail(evhtp_request_t *req, void *data)
 
   // fire handlers
   if(method == htp_method_GET) {
-    htp_get_voicemail_settings_detail(req, data);
+    htp_get_voicemail_configs_detail(req, data);
     return;
   }
   else if (method == htp_method_DELETE) {
-    htp_delete_voicemail_settings_detail(req, data);
+    htp_delete_voicemail_configs_detail(req, data);
     return;
   }
   else {

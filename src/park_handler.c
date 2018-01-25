@@ -728,7 +728,7 @@ static char* get_park_backup_config_info_text(const char* filename)
     slog(LOG_WARNING, "Wrong input parameter.");
     return NULL;
   }
-  slog(LOG_DEBUG, "Fired get_park_backup_setting_info. filename[%s]", filename);
+  slog(LOG_DEBUG, "Fired get_park_backup_config_info_text. filename[%s]", filename);
 
   // check is park config filename
   ret = is_park_config_filename(filename);

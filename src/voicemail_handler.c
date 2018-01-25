@@ -39,14 +39,11 @@ static bool remove_vm(const char* context, const char* mailbox, const char* dir,
 static bool create_voicemail_user(json_t* j_data);
 static int update_voicemail_user(json_t* j_data);
 
-static int update_voicemail_current_setting_info(json_t* j_data);
-
-static json_t* get_voicemail_backup_settings_all(void);
-static json_t* get_voicemail_backup_setting_info(const char* filename);
-static bool remove_voicemail_backup_setting_info(const char* filename);
+static char* get_voicemail_backup_config_info_text(const char* filename);
+static bool remove_voicemail_backup_config_info(const char* filename);
 
 static bool is_setting_context(const char* context);
-static bool is_voicemail_setting_filename(const char* filename);
+static bool is_voicemail_config_filename(const char* filename);
 
 static bool parse_voicemail_id(const char* str, char** mailbox, char** context);
 
@@ -519,24 +516,24 @@ void htp_delete_voicemail_vms_msgname(evhtp_request_t *req, void *data)
 }
 
 /**
- * GET ^/voicemail/setting request handler.
+ * GET ^/voicemail/config request handler.
  * @param req
  * @param data
  */
-void htp_get_voicemail_setting(evhtp_request_t *req, void *data)
+void htp_get_voicemail_config(evhtp_request_t *req, void *data)
 {
-  json_t* j_tmp;
+  char* res;
   json_t* j_res;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired htp_get_voicemail_setting.");
+  slog(LOG_DEBUG, "Fired htp_get_voicemail_config.");
 
   // get info
-  j_tmp = get_ast_current_config_info(DEF_VOICEMAIL_CONFNAME);
-  if(j_tmp == NULL) {
+  res = get_ast_current_config_info_text(DEF_VOICEMAIL_CONFNAME);
+  if(res == NULL) {
     slog(LOG_ERR, "Could not get voicemail conf.");
     simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
@@ -544,7 +541,8 @@ void htp_get_voicemail_setting(evhtp_request_t *req, void *data)
 
   // create result
   j_res = create_default_result(EVHTP_RES_OK);
-  json_object_set_new(j_res, "result", j_tmp);
+  json_object_set_new(j_res, "result", json_string(res));
+  sfree(res);
 
   // response
   simple_response_normal(req, j_res);
@@ -554,34 +552,35 @@ void htp_get_voicemail_setting(evhtp_request_t *req, void *data)
 }
 
 /**
- * PUT ^/voicemail/setting request handler.
+ * PUT ^/voicemail/config request handler.
  * @param req
  * @param data
  */
-void htp_put_voicemail_setting(evhtp_request_t *req, void *data)
+void htp_put_voicemail_config(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
-  json_t* j_data;
+  char* req_data;
   int ret;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired htp_put_voicemail_setting.");
+  slog(LOG_DEBUG, "Fired htp_put_voicemail_config.");
 
-  j_data = get_json_from_request_data(req);
-  if(j_data == NULL) {
+  // get data
+  req_data = get_text_from_request_data(req);
+  if(req_data == NULL) {
     slog(LOG_ERR, "Could not get data.");
     simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
-  // update setting
-  ret = update_voicemail_current_setting_info(j_data);
-  json_decref(j_data);
+  // update config
+  ret = update_ast_current_config_info_text(DEF_VOICEMAIL_CONFNAME, req_data);
+  sfree(req_data);
   if(ret == false) {
-    slog(LOG_ERR, "Could not update voicemail setting info.");
+    slog(LOG_ERR, "Could not update voicemail config info.");
     simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
@@ -598,11 +597,11 @@ void htp_put_voicemail_setting(evhtp_request_t *req, void *data)
 
 
 /**
- * GET ^/voicemail/settings request handler.
+ * GET ^/voicemail/configs request handler.
  * @param req
  * @param data
  */
-void htp_get_voicemail_settings(evhtp_request_t *req, void *data)
+void htp_get_voicemail_configs(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
@@ -611,10 +610,10 @@ void htp_get_voicemail_settings(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired htp_get_voicemail_settings.");
+  slog(LOG_DEBUG, "Fired htp_get_voicemail_configs.");
 
   // get info
-  j_tmp = get_voicemail_backup_settings_all();
+  j_tmp = get_ast_backup_configs_info_all(DEF_VOICEMAIL_CONFNAME);
   if(j_tmp == NULL) {
     simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
@@ -633,44 +632,45 @@ void htp_get_voicemail_settings(evhtp_request_t *req, void *data)
 }
 
 /**
- * GET ^/voicemail/settings/(.*) request handler.
+ * GET ^/voicemail/configs/(.*) request handler.
  * @param req
  * @param data
  */
-void htp_get_voicemail_settings_detail(evhtp_request_t *req, void *data)
+void htp_get_voicemail_configs_detail(evhtp_request_t *req, void *data)
 {
-  json_t* j_tmp;
+  char* tmp;
   json_t* j_res;
   const char* tmp_const;
-  char* name;
+  char* detail;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired htp_get_voicemail_settings_detail.");
+  slog(LOG_DEBUG, "Fired htp_get_voicemail_configs_detail.");
 
-  // name parse
+  // detail parse
   tmp_const = req->uri->path->file;
-  name = uri_decode(tmp_const);
-  if(name == NULL) {
-    slog(LOG_ERR, "Could not get name info.");
+  detail = uri_decode(tmp_const);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
     simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
-  j_tmp = get_voicemail_backup_setting_info(name);
-  sfree(name);
-  if(j_tmp == NULL) {
-    slog(LOG_NOTICE, "Could not find setting info.");
+  // get config info
+  tmp = get_voicemail_backup_config_info_text(detail);
+  sfree(detail);
+  if(tmp == NULL) {
+    slog(LOG_NOTICE, "Could not find config info.");
     simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
     return;
   }
 
   // create result
   j_res = create_default_result(EVHTP_RES_OK);
-  json_object_set_new(j_res, "result", json_object());
-  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
+  json_object_set_new(j_res, "result", json_string(tmp));
+  sfree(tmp);
 
   // response
   simple_response_normal(req, j_res);
@@ -680,37 +680,37 @@ void htp_get_voicemail_settings_detail(evhtp_request_t *req, void *data)
 }
 
 /**
- * DELETE ^/voicemail/settings/(.*) request handler.
+ * DELETE ^/voicemail/configs/(.*) request handler.
  * @param req
  * @param data
  */
-void htp_delete_voicemail_settings_detail(evhtp_request_t *req, void *data)
+void htp_delete_voicemail_configs_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   const char* tmp_const;
-  char* name;
+  char* detail;
   int ret;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired htp_get_voicemail_settings_detail.");
+  slog(LOG_DEBUG, "Fired htp_delete_voicemail_configs_detail.");
 
-  // name parse
+  // detail parse
   tmp_const = req->uri->path->file;
-  name = uri_decode(tmp_const);
-  if(name == NULL) {
-    slog(LOG_ERR, "Could not get name info.");
+  detail = uri_decode(tmp_const);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
     simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
   // remove it
-  ret = remove_voicemail_backup_setting_info(name);
-  sfree(name);
+  ret = remove_voicemail_backup_config_info(detail);
+  sfree(detail);
   if(ret == false) {
-    slog(LOG_NOTICE, "Could not delete setting file.");
+    slog(LOG_NOTICE, "Could not delete config file.");
     simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
@@ -1280,40 +1280,40 @@ static int delete_voicemail_user(const char* context, const char* mailbox)
 }
 
 /**
- * Get voicemail setting(configuration) info.
+ * Get voicemail config(configuration) info.
  * @param filename
  * @return
  */
-static json_t* get_voicemail_backup_setting_info(const char* filename)
+static char* get_voicemail_backup_config_info_text(const char* filename)
 {
-  json_t* j_res;
+  char* res;
   int ret;
 
   if(filename == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return NULL;
   }
-  slog(LOG_DEBUG, "Fired get_voicemail_backup_setting_info. filename[%s]", filename);
+  slog(LOG_DEBUG, "Fired get_voicemail_backup_config_info_text. filename[%s]", filename);
 
   // check filename
-  ret = is_voicemail_setting_filename(filename);
+  ret = is_voicemail_config_filename(filename);
   if(ret == false) {
     slog(LOG_ERR, "Given filename is not voicemail config filename.");
     return NULL;
   }
 
   // get config info
-  j_res = get_ast_backup_config_info_json(filename);
+  res = get_ast_backup_config_info_text(filename);
 
-  return j_res;
+  return res;
 }
 
 /**
- * Remove voicemail setting(configuration) info.
+ * Remove voicemail config(configuration) info.
  * @param filename
  * @return
  */
-static bool remove_voicemail_backup_setting_info(const char* filename)
+static bool remove_voicemail_backup_config_info(const char* filename)
 {
   int ret;
 
@@ -1321,9 +1321,9 @@ static bool remove_voicemail_backup_setting_info(const char* filename)
     slog(LOG_WARNING, "Wrong input parameter.");
     return NULL;
   }
-  slog(LOG_DEBUG, "Fired remove_voicemail_backup_setting_info. filename[%s]", filename);
+  slog(LOG_DEBUG, "Fired remove_voicemail_backup_config_info. filename[%s]", filename);
 
-  ret = is_voicemail_setting_filename(filename);
+  ret = is_voicemail_config_filename(filename);
   if(ret == false) {
     slog(LOG_NOTICE, "The given filename is not voicemail conf file.");
     return false;
@@ -1339,50 +1339,11 @@ static bool remove_voicemail_backup_setting_info(const char* filename)
 }
 
 /**
- * Update voicemail current setting(configuration) info.
+ * Return true if given filename related with voicemail config file.
  * @param filename
  * @return
  */
-static int update_voicemail_current_setting_info(json_t* j_data)
-{
-  int ret;
-
-  if(j_data == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return false;
-  }
-  slog(LOG_DEBUG, "Fired update_voicemail_current_setting_info");
-
-  // update setting
-  ret = update_ast_current_config_info(DEF_VOICEMAIL_CONFNAME, j_data);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not update voicemail setting.");
-    return false;
-  }
-
-  return true;
-}
-
-/**
- * Get voicemail setting(configuration)s info.
- * @param filename
- * @return
- */
-static json_t* get_voicemail_backup_settings_all(void)
-{
-  json_t* j_res;
-
-  j_res = get_ast_backup_configs_info_all(DEF_VOICEMAIL_CONFNAME);
-
-  return j_res;
-}
-
-/**
- * Return true if given filename related with voicemail setting file.
- * @param filename
- * @return
- */
-static bool is_voicemail_setting_filename(const char* filename)
+static bool is_voicemail_config_filename(const char* filename)
 {
   const char* tmp_const;
 
