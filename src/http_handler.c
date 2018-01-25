@@ -96,9 +96,9 @@ static void cb_htp_queue_members(evhtp_request_t *req, void *data);
 static void cb_htp_queue_members_detail(evhtp_request_t *req, void *data);
 static void cb_htp_queue_queues(evhtp_request_t *req, void *data);
 static void cb_htp_queue_queues_detail(evhtp_request_t *req, void *data);
-static void cb_htp_queue_setting(evhtp_request_t *req, void *data);
-static void cb_htp_queue_settings(evhtp_request_t *req, void *data);
-static void cb_htp_queue_settings_detail(evhtp_request_t *req, void *data);
+static void cb_htp_queue_config(evhtp_request_t *req, void *data);
+static void cb_htp_queue_configs(evhtp_request_t *req, void *data);
+static void cb_htp_queue_configs_detail(evhtp_request_t *req, void *data);
 static void cb_htp_queue_statuses(evhtp_request_t *req, void *data);
 static void cb_htp_queue_statuses_detail(evhtp_request_t *req, void *data);
 
@@ -258,6 +258,13 @@ bool init_http_handler(void)
 
 
   //// ^/queue/
+  // config
+  evhtp_set_regex_cb(g_htp, "^/queue/config$", cb_htp_queue_config, NULL);
+
+  // configs
+  evhtp_set_regex_cb(g_htp, "^/queue/configs/(.*)", cb_htp_queue_configs_detail, NULL);
+  evhtp_set_regex_cb(g_htp, "^/queue/configs$", cb_htp_queue_configs, NULL);
+
   // entries
   evhtp_set_regex_cb(g_htp, "^/queue/entries/(.*)", cb_htp_queue_entries_detail, NULL);
   evhtp_set_regex_cb(g_htp, "^/queue/entries$", cb_htp_queue_entries, NULL);
@@ -269,13 +276,6 @@ bool init_http_handler(void)
   // queues
   evhtp_set_regex_cb(g_htp, "^/queue/queues/(.*)", cb_htp_queue_queues_detail, NULL);
   evhtp_set_regex_cb(g_htp, "^/queue/queues$", cb_htp_queue_queues, NULL);
-
-  // setting
-  evhtp_set_regex_cb(g_htp, "^/queue/setting$", cb_htp_queue_setting, NULL);
-
-  // settings
-  evhtp_set_regex_cb(g_htp, "^/queue/settings/(.*)", cb_htp_queue_settings_detail, NULL);
-  evhtp_set_regex_cb(g_htp, "^/queue/settings$", cb_htp_queue_settings, NULL);
 
   // statuses
   evhtp_set_regex_cb(g_htp, "^/queue/statuses/(.*)", cb_htp_queue_statuses_detail, NULL);
@@ -946,11 +946,11 @@ static void cb_htp_queue_queues_detail(evhtp_request_t *req, void *data)
 
 /**
  * http request handler
- * ^/queue/setting$
+ * ^/queue/config$
  * @param req
  * @param data
  */
-static void cb_htp_queue_setting(evhtp_request_t *req, void *data)
+static void cb_htp_queue_config(evhtp_request_t *req, void *data)
 {
   int method;
 
@@ -958,7 +958,7 @@ static void cb_htp_queue_setting(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_INFO, "Fired cb_htp_queue_setting.");
+  slog(LOG_INFO, "Fired cb_htp_queue_config.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -969,11 +969,11 @@ static void cb_htp_queue_setting(evhtp_request_t *req, void *data)
 
   // fire handlers
   if(method == htp_method_GET) {
-    htp_get_queue_setting(req, data);
+    htp_get_queue_config(req, data);
     return;
   }
   else if(method == htp_method_PUT) {
-    htp_put_queue_setting(req, data);
+    htp_put_queue_config(req, data);
     return;
   }
   else {
@@ -990,11 +990,11 @@ static void cb_htp_queue_setting(evhtp_request_t *req, void *data)
 
 /**
  * http request handler
- * ^/queue/settings/(.*)
+ * ^/queue/configs/(.*)
  * @param req
  * @param data
  */
-static void cb_htp_queue_settings_detail(evhtp_request_t *req, void *data)
+static void cb_htp_queue_configs_detail(evhtp_request_t *req, void *data)
 {
   int method;
 
@@ -1002,7 +1002,7 @@ static void cb_htp_queue_settings_detail(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_INFO, "Fired cb_htp_queue_settings_detail.");
+  slog(LOG_INFO, "Fired cb_htp_queue_configs_detail.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -1013,11 +1013,11 @@ static void cb_htp_queue_settings_detail(evhtp_request_t *req, void *data)
 
   // fire handlers
   if(method == htp_method_GET) {
-    htp_get_queue_settings_detail(req, data);
+    htp_get_queue_configs_detail(req, data);
     return;
   }
   else if (method == htp_method_DELETE) {
-    htp_delete_queue_settings_detail(req, data);
+    htp_delete_queue_configs_detail(req, data);
     return;
   }
   else {
@@ -1034,11 +1034,11 @@ static void cb_htp_queue_settings_detail(evhtp_request_t *req, void *data)
 
 /**
  * http request handler
- * ^/queue/settings$
+ * ^/queue/configs$
  * @param req
  * @param data
  */
-static void cb_htp_queue_settings(evhtp_request_t *req, void *data)
+static void cb_htp_queue_configs(evhtp_request_t *req, void *data)
 {
   int method;
 
@@ -1046,7 +1046,7 @@ static void cb_htp_queue_settings(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_INFO, "Fired cb_htp_queue_settings.");
+  slog(LOG_INFO, "Fired cb_htp_queue_configs.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -1056,7 +1056,7 @@ static void cb_htp_queue_settings(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    htp_get_queue_settings(req, data);
+    htp_get_queue_configs(req, data);
     return;
   }
   else {
