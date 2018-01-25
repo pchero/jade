@@ -65,7 +65,7 @@ static void cb_htp_dp_dialplans(evhtp_request_t *req, void *data);
 static void cb_htp_dp_dialplans_detail(evhtp_request_t *req, void *data);
 static void cb_htp_dp_dpmas(evhtp_request_t *req, void *data);
 static void cb_htp_dp_dpmas_detail(evhtp_request_t *req, void *data);
-static void cb_htp_dp_setting(evhtp_request_t *req, void *data);
+static void cb_htp_dp_config(evhtp_request_t *req, void *data);
 
 
 // park
@@ -73,9 +73,9 @@ static void cb_htp_park_parkinglots(evhtp_request_t *req, void *data);
 static void cb_htp_park_parkinglots_detail(evhtp_request_t *req, void *data);
 static void cb_htp_park_parkedcalls(evhtp_request_t *req, void *data);
 static void cb_htp_park_parkedcalls_detail(evhtp_request_t *req, void *data);
-static void cb_htp_park_setting(evhtp_request_t *req, void *data);
-static void cb_htp_park_settings(evhtp_request_t *req, void *data);
-static void cb_htp_park_settings_detail(evhtp_request_t *req, void *data);
+static void cb_htp_park_config(evhtp_request_t *req, void *data);
+static void cb_htp_park_configs(evhtp_request_t *req, void *data);
+static void cb_htp_park_configs_detail(evhtp_request_t *req, void *data);
 
 
 // pjsip
@@ -96,9 +96,9 @@ static void cb_htp_queue_members(evhtp_request_t *req, void *data);
 static void cb_htp_queue_members_detail(evhtp_request_t *req, void *data);
 static void cb_htp_queue_queues(evhtp_request_t *req, void *data);
 static void cb_htp_queue_queues_detail(evhtp_request_t *req, void *data);
-static void cb_htp_queue_setting(evhtp_request_t *req, void *data);
-static void cb_htp_queue_settings(evhtp_request_t *req, void *data);
-static void cb_htp_queue_settings_detail(evhtp_request_t *req, void *data);
+static void cb_htp_queue_config(evhtp_request_t *req, void *data);
+static void cb_htp_queue_configs(evhtp_request_t *req, void *data);
+static void cb_htp_queue_configs_detail(evhtp_request_t *req, void *data);
 static void cb_htp_queue_statuses(evhtp_request_t *req, void *data);
 static void cb_htp_queue_statuses_detail(evhtp_request_t *req, void *data);
 
@@ -111,9 +111,9 @@ static void cb_htp_sip_registries_detail(evhtp_request_t *req, void *data);
 
 
 // voicemail/
-static void cb_htp_voicemail_setting(evhtp_request_t *req, void *data);
-static void cb_htp_voicemail_settings(evhtp_request_t *req, void *data);
-static void cb_htp_voicemail_settings_detail(evhtp_request_t *req, void *data);
+static void cb_htp_voicemail_config(evhtp_request_t *req, void *data);
+static void cb_htp_voicemail_configs(evhtp_request_t *req, void *data);
+static void cb_htp_voicemail_configs_detail(evhtp_request_t *req, void *data);
 static void cb_htp_voicemail_users(evhtp_request_t *req, void *data);
 static void cb_htp_voicemail_users_detail(evhtp_request_t *req, void *data);
 static void cb_htp_voicemail_vms(evhtp_request_t *req, void *data);
@@ -181,14 +181,15 @@ bool init_http_handler(void)
 
 
   //// ^/dp/
+  // config
+  evhtp_set_regex_cb(g_htp, "^/dp/config$", cb_htp_dp_config, NULL);
+
   // dialplans
   evhtp_set_regex_cb(g_htp, "^/dp/dialplans/(.*)", cb_htp_dp_dialplans_detail, NULL);
   evhtp_set_regex_cb(g_htp, "^/dp/dialplans$", cb_htp_dp_dialplans, NULL);
   // dpmas
   evhtp_set_regex_cb(g_htp, "^/dp/dpmas/(.*)", cb_htp_dp_dpmas_detail, NULL);
   evhtp_set_regex_cb(g_htp, "^/dp/dpmas$", cb_htp_dp_dpmas, NULL);
-  // setting
-  evhtp_set_regex_cb(g_htp, "^/dp/setting$", cb_htp_dp_setting, NULL);
 
 
   ////// ^/ob/
@@ -220,6 +221,13 @@ bool init_http_handler(void)
 
 
   //// ^/park/
+  // config
+  evhtp_set_regex_cb(g_htp, "^/park/config$", cb_htp_park_config, NULL);
+
+  // configs
+  evhtp_set_regex_cb(g_htp, "^/park/configs/(.*)", cb_htp_park_configs_detail, NULL);
+  evhtp_set_regex_cb(g_htp, "^/park/configs$", cb_htp_park_configs, NULL);
+
   // parkinglots
   evhtp_set_regex_cb(g_htp, "^/park/parkinglots/(.*)", cb_htp_park_parkinglots_detail, NULL);
   evhtp_set_regex_cb(g_htp, "^/park/parkinglots$", cb_htp_park_parkinglots, NULL);
@@ -227,13 +235,6 @@ bool init_http_handler(void)
   // parkedcalls
   evhtp_set_regex_cb(g_htp, "^/park/parkedcalls/(.*)", cb_htp_park_parkedcalls_detail, NULL);
   evhtp_set_regex_cb(g_htp, "^/park/parkedcalls$", cb_htp_park_parkedcalls, NULL);
-
-  // setting
-  evhtp_set_regex_cb(g_htp, "^/park/setting$", cb_htp_park_setting, NULL);
-
-  // settings
-  evhtp_set_regex_cb(g_htp, "^/park/settings/(.*)", cb_htp_park_settings_detail, NULL);
-  evhtp_set_regex_cb(g_htp, "^/park/settings$", cb_htp_park_settings, NULL);
 
 
   //// ^/pjsip/
@@ -256,6 +257,13 @@ bool init_http_handler(void)
 
 
   //// ^/queue/
+  // config
+  evhtp_set_regex_cb(g_htp, "^/queue/config$", cb_htp_queue_config, NULL);
+
+  // configs
+  evhtp_set_regex_cb(g_htp, "^/queue/configs/(.*)", cb_htp_queue_configs_detail, NULL);
+  evhtp_set_regex_cb(g_htp, "^/queue/configs$", cb_htp_queue_configs, NULL);
+
   // entries
   evhtp_set_regex_cb(g_htp, "^/queue/entries/(.*)", cb_htp_queue_entries_detail, NULL);
   evhtp_set_regex_cb(g_htp, "^/queue/entries$", cb_htp_queue_entries, NULL);
@@ -267,13 +275,6 @@ bool init_http_handler(void)
   // queues
   evhtp_set_regex_cb(g_htp, "^/queue/queues/(.*)", cb_htp_queue_queues_detail, NULL);
   evhtp_set_regex_cb(g_htp, "^/queue/queues$", cb_htp_queue_queues, NULL);
-
-  // setting
-  evhtp_set_regex_cb(g_htp, "^/queue/setting$", cb_htp_queue_setting, NULL);
-
-  // settings
-  evhtp_set_regex_cb(g_htp, "^/queue/settings/(.*)", cb_htp_queue_settings_detail, NULL);
-  evhtp_set_regex_cb(g_htp, "^/queue/settings$", cb_htp_queue_settings, NULL);
 
   // statuses
   evhtp_set_regex_cb(g_htp, "^/queue/statuses/(.*)", cb_htp_queue_statuses_detail, NULL);
@@ -293,12 +294,12 @@ bool init_http_handler(void)
 
 
   //// ^/voicemail/
-  // setting
-  evhtp_set_regex_cb(g_htp, "^/voicemail/setting$", cb_htp_voicemail_setting, NULL);
+  // config
+  evhtp_set_regex_cb(g_htp, "^/voicemail/config$", cb_htp_voicemail_config, NULL);
 
-  // settings
-  evhtp_set_regex_cb(g_htp, "^/voicemail/settings/(.*)", cb_htp_voicemail_settings_detail, NULL);
-  evhtp_set_regex_cb(g_htp, "^/voicemail/settings$", cb_htp_voicemail_settings, NULL);
+  // configs
+  evhtp_set_regex_cb(g_htp, "^/voicemail/configs/(.*)", cb_htp_voicemail_configs_detail, NULL);
+  evhtp_set_regex_cb(g_htp, "^/voicemail/configs$", cb_htp_voicemail_configs, NULL);
 
   // users
   evhtp_set_regex_cb(g_htp, "^/voicemail/users/(.*)", cb_htp_voicemail_users_detail, NULL);
@@ -944,11 +945,11 @@ static void cb_htp_queue_queues_detail(evhtp_request_t *req, void *data)
 
 /**
  * http request handler
- * ^/queue/setting$
+ * ^/queue/config$
  * @param req
  * @param data
  */
-static void cb_htp_queue_setting(evhtp_request_t *req, void *data)
+static void cb_htp_queue_config(evhtp_request_t *req, void *data)
 {
   int method;
 
@@ -956,7 +957,7 @@ static void cb_htp_queue_setting(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_INFO, "Fired cb_htp_queue_setting.");
+  slog(LOG_INFO, "Fired cb_htp_queue_config.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -967,11 +968,11 @@ static void cb_htp_queue_setting(evhtp_request_t *req, void *data)
 
   // fire handlers
   if(method == htp_method_GET) {
-    htp_get_queue_setting(req, data);
+    htp_get_queue_config(req, data);
     return;
   }
   else if(method == htp_method_PUT) {
-    htp_put_queue_setting(req, data);
+    htp_put_queue_config(req, data);
     return;
   }
   else {
@@ -988,11 +989,11 @@ static void cb_htp_queue_setting(evhtp_request_t *req, void *data)
 
 /**
  * http request handler
- * ^/queue/settings/(.*)
+ * ^/queue/configs/(.*)
  * @param req
  * @param data
  */
-static void cb_htp_queue_settings_detail(evhtp_request_t *req, void *data)
+static void cb_htp_queue_configs_detail(evhtp_request_t *req, void *data)
 {
   int method;
 
@@ -1000,7 +1001,7 @@ static void cb_htp_queue_settings_detail(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_INFO, "Fired cb_htp_queue_settings_detail.");
+  slog(LOG_INFO, "Fired cb_htp_queue_configs_detail.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -1011,11 +1012,11 @@ static void cb_htp_queue_settings_detail(evhtp_request_t *req, void *data)
 
   // fire handlers
   if(method == htp_method_GET) {
-    htp_get_queue_settings_detail(req, data);
+    htp_get_queue_configs_detail(req, data);
     return;
   }
   else if (method == htp_method_DELETE) {
-    htp_delete_queue_settings_detail(req, data);
+    htp_delete_queue_configs_detail(req, data);
     return;
   }
   else {
@@ -1032,11 +1033,11 @@ static void cb_htp_queue_settings_detail(evhtp_request_t *req, void *data)
 
 /**
  * http request handler
- * ^/queue/settings$
+ * ^/queue/configs$
  * @param req
  * @param data
  */
-static void cb_htp_queue_settings(evhtp_request_t *req, void *data)
+static void cb_htp_queue_configs(evhtp_request_t *req, void *data)
 {
   int method;
 
@@ -1044,7 +1045,7 @@ static void cb_htp_queue_settings(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_INFO, "Fired cb_htp_queue_settings.");
+  slog(LOG_INFO, "Fired cb_htp_queue_configs.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -1054,7 +1055,7 @@ static void cb_htp_queue_settings(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    htp_get_queue_settings(req, data);
+    htp_get_queue_configs(req, data);
     return;
   }
   else {
@@ -2018,11 +2019,11 @@ static void cb_htp_park_parkedcalls_detail(evhtp_request_t *req, void *data)
 
 /**
  * http request handler
- * ^/park/setting$
+ * ^/park/config$
  * @param req
  * @param data
  */
-static void cb_htp_park_setting(evhtp_request_t *req, void *data)
+static void cb_htp_park_config(evhtp_request_t *req, void *data)
 {
   int method;
 
@@ -2030,7 +2031,7 @@ static void cb_htp_park_setting(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_INFO, "Fired cb_htp_park_setting.");
+  slog(LOG_INFO, "Fired cb_htp_park_config.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -2041,11 +2042,11 @@ static void cb_htp_park_setting(evhtp_request_t *req, void *data)
 
   // fire handlers
   if(method == htp_method_GET) {
-    htp_get_park_setting(req, data);
+    htp_get_park_config(req, data);
     return;
   }
   else if(method == htp_method_PUT) {
-    htp_put_park_setting(req, data);
+    htp_put_park_config(req, data);
     return;
   }
   else {
@@ -2062,11 +2063,11 @@ static void cb_htp_park_setting(evhtp_request_t *req, void *data)
 
 /**
  * http request handler
- * ^/park/settings/(.*)
+ * ^/park/configs/(.*)
  * @param req
  * @param data
  */
-static void cb_htp_park_settings_detail(evhtp_request_t *req, void *data)
+static void cb_htp_park_configs_detail(evhtp_request_t *req, void *data)
 {
   int method;
 
@@ -2074,7 +2075,7 @@ static void cb_htp_park_settings_detail(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_INFO, "Fired cb_htp_park_settings_detail.");
+  slog(LOG_INFO, "Fired cb_htp_park_configs_detail.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -2085,11 +2086,11 @@ static void cb_htp_park_settings_detail(evhtp_request_t *req, void *data)
 
   // fire handlers
   if(method == htp_method_GET) {
-    htp_get_park_settings_detail(req, data);
+    htp_get_park_configs_detail(req, data);
     return;
   }
   else if (method == htp_method_DELETE) {
-    htp_delete_park_settings_detail(req, data);
+    htp_delete_park_configs_detail(req, data);
     return;
   }
   else {
@@ -2106,11 +2107,11 @@ static void cb_htp_park_settings_detail(evhtp_request_t *req, void *data)
 
 /**
  * http request handler
- * ^/park/settings$
+ * ^/park/configs$
  * @param req
  * @param data
  */
-static void cb_htp_park_settings(evhtp_request_t *req, void *data)
+static void cb_htp_park_configs(evhtp_request_t *req, void *data)
 {
   int method;
 
@@ -2118,7 +2119,7 @@ static void cb_htp_park_settings(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_INFO, "Fired cb_htp_park_settings.");
+  slog(LOG_INFO, "Fired cb_htp_park_configs.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -2128,7 +2129,7 @@ static void cb_htp_park_settings(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    htp_get_park_settings(req, data);
+    htp_get_park_configs(req, data);
     return;
   }
   else {
@@ -2188,11 +2189,11 @@ static void cb_htp_voicemail_users(evhtp_request_t *req, void *data)
 
 /**
  * http request handler
- * ^/voicemail/setting$
+ * ^/voicemail/config$
  * @param req
  * @param data
  */
-static void cb_htp_voicemail_setting(evhtp_request_t *req, void *data)
+static void cb_htp_voicemail_config(evhtp_request_t *req, void *data)
 {
   int method;
 
@@ -2200,7 +2201,7 @@ static void cb_htp_voicemail_setting(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_INFO, "Fired cb_htp_voicemail_setting.");
+  slog(LOG_INFO, "Fired cb_htp_voicemail_config.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -2210,11 +2211,11 @@ static void cb_htp_voicemail_setting(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    htp_get_voicemail_setting(req, data);
+    htp_get_voicemail_config(req, data);
     return;
   }
   else if(method == htp_method_PUT) {
-    htp_put_voicemail_setting(req, data);
+    htp_put_voicemail_config(req, data);
     return;
   }
   else {
@@ -2231,11 +2232,11 @@ static void cb_htp_voicemail_setting(evhtp_request_t *req, void *data)
 
 /**
  * http request handler
- * ^/voicemail/settings$
+ * ^/voicemail/configs$
  * @param req
  * @param data
  */
-static void cb_htp_voicemail_settings(evhtp_request_t *req, void *data)
+static void cb_htp_voicemail_configs(evhtp_request_t *req, void *data)
 {
   int method;
 
@@ -2243,7 +2244,7 @@ static void cb_htp_voicemail_settings(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_INFO, "Fired cb_htp_voicemail_settings.");
+  slog(LOG_INFO, "Fired cb_htp_voicemail_configs.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -2253,7 +2254,7 @@ static void cb_htp_voicemail_settings(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    htp_get_voicemail_settings(req, data);
+    htp_get_voicemail_configs(req, data);
     return;
   }
   else {
@@ -2270,11 +2271,11 @@ static void cb_htp_voicemail_settings(evhtp_request_t *req, void *data)
 
 /**
  * http request handler
- * ^/voicemail/settings/(.*)
+ * ^/voicemail/configs/(.*)
  * @param req
  * @param data
  */
-static void cb_htp_voicemail_settings_detail(evhtp_request_t *req, void *data)
+static void cb_htp_voicemail_configs_detail(evhtp_request_t *req, void *data)
 {
   int method;
 
@@ -2282,7 +2283,7 @@ static void cb_htp_voicemail_settings_detail(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_INFO, "Fired cb_htp_voicemail_settings_detail.");
+  slog(LOG_INFO, "Fired cb_htp_voicemail_configs_detail.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -2293,11 +2294,11 @@ static void cb_htp_voicemail_settings_detail(evhtp_request_t *req, void *data)
 
   // fire handlers
   if(method == htp_method_GET) {
-    htp_get_voicemail_settings_detail(req, data);
+    htp_get_voicemail_configs_detail(req, data);
     return;
   }
   else if (method == htp_method_DELETE) {
-    htp_delete_voicemail_settings_detail(req, data);
+    htp_delete_voicemail_configs_detail(req, data);
     return;
   }
   else {
@@ -2754,11 +2755,11 @@ static void cb_htp_pjsip_contacts_detail(evhtp_request_t *req, void *data)
 
 /**
  * http request handler
- * ^/dp/setting$
+ * ^/dp/config$
  * @param req
  * @param data
  */
-static void cb_htp_dp_setting(evhtp_request_t *req, void *data)
+static void cb_htp_dp_config(evhtp_request_t *req, void *data)
 {
   int method;
 
@@ -2766,7 +2767,7 @@ static void cb_htp_dp_setting(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_INFO, "Fired cb_htp_dp_setting.");
+  slog(LOG_INFO, "Fired cb_htp_dp_config.");
 
   // method check
   method = evhtp_request_get_method(req);
@@ -2777,11 +2778,11 @@ static void cb_htp_dp_setting(evhtp_request_t *req, void *data)
 
   // fire handlers
   if(method == htp_method_GET) {
-    htp_get_dp_setting(req, data);
+    htp_get_dp_config(req, data);
     return;
   }
   else if(method == htp_method_PUT) {
-    htp_put_dp_setting(req, data);
+    htp_put_dp_config(req, data);
     return;
   }
   else {

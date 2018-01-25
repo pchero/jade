@@ -21,12 +21,12 @@ void htp_get_park_parkedcalls(evhtp_request_t *req, void *data);
 
 void htp_get_park_parkedcalls_detail(evhtp_request_t *req, void *data);
 
-void htp_get_park_setting(evhtp_request_t *req, void *data);
-void htp_put_park_setting(evhtp_request_t *req, void *data);
+void htp_get_park_config(evhtp_request_t *req, void *data);
+void htp_put_park_config(evhtp_request_t *req, void *data);
 
-void htp_get_park_settings(evhtp_request_t *req, void *data);
+void htp_get_park_configs(evhtp_request_t *req, void *data);
 
-void htp_get_park_settings_detail(evhtp_request_t *req, void *data);
-void htp_delete_park_settings_detail(evhtp_request_t *req, void *data);
+void htp_get_park_configs_detail(evhtp_request_t *req, void *data);
+void htp_delete_park_configs_detail(evhtp_request_t *req, void *data);
 
 #endif /* SRC_PARK_HANDLER_H_ */

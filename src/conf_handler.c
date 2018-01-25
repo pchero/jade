@@ -35,7 +35,7 @@ static int backup_ast_config_info(const char* filename);
 static bool create_lib_dirs(void);
 
 static json_t* get_ast_config_info(const char* filename);
-static char* get_ast_config_info_raw(const char* filename);
+static char* get_ast_config_info_text(const char* filename);
 
 bool init_conf_handler(void)
 {
@@ -334,7 +334,7 @@ static json_t* get_ast_config_info(const char* filename)
  * @param filename
  * @return
  */
-static char* get_ast_config_info_raw(const char* filename)
+static char* get_ast_config_info_text(const char* filename)
 {
   FILE* fp;
   char buf[MAX_CONF_BUF];
@@ -400,7 +400,7 @@ json_t* get_ast_current_config_info(const char* filename)
  * @param filename
  * @return
  */
-char* get_ast_current_config_info_raw(const char* filename)
+char* get_ast_current_config_info_text(const char* filename)
 {
   const char* dir;
   char* target;
@@ -415,7 +415,7 @@ char* get_ast_current_config_info_raw(const char* filename)
   dir = json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "directory_conf"));
   asprintf(&target, "%s/%s", dir, filename);
 
-  res = get_ast_config_info_raw(target);
+  res = get_ast_config_info_text(target);
   sfree(target);
   if(res == NULL) {
     slog(LOG_ERR, "Could not get config file info.");
@@ -478,7 +478,7 @@ bool update_ast_current_config_info(const char* filename, json_t* j_conf)
  * @param filename
  * @return
  */
-bool update_ast_current_config_info_raw(const char* filename, const char* data)
+bool update_ast_current_config_info_text(const char* filename, const char* data)
 {
   const char* conf_dir;
   char* target;
@@ -525,7 +525,7 @@ bool update_ast_current_config_info_raw(const char* filename, const char* data)
  * @param filename
  * @return
  */
-json_t* get_ast_backup_config_info(const char* filename)
+json_t* get_ast_backup_config_info_json(const char* filename)
 {
   char* tmp;
   char* full_filename;
@@ -535,7 +535,7 @@ json_t* get_ast_backup_config_info(const char* filename)
     slog(LOG_WARNING, "Wrong input parameter.");
     return NULL;
   }
-  slog(LOG_DEBUG, "Fired get_ast_backup_config_info.");
+  slog(LOG_DEBUG, "Fired get_ast_backup_config_info_json.");
 
   // create full filename
   tmp = get_ast_backup_conf_dir();
@@ -553,7 +553,39 @@ json_t* get_ast_backup_config_info(const char* filename)
 }
 
 /**
- * Get all configs info.
+ * Get config info from given filename.
+ * @param filename
+ * @return
+ */
+char* get_ast_backup_config_info_text(const char* filename)
+{
+  char* tmp;
+  char* full_filename;
+  char* res;
+
+  if(filename == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_ast_backup_config_info_text.");
+
+  // create full filename
+  tmp = get_ast_backup_conf_dir();
+  asprintf(&full_filename, "%s/%s", tmp, filename);
+  sfree(tmp);
+
+  res = get_ast_config_info_text(full_filename);
+  sfree(full_filename);
+  if(res == NULL) {
+    slog(LOG_ERR, "Could not get config file info.");
+    return NULL;
+  }
+
+  return res;
+}
+
+/**
+ * Get all backup configs info.
  * Add the "filename" item to all the configs.
  * @param filename
  * @return
@@ -564,7 +596,8 @@ json_t* get_ast_backup_configs_info_all(const char* filename)
   json_t* j_list;
   json_t* j_tmp;
   json_t* j_conf;
-  const char* tmp_const;
+  const char* backup_filename;
+  char* tmp;
   int idx;
 
   if(filename == NULL) {
@@ -582,16 +615,23 @@ json_t* get_ast_backup_configs_info_all(const char* filename)
   json_array_foreach(j_list, idx, j_tmp) {
 
     // get filename
-    tmp_const = json_string_value(j_tmp);
+    backup_filename = json_string_value(j_tmp);
 
-    j_conf = get_ast_backup_config_info(tmp_const);
-    if(j_conf == NULL) {
+    tmp = get_ast_backup_config_info_text(backup_filename);
+    if(tmp == NULL) {
       slog(LOG_ERR, "Could not get config file info.");
       continue;
     }
 
-    // set file name info
-    json_object_set_new(j_conf, "filename", json_string(tmp_const));
+    j_conf = json_pack("{s:s, s:s}",
+    		"filename",		backup_filename,
+    		"config", 		tmp
+				);
+    sfree(tmp);
+    if(j_conf == NULL) {
+    	slog(LOG_ERR, "Could not create config info. filename[%s]", backup_filename);
+    	continue;
+    }
 
     // add to array
     json_array_append_new(j_res, j_conf);

@@ -22,14 +22,14 @@ static bool update_queue_info(const char* name, json_t* j_data);
 static bool delete_queue_info(const char* name);
 
 static bool is_setting_section(const char* section);
-static bool is_queue_setting_filename(const char* filename);
+static bool is_queue_config_filename(const char* filename);
 
 static json_t* create_queue_info_json(json_t* j_data);
 
-static bool update_queue_current_setting_info(json_t* j_data);
-static json_t* get_queue_backup_settings_all(void);
-static json_t* get_queue_backup_setting_info(const char* filename);
-static bool remove_queue_backup_setting_info(const char* filename);
+static bool update_queue_current_config_info_text(const char* data);
+static json_t* get_queue_backup_configs_all(void);
+static char* get_queue_backup_config_info_text(const char* filename);
+static bool remove_queue_backup_config_info(const char* filename);
 
 /**
  * htp request handler.
@@ -494,24 +494,24 @@ void htp_get_queue_statuses_detail(evhtp_request_t *req, void *data)
 }
 
 /**
- * GET ^/queue/setting request handler.
+ * GET ^/queue/config request handler.
  * @param req
  * @param data
  */
-void htp_get_queue_setting(evhtp_request_t *req, void *data)
+void htp_get_queue_config(evhtp_request_t *req, void *data)
 {
-  json_t* j_tmp;
+  char* res;
   json_t* j_res;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired htp_get_queue_setting.");
+  slog(LOG_DEBUG, "Fired htp_get_queue_config.");
 
   // get info
-  j_tmp = get_ast_current_config_info(DEF_QUEUE_CONFNAME);
-  if(j_tmp == NULL) {
+  res = get_ast_current_config_info_text(DEF_QUEUE_CONFNAME);
+  if(res == NULL) {
     slog(LOG_ERR, "Could not get queue conf.");
     simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
@@ -519,7 +519,8 @@ void htp_get_queue_setting(evhtp_request_t *req, void *data)
 
   // create result
   j_res = create_default_result(EVHTP_RES_OK);
-  json_object_set_new(j_res, "result", j_tmp);
+  json_object_set_new(j_res, "result", json_string(res));
+  sfree(res);
 
   // response
   simple_response_normal(req, j_res);
@@ -529,34 +530,34 @@ void htp_get_queue_setting(evhtp_request_t *req, void *data)
 }
 
 /**
- * PUT ^/queue/setting request handler.
+ * PUT ^/queue/config request handler.
  * @param req
  * @param data
  */
-void htp_put_queue_setting(evhtp_request_t *req, void *data)
+void htp_put_queue_config(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
-  json_t* j_data;
+  char* req_data;
   int ret;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired htp_put_queue_setting.");
+  slog(LOG_DEBUG, "Fired htp_put_queue_config.");
 
-  j_data = get_json_from_request_data(req);
-  if(j_data == NULL) {
+  req_data = get_text_from_request_data(req);
+  if(req_data == NULL) {
     slog(LOG_ERR, "Could not get data.");
     simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
-  // update setting
-  ret = update_queue_current_setting_info(j_data);
-  json_decref(j_data);
+  // update config
+  ret = update_queue_current_config_info_text(req_data);
+  sfree(req_data);
   if(ret == false) {
-    slog(LOG_ERR, "Could not update queue setting info.");
+    slog(LOG_ERR, "Could not update queue config info.");
     simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
@@ -572,11 +573,11 @@ void htp_put_queue_setting(evhtp_request_t *req, void *data)
 }
 
 /**
- * GET ^/queue/settings request handler.
+ * GET ^/queue/configs request handler.
  * @param req
  * @param data
  */
-void htp_get_queue_settings(evhtp_request_t *req, void *data)
+void htp_get_queue_configs(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
@@ -585,10 +586,10 @@ void htp_get_queue_settings(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired htp_get_queue_settings.");
+  slog(LOG_DEBUG, "Fired htp_get_queue_configs.");
 
   // get info
-  j_tmp = get_queue_backup_settings_all();
+  j_tmp = get_queue_backup_configs_all();
   if(j_tmp == NULL) {
     simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
@@ -607,14 +608,14 @@ void htp_get_queue_settings(evhtp_request_t *req, void *data)
 }
 
 /**
- * GET ^/queue/settings/(.*) request handler.
+ * GET ^/queue/configs/(.*) request handler.
  * @param req
  * @param data
  */
-void htp_get_queue_settings_detail(evhtp_request_t *req, void *data)
+void htp_get_queue_configs_detail(evhtp_request_t *req, void *data)
 {
-  json_t* j_tmp;
   json_t* j_res;
+  char* res;
   const char* tmp_const;
   char* detail;
 
@@ -622,7 +623,7 @@ void htp_get_queue_settings_detail(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired htp_get_queue_settings_detail.");
+  slog(LOG_DEBUG, "Fired htp_get_queue_configs_detail.");
 
   // detail parse
   tmp_const = req->uri->path->file;
@@ -634,18 +635,18 @@ void htp_get_queue_settings_detail(evhtp_request_t *req, void *data)
   }
 
   // get info
-  j_tmp = get_queue_backup_setting_info(detail);
+  res = get_queue_backup_config_info_text(detail);
   sfree(detail);
-  if(j_tmp == NULL) {
-    slog(LOG_NOTICE, "Could not find setting info.");
+  if(res == NULL) {
+    slog(LOG_NOTICE, "Could not find config info.");
     simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
     return;
   }
 
   // create result
   j_res = create_default_result(EVHTP_RES_OK);
-  json_object_set_new(j_res, "result", json_object());
-  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
+  json_object_set_new(j_res, "result", json_string(res));
+  sfree(res);
 
   // response
   simple_response_normal(req, j_res);
@@ -655,11 +656,11 @@ void htp_get_queue_settings_detail(evhtp_request_t *req, void *data)
 }
 
 /**
- * DELETE ^/queue/settings/(.*) request handler.
+ * DELETE ^/queue/configs/(.*) request handler.
  * @param req
  * @param data
  */
-void htp_delete_queue_settings_detail(evhtp_request_t *req, void *data)
+void htp_delete_queue_configs_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   const char* tmp_const;
@@ -670,7 +671,7 @@ void htp_delete_queue_settings_detail(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired htp_delete_queue_settings_detail.");
+  slog(LOG_DEBUG, "Fired htp_delete_queue_configs_detail.");
 
   // detail parse
   tmp_const = req->uri->path->file;
@@ -682,10 +683,10 @@ void htp_delete_queue_settings_detail(evhtp_request_t *req, void *data)
   }
 
   // remove it
-  ret = remove_queue_backup_setting_info(detail);
+  ret = remove_queue_backup_config_info(detail);
   sfree(detail);
   if(ret == false) {
-    slog(LOG_NOTICE, "Could not delete setting file.");
+    slog(LOG_NOTICE, "Could not delete config file.");
     simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
@@ -868,24 +869,24 @@ static bool is_setting_section(const char* section)
 }
 
 /**
- * Update queue current setting(configuration) info.
+ * Update queue current configuration info.
  * @param filename
  * @return
  */
-static bool update_queue_current_setting_info(json_t* j_data)
+static bool update_queue_current_config_info_text(const char* data)
 {
   int ret;
 
-  if(j_data == NULL) {
+  if(data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
-  slog(LOG_DEBUG, "Fired update_queue_current_setting_info");
+  slog(LOG_DEBUG, "Fired update_queue_current_config_info_text");
 
-  // update setting
-  ret = update_ast_current_config_info(DEF_QUEUE_CONFNAME, j_data);
+  // update config
+  ret = update_ast_current_config_info_text(DEF_QUEUE_CONFNAME, data);
   if(ret == false) {
-    slog(LOG_ERR, "Could not update queue setting.");
+    slog(LOG_ERR, "Could not update queue config.");
     return false;
   }
 
@@ -893,11 +894,11 @@ static bool update_queue_current_setting_info(json_t* j_data)
 }
 
 /**
- * Get all queue setting(configuration)s info.
+ * Get all queue config(configuration)s info.
  * @param filename
  * @return
  */
-static json_t* get_queue_backup_settings_all(void)
+static json_t* get_queue_backup_configs_all(void)
 {
   json_t* j_res;
 
@@ -907,40 +908,40 @@ static json_t* get_queue_backup_settings_all(void)
 }
 
 /**
- * Get queue setting(configuration) info.
+ * Get queue config(configuration) info.
  * @param filename
  * @return
  */
-static json_t* get_queue_backup_setting_info(const char* filename)
+static char* get_queue_backup_config_info_text(const char* filename)
 {
-  json_t* j_res;
+  char* res;
   int ret;
 
   if(filename == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return NULL;
   }
-  slog(LOG_DEBUG, "Fired get_queue_backup_setting_info. filename[%s]", filename);
+  slog(LOG_DEBUG, "Fired get_queue_backup_config_info_text. filename[%s]", filename);
 
   // check is queue config filename
-  ret = is_queue_setting_filename(filename);
+  ret = is_queue_config_filename(filename);
   if(ret == false) {
     slog(LOG_ERR, "Given filename is not queue config filename.");
     return NULL;
   }
 
   // get config info
-  j_res = get_ast_backup_config_info(filename);
+  res = get_ast_backup_config_info_text(filename);
 
-  return j_res;
+  return res;
 }
 
 /**
- * Remove queue setting(configuration) info.
+ * Remove queue config(configuration) info.
  * @param filename
  * @return
  */
-static bool remove_queue_backup_setting_info(const char* filename)
+static bool remove_queue_backup_config_info(const char* filename)
 {
   int ret;
 
@@ -948,10 +949,10 @@ static bool remove_queue_backup_setting_info(const char* filename)
     slog(LOG_WARNING, "Wrong input parameter.");
     return NULL;
   }
-  slog(LOG_DEBUG, "Fired remove_queue_backup_setting_info. filename[%s]", filename);
+  slog(LOG_DEBUG, "Fired remove_queue_backup_config_info. filename[%s]", filename);
 
   // check filename
-  ret = is_queue_setting_filename(filename);
+  ret = is_queue_config_filename(filename);
   if(ret == false) {
     slog(LOG_NOTICE, "The given filename is not queue conf file.");
     return false;
@@ -968,11 +969,11 @@ static bool remove_queue_backup_setting_info(const char* filename)
 }
 
 /**
- * Return true if given filename related with queue setting file.
+ * Return true if given filename related with queue config file.
  * @param filename
  * @return
  */
-static bool is_queue_setting_filename(const char* filename)
+static bool is_queue_config_filename(const char* filename)
 {
   const char* tmp_const;
 

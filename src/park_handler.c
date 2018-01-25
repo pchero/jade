@@ -25,16 +25,13 @@ static bool delete_parkinglot_info(const char* parkinglot);
 static bool create_parkinglot_info(json_t* j_data);
 static bool update_parkinglot_info(const char* name, json_t* j_data);
 
-static bool update_park_current_setting_info(json_t* j_data);
-
-static json_t* get_park_backup_setting_info(const char* filename);
-static json_t* get_park_backup_settings_all(void);
-static bool remove_park_backup_setting_info(const char* filename);
+static char* get_park_backup_config_info_text(const char* filename);
+static bool remove_park_backup_config_info(const char* filename);
 
 static json_t* create_parkinglot_info_json(json_t* j_data);
 
 static bool is_setting_section(const char* context);
-static bool is_park_setting_filename(const char* filename);
+static bool is_park_config_filename(const char* filename);
 
 
 /**
@@ -342,24 +339,24 @@ void htp_get_park_parkedcalls_detail(evhtp_request_t *req, void *data)
 }
 
 /**
- * GET ^/park/setting request handler.
+ * GET ^/park/config request handler.
  * @param req
  * @param data
  */
-void htp_get_park_setting(evhtp_request_t *req, void *data)
+void htp_get_park_config(evhtp_request_t *req, void *data)
 {
-  json_t* j_tmp;
   json_t* j_res;
+  char* res;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired htp_get_park_setting.");
+  slog(LOG_DEBUG, "Fired htp_get_park_config.");
 
   // get info
-  j_tmp = get_ast_current_config_info(DEF_PARK_CONFNAME);
-  if(j_tmp == NULL) {
+  res = get_ast_current_config_info_text(DEF_PARK_CONFNAME);
+  if(res == NULL) {
     slog(LOG_ERR, "Could not get park conf.");
     simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
@@ -367,7 +364,8 @@ void htp_get_park_setting(evhtp_request_t *req, void *data)
 
   // create result
   j_res = create_default_result(EVHTP_RES_OK);
-  json_object_set_new(j_res, "result", j_tmp);
+  json_object_set_new(j_res, "result", json_string(res));
+  sfree(res);
 
   // response
   simple_response_normal(req, j_res);
@@ -377,34 +375,35 @@ void htp_get_park_setting(evhtp_request_t *req, void *data)
 }
 
 /**
- * PUT ^/park/setting request handler.
+ * PUT ^/park/config request handler.
  * @param req
  * @param data
  */
-void htp_put_park_setting(evhtp_request_t *req, void *data)
+void htp_put_park_config(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
-  json_t* j_data;
+  char* req_data;
   int ret;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired htp_put_park_setting.");
+  slog(LOG_DEBUG, "Fired htp_put_park_config.");
 
-  j_data = get_json_from_request_data(req);
-  if(j_data == NULL) {
+  // get data
+  req_data = get_text_from_request_data(req);
+  if(data == NULL) {
     slog(LOG_ERR, "Could not get data.");
     simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
-  // update setting
-  ret = update_park_current_setting_info(j_data);
-  json_decref(j_data);
+  // update config
+  ret = update_ast_current_config_info_text(DEF_PARK_CONFNAME, req_data);
+  sfree(req_data);
   if(ret == false) {
-    slog(LOG_ERR, "Could not update park setting info.");
+    slog(LOG_ERR, "Could not update park config info.");
     simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
@@ -420,11 +419,11 @@ void htp_put_park_setting(evhtp_request_t *req, void *data)
 }
 
 /**
- * GET ^/park/settings request handler.
+ * GET ^/park/configs request handler.
  * @param req
  * @param data
  */
-void htp_get_park_settings(evhtp_request_t *req, void *data)
+void htp_get_park_configs(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
@@ -433,10 +432,10 @@ void htp_get_park_settings(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired htp_get_park_settings.");
+  slog(LOG_DEBUG, "Fired htp_get_park_configs.");
 
   // get info
-  j_tmp = get_park_backup_settings_all();
+  j_tmp = get_ast_backup_configs_info_all(DEF_PARK_CONFNAME);
   if(j_tmp == NULL) {
     simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
@@ -455,22 +454,22 @@ void htp_get_park_settings(evhtp_request_t *req, void *data)
 }
 
 /**
- * GET ^/park/settings/<detail> request handler.
+ * GET ^/park/configs/<detail> request handler.
  * @param req
  * @param data
  */
-void htp_get_park_settings_detail(evhtp_request_t *req, void *data)
+void htp_get_park_configs_detail(evhtp_request_t *req, void *data)
 {
-  json_t* j_tmp;
   json_t* j_res;
   const char* tmp_const;
+  char* res;
   char* detail;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired htp_get_park_settings_detail.");
+  slog(LOG_DEBUG, "Fired htp_get_park_configs_detail.");
 
   // detail parse
   tmp_const = req->uri->path->file;
@@ -482,18 +481,18 @@ void htp_get_park_settings_detail(evhtp_request_t *req, void *data)
   }
 
   // get info
-  j_tmp = get_park_backup_setting_info(detail);
+  res = get_park_backup_config_info_text(detail);
   sfree(detail);
-  if(j_tmp == NULL) {
-    slog(LOG_NOTICE, "Could not find setting info.");
-    simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
-    return;
+  if(res == NULL) {
+  	slog(LOG_NOTICE, "Could not get backup config info.");
+		simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+		return;
   }
 
   // create result
   j_res = create_default_result(EVHTP_RES_OK);
-  json_object_set_new(j_res, "result", json_object());
-  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
+  json_object_set_new(j_res, "result", json_string(res));
+  sfree(res);
 
   // response
   simple_response_normal(req, j_res);
@@ -503,11 +502,11 @@ void htp_get_park_settings_detail(evhtp_request_t *req, void *data)
 }
 
 /**
- * DELETE ^/park/settings/<detail> request handler.
+ * DELETE ^/park/configs/<detail> request handler.
  * @param req
  * @param data
  */
-void htp_delete_park_settings_detail(evhtp_request_t *req, void *data)
+void htp_delete_park_configs_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   const char* tmp_const;
@@ -518,7 +517,7 @@ void htp_delete_park_settings_detail(evhtp_request_t *req, void *data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
-  slog(LOG_DEBUG, "Fired htp_delete_park_settings_detail.");
+  slog(LOG_DEBUG, "Fired htp_delete_park_configs_detail.");
 
   // detail parse
   tmp_const = req->uri->path->file;
@@ -530,7 +529,7 @@ void htp_delete_park_settings_detail(evhtp_request_t *req, void *data)
   }
 
   // remove it
-  ret = remove_park_backup_setting_info(detail);
+  ret = remove_park_backup_config_info(detail);
   sfree(detail);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not delete setting file.");
@@ -716,71 +715,32 @@ static bool update_parkinglot_info(const char* name, json_t* j_data)
 }
 
 /**
- * Update park current setting(configuration) info.
+ * Get park backup configuration info.
  * @param filename
  * @return
  */
-static bool update_park_current_setting_info(json_t* j_data)
+static char* get_park_backup_config_info_text(const char* filename)
 {
-  int ret;
-
-  if(j_data == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return false;
-  }
-  slog(LOG_DEBUG, "Fired update_park_current_setting_info");
-
-  // update setting
-  ret = update_ast_current_config_info(DEF_PARK_CONFNAME, j_data);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not update park setting.");
-    return false;
-  }
-
-  return true;
-}
-
-/**
- * Get all park setting(configuration)s info.
- * @param filename
- * @return
- */
-static json_t* get_park_backup_settings_all(void)
-{
-  json_t* j_res;
-
-  j_res = get_ast_backup_configs_info_all(DEF_PARK_CONFNAME);
-
-  return j_res;
-}
-
-/**
- * Get park setting(configuration) info.
- * @param filename
- * @return
- */
-static json_t* get_park_backup_setting_info(const char* filename)
-{
-  json_t* j_res;
+  char* res;
   int ret;
 
   if(filename == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return NULL;
   }
-  slog(LOG_DEBUG, "Fired get_park_backup_setting_info. filename[%s]", filename);
+  slog(LOG_DEBUG, "Fired get_park_backup_config_info_text. filename[%s]", filename);
 
   // check is park config filename
-  ret = is_park_setting_filename(filename);
+  ret = is_park_config_filename(filename);
   if(ret == false) {
     slog(LOG_ERR, "Given filename is not park config filename.");
     return NULL;
   }
 
   // get config info
-  j_res = get_ast_backup_config_info(filename);
+  res = get_ast_backup_config_info_text(filename);
 
-  return j_res;
+  return res;
 }
 
 /**
@@ -788,7 +748,7 @@ static json_t* get_park_backup_setting_info(const char* filename)
  * @param filename
  * @return
  */
-static bool is_park_setting_filename(const char* filename)
+static bool is_park_config_filename(const char* filename)
 {
   const char* tmp_const;
 
@@ -810,7 +770,7 @@ static bool is_park_setting_filename(const char* filename)
  * @param filename
  * @return
  */
-static bool remove_park_backup_setting_info(const char* filename)
+static bool remove_park_backup_config_info(const char* filename)
 {
   int ret;
 
@@ -818,10 +778,10 @@ static bool remove_park_backup_setting_info(const char* filename)
     slog(LOG_WARNING, "Wrong input parameter.");
     return NULL;
   }
-  slog(LOG_DEBUG, "Fired remove_park_backup_setting_info. filename[%s]", filename);
+  slog(LOG_DEBUG, "Fired remove_park_backup_config_info. filename[%s]", filename);
 
   // check filename
-  ret = is_park_setting_filename(filename);
+  ret = is_park_config_filename(filename);
   if(ret == false) {
     slog(LOG_NOTICE, "The given filename is not park conf file.");
     return false;
