@@ -23,12 +23,11 @@ bool create_ast_current_config_content(const char* filename, const char* section
 bool update_ast_current_config_content(const char* filename, const char* section, const char* key, const char* val);
 bool delete_ast_current_config_content(const char* filename, const char* section, const char* key);
 
-bool delete_ast_current_config_section(const char* filename, const char* section);
-bool update_ast_current_config_section_data(const char* filename, const char* section, json_t* j_data);
-bool create_ast_current_config_section_data(const char* filename, const char* section, const json_t* j_data);
-
+bool create_ast_setting(const char* filename, const char* name, const json_t* j_data);
 json_t* get_ast_settings_all(const char* filename);
-
+json_t* get_ast_setting(const char* filename, const char* name);
+bool update_ast_setting(const char* filename, const char* name, const json_t* j_data);
+bool remove_ast_setting(const char* filename, const char* name);
 
 json_t* get_ast_backup_config_info_json(const char* filename);
 char* get_ast_backup_config_info_text(const char* filename);

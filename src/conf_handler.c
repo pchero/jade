@@ -37,6 +37,11 @@ static bool create_lib_dirs(void);
 static json_t* get_ast_config_info(const char* filename);
 static char* get_ast_config_info_text(const char* filename);
 
+
+static bool create_ast_current_config_section_data(const char* filename, const char* section, const json_t* j_data);
+static bool update_ast_current_config_section_data(const char* filename, const char* section, const json_t* j_data);
+static bool delete_ast_current_config_section(const char* filename, const char* section);
+
 bool init_conf_handler(void)
 {
   int ret;
@@ -819,7 +824,7 @@ bool delete_ast_current_config_content(const char* filename, const char* section
  * @param filename
  * @return
  */
-bool create_ast_current_config_section_data(const char* filename, const char* section, const json_t* j_data)
+static bool create_ast_current_config_section_data(const char* filename, const char* section, const json_t* j_data)
 {
   int ret;
   json_t* j_conf;
@@ -868,10 +873,11 @@ bool create_ast_current_config_section_data(const char* filename, const char* se
  * @param filename
  * @return
  */
-bool update_ast_current_config_section_data(const char* filename, const char* section, json_t* j_data)
+static bool update_ast_current_config_section_data(const char* filename, const char* section, const json_t* j_data)
 {
   int ret;
   json_t* j_conf;
+  json_t* j_data_tmp;
   json_t* j_section;
 
   if((filename == NULL) || (section == NULL) || (j_data == NULL)) {
@@ -896,7 +902,8 @@ bool update_ast_current_config_section_data(const char* filename, const char* se
   }
 
   // set data
-  json_object_set(j_conf, section, j_data);
+  j_data_tmp = json_deep_copy(j_data);
+  json_object_set_new(j_conf, section, j_data_tmp);
 
   // update conf
   ret = update_ast_current_config_info(filename, j_conf);
@@ -916,7 +923,7 @@ bool update_ast_current_config_section_data(const char* filename, const char* se
  * @param filename
  * @return
  */
-bool delete_ast_current_config_section(const char* filename, const char* section)
+static bool delete_ast_current_config_section(const char* filename, const char* section)
 {
   int ret;
   json_t* j_conf;
@@ -946,6 +953,28 @@ bool delete_ast_current_config_section(const char* filename, const char* section
   }
 
   return true;
+}
+
+/**
+ * Create given setting
+ * @param filename
+ * @return
+ */
+bool create_ast_setting(const char* filename, const char* name, const json_t* j_data)
+{
+	int ret;
+
+	if((filename == NULL) || (name == NULL) || (j_data == NULL)) {
+		slog(LOG_WARNING, "Wrong input parameter.");
+		return false;
+	}
+
+	ret = create_ast_current_config_section_data(filename, name, j_data);
+	if(ret == false) {
+		return false;
+	}
+
+	return true;
 }
 
 /**
@@ -989,3 +1018,73 @@ json_t* get_ast_settings_all(const char* filename)
 
 	return j_res;
 }
+
+/**
+ * Returns given setting
+ * @param filename
+ * @return
+ */
+json_t* get_ast_setting(const char* filename, const char* name)
+{
+	json_t* j_res;
+	json_t* j_setting;
+	json_t* j_conf;
+
+	if((filename == NULL) || (name == NULL)) {
+		slog(LOG_WARNING, "Wrong input parameter.");
+		return NULL;
+	}
+
+	j_conf = get_ast_current_config_info(filename);
+	j_setting = json_object_get(j_conf, name);
+	j_res = json_deep_copy(j_setting);
+	json_decref(j_conf);
+
+	return j_res;
+}
+
+/**
+ * Remove given setting
+ * @param filename
+ * @return
+ */
+bool remove_ast_setting(const char* filename, const char* name)
+{
+	int ret;
+
+	if((filename == NULL) || (name == NULL)) {
+		slog(LOG_WARNING, "Wrong input parameter.");
+		return NULL;
+	}
+
+	ret = delete_ast_current_config_section(filename, name);
+	if(ret == false) {
+		return false;
+	}
+
+	return true;
+}
+
+/**
+ * Update given setting
+ * @param filename
+ * @return
+ */
+bool update_ast_setting(const char* filename, const char* name, const json_t* j_data)
+{
+	int ret;
+
+	if((filename == NULL) || (name == NULL) || (j_data == NULL)) {
+		slog(LOG_WARNING, "Wrong input parameter.");
+		return false;
+	}
+
+	ret = update_ast_current_config_section_data(filename, name, j_data);
+	if(ret == false) {
+		return false;
+	}
+
+	return true;
+}
+
+

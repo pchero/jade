@@ -591,7 +591,7 @@ static bool delete_parkinglot_info(const char* parkinglot)
   }
 
   // delete parkinglot
-  ret = delete_ast_current_config_section(DEF_PARK_CONFNAME, parkinglot);
+  ret = remove_ast_setting(DEF_PARK_CONFNAME, parkinglot);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete parkinglot.");
     return false;
@@ -638,7 +638,7 @@ static bool create_parkinglot_info(json_t* j_data)
   }
 
   // create new parkinglot
-  ret = create_ast_current_config_section_data(DEF_PARK_CONFNAME, name, j_tmp);
+  ret = create_ast_setting(DEF_PARK_CONFNAME, name, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not create new parkinglot.");
@@ -704,7 +704,7 @@ static bool update_parkinglot_info(const char* name, json_t* j_data)
   }
 
   // update parkinglot info
-  ret = update_ast_current_config_section_data(DEF_PARK_CONFNAME, name, j_tmp);
+  ret = update_ast_setting(DEF_PARK_CONFNAME, name, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not update park info.");

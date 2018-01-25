@@ -28,6 +28,9 @@ static json_t* create_queue_info_json(json_t* j_data);
 
 static json_t* get_queue_settings_all(void);
 static bool create_queue_setting(const json_t* j_data);
+static bool update_queue_setting(const char* name, const json_t* j_data);
+static json_t* get_queue_setting(const char* name);
+static bool remove_queue_setting(const char* name);
 
 static bool update_queue_current_config_info_text(const char* data);
 static json_t* get_queue_backup_configs_all(void);
@@ -782,6 +785,159 @@ void htp_post_queue_settings(evhtp_request_t *req, void *data)
 }
 
 /**
+ * htp request handler.
+ * GET ^/queue/settings/(.*) request handler.
+ * @param req
+ * @param data
+ */
+void htp_get_queue_settings_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+  const char* tmp_const;
+  char* detail;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired htp_get_queue_settings_detail.");
+
+  // detail parse
+  tmp_const = req->uri->path->file;
+  detail = uri_decode(tmp_const);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // get setting
+  j_tmp = get_queue_setting(detail);
+  sfree(detail);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get queue setting.");
+    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", j_tmp);
+
+  // response
+  simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * htp request handler.
+ * PUT ^/queue/settings/(.*) request handler.
+ * @param req
+ * @param data
+ */
+void htp_put_queue_settings_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_data;
+  const char* tmp_const;
+  char* detail;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired htp_put_queue_settings_detail.");
+
+  // detail parse
+  tmp_const = req->uri->path->file;
+  detail = uri_decode(tmp_const);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // get data
+  j_data = get_json_from_request_data(req);
+  if(j_data == NULL) {
+    slog(LOG_ERR, "Could not get correct data from request.");
+    sfree(detail);
+    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // update setting
+  ret = update_queue_setting(detail, j_data);
+  sfree(detail);
+  json_decref(j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update queue setting.");
+    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = create_default_result(EVHTP_RES_OK);
+
+  // response
+  simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * htp request handler.
+ * DELETE ^/queue/settings/(.*) request handler.
+ * @param req
+ * @param data
+ */
+void htp_delete_queue_settings_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  const char* tmp_const;
+  char* detail;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired htp_delete_queue_settings_detail.");
+
+  // detail parse
+  tmp_const = req->uri->path->file;
+  detail = uri_decode(tmp_const);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // delete setting
+  ret = remove_queue_setting(detail);
+  sfree(detail);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not remove queue setting.");
+    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = create_default_result(EVHTP_RES_OK);
+
+  // response
+  simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
  * Create queue info.
  * @param j_data
  * @return
@@ -819,7 +975,7 @@ static bool create_queue_info(json_t* j_data)
   }
 
   // create queue info
-  ret = create_ast_current_config_section_data(DEF_QUEUE_CONFNAME, name, j_tmp);
+  ret = create_ast_setting(DEF_QUEUE_CONFNAME, name, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not create queue info.");
@@ -860,7 +1016,7 @@ static bool update_queue_info(const char* name, json_t* j_data)
   }
 
   // update queue info
-  ret = update_ast_current_config_section_data(DEF_QUEUE_CONFNAME, name, j_tmp);
+  ret = update_ast_setting(DEF_QUEUE_CONFNAME, name, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not update queue info.");
@@ -893,7 +1049,7 @@ static bool delete_queue_info(const char* name)
   }
 
   // delete queue info
-  ret = delete_ast_current_config_section(DEF_QUEUE_CONFNAME, name);
+  ret = remove_ast_setting(DEF_QUEUE_CONFNAME, name);
   if(ret == false) {
     slog(LOG_ERR, "Could not update queue info.");
     return false;
@@ -1102,7 +1258,7 @@ static bool create_queue_setting(const json_t* j_data)
 		return false;
 	}
 
-	ret = create_ast_current_config_section_data(DEF_QUEUE_CONFNAME, name, j_setting);
+	ret = create_ast_setting(DEF_QUEUE_CONFNAME, name, j_setting);
 	if(ret == false) {
 		slog(LOG_ERR, "Could not create queue setting.");
 		return false;
@@ -1110,3 +1266,80 @@ static bool create_queue_setting(const json_t* j_data)
 
 	return true;
 }
+
+/**
+ * Update queue setting
+ * @param name
+ * @param j_data
+ * @return
+ */
+static bool update_queue_setting(const char* name, const json_t* j_data)
+{
+	int ret;
+
+	if((name == NULL) || (j_data == NULL)) {
+		slog(LOG_WARNING, "Wrong input parameter.");
+		return false;
+	}
+	slog(LOG_DEBUG, "Fired update_queue_setting. name[%s]", name);
+
+	ret = update_ast_setting(DEF_QUEUE_CONFNAME, name, j_data);
+	if(ret == false) {
+		slog(LOG_ERR, "Could not update queue setting.");
+		return false;
+	}
+
+	return true;
+}
+
+/**
+ * Get queue setting
+ * @param name
+ * @param j_data
+ * @return
+ */
+static json_t* get_queue_setting(const char* name)
+{
+	json_t* j_res;
+
+	if(name == NULL) {
+		slog(LOG_WARNING, "Wrong input parameter.");
+		return false;
+	}
+	slog(LOG_DEBUG, "Fired get_queue_setting. name[%s]", name);
+
+	j_res = get_ast_setting(DEF_QUEUE_CONFNAME, name);
+	if(j_res == NULL) {
+		slog(LOG_ERR, "Could not get queue setting info. name[%s]", name);
+		return NULL;
+	}
+
+	return j_res;
+}
+
+/**
+ * Remove queue setting
+ * @param name
+ * @param j_data
+ * @return
+ */
+static bool remove_queue_setting(const char* name)
+{
+	int ret;
+
+	if(name == NULL) {
+		slog(LOG_WARNING, "Wrong input parameter.");
+		return false;
+	}
+	slog(LOG_DEBUG, "Fired remove_queue_setting. name[%s]", name);
+
+	ret = remove_ast_setting(DEF_QUEUE_CONFNAME, name);
+	if(ret == false) {
+		slog(LOG_ERR, "Could not remove queue setting info. name[%s]", name);
+		return false;
+	}
+
+	return true;
+}
+
+
