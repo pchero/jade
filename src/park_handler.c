@@ -5,6 +5,9 @@
  *      Author: pchero
  */
 
+#define _GNU_SOURCE
+
+#include <string.h>
 
 #include "slog.h"
 #include "http_handler.h"

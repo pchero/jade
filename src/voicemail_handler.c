@@ -2,6 +2,7 @@
 #define _GNU_SOURCE
 
 #include <stdio.h>
+#include <string.h>
 #include <evhtp.h>
 #include <jansson.h>
 #include <errno.h>

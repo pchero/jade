@@ -11,6 +11,7 @@
 #include <stdbool.h>
 #include <event2/event.h>
 #include <evhtp.h>
+#include <string.h>
 
 #include "common.h"
 #include "slog.h"
