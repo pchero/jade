@@ -33,6 +33,12 @@ static json_t* create_parkinglot_info_json(json_t* j_data);
 static bool is_setting_section(const char* context);
 static bool is_park_config_filename(const char* filename);
 
+static json_t* get_park_settings_all(void);
+static bool create_park_setting(const json_t* j_data);
+static json_t* get_park_setting(const char* name);
+static bool update_park_setting(const char* name, const json_t* j_data);
+static bool remove_park_setting(const char* name);
+
 
 /**
  * htp request handler.
@@ -547,6 +553,236 @@ void htp_delete_park_configs_detail(evhtp_request_t *req, void *data)
   return;
 }
 
+/**
+ * htp request handler.
+ * request: GET ^/park/settings$
+ * @param req
+ * @param data
+ */
+void htp_get_park_settings(evhtp_request_t *req, void *data)
+{
+  json_t* j_tmp;
+  json_t* j_res;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired htp_get_park_settings.");
+
+  // get info
+  j_tmp = get_park_settings_all();
+
+  // create result
+  j_res = create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", json_object());
+  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
+
+  // response
+  simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * htp request handler.
+ * request: POST ^/park/settings$
+ * @param req
+ * @param data
+ */
+void htp_post_park_settings(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_data;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired htp_post_park_settings.");
+
+  // get data
+  j_data = get_json_from_request_data(req);
+  if(j_data == NULL) {
+  	slog(LOG_ERR, "Could not get data from request.");
+  	simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+  	return;
+  }
+
+  // create setting
+  ret = create_park_setting(j_data);
+  json_decref(j_data);
+  if(ret == false) {
+  	slog(LOG_ERR, "Could not create park setting.");
+  	simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+		return;
+  }
+
+  // create result
+  j_res = create_default_result(EVHTP_RES_OK);
+
+  // response
+  simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * htp request handler.
+ * GET ^/park/settings/(.*) request handler.
+ * @param req
+ * @param data
+ */
+void htp_get_park_settings_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+  const char* tmp_const;
+  char* detail;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired htp_get_park_settings_detail.");
+
+  // detail parse
+  tmp_const = req->uri->path->file;
+  detail = uri_decode(tmp_const);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // get setting
+  j_tmp = get_park_setting(detail);
+  sfree(detail);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get park setting.");
+    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", j_tmp);
+
+  // response
+  simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * htp request handler.
+ * PUT ^/park/settings/(.*) request handler.
+ * @param req
+ * @param data
+ */
+void htp_put_park_settings_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_data;
+  const char* tmp_const;
+  char* detail;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired htp_put_park_settings_detail.");
+
+  // detail parse
+  tmp_const = req->uri->path->file;
+  detail = uri_decode(tmp_const);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // get data
+  j_data = get_json_from_request_data(req);
+  if(j_data == NULL) {
+    slog(LOG_ERR, "Could not get correct data from request.");
+    sfree(detail);
+    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // update setting
+  ret = update_park_setting(detail, j_data);
+  sfree(detail);
+  json_decref(j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update park setting.");
+    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = create_default_result(EVHTP_RES_OK);
+
+  // response
+  simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * htp request handler.
+ * DELETE ^/park/settings/(.*) request handler.
+ * @param req
+ * @param data
+ */
+void htp_delete_park_settings_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  const char* tmp_const;
+  char* detail;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired htp_delete_park_settings_detail.");
+
+  // detail parse
+  tmp_const = req->uri->path->file;
+  detail = uri_decode(tmp_const);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // delete setting
+  ret = remove_park_setting(detail);
+  sfree(detail);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not remove park setting.");
+    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = create_default_result(EVHTP_RES_OK);
+
+  // response
+  simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
 static bool is_setting_section(const char* context)
 {
   int ret;
@@ -795,4 +1031,120 @@ static bool remove_park_backup_config_info(const char* filename)
   }
 
   return true;
+}
+
+static json_t* get_park_settings_all(void)
+{
+	json_t* j_res;
+
+	j_res = get_ast_settings_all(DEF_PARK_CONFNAME);
+
+	return j_res;
+}
+
+static bool create_park_setting(const json_t* j_data)
+{
+	const char* name;
+	int ret;
+	const json_t* j_setting;
+
+	if(j_data == NULL) {
+		slog(LOG_WARNING, "Wrong input parameter.");
+		return false;
+	}
+
+	name = json_string_value(json_object_get(j_data, "name"));
+	if(name == NULL) {
+		slog(LOG_ERR, "Could not get setting name.");
+		return false;
+	}
+
+	j_setting = json_object_get(j_data, "setting");
+	if(j_setting == NULL) {
+		slog(LOG_ERR, "Could not get setting.");
+		return false;
+	}
+
+	ret = create_ast_setting(DEF_PARK_CONFNAME, name, j_setting);
+	if(ret == false) {
+		slog(LOG_ERR, "Could not create park setting.");
+		return false;
+	}
+
+	return true;
+}
+
+/**
+ * Get park setting
+ * @param name
+ * @param j_data
+ * @return
+ */
+static json_t* get_park_setting(const char* name)
+{
+	json_t* j_res;
+
+	if(name == NULL) {
+		slog(LOG_WARNING, "Wrong input parameter.");
+		return false;
+	}
+	slog(LOG_DEBUG, "Fired get_park_setting. name[%s]", name);
+
+	j_res = get_ast_setting(DEF_PARK_CONFNAME, name);
+	if(j_res == NULL) {
+		slog(LOG_ERR, "Could not get park setting info. name[%s]", name);
+		return NULL;
+	}
+
+	return j_res;
+}
+
+/**
+ * Update park setting
+ * @param name
+ * @param j_data
+ * @return
+ */
+static bool update_park_setting(const char* name, const json_t* j_data)
+{
+	int ret;
+
+	if((name == NULL) || (j_data == NULL)) {
+		slog(LOG_WARNING, "Wrong input parameter.");
+		return false;
+	}
+	slog(LOG_DEBUG, "Fired update_park_setting. name[%s]", name);
+
+	ret = update_ast_setting(DEF_PARK_CONFNAME, name, j_data);
+	if(ret == false) {
+		slog(LOG_ERR, "Could not update park setting.");
+		return false;
+	}
+
+	return true;
+}
+
+/**
+ * Remove given park setting
+ * @param name
+ * @param j_data
+ * @return
+ */
+static bool remove_park_setting(const char* name)
+{
+	int ret;
+
+	if(name == NULL) {
+		slog(LOG_WARNING, "Wrong input parameter.");
+		return false;
+	}
+	slog(LOG_DEBUG, "Fired remove_park_setting. name[%s]", name);
+
+	ret = remove_ast_setting(DEF_PARK_CONFNAME, name);
+	if(ret == false) {
+		slog(LOG_ERR, "Could not remove park setting info. name[%s]", name);
+		return false;
+	}
+
+	return true;
 }
