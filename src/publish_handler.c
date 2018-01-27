@@ -106,7 +106,7 @@ bool publish_event_queue_queue(const char* type, json_t* j_data)
   slog(LOG_DEBUG, "Fired publish_event_queue_queue.");
 
   // create topic
-  tmp_const = json_string_value(json_object_get(j_data, "queue_name"));
+  tmp_const = json_string_value(json_object_get(j_data, "name"));
   tmp = uri_encode(tmp_const);
   asprintf(&topic, "/queue/statuses/%s", tmp);
   sfree(tmp);

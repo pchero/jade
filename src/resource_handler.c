@@ -1218,6 +1218,45 @@ json_t* get_sip_registries_all(void)
 }
 
 
+bool clear_queue_param(void)
+{
+  int ret;
+
+  ret = clear_ast_table("queue_param");
+  if(ret == false) {
+    slog(LOG_ERR, "Could not clear clear_queue_param");
+    return false;
+  }
+
+  return true;
+}
+
+bool clear_queue_member(void)
+{
+  int ret;
+
+  ret = clear_ast_table("queue_member");
+  if(ret == false) {
+    slog(LOG_ERR, "Could not clear clear_queue_member");
+    return false;
+  }
+
+  return true;
+}
+
+bool clear_queue_entry(void)
+{
+  int ret;
+
+  ret = clear_ast_table("queue_entry");
+  if(ret == false) {
+    slog(LOG_ERR, "Could not clear clear_queue_entry");
+    return false;
+  }
+
+  return true;
+}
+
 /**
  * Get all queue_param array
  * @return

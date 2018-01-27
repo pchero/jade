@@ -13,6 +13,7 @@
 #include "http_handler.h"
 #include "utils.h"
 #include "conf_handler.h"
+#include "ami_handler.h"
 
 #include "queue_handler.h"
 #include "resource_handler.h"
@@ -1345,4 +1346,66 @@ static bool remove_queue_setting(const char* name)
 	return true;
 }
 
+bool init_queue_handler(void)
+{
+  int ret;
+  json_t* j_tmp;
+
+  slog(LOG_DEBUG, "Fired init_queue_handler.");
+
+  // queue status
+  j_tmp = json_pack("{s:s}",
+      "Action", "QueueStatus"
+      );
+  ret = send_ami_cmd(j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not send ami action. action[%s]", "QueueStatus");
+    return false;
+  }
+
+  return true;
+}
+
+bool term_queue_handler(void)
+{
+  int ret;
+
+  ret = clear_queue_param();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not clear queue_param info.");
+    return false;
+  }
+
+  ret = clear_queue_entry();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not clear queue_entry info.");
+    return false;
+  }
+
+  ret = clear_queue_member();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not clear queue_member info.");
+    return false;
+  }
+
+  return true;
+}
+
+bool reload_queue_handler(void)
+{
+  int ret;
+
+  ret = term_queue_handler();
+  if(ret == false) {
+    return false;
+  }
+
+  ret = init_queue_handler();
+  if(ret == false) {
+    return false;
+  }
+
+  return true;
+}
 

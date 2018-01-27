@@ -22,6 +22,7 @@
 #include "ob_dialing_handler.h"
 #include "dialplan_handler.h"
 #include "park_handler.h"
+#include "queue_handler.h"
 
 static void ami_response_handler(json_t* j_msg);
 
@@ -3389,7 +3390,10 @@ static void ami_event_reload(json_t* j_msg)
   }
 
   // parse module
-  if(strstr(module, "res_parking.so") != NULL) {
+  if(strstr(module, "app_queue.so") != NULL) {
+    ret = reload_queue_handler();
+  }
+  else if(strstr(module, "res_parking.so") != NULL) {
     ret = reload_park_handler();
   }
 
