@@ -19,6 +19,12 @@ bool publish_event_core_module(const char* type, json_t* j_data);
 bool publish_event_park_parkedcall(const char* type, json_t* j_data);
 bool publish_event_park_parkinglot(const char* type, json_t* j_data);
 
+bool publish_event_pjsip_aor(const char* type, json_t* j_data);
+bool publish_event_pjsip_auth(const char* type, json_t* j_data);
+bool publish_event_pjsip_contact(const char* type, json_t* j_data);
+bool publish_event_pjsip_endpoint(const char* type, json_t* j_data);
+
+
 bool publish_event_queue_member(const char* type, json_t* j_data);
 bool publish_event_queue_queue(const char* type, json_t* j_data);
 bool publish_event_queue_entry(const char* type, json_t* j_data);

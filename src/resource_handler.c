@@ -2848,6 +2848,42 @@ bool delete_park_parkedcall_info(const char* key)
 }
 
 /**
+ * Clear all pjsip resources.
+ * @return
+ */
+bool clear_pjsip(void)
+{
+  int ret;
+
+  ret = clear_ast_table("pjsip_endpoint");
+  if(ret == false) {
+    slog(LOG_ERR, "Could not clear pjsip_endpoint");
+    return false;
+  }
+
+  ret = clear_ast_table("pjsip_aor");
+  if(ret == false) {
+    slog(LOG_ERR, "Could not clear pjsip_aor");
+    return false;
+  }
+
+  ret = clear_ast_table("pjsip_auth");
+  if(ret == false) {
+    slog(LOG_ERR, "Could not clear pjsip_auth");
+    return false;
+  }
+
+  ret = clear_ast_table("pjsip_contact");
+  if(ret == false) {
+    slog(LOG_ERR, "Could not clear pjsip_contact");
+    return false;
+  }
+
+  return true;
+
+}
+
+/**
  * Get corresponding pjsip_endpoint info.
  * @param name
  * @return
@@ -2986,7 +3022,7 @@ json_t* get_pjsip_contact_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired get_pjsip_contact_info.");
 
-  j_res = get_ast_detail_item_key_string("pjsip_contact", "id", key);
+  j_res = get_ast_detail_item_key_string("pjsip_contact", "uri", key);
 
   return j_res;
 }
@@ -3371,6 +3407,8 @@ bool delete_agent_agent_info(const char* key)
 bool create_pjsip_endpoint_info(const json_t* j_data)
 {
   int ret;
+  const char* tmp_const;
+  json_t* j_tmp;
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -3385,6 +3423,23 @@ bool create_pjsip_endpoint_info(const json_t* j_data)
     return false;
   }
 
+  // publish
+  // get info
+  tmp_const = json_string_value(json_object_get(j_data, "object_name"));
+  j_tmp = get_pjsip_endpoint_info(tmp_const);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get pjsip_endpoint info. id[%s]", tmp_const);
+    return false;
+  }
+
+  // publish event
+  ret = publish_event_pjsip_endpoint(DEF_PUB_TYPE_CREATE, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
   return true;
 }
 
@@ -3396,6 +3451,8 @@ bool create_pjsip_endpoint_info(const json_t* j_data)
 bool update_pjsip_endpoint_info(const json_t* j_data)
 {
   int ret;
+  const char* tmp_const;
+  json_t* j_tmp;
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -3409,6 +3466,23 @@ bool update_pjsip_endpoint_info(const json_t* j_data)
     return false;
   }
 
+  // publish
+  // get info
+  tmp_const = json_string_value(json_object_get(j_data, "object_name"));
+  j_tmp = get_pjsip_endpoint_info(tmp_const);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get pjsip_endpoint info. id[%s]", tmp_const);
+    return false;
+  }
+
+  // publish event
+  ret = publish_event_pjsip_endpoint(DEF_PUB_TYPE_UPDATE, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
   return true;
 }
 
@@ -3419,6 +3493,7 @@ bool update_pjsip_endpoint_info(const json_t* j_data)
 bool delete_pjsip_endpoint_info(const char* key)
 {
   int ret;
+  json_t* j_tmp;
 
   if(key == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -3426,9 +3501,27 @@ bool delete_pjsip_endpoint_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired delete_pjsip_endpoint_info. key[%s]", key);
 
+  // get info
+  j_tmp = get_pjsip_endpoint_info(key);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get pjsip_endpoint info. id[%s]", key);
+    return false;
+  }
+
+  // delete info
   ret = delete_ast_items_string("pjsip_endpoint", "object_name", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete pjsip_endpoint info. key[%s]", key);
+    json_decref(j_tmp);
+    return false;
+  }
+
+  // publish
+  // publish event
+  ret = publish_event_pjsip_endpoint(DEF_PUB_TYPE_DELETE, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
     return false;
   }
 
@@ -3443,6 +3536,8 @@ bool delete_pjsip_endpoint_info(const char* key)
 bool create_pjsip_auth_info(const json_t* j_data)
 {
   int ret;
+  const char* tmp_const;
+  json_t* j_tmp;
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -3457,6 +3552,23 @@ bool create_pjsip_auth_info(const json_t* j_data)
     return false;
   }
 
+  // publish
+  // get info
+  tmp_const = json_string_value(json_object_get(j_data, "object_name"));
+  j_tmp = get_pjsip_auth_info(tmp_const);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get pjsip_auth info. object_name[%s]", tmp_const);
+    return false;
+  }
+
+  // publish event
+  ret = publish_event_pjsip_auth(DEF_PUB_TYPE_CREATE, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
   return true;
 }
 
@@ -3468,6 +3580,8 @@ bool create_pjsip_auth_info(const json_t* j_data)
 bool update_pjsip_auth_info(const json_t* j_data)
 {
   int ret;
+  json_t* j_tmp;
+  const char* tmp_const;
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -3482,6 +3596,23 @@ bool update_pjsip_auth_info(const json_t* j_data)
     return false;
   }
 
+  // publish
+  // get info
+  tmp_const = json_string_value(json_object_get(j_data, "object_name"));
+  j_tmp = get_pjsip_auth_info(tmp_const);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get pjsip_auth info. object_name[%s]", tmp_const);
+    return false;
+  }
+
+  // publish event
+  ret = publish_event_pjsip_auth(DEF_PUB_TYPE_UPDATE, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
   return true;
 }
 
@@ -3492,6 +3623,7 @@ bool update_pjsip_auth_info(const json_t* j_data)
 bool delete_pjsip_auth_info(const char* key)
 {
   int ret;
+  json_t* j_tmp;
 
   if(key == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -3499,9 +3631,26 @@ bool delete_pjsip_auth_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired delete_pjsip_auth_info. key[%s]", key);
 
+  // get info
+  j_tmp = get_pjsip_auth_info(key);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get pjsip_auth info. object_name[%s]", key);
+    return false;
+  }
+
   ret = delete_ast_items_string("pjsip_auth", "object_name", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete pjsip_auth info. key[%s]", key);
+    json_decref(j_tmp);
+    return false;
+  }
+
+  // publish
+  // publish event
+  ret = publish_event_pjsip_auth(DEF_PUB_TYPE_DELETE, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
     return false;
   }
 
@@ -3516,6 +3665,8 @@ bool delete_pjsip_auth_info(const char* key)
 bool create_pjsip_aor_info(const json_t* j_data)
 {
   int ret;
+  const char* tmp_const;
+  json_t* j_tmp;
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -3530,6 +3681,23 @@ bool create_pjsip_aor_info(const json_t* j_data)
     return false;
   }
 
+  // publish
+  // get info
+  tmp_const = json_string_value(json_object_get(j_data, "object_name"));
+  j_tmp = get_pjsip_aor_info(tmp_const);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get pjsip_aor info. object_name[%s]", tmp_const);
+    return false;
+  }
+
+  // publish event
+  ret = publish_event_pjsip_aor(DEF_PUB_TYPE_CREATE, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
   return true;
 }
 
@@ -3541,6 +3709,8 @@ bool create_pjsip_aor_info(const json_t* j_data)
 bool update_pjsip_aor_info(const json_t* j_data)
 {
   int ret;
+  const char* tmp_const;
+  json_t* j_tmp;
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -3555,6 +3725,24 @@ bool update_pjsip_aor_info(const json_t* j_data)
     return false;
   }
 
+  // publish
+  // get info
+  tmp_const = json_string_value(json_object_get(j_data, "object_name"));
+  j_tmp = get_pjsip_aor_info(tmp_const);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get pjsip_aor info. object_name[%s]", tmp_const);
+    return false;
+  }
+
+  // publish event
+  ret = publish_event_pjsip_aor(DEF_PUB_TYPE_UPDATE, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
+
   return true;
 }
 
@@ -3565,6 +3753,7 @@ bool update_pjsip_aor_info(const json_t* j_data)
 bool delete_pjsip_aor_info(const char* key)
 {
   int ret;
+  json_t* j_tmp;
 
   if(key == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -3572,9 +3761,25 @@ bool delete_pjsip_aor_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired delete_pjsip_aor_info. key[%s]", key);
 
+  // publish
+  // get info
+  j_tmp = get_pjsip_aor_info(key);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get pjsip_aor info. object_name[%s]", key);
+    return false;
+  }
+
   ret = delete_ast_items_string("pjsip_aor", "object_name", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete pjsip_aor info. key[%s]", key);
+    return false;
+  }
+
+  // publish event
+  ret = publish_event_pjsip_aor(DEF_PUB_TYPE_DELETE, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
     return false;
   }
 
@@ -3589,6 +3794,8 @@ bool delete_pjsip_aor_info(const char* key)
 bool create_pjsip_contact_info(const json_t* j_data)
 {
   int ret;
+  const char* tmp_const;
+  json_t* j_tmp;
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -3603,6 +3810,23 @@ bool create_pjsip_contact_info(const json_t* j_data)
     return false;
   }
 
+  // publish
+  // get info
+  tmp_const = json_string_value(json_object_get(j_data, "uri"));
+  j_tmp = get_pjsip_contact_info(tmp_const);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get pjsip_contact info. uri[%s]", tmp_const);
+    return false;
+  }
+
+  // publish event
+  ret = publish_event_pjsip_contact(DEF_PUB_TYPE_CREATE, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
   return true;
 }
 
@@ -3614,6 +3838,8 @@ bool create_pjsip_contact_info(const json_t* j_data)
 bool update_pjsip_contact_info(const json_t* j_data)
 {
   int ret;
+  const char* tmp_const;
+  json_t* j_tmp;
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -3622,9 +3848,26 @@ bool update_pjsip_contact_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired update_pjsip_contact_info.");
 
   // update
-  ret = update_ast_item("pjsip_contact", "object_name", j_data);
+  ret = update_ast_item("pjsip_contact", "uri", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update pjsip_contact info.");
+    return false;
+  }
+
+  // publish
+  // get info
+  tmp_const = json_string_value(json_object_get(j_data, "uri"));
+  j_tmp = get_pjsip_contact_info(tmp_const);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get pjsip_contact info. uri[%s]", tmp_const);
+    return false;
+  }
+
+  // publish event
+  ret = publish_event_pjsip_contact(DEF_PUB_TYPE_UPDATE, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
     return false;
   }
 
@@ -3638,6 +3881,7 @@ bool update_pjsip_contact_info(const json_t* j_data)
 bool delete_pjsip_contact_info(const char* key)
 {
   int ret;
+  json_t* j_tmp;
 
   if(key == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -3645,11 +3889,29 @@ bool delete_pjsip_contact_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired delete_pjsip_contact_info. key[%s]", key);
 
-  ret = delete_ast_items_string("pjsip_contact", "object_name", key);
-  if(ret == false) {
-    slog(LOG_WARNING, "Could not delete pjsip_contact info. key[%s]", key);
+  // get info
+  j_tmp = get_pjsip_contact_info(key);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get pjsip_contact info. uri[%s]", key);
     return false;
   }
+
+  ret = delete_ast_items_string("pjsip_contact", "uri", key);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not delete pjsip_contact info. key[%s]", key);
+    json_decref(j_tmp);
+    return false;
+  }
+
+  // publish
+  // publish event
+  ret = publish_event_pjsip_contact(DEF_PUB_TYPE_DELETE, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
 
   return true;
 }

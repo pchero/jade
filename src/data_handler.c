@@ -406,28 +406,6 @@ static bool send_init_actions(void)
     return false;
   }
 
-//  // parking_lot
-//  j_tmp = json_pack("{s:s}",
-//      "Action", "ParkingLots"
-//      );
-//  ret = send_ami_cmd(j_tmp);
-//  json_decref(j_tmp);
-//  if(ret == false) {
-//    slog(LOG_ERR, "Could not send ami action. action[%s]", "Parkinglosts");
-//    return false;
-//  }
-//
-//  // parked_call
-//  j_tmp = json_pack("{s:s}",
-//      "Action", "ParkedCalls"
-//      );
-//  ret = send_ami_cmd(j_tmp);
-//  json_decref(j_tmp);
-//  if(ret == false) {
-//    slog(LOG_ERR, "Could not send ami action. action[%s]", "ParkedCalls");
-//    return false;
-//  }
-
   // device state
   j_tmp = json_pack("{s:s}",
       "Action", "DeviceStateList"
@@ -436,17 +414,6 @@ static bool send_init_actions(void)
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not send ami action. action[%s]", "DeviceStateList");
-    return false;
-  }
-
-  // pjsip
-  j_tmp = json_pack("{s:s}",
-      "Action", "PJSIPShowEndpoints"
-      );
-  ret = send_ami_cmd(j_tmp);
-  json_decref(j_tmp);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not send ami action. action[%s]", "PJSIPShowEndpoints");
     return false;
   }
 

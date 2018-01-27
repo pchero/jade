@@ -20,8 +20,10 @@
 #include "zmq_handler.h"
 #include "websocket_handler.h"
 #include "conf_handler.h"
+
 #include "park_handler.h"
 #include "queue_handler.h"
+#include "pjsip_handler.h"
 
 app* g_app;
 
@@ -126,6 +128,12 @@ bool init(void)
   ret = init_queue_handler();
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate queue_handler.");
+    return false;
+  }
+
+  ret = init_pjsip_handler();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initate pjsip_handler.");
     return false;
   }
 

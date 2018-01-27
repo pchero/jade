@@ -12,6 +12,7 @@
 #include "utils.h"
 #include "resource_handler.h"
 #include "http_handler.h"
+#include "ami_handler.h"
 
 #include "pjsip_handler.h"
 
@@ -316,3 +317,56 @@ void htp_get_pjsip_contacts_detail(evhtp_request_t *req, void *data)
 
   return;
 }
+
+bool init_pjsip_handler(void)
+{
+  int ret;
+  json_t* j_tmp;
+
+  slog(LOG_DEBUG, "Fired init_pjsip_handler.");
+
+  // pjsip
+  j_tmp = json_pack("{s:s}",
+      "Action", "PJSIPShowEndpoints"
+      );
+  ret = send_ami_cmd(j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not send ami action. action[%s]", "PJSIPShowEndpoints");
+    return false;
+  }
+
+  return true;
+}
+
+bool term_pjsip_handler(void)
+{
+  int ret;
+
+  ret = clear_pjsip();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not clear pjsip info.");
+    return false;
+  }
+
+  return true;
+}
+
+bool reload_pjsip_handler(void)
+{
+  int ret;
+
+  ret = term_pjsip_handler();
+  if(ret == false) {
+    return false;
+  }
+
+  ret = init_pjsip_handler();
+  if(ret == false) {
+    return false;
+  }
+
+  return true;
+}
+
+

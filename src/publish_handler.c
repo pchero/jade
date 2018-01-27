@@ -378,3 +378,171 @@ bool publish_event_core_module(const char* type, json_t* j_data)
   return true;
 }
 
+/**
+ * Publish event.
+ * pjsip.aor.<type>
+ * @param type
+ * @param j_data
+ * @return
+ */
+bool publish_event_pjsip_aor(const char* type, json_t* j_data)
+{
+  const char* tmp_const;
+  char* tmp;
+  char* topic;
+  char* event;
+  int ret;
+
+  if((type == NULL) || (j_data == NULL)){
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired publish_event_pjsip_aor.");
+
+  // create topic
+  tmp_const = json_string_value(json_object_get(j_data, "object_name"));
+  tmp = uri_encode(tmp_const);
+  asprintf(&topic, "/pjsip/aors/%s", tmp? : "");
+  sfree(tmp);
+
+  // create event name
+  asprintf(&event, "pjsip.aor.%s", type);
+
+  // publish event
+  ret = publish_event(topic, event, j_data);
+  sfree(topic);
+  sfree(event);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Publish event.
+ * pjsip.auth.<type>
+ * @param type
+ * @param j_data
+ * @return
+ */
+bool publish_event_pjsip_auth(const char* type, json_t* j_data)
+{
+  const char* tmp_const;
+  char* tmp;
+  char* topic;
+  char* event;
+  int ret;
+
+  if((type == NULL) || (j_data == NULL)){
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired publish_event_pjsip_auth.");
+
+  // create topic
+  tmp_const = json_string_value(json_object_get(j_data, "object_name"));
+  tmp = uri_encode(tmp_const);
+  asprintf(&topic, "/pjsip/auths/%s", tmp? : "");
+  sfree(tmp);
+
+  // create event name
+  asprintf(&event, "pjsip.auth.%s", type);
+
+  // publish event
+  ret = publish_event(topic, event, j_data);
+  sfree(topic);
+  sfree(event);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Publish event.
+ * pjsip.contact.<type>
+ * @param type
+ * @param j_data
+ * @return
+ */
+bool publish_event_pjsip_contact(const char* type, json_t* j_data)
+{
+  const char* tmp_const;
+  char* tmp;
+  char* topic;
+  char* event;
+  int ret;
+
+  if((type == NULL) || (j_data == NULL)){
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired publish_event_pjsip_contact.");
+
+  // create topic
+  tmp_const = json_string_value(json_object_get(j_data, "id"));
+  tmp = uri_encode(tmp_const);
+  asprintf(&topic, "/pjsip/contacts/%s", tmp? : "");
+  sfree(tmp);
+
+  // create event name
+  asprintf(&event, "pjsip.contact.%s", type);
+
+  // publish event
+  ret = publish_event(topic, event, j_data);
+  sfree(topic);
+  sfree(event);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Publish event.
+ * pjsip.endpoint.<type>
+ * @param type
+ * @param j_data
+ * @return
+ */
+bool publish_event_pjsip_endpoint(const char* type, json_t* j_data)
+{
+  const char* tmp_const;
+  char* tmp;
+  char* topic;
+  char* event;
+  int ret;
+
+  if((type == NULL) || (j_data == NULL)){
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired publish_event_pjsip_endpoint.");
+
+  // create topic
+  tmp_const = json_string_value(json_object_get(j_data, "object_name"));
+  tmp = uri_encode(tmp_const);
+  asprintf(&topic, "/pjsip/endpoints/%s", tmp? : "");
+  sfree(tmp);
+
+  // create event name
+  asprintf(&event, "pjsip.endpoint.%s", type);
+
+  // publish event
+  ret = publish_event(topic, event, j_data);
+  sfree(topic);
+  sfree(event);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
+  return true;
+}
+
