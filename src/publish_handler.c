@@ -234,11 +234,53 @@ bool publish_event_park_parkedcall(const char* type, json_t* j_data)
   // create topic
   tmp_const = json_string_value(json_object_get(j_data, "parking_lot"));
   tmp = uri_encode(tmp_const);
-  asprintf(&topic, "/park/parkinglots/%s", tmp? : "");
+  asprintf(&topic, "/park/statuses/%s", tmp? : "");
   sfree(tmp);
 
   // create event name
   asprintf(&event, "park.parkedcall.%s", type);
+
+  // publish event
+  ret = publish_event(topic, event, j_data);
+  sfree(topic);
+  sfree(event);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Publish event.
+ * park.parkinglot.<type>
+ * @param type
+ * @param j_data
+ * @return
+ */
+bool publish_event_park_parkinglot(const char* type, json_t* j_data)
+{
+  const char* tmp_const;
+  char* tmp;
+  char* topic;
+  char* event;
+  int ret;
+
+  if((type == NULL) || (j_data == NULL)){
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired publish_event_park_parkinglot.");
+
+  // create topic
+  tmp_const = json_string_value(json_object_get(j_data, "name"));
+  tmp = uri_encode(tmp_const);
+  asprintf(&topic, "/park/statuses/%s", tmp? : "");
+  sfree(tmp);
+
+  // create event name
+  asprintf(&event, "park.parkinglot.%s", type);
 
   // publish event
   ret = publish_event(topic, event, j_data);
@@ -293,3 +335,46 @@ bool publish_event_core_agi(const char* type, json_t* j_data)
 
   return true;
 }
+
+/**
+ * Publish event.
+ * core.module.<type>
+ * @param type
+ * @param j_data
+ * @return
+ */
+bool publish_event_core_module(const char* type, json_t* j_data)
+{
+  const char* tmp_const;
+  char* tmp;
+  char* topic;
+  char* event;
+  int ret;
+
+  if((type == NULL) || (j_data == NULL)){
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired publish_event_core_module.");
+
+  // create topic
+  tmp_const = json_string_value(json_object_get(j_data, "name"));
+  tmp = uri_encode(tmp_const);
+  asprintf(&topic, "/core/modules/%s", tmp? : "");
+  sfree(tmp);
+
+  // create event name
+  asprintf(&event, "core.module.%s", type);
+
+  // publish event
+  ret = publish_event(topic, event, j_data);
+  sfree(topic);
+  sfree(event);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
+  return true;
+}
+

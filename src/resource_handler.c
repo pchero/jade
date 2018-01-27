@@ -28,6 +28,7 @@ db_ctx_t* g_db_ast;
 db_ctx_t* g_db_jade;
 
 // db
+static bool clear_table(db_ctx_t* ctx, const char* table);
 static bool insert_item(db_ctx_t* ctx, const char* table, const json_t* j_data);
 static bool update_item(db_ctx_t* ctx, const char* table, const char* key_column, const json_t* j_data);
 static json_t* get_items(db_ctx_t* ctx, const char* table, const char* item);
@@ -39,6 +40,7 @@ static json_t* get_detail_items_by_obj_order(db_ctx_t* ctx, const char* table, j
 
 
 // db_ast
+static bool clear_ast_table(const char* table);
 static bool insert_ast_item(const char* table, const json_t* j_data);
 static bool update_ast_item(const char* table, const char* key_column, const json_t* j_data);
 static json_t* get_ast_items(const char* table, const char* item);
@@ -424,6 +426,29 @@ static bool update_item(db_ctx_t* ctx, const char* table, const char* key_column
   return true;
 }
 
+static bool clear_table(db_ctx_t* ctx, const char* table)
+{
+  int ret;
+  char* sql;
+
+  if((ctx == NULL) || (table == NULL)) {
+    slog(LOG_WARNING, "Wrong input paramter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired clear_table. table[%s]", table);
+
+  asprintf(&sql, "delete from %s;", table);
+
+  ret = db_ctx_exec(ctx, sql);
+  sfree(sql);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not clear table.");
+    return false;
+  }
+
+  return true;
+}
+
 /**
  *
  * @param table
@@ -447,7 +472,7 @@ static json_t* get_items(db_ctx_t* ctx, const char* table, const char* item)
   ret = db_ctx_query(ctx, sql);
   sfree(sql);
   if(ret == false) {
-    slog(LOG_WARNING, "Could not get correct databases name info.");
+    slog(LOG_WARNING, "Could not get correct databases item info.");
     return NULL;
   }
 
@@ -658,6 +683,24 @@ static json_t* get_detail_items_by_obj_order(db_ctx_t* ctx, const char* table, j
   db_ctx_free(ctx);
 
   return j_res;
+}
+
+static bool clear_ast_table(const char* table)
+{
+  int ret;
+
+  if(table == NULL) {
+    slog(LOG_WARNING, "Wrong input paramter.");
+    return false;
+  }
+
+  ret = clear_table(g_db_ast, table);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not clear ast_table. table[%s]", table);
+    return false;
+  }
+
+  return true;
 }
 
 /**
@@ -2475,6 +2518,19 @@ json_t* get_device_state_info(const char* name)
   return j_res;
 }
 
+bool clear_park_parkinglot(void)
+{
+  int ret;
+
+  ret = clear_ast_table("parking_lot");
+  if(ret == false) {
+    slog(LOG_ERR, "Could not clear park_parkinglot");
+    return false;
+  }
+
+  return true;
+}
+
 /**
  * Get all parking_lot's array
  * @return
@@ -2525,28 +2581,59 @@ json_t* get_park_parkinglot_info(const char* name)
 }
 
 /**
- * Create parking_lot detail info.
+ * Create park_parkinglot detail info.
  * @return
  */
-int create_park_parkinglot_info(const json_t* j_tmp)
+int create_park_parkinglot_info(const json_t* j_data)
 {
   int ret;
+  json_t* j_tmp;
+  const char* tmp_const;
 
-  if(j_tmp == NULL) {
+  if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
   slog(LOG_DEBUG, "Fired create_park_parkinglot_info.");
 
-  ret = insert_ast_item("parking_lot", j_tmp);
+  ret = insert_ast_item("parking_lot", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to parking_lot.");
+    return false;
+  }
+
+  // publish
+  // get info
+  tmp_const = json_string_value(json_object_get(j_data, "name"));
+  j_tmp = get_park_parkinglot_info(tmp_const);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get park parkinglot info. name[%s]", tmp_const);
+    return false;
+  }
+
+  // publish event
+  ret = publish_event_park_parkinglot(DEF_PUB_TYPE_CREATE, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
     return false;
   }
 
   return true;
 }
 
+bool clear_park_parkedcall(void)
+{
+  int ret;
+
+  ret = clear_ast_table("parked_call");
+  if(ret == false) {
+    slog(LOG_ERR, "Could not clear park_parkedcall.");
+    return false;
+  }
+
+  return true;
+}
 
 /**
  * Get all parking_lot's all parkee_unique_id array
@@ -2989,6 +3076,8 @@ json_t* get_core_module_info(const char* key)
 bool update_core_module_info(const json_t* j_data)
 {
   int ret;
+  json_t* j_tmp;
+  const char* module_name;
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -2999,6 +3088,20 @@ bool update_core_module_info(const json_t* j_data)
   ret = update_ast_item("core_module", "name", j_data);
   if(ret == false) {
     slog(LOG_WARNING, "Could not update core module info.");
+    return false;
+  }
+
+  module_name = json_string_value(json_object_get(j_data, "name"));
+  if(module_name == NULL) {
+    slog(LOG_ERR, "Could not get name info.");
+    return false;
+  }
+
+  j_tmp = get_ast_detail_item_key_string("core_module", "name", module_name);
+
+  ret = publish_event_core_module(DEF_PUB_TYPE_UPDATE, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
     return false;
   }
 
