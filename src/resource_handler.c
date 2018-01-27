@@ -1440,7 +1440,7 @@ json_t* get_queue_members_all_name_queue(void)
  * create queue member info.
  * @return
  */
-int create_queue_member_info(const json_t* j_data)
+bool create_queue_member_info(const json_t* j_data)
 {
   int ret;
   const char* id;
@@ -1474,11 +1474,50 @@ int create_queue_member_info(const json_t* j_data)
   return true;
 }
 
+bool update_queue_member_info(const json_t* j_data)
+{
+  int ret;
+  const char* tmp_const;
+  json_t* j_tmp;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired update_queue_member_info.");
+
+  // update
+  ret = update_ast_item("queue_member", "id", j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update queue_member info.");
+    return false;
+  }
+
+  // publish
+  // get info
+  tmp_const = json_string_value(json_object_get(j_data, "id"));
+  j_tmp = get_queue_member_info(tmp_const);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get queue_member info. id[%s]", tmp_const);
+    return false;
+  }
+
+  // publish event
+  ret = publish_event_queue_member(DEF_PUB_TYPE_UPDATE, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
+  return true;
+}
+
 /**
  * delete queue member info.
  * @return
  */
-int delete_queue_member_info(const char* key)
+bool delete_queue_member_info(const char* key)
 {
   int ret;
   json_t* j_tmp;

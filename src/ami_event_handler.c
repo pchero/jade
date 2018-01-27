@@ -1146,7 +1146,7 @@ static void ami_event_queuememberstatus(json_t* j_msg)
   json_object_set_new(j_tmp, "id", json_string(id));
   sfree(id);
 
-  ret = create_queue_member_info(j_tmp);
+  ret = update_queue_member_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to queue_member.");

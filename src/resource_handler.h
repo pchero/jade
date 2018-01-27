@@ -91,8 +91,9 @@ json_t* get_queue_members_all(void);
 json_t* get_queue_members_all_by_queuename(const char* name);
 json_t* get_queue_members_all_name_queue(void);
 json_t* get_queue_member_info(const char* id);
-int create_queue_member_info(const json_t* j_data);
-int delete_queue_member_info(const char* key);
+bool create_queue_member_info(const json_t* j_data);
+bool update_queue_member_info(const json_t* j_data);
+bool delete_queue_member_info(const char* key);
 // queue param
 bool clear_queue_param(void);
 json_t* get_queue_param_info(const char* name);
