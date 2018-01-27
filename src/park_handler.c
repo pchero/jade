@@ -13,6 +13,7 @@
 #include "http_handler.h"
 #include "utils.h"
 #include "conf_handler.h"
+#include "ami_handler.h"
 
 #include "resource_handler.h"
 
@@ -1150,4 +1151,72 @@ static bool remove_park_setting(const char* name)
 	}
 
 	return true;
+}
+
+bool init_park_handler(void)
+{
+  int ret;
+  json_t* j_tmp;
+
+  slog(LOG_DEBUG, "Fired init_park_handler.");
+
+  // parking_lot
+  j_tmp = json_pack("{s:s}",
+      "Action", "ParkingLots"
+      );
+  ret = send_ami_cmd(j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not send ami action. action[%s]", "Parkinglosts");
+    return false;
+  }
+
+  // parked_call
+  j_tmp = json_pack("{s:s}",
+      "Action", "ParkedCalls"
+      );
+  ret = send_ami_cmd(j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not send ami action. action[%s]", "ParkedCalls");
+    return false;
+  }
+
+  return true;
+}
+
+bool term_park_handler(void)
+{
+  int ret;
+
+  ret = clear_park_parkinglot();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not clear parkinglot info.");
+    return false;
+  }
+
+  ret = clear_park_parkedcall();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not clear parkedcall info.");
+    return false;
+  }
+
+  return true;
+}
+
+bool reload_park_handler(void)
+{
+  int ret;
+
+  ret = term_park_handler();
+  if(ret == false) {
+    return false;
+  }
+
+  ret = init_park_handler();
+  if(ret == false) {
+    return false;
+  }
+
+  return true;
 }

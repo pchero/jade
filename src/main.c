@@ -20,6 +20,7 @@
 #include "zmq_handler.h"
 #include "websocket_handler.h"
 #include "conf_handler.h"
+#include "park_handler.h"
 
 app* g_app;
 
@@ -111,6 +112,13 @@ bool init(void)
   ret = init_misc_handler();
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate misc_handler.");
+    return false;
+  }
+
+  // other module handlers
+  ret = init_park_handler();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate park_handler.");
     return false;
   }
 

@@ -10,6 +10,12 @@
 
 #include <evhtp.h>
 
+bool init_park_handler(void);
+bool term_park_handler(void);
+bool reload_park_handler(void);
+
+
+
 void htp_get_park_parkinglots(evhtp_request_t *req, void *data);
 void htp_post_park_parkinglots(evhtp_request_t *req, void *data);
 

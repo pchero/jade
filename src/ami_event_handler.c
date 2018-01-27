@@ -21,6 +21,7 @@
 #include "ob_ami_handler.h"
 #include "ob_dialing_handler.h"
 #include "dialplan_handler.h"
+#include "park_handler.h"
 
 static void ami_response_handler(json_t* j_msg);
 
@@ -67,6 +68,7 @@ static void ami_event_queuememberringinuse(json_t* j_msg);
 static void ami_event_queueparams(json_t* j_msg);
 static void ami_event_registryentry(json_t* j_msg);
 static void ami_event_rename(json_t* j_msg);
+static void ami_event_reload(json_t* j_msg);
 static void ami_event_unparkedcall(json_t* j_msg);
 static void ami_event_varset(json_t* j_msg);
 static void ami_event_voicemailuserentry(json_t* j_msg);
@@ -244,6 +246,9 @@ void ami_message_handler(const char* msg)
   }
   else if(strcasecmp(event, "Rename") == 0) {
     ami_event_rename(j_msg);
+  }
+  else if(strcasecmp(event, "Reload") == 0) {
+    ami_event_reload(j_msg);
   }
   else if(strcasecmp(event, "UnParkedCall") == 0) {
     ami_event_unparkedcall(j_msg);
@@ -3353,6 +3358,54 @@ static void ami_event_asyncagiexec(json_t* j_msg)
   sfree(result);
   if(ret == false) {
     slog(LOG_ERR, "Could not update core_agi cmd result info.");
+    return;
+  }
+
+  return;
+}
+
+/**
+ * AMI event handler.
+ * Event: Reload
+ * @param j_msg
+ */
+static void ami_event_reload(json_t* j_msg)
+{
+  int ret;
+  char* timestamp;
+  const char* module;
+  json_t* j_tmp;
+
+  if(j_msg == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired ami_event_reload.");
+
+  module = json_string_value(json_object_get(j_msg, "Module"));
+  if(module == NULL) {
+    slog(LOG_ERR, "Could not get module info.");
+    return;
+  }
+
+  // parse module
+  if(strstr(module, "res_parking.so") != NULL) {
+    ret = reload_park_handler();
+  }
+
+  // update core_module info
+  timestamp = get_utc_timestamp();
+  j_tmp = json_pack("{s:s, s:s, s:s}",
+      "name",       module,
+      "load",       "loaded",
+      "tm_update",  timestamp
+      );
+  sfree(timestamp);
+
+  ret = update_core_module_info(j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update module info.");
     return;
   }
 

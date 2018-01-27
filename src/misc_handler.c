@@ -101,7 +101,8 @@ static bool init_modules_info(void)
     }
 
     // strip extension
-    module_name = strip_ext(namelist[i]->d_name);
+//    module_name = strip_ext(namelist[i]->d_name);
+    module_name = namelist[i]->d_name;
     if(module_name == NULL) {
       slog(LOG_ERR, "Could not strip file info.");
       free(namelist[i]);
