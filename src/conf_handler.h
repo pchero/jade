@@ -31,9 +31,10 @@ bool remove_ast_setting(const char* filename, const char* name);
 
 json_t* get_ast_backup_config_info_json(const char* filename);
 char* get_ast_backup_config_info_text(const char* filename);
+char* get_ast_backup_config_info_text_valid(const char* filename, const char* valid);
 
 json_t* get_ast_backup_configs_info_all(const char* filename);
-int remove_ast_backup_config_info(const char* filename);
+bool remove_ast_backup_config_info_valid(const char* filename, const char* valid);
 
 
 #endif /* SRC_CONF_HANDLER_H_ */

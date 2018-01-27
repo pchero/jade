@@ -29,17 +29,11 @@ static bool delete_parkinglot_info(const char* parkinglot);
 static bool create_parkinglot_info(json_t* j_data);
 static bool update_parkinglot_info(const char* name, json_t* j_data);
 
-static char* get_park_backup_config_info_text(const char* filename);
-static bool remove_park_backup_config_info(const char* filename);
-
 static json_t* create_parkinglot_info_json(json_t* j_data);
 
 static bool is_setting_section(const char* context);
-static bool is_park_config_filename(const char* filename);
 
-static json_t* get_park_settings_all(void);
 static bool create_park_setting(const json_t* j_data);
-static json_t* get_park_setting(const char* name);
 static bool update_park_setting(const char* name, const json_t* j_data);
 static bool remove_park_setting(const char* name);
 
@@ -491,7 +485,7 @@ void htp_get_park_configs_detail(evhtp_request_t *req, void *data)
   }
 
   // get info
-  res = get_park_backup_config_info_text(detail);
+  res = get_ast_backup_config_info_text_valid(detail, DEF_PARK_CONFNAME);
   sfree(detail);
   if(res == NULL) {
   	slog(LOG_NOTICE, "Could not get backup config info.");
@@ -539,7 +533,7 @@ void htp_delete_park_configs_detail(evhtp_request_t *req, void *data)
   }
 
   // remove it
-  ret = remove_park_backup_config_info(detail);
+  ret = remove_ast_backup_config_info_valid(detail, DEF_PARK_CONFNAME);
   sfree(detail);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not delete setting file.");
@@ -575,7 +569,7 @@ void htp_get_park_settings(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_park_settings.");
 
   // get info
-  j_tmp = get_park_settings_all();
+  j_tmp = get_ast_settings_all(DEF_PARK_CONFNAME);
 
   // create result
   j_res = create_default_result(EVHTP_RES_OK);
@@ -663,7 +657,7 @@ void htp_get_park_settings_detail(evhtp_request_t *req, void *data)
   }
 
   // get setting
-  j_tmp = get_park_setting(detail);
+  j_tmp = get_ast_setting(DEF_PARK_CONFNAME, detail);
   sfree(detail);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get park setting.");
@@ -954,98 +948,6 @@ static bool update_parkinglot_info(const char* name, json_t* j_data)
   return true;
 }
 
-/**
- * Get park backup configuration info.
- * @param filename
- * @return
- */
-static char* get_park_backup_config_info_text(const char* filename)
-{
-  char* res;
-  int ret;
-
-  if(filename == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return NULL;
-  }
-  slog(LOG_DEBUG, "Fired get_park_backup_config_info_text. filename[%s]", filename);
-
-  // check is park config filename
-  ret = is_park_config_filename(filename);
-  if(ret == false) {
-    slog(LOG_ERR, "Given filename is not park config filename.");
-    return NULL;
-  }
-
-  // get config info
-  res = get_ast_backup_config_info_text(filename);
-
-  return res;
-}
-
-/**
- * Return true if given filename related with park setting file.
- * @param filename
- * @return
- */
-static bool is_park_config_filename(const char* filename)
-{
-  const char* tmp_const;
-
-  if(filename == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return false;
-  }
-
-  tmp_const = strstr(filename, DEF_PARK_CONFNAME);
-  if(tmp_const == NULL) {
-    return false;
-  }
-
-  return true;
-}
-
-/**
- * Remove park setting(configuration) info.
- * @param filename
- * @return
- */
-static bool remove_park_backup_config_info(const char* filename)
-{
-  int ret;
-
-  if(filename == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return NULL;
-  }
-  slog(LOG_DEBUG, "Fired remove_park_backup_config_info. filename[%s]", filename);
-
-  // check filename
-  ret = is_park_config_filename(filename);
-  if(ret == false) {
-    slog(LOG_NOTICE, "The given filename is not park conf file.");
-    return false;
-  }
-
-  // remove
-  ret = remove_ast_backup_config_info(filename);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not remove park backup conf.");
-    return false;
-  }
-
-  return true;
-}
-
-static json_t* get_park_settings_all(void)
-{
-	json_t* j_res;
-
-	j_res = get_ast_settings_all(DEF_PARK_CONFNAME);
-
-	return j_res;
-}
-
 static bool create_park_setting(const json_t* j_data)
 {
 	const char* name;
@@ -1076,31 +978,6 @@ static bool create_park_setting(const json_t* j_data)
 	}
 
 	return true;
-}
-
-/**
- * Get park setting
- * @param name
- * @param j_data
- * @return
- */
-static json_t* get_park_setting(const char* name)
-{
-	json_t* j_res;
-
-	if(name == NULL) {
-		slog(LOG_WARNING, "Wrong input parameter.");
-		return false;
-	}
-	slog(LOG_DEBUG, "Fired get_park_setting. name[%s]", name);
-
-	j_res = get_ast_setting(DEF_PARK_CONFNAME, name);
-	if(j_res == NULL) {
-		slog(LOG_ERR, "Could not get park setting info. name[%s]", name);
-		return NULL;
-	}
-
-	return j_res;
 }
 
 /**

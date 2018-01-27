@@ -37,6 +37,7 @@ static bool create_lib_dirs(void);
 static json_t* get_ast_config_info(const char* filename);
 static char* get_ast_config_info_text(const char* filename);
 
+static int remove_ast_backup_config_info(const char* filename);
 
 static bool create_ast_current_config_section_data(const char* filename, const char* section, const json_t* j_data);
 static bool update_ast_current_config_section_data(const char* filename, const char* section, const json_t* j_data);
@@ -588,6 +589,38 @@ char* get_ast_backup_config_info_text(const char* filename)
 }
 
 /**
+ * Get config info from given filename with validation.
+ * @param filename
+ * @return
+ */
+char* get_ast_backup_config_info_text_valid(const char* filename, const char* valid)
+{
+  char* res;
+  const char* tmp_const;
+
+  if(filename == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_ast_backup_config_info_text_valid. filename[%s], valid[%s]", filename, valid);
+
+  // validation
+  tmp_const = strstr(filename, valid);
+  if(tmp_const == NULL) {
+    slog(LOG_ERR, "Could not pass the validation.");
+    return NULL;
+  }
+
+  res = get_ast_backup_config_info_text(filename);
+  if(res == NULL) {
+    slog(LOG_ERR, "Could not get backup config info. filename[%s]", filename);
+    return NULL;
+  }
+
+  return res;
+}
+
+/**
  * Get all backup configs info.
  * Add the "filename" item to all the configs.
  * @param filename
@@ -649,7 +682,7 @@ json_t* get_ast_backup_configs_info_all(const char* filename)
  * @param filename
  * @return
  */
-int remove_ast_backup_config_info(const char* filename)
+static int remove_ast_backup_config_info(const char* filename)
 {
   char* tmp;
   char* full_filename;
@@ -676,7 +709,37 @@ int remove_ast_backup_config_info(const char* filename)
   return true;
 }
 
+/**
+ * Remove config info of given filename with validation.
+ * @param filename
+ * @return
+ */
+bool remove_ast_backup_config_info_valid(const char* filename, const char* valid)
+{
+  const char* tmp_const;
+  int ret;
 
+  if((filename == NULL) || (valid == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired remove_ast_backup_config_info_valid. filename[%s], valid[%s]", filename, valid);
+
+  // validation
+  tmp_const = strstr(filename, valid);
+  if(tmp_const == NULL) {
+    slog(LOG_ERR, "Could not pass the validation. filename[%s], valid[%s]", filename, valid);
+    return false;
+  }
+
+  ret = remove_ast_backup_config_info(filename);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not remove backup config info. filename[%s]", filename);
+    return false;
+  }
+
+  return true;
+}
 
 /**
  * Update asterisk configuration file content.

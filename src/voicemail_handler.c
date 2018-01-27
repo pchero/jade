@@ -40,11 +40,7 @@ static bool remove_vm(const char* context, const char* mailbox, const char* dir,
 static bool create_voicemail_user(json_t* j_data);
 static int update_voicemail_user(json_t* j_data);
 
-static char* get_voicemail_backup_config_info_text(const char* filename);
-static bool remove_voicemail_backup_config_info(const char* filename);
-
 static bool is_setting_context(const char* context);
-static bool is_voicemail_config_filename(const char* filename);
 
 static bool parse_voicemail_id(const char* str, char** mailbox, char** context);
 
@@ -660,7 +656,7 @@ void htp_get_voicemail_configs_detail(evhtp_request_t *req, void *data)
   }
 
   // get config info
-  tmp = get_voicemail_backup_config_info_text(detail);
+  tmp = get_ast_backup_config_info_text_valid(detail, DEF_VOICEMAIL_CONFNAME);
   sfree(detail);
   if(tmp == NULL) {
     slog(LOG_NOTICE, "Could not find config info.");
@@ -708,7 +704,7 @@ void htp_delete_voicemail_configs_detail(evhtp_request_t *req, void *data)
   }
 
   // remove it
-  ret = remove_voicemail_backup_config_info(detail);
+  ret = remove_ast_backup_config_info_valid(detail, DEF_VOICEMAIL_CONFNAME);
   sfree(detail);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not delete config file.");
@@ -1278,87 +1274,6 @@ static int delete_voicemail_user(const char* context, const char* mailbox)
 
   return true;
 
-}
-
-/**
- * Get voicemail config(configuration) info.
- * @param filename
- * @return
- */
-static char* get_voicemail_backup_config_info_text(const char* filename)
-{
-  char* res;
-  int ret;
-
-  if(filename == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return NULL;
-  }
-  slog(LOG_DEBUG, "Fired get_voicemail_backup_config_info_text. filename[%s]", filename);
-
-  // check filename
-  ret = is_voicemail_config_filename(filename);
-  if(ret == false) {
-    slog(LOG_ERR, "Given filename is not voicemail config filename.");
-    return NULL;
-  }
-
-  // get config info
-  res = get_ast_backup_config_info_text(filename);
-
-  return res;
-}
-
-/**
- * Remove voicemail config(configuration) info.
- * @param filename
- * @return
- */
-static bool remove_voicemail_backup_config_info(const char* filename)
-{
-  int ret;
-
-  if(filename == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return NULL;
-  }
-  slog(LOG_DEBUG, "Fired remove_voicemail_backup_config_info. filename[%s]", filename);
-
-  ret = is_voicemail_config_filename(filename);
-  if(ret == false) {
-    slog(LOG_NOTICE, "The given filename is not voicemail conf file.");
-    return false;
-  }
-
-  ret = remove_ast_backup_config_info(filename);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not remove voicemail backup conf.");
-    return false;
-  }
-
-  return true;
-}
-
-/**
- * Return true if given filename related with voicemail config file.
- * @param filename
- * @return
- */
-static bool is_voicemail_config_filename(const char* filename)
-{
-  const char* tmp_const;
-
-  if(filename == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return false;
-  }
-
-  tmp_const = strstr(filename, DEF_VOICEMAIL_CONFNAME);
-  if(tmp_const == NULL) {
-    return false;
-  }
-
-  return true;
 }
 
 /**
