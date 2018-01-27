@@ -315,6 +315,9 @@ static void ami_response_handler(json_t* j_msg)
   else if(strcasecmp(type, "modulecheck") == 0) {
     res_action = ami_response_handler_modulecheck(j_action, j_msg);
   }
+  else if(strcasecmp(type, "moduleload") == 0) {
+    res_action = ami_response_handler_moduleload(j_action, j_msg);
+  }
 
   // outbound
   else if(strcasecmp(type, "ob.originate") == 0) {
@@ -3375,6 +3378,7 @@ static void ami_event_reload(json_t* j_msg)
   int ret;
   char* timestamp;
   const char* module;
+  const char* status;
   json_t* j_tmp;
 
   if(j_msg == NULL) {
@@ -3383,9 +3387,25 @@ static void ami_event_reload(json_t* j_msg)
   }
   slog(LOG_DEBUG, "Fired ami_event_reload.");
 
+  // get module info
   module = json_string_value(json_object_get(j_msg, "Module"));
   if(module == NULL) {
     slog(LOG_ERR, "Could not get module info.");
+    return;
+  }
+
+  // get status info
+  status = json_string_value(json_object_get(j_msg, "Status"));
+  if(status == NULL) {
+    slog(LOG_ERR, "Could not get status info.");
+    return;
+  }
+
+  // check status info
+  // the only 0(Success) value is valid
+  ret = strcmp(status, "0");
+  if(ret != 0) {
+    slog(LOG_ERR, "Invalid status. status[%s]", status);
     return;
   }
 

@@ -174,7 +174,8 @@ bool ami_action_modulecheck(const char* name)
  */
 bool ami_action_moduleload(const char* name, const char* type)
 {
-  json_t* j_tmp;
+  json_t* j_data;
+  char* action_id;
   int ret;
 
   if((name == NULL) || (type == NULL)) {
@@ -183,19 +184,30 @@ bool ami_action_moduleload(const char* name, const char* type)
   }
   slog(LOG_DEBUG, "Fired ami_action_moduleload. name[%s], type[%s]", name, type);
 
+  action_id = gen_uuid();
 
   // create request
-  j_tmp = json_pack("{s:s, s:s, s:s}",
+  j_data = json_pack("{s:s, s:s, s:s, s:s}",
       "Action",     "ModuleLoad",
       "Module",     name,
-      "LoadType",   type
+      "LoadType",   type,
+      "ActionID",   action_id
       );
+  sfree(action_id);
 
-  // send hangup request
-  ret = send_ami_cmd(j_tmp);
-  json_decref(j_tmp);
+  // send action request
+  ret = send_ami_cmd(j_data);
   if(ret == false) {
+    json_decref(j_data);
     slog(LOG_ERR, "Could not send ami action");
+    return false;
+  }
+
+  // insert action
+  ret = insert_action(json_string_value(json_object_get(j_data, "ActionID")), "moduleload", j_data);
+  json_decref(j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert action.");
     return false;
   }
 

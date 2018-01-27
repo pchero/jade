@@ -70,7 +70,7 @@ bool publish_event_queue_member(const char* type, json_t* j_data)
   sfree(tmp);
 
   // create event name
-  asprintf(&event, "queue.queue.%s", type);
+  asprintf(&event, "queue.member.%s", type);
 
   // publish event
   ret = publish_event(topic, event, j_data);

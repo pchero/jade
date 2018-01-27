@@ -242,3 +242,94 @@ ACTION_RES ami_response_handler_modulecheck(json_t* j_action, json_t* j_msg)
 
   return ACTION_RES_COMPLETE;
 }
+
+/**
+ * Action request response handle
+ * name: moduleload
+ * @param j_action
+ * @param j_msg
+ * @return
+ */
+ACTION_RES ami_response_handler_moduleload(json_t* j_action, json_t* j_msg)
+{
+  char* tmp;
+  char* timestamp;
+  const char* response;
+  const char* load;
+  const char* type;
+  int ret;
+  json_t* j_tmp;
+  json_t* j_action_data;
+
+  if((j_action == NULL) || (j_msg == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return ACTION_RES_ERROR;
+  }
+  slog(LOG_DEBUG, "Fired ami_response_handler_moduleload.");
+
+  j_action_data = json_object_get(j_action, "data");
+  if(j_action_data == NULL) {
+    slog(LOG_ERR, "Could not get action data.");
+    return ACTION_RES_ERROR;
+  }
+
+  // for debug
+  tmp = json_dumps(j_msg, JSON_ENCODE_ANY);
+  slog(LOG_DEBUG, "Received message. tmp[%s]", tmp);
+  sfree(tmp);
+
+  // get event
+  // if could not get event, consider it's the event
+  // get response
+  response = json_string_value(json_object_get(j_msg, "Response"));
+  if(response == NULL) {
+    slog(LOG_ERR, "Could not get response.");
+    return ACTION_RES_ERROR;
+  }
+
+  // check response
+  ret = strcasecmp(response, "Success");
+  if(ret != 0) {
+    return ACTION_RES_COMPLETE;
+  }
+
+  // get load type
+  type = json_string_value(json_object_get(j_action_data, "LoadType"));
+  if(type == NULL) {
+    slog(LOG_ERR, "Could not get loadtype info.");
+    return ACTION_RES_ERROR;
+  }
+
+  // check loadtype
+  if(strcasecmp(type, "load") == 0) {
+    load = "loaded";
+  }
+  else if(strcasecmp(type, "unload") == 0) {
+    load = "unload";
+  }
+  else {
+    slog(LOG_NOTICE, "Not supported load type. type[%s]", type);
+    return ACTION_RES_COMPLETE;
+  }
+
+  // create update
+  timestamp = get_utc_timestamp();
+  j_tmp = json_pack("{"
+      "s:s, s:s, s:s "
+      "}",
+
+      "name",       json_string_value(json_object_get(j_action_data, "Module"))? : "",
+      "load",       load,
+      "tm_update",  timestamp
+      );
+  sfree(timestamp);
+
+  // update module info
+  ret = update_core_module_info(j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update core module info.");
+  }
+
+  return ACTION_RES_COMPLETE;
+}
