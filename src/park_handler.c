@@ -34,8 +34,75 @@ static json_t* create_parkinglot_info_json(json_t* j_data);
 static bool is_setting_section(const char* context);
 
 static bool create_park_setting(const json_t* j_data);
-static bool update_park_setting(const char* name, const json_t* j_data);
-static bool remove_park_setting(const char* name);
+
+
+bool init_park_handler(void)
+{
+  int ret;
+  json_t* j_tmp;
+
+  slog(LOG_DEBUG, "Fired init_park_handler.");
+
+  // parking_lot
+  j_tmp = json_pack("{s:s}",
+      "Action", "ParkingLots"
+      );
+  ret = send_ami_cmd(j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not send ami action. action[%s]", "Parkinglosts");
+    return false;
+  }
+
+  // parked_call
+  j_tmp = json_pack("{s:s}",
+      "Action", "ParkedCalls"
+      );
+  ret = send_ami_cmd(j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not send ami action. action[%s]", "ParkedCalls");
+    return false;
+  }
+
+  return true;
+}
+
+bool term_park_handler(void)
+{
+  int ret;
+
+  ret = clear_park_parkinglot();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not clear parkinglot info.");
+    return false;
+  }
+
+  ret = clear_park_parkedcall();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not clear parkedcall info.");
+    return false;
+  }
+
+  return true;
+}
+
+bool reload_park_handler(void)
+{
+  int ret;
+
+  ret = term_park_handler();
+  if(ret == false) {
+    return false;
+  }
+
+  ret = init_park_handler();
+  if(ret == false) {
+    return false;
+  }
+
+  return true;
+}
 
 
 /**
@@ -715,7 +782,7 @@ void htp_put_park_settings_detail(evhtp_request_t *req, void *data)
   }
 
   // update setting
-  ret = update_park_setting(detail, j_data);
+  ret = update_ast_setting(DEF_PARK_CONFNAME, detail, j_data);
   sfree(detail);
   json_decref(j_data);
   if(ret == false) {
@@ -763,7 +830,7 @@ void htp_delete_park_settings_detail(evhtp_request_t *req, void *data)
   }
 
   // delete setting
-  ret = remove_park_setting(detail);
+  ret = remove_ast_setting(DEF_PARK_CONFNAME, detail);
   sfree(detail);
   if(ret == false) {
     slog(LOG_ERR, "Could not remove park setting.");
@@ -980,120 +1047,3 @@ static bool create_park_setting(const json_t* j_data)
 	return true;
 }
 
-/**
- * Update park setting
- * @param name
- * @param j_data
- * @return
- */
-static bool update_park_setting(const char* name, const json_t* j_data)
-{
-	int ret;
-
-	if((name == NULL) || (j_data == NULL)) {
-		slog(LOG_WARNING, "Wrong input parameter.");
-		return false;
-	}
-	slog(LOG_DEBUG, "Fired update_park_setting. name[%s]", name);
-
-	ret = update_ast_setting(DEF_PARK_CONFNAME, name, j_data);
-	if(ret == false) {
-		slog(LOG_ERR, "Could not update park setting.");
-		return false;
-	}
-
-	return true;
-}
-
-/**
- * Remove given park setting
- * @param name
- * @param j_data
- * @return
- */
-static bool remove_park_setting(const char* name)
-{
-	int ret;
-
-	if(name == NULL) {
-		slog(LOG_WARNING, "Wrong input parameter.");
-		return false;
-	}
-	slog(LOG_DEBUG, "Fired remove_park_setting. name[%s]", name);
-
-	ret = remove_ast_setting(DEF_PARK_CONFNAME, name);
-	if(ret == false) {
-		slog(LOG_ERR, "Could not remove park setting info. name[%s]", name);
-		return false;
-	}
-
-	return true;
-}
-
-bool init_park_handler(void)
-{
-  int ret;
-  json_t* j_tmp;
-
-  slog(LOG_DEBUG, "Fired init_park_handler.");
-
-  // parking_lot
-  j_tmp = json_pack("{s:s}",
-      "Action", "ParkingLots"
-      );
-  ret = send_ami_cmd(j_tmp);
-  json_decref(j_tmp);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not send ami action. action[%s]", "Parkinglosts");
-    return false;
-  }
-
-  // parked_call
-  j_tmp = json_pack("{s:s}",
-      "Action", "ParkedCalls"
-      );
-  ret = send_ami_cmd(j_tmp);
-  json_decref(j_tmp);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not send ami action. action[%s]", "ParkedCalls");
-    return false;
-  }
-
-  return true;
-}
-
-bool term_park_handler(void)
-{
-  int ret;
-
-  ret = clear_park_parkinglot();
-  if(ret == false) {
-    slog(LOG_ERR, "Could not clear parkinglot info.");
-    return false;
-  }
-
-  ret = clear_park_parkedcall();
-  if(ret == false) {
-    slog(LOG_ERR, "Could not clear parkedcall info.");
-    return false;
-  }
-
-  return true;
-}
-
-bool reload_park_handler(void)
-{
-  int ret;
-
-  ret = term_park_handler();
-  if(ret == false) {
-    return false;
-  }
-
-  ret = init_park_handler();
-  if(ret == false) {
-    return false;
-  }
-
-  return true;
-}
