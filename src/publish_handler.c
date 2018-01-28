@@ -630,3 +630,86 @@ bool publish_event_sip_registry(const char* type, json_t* j_data)
   return true;
 }
 
+/**
+ * Publish event.
+ * dp.dpma.<type>
+ * @param type
+ * @param j_data
+ * @return
+ */
+bool publish_event_dp_dpma(const char* type, json_t* j_data)
+{
+  const char* tmp_const;
+  char* tmp;
+  char* topic;
+  char* event;
+  int ret;
+
+  if((type == NULL) || (j_data == NULL)){
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired publish_event_dp_dpma.");
+
+  // create topic
+  tmp_const = json_string_value(json_object_get(j_data, "id"));
+  tmp = uri_encode(tmp_const);
+  asprintf(&topic, "/dp/statuses/%s", tmp? : "");
+  sfree(tmp);
+
+  // create event name
+  asprintf(&event, "dp.dpma.%s", type);
+
+  // publish event
+  ret = publish_event(topic, event, j_data);
+  sfree(topic);
+  sfree(event);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Publish event.
+ * dp.dialplan.<type>
+ * @param type
+ * @param j_data
+ * @return
+ */
+bool publish_event_dp_dialplan(const char* type, json_t* j_data)
+{
+  const char* tmp_const;
+  char* tmp;
+  char* topic;
+  char* event;
+  int ret;
+
+  if((type == NULL) || (j_data == NULL)){
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired publish_event_dp_dialplan.");
+
+  // create topic
+  tmp_const = json_string_value(json_object_get(j_data, "id"));
+  tmp = uri_encode(tmp_const);
+  asprintf(&topic, "/dp/statuses/%s", tmp? : "");
+  sfree(tmp);
+
+  // create event name
+  asprintf(&event, "dp.dialplan.%s", type);
+
+  // publish event
+  ret = publish_event(topic, event, j_data);
+  sfree(topic);
+  sfree(event);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
+  return true;
+}

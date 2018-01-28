@@ -15,6 +15,8 @@ bool publish_event_core_channel(const char* type, json_t* j_data);
 bool publish_event_core_agi(const char* type, json_t* j_data);
 bool publish_event_core_module(const char* type, json_t* j_data);
 
+bool publish_event_dp_dialplan(const char* type, json_t* j_data);
+bool publish_event_dp_dpma(const char* type, json_t* j_data);
 
 bool publish_event_park_parkedcall(const char* type, json_t* j_data);
 bool publish_event_park_parkinglot(const char* type, json_t* j_data);

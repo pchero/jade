@@ -9,6 +9,7 @@
 
 #include <stdio.h>
 #include <jansson.h>
+#include <string.h>
 
 #include "slog.h"
 #include "utils.h"
@@ -873,8 +874,9 @@ bool add_dialplan_cmds(const char* agi_uuid)
   json_t* j_dp;
   int ret;
   int idx;
-  const char* dpma_uuid;
   char* uuid;
+  const char* jade_dialplan;
+  const char* dpma_uuid;
   const char* channel;
   const char* dp_uuid;
   const char* command;
@@ -892,9 +894,22 @@ bool add_dialplan_cmds(const char* agi_uuid)
     return false;
   }
 
+  // check the given agi is for jade_dialplan or not
+  jade_dialplan = json_string_value(json_object_get(json_object_get(j_agi, "env"), "agi_arg_1"));
+  if(jade_dialplan == NULL) {
+    slog(LOG_NOTICE, "The given agi is not for the jade_dialplan.");
+    json_decref(j_agi);
+    return false;
+  }
+  if(strcasecmp(jade_dialplan, "jade_dialplan") != 0) {
+    slog(LOG_NOTICE, "Unmatched jade_dialplan. The given agi is not for the jade_dialplan.");
+    json_decref(j_agi);
+    return false;
+  }
+
   // get dpma_uuid
   // consider agi_arg_1 as a dpma_uuid
-  dpma_uuid = json_string_value(json_object_get(json_object_get(j_agi, "env"), "agi_arg_1"));
+  dpma_uuid = json_string_value(json_object_get(json_object_get(j_agi, "env"), "agi_arg_2"));
   if(dpma_uuid == NULL) {
     slog(LOG_NOTICE, "Could not get dpma_uuid info.");
     json_decref(j_agi);

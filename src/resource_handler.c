@@ -4131,6 +4131,8 @@ json_t* get_dp_dpma_info(const char* key)
 bool create_dp_dpma_info(const json_t* j_data)
 {
   int ret;
+  const char* tmp_const;
+  json_t* j_tmp;
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -4141,7 +4143,24 @@ bool create_dp_dpma_info(const json_t* j_data)
   // insert info
   ret = insert_jade_item("dp_dpma", j_data);
   if(ret == false) {
-    slog(LOG_ERR, "Could not insert dp_dpma contact.");
+    slog(LOG_ERR, "Could not insert dp_dpma info.");
+    return false;
+  }
+
+  // publish
+  // get info
+  tmp_const = json_string_value(json_object_get(j_data, "uuid"));
+  j_tmp = get_dp_dpma_info(tmp_const);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get dp_dpma info. uuid[%s]", tmp_const);
+    return false;
+  }
+
+  // publish event
+  ret = publish_event_dp_dpma(DEF_PUB_TYPE_CREATE, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
     return false;
   }
 
@@ -4156,6 +4175,8 @@ bool create_dp_dpma_info(const json_t* j_data)
 bool update_dp_dpma_info(const json_t* j_data)
 {
   int ret;
+  const char* tmp_const;
+  json_t* j_tmp;
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -4170,6 +4191,23 @@ bool update_dp_dpma_info(const json_t* j_data)
     return false;
   }
 
+  // publish
+  // get info
+  tmp_const = json_string_value(json_object_get(j_data, "uuid"));
+  j_tmp = get_dp_dpma_info(tmp_const);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get dp_dpma info. uuid[%s]", tmp_const);
+    return false;
+  }
+
+  // publish event
+  ret = publish_event_dp_dpma(DEF_PUB_TYPE_UPDATE, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
   return true;
 }
 
@@ -4181,6 +4219,7 @@ bool update_dp_dpma_info(const json_t* j_data)
 bool delete_dp_dpma_info(const char* key)
 {
   int ret;
+  json_t* j_tmp;
 
   if(key == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -4188,9 +4227,26 @@ bool delete_dp_dpma_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired delete_dp_dpma_info. key[%s]", key);
 
+  // get info
+  j_tmp = get_dp_dpma_info(key);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get dp_dpma info. uuid[%s]", key);
+    return false;
+  }
+
   ret = delete_jade_items_string("dp_dpma", "uuid", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete dp_dpma info. key[%s]", key);
+    json_decref(j_tmp);
+    return false;
+  }
+
+  // publish
+  // publish event
+  ret = publish_event_dp_dpma(DEF_PUB_TYPE_DELETE, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
     return false;
   }
 
@@ -4288,6 +4344,8 @@ json_t* get_dp_dialplan_info_by_dpma_seq(const char* dpma_uuid, int seq)
 bool create_dp_dialplan_info(const json_t* j_data)
 {
   int ret;
+  json_t* j_tmp;
+  const char* tmp_const;
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -4302,6 +4360,23 @@ bool create_dp_dialplan_info(const json_t* j_data)
     return false;
   }
 
+  // publish
+  // get info
+  tmp_const = json_string_value(json_object_get(j_data, "uuid"));
+  j_tmp = get_dp_dialplan_info(tmp_const);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get dp_dialplan info. uuid[%s]", tmp_const);
+    return false;
+  }
+
+  // publish event
+  ret = publish_event_dp_dialplan(DEF_PUB_TYPE_CREATE, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
   return true;
 }
 
@@ -4313,6 +4388,8 @@ bool create_dp_dialplan_info(const json_t* j_data)
 bool update_dp_dialplan_info(const json_t* j_data)
 {
   int ret;
+  const char* tmp_const;
+  json_t* j_tmp;
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -4327,6 +4404,23 @@ bool update_dp_dialplan_info(const json_t* j_data)
     return false;
   }
 
+  // publish
+  // get info
+  tmp_const = json_string_value(json_object_get(j_data, "uuid"));
+  j_tmp = get_dp_dialplan_info(tmp_const);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get dp_dialplan info. uuid[%s]", tmp_const);
+    return false;
+  }
+
+  // publish event
+  ret = publish_event_dp_dialplan(DEF_PUB_TYPE_UPDATE, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
   return true;
 }
 
@@ -4338,6 +4432,7 @@ bool update_dp_dialplan_info(const json_t* j_data)
 bool delete_dp_dialplan_info(const char* key)
 {
   int ret;
+  json_t* j_tmp;
 
   if(key == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -4345,9 +4440,26 @@ bool delete_dp_dialplan_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired delete_dp_dialplan_info. key[%s]", key);
 
+  // get info
+  j_tmp = get_dp_dialplan_info(key);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get dp_dialplan info. uuid[%s]", key);
+    return false;
+  }
+
   ret = delete_jade_items_string("dp_dialplan", "uuid", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete dp_dialplan info. key[%s]", key);
+    json_decref(j_tmp);
+    return false;
+  }
+
+  // publish
+  // publish event
+  ret = publish_event_dp_dialplan(DEF_PUB_TYPE_DELETE, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
     return false;
   }
 
