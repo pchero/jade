@@ -3223,6 +3223,30 @@ bool update_core_module_info(const json_t* j_data)
 }
 
 /**
+ * Clear all sip resources.
+ * @return
+ */
+bool clear_sip(void)
+{
+  int ret;
+
+  ret = clear_ast_table("peer");
+  if(ret == false) {
+    slog(LOG_ERR, "Could not clear peer");
+    return false;
+  }
+
+  ret = clear_ast_table("registry");
+  if(ret == false) {
+    slog(LOG_ERR, "Could not clear pjsip_aor");
+    return false;
+  }
+
+  return true;
+}
+
+
+/**
  * Create sip peer info.
  * @param j_data
  * @return
@@ -3230,6 +3254,8 @@ bool update_core_module_info(const json_t* j_data)
 bool create_sip_peer_info(const json_t* j_data)
 {
   int ret;
+  const char* tmp_const;
+  json_t* j_tmp;
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -3237,10 +3263,27 @@ bool create_sip_peer_info(const json_t* j_data)
   }
   slog(LOG_DEBUG, "Fired create_sip_peer_info.");
 
-  // insert queue info
+  // insert peer info
   ret = insert_ast_item("peer", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert sip peer..");
+    return false;
+  }
+
+  // publish
+  // get info
+  tmp_const = json_string_value(json_object_get(j_data, "peer"));
+  j_tmp = get_sip_peer_info(tmp_const);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get sip_peer info. peer[%s]", tmp_const);
+    return false;
+  }
+
+  // publish event
+  ret = publish_event_sip_peer(DEF_PUB_TYPE_CREATE, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
     return false;
   }
 
@@ -3255,6 +3298,8 @@ bool create_sip_peer_info(const json_t* j_data)
 bool update_sip_peer_info(const json_t* j_data)
 {
   int ret;
+  const char* tmp_const;
+  json_t* j_tmp;
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -3268,6 +3313,23 @@ bool update_sip_peer_info(const json_t* j_data)
     return false;
   }
 
+  // publish
+  // get info
+  tmp_const = json_string_value(json_object_get(j_data, "peer"));
+  j_tmp = get_sip_peer_info(tmp_const);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get sip_peer info. peer[%s]", tmp_const);
+    return false;
+  }
+
+  // publish event
+  ret = publish_event_sip_peer(DEF_PUB_TYPE_UPDATE, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
   return true;
 }
 
@@ -3278,6 +3340,7 @@ bool update_sip_peer_info(const json_t* j_data)
 bool delete_sip_peer_info(const char* key)
 {
   int ret;
+  json_t* j_tmp;
 
   if(key == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -3285,9 +3348,26 @@ bool delete_sip_peer_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired delete_sip_peer_info. peer[%s]", key);
 
+  // get info
+  j_tmp = get_sip_peer_info(key);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get sip_peer info. peer[%s]", key);
+    return false;
+  }
+
   ret = delete_ast_items_string("peer", "peer", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete sip peer info. name[%s]", key);
+    json_decref(j_tmp);
+    return false;
+  }
+
+  // publish
+  // publish event
+  ret = publish_event_sip_peer(DEF_PUB_TYPE_DELETE, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
     return false;
   }
 
@@ -3302,6 +3382,8 @@ bool delete_sip_peer_info(const char* key)
 bool create_sip_registry_info(const json_t* j_data)
 {
   int ret;
+  const char* tmp_const;
+  json_t* j_tmp;
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -3316,6 +3398,23 @@ bool create_sip_registry_info(const json_t* j_data)
     return false;
   }
 
+  // publish
+  // get info
+  tmp_const = json_string_value(json_object_get(j_data, "account"));
+  j_tmp = get_sip_registry_info(tmp_const);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get sip_registry info. account[%s]", tmp_const);
+    return false;
+  }
+
+  // publish event
+  ret = publish_event_sip_registry(DEF_PUB_TYPE_CREATE, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
   return true;
 }
 
@@ -3327,6 +3426,8 @@ bool create_sip_registry_info(const json_t* j_data)
 bool update_sip_registry_info(const json_t* j_data)
 {
   int ret;
+  const char* tmp_const;
+  json_t* j_tmp;
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -3340,6 +3441,23 @@ bool update_sip_registry_info(const json_t* j_data)
     return false;
   }
 
+  // publish
+  // get info
+  tmp_const = json_string_value(json_object_get(j_data, "account"));
+  j_tmp = get_sip_registry_info(tmp_const);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get sip_registry info. account[%s]", tmp_const);
+    return false;
+  }
+
+  // publish event
+  ret = publish_event_sip_registry(DEF_PUB_TYPE_UPDATE, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
   return true;
 }
 
@@ -3350,18 +3468,36 @@ bool update_sip_registry_info(const json_t* j_data)
 bool delete_sip_registry_info(const char* key)
 {
   int ret;
+  json_t* j_tmp;
 
   if(key == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
-  slog(LOG_DEBUG, "Fired delete_sip_registry_info. registry[%s]", key);
+  slog(LOG_DEBUG, "Fired delete_sip_registry_info. account[%s]", key);
 
-  ret = delete_ast_items_string("peer", "registry", key);
+  // get info
+  j_tmp = get_sip_registry_info(key);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get sip_registry info. account[%s]", key);
+    return false;
+  }
+
+  ret = delete_ast_items_string("registry", "account", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete sip registry info. account[%s]", key);
     return false;
   }
+
+  // publish
+  // publish event
+  ret = publish_event_sip_registry(DEF_PUB_TYPE_DELETE, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
 
   return true;
 }

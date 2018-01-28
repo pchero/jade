@@ -29,11 +29,68 @@ static bool is_setting_section(const char* section);
 
 static json_t* create_queue_info_json(json_t* j_data);
 
-static json_t* get_queue_settings_all(void);
-static bool create_queue_setting(const json_t* j_data);
-static bool update_queue_setting(const char* name, const json_t* j_data);
-static json_t* get_queue_setting(const char* name);
-static bool remove_queue_setting(const char* name);
+bool init_queue_handler(void)
+{
+  int ret;
+  json_t* j_tmp;
+
+  slog(LOG_DEBUG, "Fired init_queue_handler.");
+
+  // queue status
+  j_tmp = json_pack("{s:s}",
+      "Action", "QueueStatus"
+      );
+  ret = send_ami_cmd(j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not send ami action. action[%s]", "QueueStatus");
+    return false;
+  }
+
+  return true;
+}
+
+bool term_queue_handler(void)
+{
+  int ret;
+
+  ret = clear_queue_param();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not clear queue_param info.");
+    return false;
+  }
+
+  ret = clear_queue_entry();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not clear queue_entry info.");
+    return false;
+  }
+
+  ret = clear_queue_member();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not clear queue_member info.");
+    return false;
+  }
+
+  return true;
+}
+
+bool reload_queue_handler(void)
+{
+  int ret;
+
+  ret = term_queue_handler();
+  if(ret == false) {
+    return false;
+  }
+
+  ret = init_queue_handler();
+  if(ret == false) {
+    return false;
+  }
+
+  return true;
+}
 
 /**
  * htp request handler.
@@ -723,7 +780,7 @@ void htp_get_queue_settings(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_queue_settings.");
 
   // get info
-  j_tmp = get_queue_settings_all();
+  j_tmp = get_ast_settings_all(DEF_QUEUE_CONFNAME);
 
   // create result
   j_res = create_default_result(EVHTP_RES_OK);
@@ -747,6 +804,8 @@ void htp_post_queue_settings(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_data;
+  const char* name;
+  json_t* j_setting;
   int ret;
 
   if(req == NULL) {
@@ -763,13 +822,26 @@ void htp_post_queue_settings(evhtp_request_t *req, void *data)
   	return;
   }
 
-  // create setting
-  ret = create_queue_setting(j_data);
+  name = json_string_value(json_object_get(j_data, "name"));
+  if(name == NULL) {
+    slog(LOG_ERR, "Could not get setting name.");
+    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  j_setting = json_object_get(j_data, "setting");
+  if(j_setting == NULL) {
+    slog(LOG_ERR, "Could not get setting.");
+    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  ret = create_ast_setting(DEF_QUEUE_CONFNAME, name, j_setting);
   json_decref(j_data);
   if(ret == false) {
-  	slog(LOG_ERR, "Could not create queue setting.");
-  	simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-		return;
+    slog(LOG_ERR, "Could not create queue setting.");
+    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
   }
 
   // create result
@@ -811,7 +883,7 @@ void htp_get_queue_settings_detail(evhtp_request_t *req, void *data)
   }
 
   // get setting
-  j_tmp = get_queue_setting(detail);
+  j_tmp = get_ast_setting(DEF_QUEUE_CONFNAME, detail);
   sfree(detail);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get queue setting.");
@@ -869,7 +941,7 @@ void htp_put_queue_settings_detail(evhtp_request_t *req, void *data)
   }
 
   // update setting
-  ret = update_queue_setting(detail, j_data);
+  ret = update_ast_setting(DEF_QUEUE_CONFNAME, detail, j_data);
   sfree(detail);
   json_decref(j_data);
   if(ret == false) {
@@ -917,7 +989,7 @@ void htp_delete_queue_settings_detail(evhtp_request_t *req, void *data)
   }
 
   // delete setting
-  ret = remove_queue_setting(detail);
+  ret = remove_ast_setting(DEF_QUEUE_CONFNAME, detail);
   sfree(detail);
   if(ret == false) {
     slog(LOG_ERR, "Could not remove queue setting.");
@@ -1101,183 +1173,3 @@ static bool is_setting_section(const char* section)
 
   return false;
 }
-
-static json_t* get_queue_settings_all(void)
-{
-	json_t* j_res;
-
-	j_res = get_ast_settings_all(DEF_QUEUE_CONFNAME);
-
-	return j_res;
-}
-
-static bool create_queue_setting(const json_t* j_data)
-{
-	const char* name;
-	int ret;
-	const json_t* j_setting;
-
-	if(j_data == NULL) {
-		slog(LOG_WARNING, "Wrong input parameter.");
-		return false;
-	}
-
-	name = json_string_value(json_object_get(j_data, "name"));
-	if(name == NULL) {
-		slog(LOG_ERR, "Could not get setting name.");
-		return false;
-	}
-
-	j_setting = json_object_get(j_data, "setting");
-	if(j_setting == NULL) {
-		slog(LOG_ERR, "Could not get setting.");
-		return false;
-	}
-
-	ret = create_ast_setting(DEF_QUEUE_CONFNAME, name, j_setting);
-	if(ret == false) {
-		slog(LOG_ERR, "Could not create queue setting.");
-		return false;
-	}
-
-	return true;
-}
-
-/**
- * Update queue setting
- * @param name
- * @param j_data
- * @return
- */
-static bool update_queue_setting(const char* name, const json_t* j_data)
-{
-	int ret;
-
-	if((name == NULL) || (j_data == NULL)) {
-		slog(LOG_WARNING, "Wrong input parameter.");
-		return false;
-	}
-	slog(LOG_DEBUG, "Fired update_queue_setting. name[%s]", name);
-
-	ret = update_ast_setting(DEF_QUEUE_CONFNAME, name, j_data);
-	if(ret == false) {
-		slog(LOG_ERR, "Could not update queue setting.");
-		return false;
-	}
-
-	return true;
-}
-
-/**
- * Get queue setting
- * @param name
- * @param j_data
- * @return
- */
-static json_t* get_queue_setting(const char* name)
-{
-	json_t* j_res;
-
-	if(name == NULL) {
-		slog(LOG_WARNING, "Wrong input parameter.");
-		return false;
-	}
-	slog(LOG_DEBUG, "Fired get_queue_setting. name[%s]", name);
-
-	j_res = get_ast_setting(DEF_QUEUE_CONFNAME, name);
-	if(j_res == NULL) {
-		slog(LOG_ERR, "Could not get queue setting info. name[%s]", name);
-		return NULL;
-	}
-
-	return j_res;
-}
-
-/**
- * Remove queue setting
- * @param name
- * @param j_data
- * @return
- */
-static bool remove_queue_setting(const char* name)
-{
-	int ret;
-
-	if(name == NULL) {
-		slog(LOG_WARNING, "Wrong input parameter.");
-		return false;
-	}
-	slog(LOG_DEBUG, "Fired remove_queue_setting. name[%s]", name);
-
-	ret = remove_ast_setting(DEF_QUEUE_CONFNAME, name);
-	if(ret == false) {
-		slog(LOG_ERR, "Could not remove queue setting info. name[%s]", name);
-		return false;
-	}
-
-	return true;
-}
-
-bool init_queue_handler(void)
-{
-  int ret;
-  json_t* j_tmp;
-
-  slog(LOG_DEBUG, "Fired init_queue_handler.");
-
-  // queue status
-  j_tmp = json_pack("{s:s}",
-      "Action", "QueueStatus"
-      );
-  ret = send_ami_cmd(j_tmp);
-  json_decref(j_tmp);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not send ami action. action[%s]", "QueueStatus");
-    return false;
-  }
-
-  return true;
-}
-
-bool term_queue_handler(void)
-{
-  int ret;
-
-  ret = clear_queue_param();
-  if(ret == false) {
-    slog(LOG_ERR, "Could not clear queue_param info.");
-    return false;
-  }
-
-  ret = clear_queue_entry();
-  if(ret == false) {
-    slog(LOG_ERR, "Could not clear queue_entry info.");
-    return false;
-  }
-
-  ret = clear_queue_member();
-  if(ret == false) {
-    slog(LOG_ERR, "Could not clear queue_member info.");
-    return false;
-  }
-
-  return true;
-}
-
-bool reload_queue_handler(void)
-{
-  int ret;
-
-  ret = term_queue_handler();
-  if(ret == false) {
-    return false;
-  }
-
-  ret = init_queue_handler();
-  if(ret == false) {
-    return false;
-  }
-
-  return true;
-}
-

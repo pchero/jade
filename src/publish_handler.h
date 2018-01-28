@@ -30,5 +30,8 @@ bool publish_event_queue_queue(const char* type, json_t* j_data);
 bool publish_event_queue_entry(const char* type, json_t* j_data);
 
 
+bool publish_event_sip_peer(const char* type, json_t* j_data);
+bool publish_event_sip_registry(const char* type, json_t* j_data);
+
 
 #endif /* SRC_PUBLISH_HANDLER_H_ */

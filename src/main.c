@@ -24,6 +24,7 @@
 #include "park_handler.h"
 #include "queue_handler.h"
 #include "pjsip_handler.h"
+#include "sip_handler.h"
 
 app* g_app;
 
@@ -134,6 +135,12 @@ bool init(void)
   ret = init_pjsip_handler();
   if(ret == false) {
     slog(LOG_ERR, "Could not initate pjsip_handler.");
+    return false;
+  }
+
+  ret = init_sip_handler();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate sip_handler.");
     return false;
   }
 

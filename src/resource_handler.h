@@ -162,6 +162,8 @@ json_t* get_pjsip_contact_info(const char* key);
 
 
 ////// sip
+bool clear_sip(void);
+
 // sip_peer
 bool create_sip_peer_info(const json_t* j_data);
 bool update_sip_peer_info(const json_t* j_data);
@@ -178,6 +180,8 @@ json_t* get_sip_registries_all_account(void);
 json_t* get_sip_registries_all(void);
 json_t* get_sip_registry_info(const char* account);
 
+
+////// voicemail
 
 // voicemail
 bool create_voicemail_user_info(json_t* j_tmp);

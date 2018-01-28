@@ -546,3 +546,87 @@ bool publish_event_pjsip_endpoint(const char* type, json_t* j_data)
   return true;
 }
 
+/**
+ * Publish event.
+ * sip.peer.<type>
+ * @param type
+ * @param j_data
+ * @return
+ */
+bool publish_event_sip_peer(const char* type, json_t* j_data)
+{
+  const char* tmp_const;
+  char* tmp;
+  char* topic;
+  char* event;
+  int ret;
+
+  if((type == NULL) || (j_data == NULL)){
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired publish_event_sip_peer.");
+
+  // create topic
+  tmp_const = json_string_value(json_object_get(j_data, "peer"));
+  tmp = uri_encode(tmp_const);
+  asprintf(&topic, "/sip/statuses/%s", tmp? : "");
+  sfree(tmp);
+
+  // create event name
+  asprintf(&event, "sip.peer.%s", type);
+
+  // publish event
+  ret = publish_event(topic, event, j_data);
+  sfree(topic);
+  sfree(event);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Publish event.
+ * sip.registry.<type>
+ * @param type
+ * @param j_data
+ * @return
+ */
+bool publish_event_sip_registry(const char* type, json_t* j_data)
+{
+  const char* tmp_const;
+  char* tmp;
+  char* topic;
+  char* event;
+  int ret;
+
+  if((type == NULL) || (j_data == NULL)){
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired publish_event_sip_registry.");
+
+  // create topic
+  tmp_const = json_string_value(json_object_get(j_data, "account"));
+  tmp = uri_encode(tmp_const);
+  asprintf(&topic, "/sip/statuses/%s", tmp? : "");
+  sfree(tmp);
+
+  // create event name
+  asprintf(&event, "sip.registry.%s", type);
+
+  // publish event
+  ret = publish_event(topic, event, j_data);
+  sfree(topic);
+  sfree(event);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
+  return true;
+}
+

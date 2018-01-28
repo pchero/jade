@@ -345,16 +345,16 @@ static bool send_init_actions(void)
   json_t* j_tmp;
   int ret;
 
-  // sip peers
-  j_tmp = json_pack("{s:s}",
-      "Action", "SipPeers"
-      );
-  ret = send_ami_cmd(j_tmp);
-  json_decref(j_tmp);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not send ami action. action[%s]", "SipPeers");
-    return false;
-  }
+//  // sip peers
+//  j_tmp = json_pack("{s:s}",
+//      "Action", "SipPeers"
+//      );
+//  ret = send_ami_cmd(j_tmp);
+//  json_decref(j_tmp);
+//  if(ret == false) {
+//    slog(LOG_ERR, "Could not send ami action. action[%s]", "SipPeers");
+//    return false;
+//  }
 
 //  // queue status
 //  j_tmp = json_pack("{s:s}",
@@ -384,16 +384,16 @@ static bool send_init_actions(void)
 //  insert_action(json_string_value(json_object_get(j_tmp, "ActionID")), "command.databaseshowall");
 //  json_decref(j_tmp);
 
-  // registry
-  j_tmp = json_pack("{s:s}",
-      "Action", "SIPshowregistry"
-      );
-  ret = send_ami_cmd(j_tmp);
-  json_decref(j_tmp);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not send ami action. action[%s]", "SIPshowregistry");
-    return false;
-  }
+//  // registry
+//  j_tmp = json_pack("{s:s}",
+//      "Action", "SIPshowregistry"
+//      );
+//  ret = send_ami_cmd(j_tmp);
+//  json_decref(j_tmp);
+//  if(ret == false) {
+//    slog(LOG_ERR, "Could not send ami action. action[%s]", "SIPshowregistry");
+//    return false;
+//  }
 
   // agents
   j_tmp = json_pack("{s:s}",

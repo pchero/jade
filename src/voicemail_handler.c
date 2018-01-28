@@ -592,7 +592,6 @@ void htp_put_voicemail_config(evhtp_request_t *req, void *data)
   return;
 }
 
-
 /**
  * GET ^/voicemail/configs request handler.
  * @param req

@@ -114,10 +114,15 @@ static void cb_htp_queue_statuses_detail(evhtp_request_t *req, void *data);
 
 
 // sip
+static void cb_htp_sip_config(evhtp_request_t *req, void *data);
+static void cb_htp_sip_configs(evhtp_request_t *req, void *data);
+static void cb_htp_sip_configs_detail(evhtp_request_t *req, void *data);
 static void cb_htp_sip_peers(evhtp_request_t *req, void *data);
 static void cb_htp_sip_peers_detail(evhtp_request_t *req, void *data);
 static void cb_htp_sip_registries(evhtp_request_t *req, void *data);
 static void cb_htp_sip_registries_detail(evhtp_request_t *req, void *data);
+static void cb_htp_sip_settings(evhtp_request_t *req, void *data);
+static void cb_htp_sip_settings_detail(evhtp_request_t *req, void *data);
 
 
 // voicemail/
@@ -312,6 +317,13 @@ bool init_http_handler(void)
 
 
   //// ^/sip/
+  // config
+  evhtp_set_regex_cb(g_htp, "^/sip/config$", cb_htp_sip_config, NULL);
+
+  // configs
+  evhtp_set_regex_cb(g_htp, "^/sip/configs/(.*)", cb_htp_sip_configs_detail, NULL);
+  evhtp_set_regex_cb(g_htp, "^/sip/configs$", cb_htp_sip_configs, NULL);
+
   // peers
   evhtp_set_regex_cb(g_htp, "^/sip/peers/(.*)", cb_htp_sip_peers_detail, NULL);
   evhtp_set_regex_cb(g_htp, "^/sip/peers$", cb_htp_sip_peers, NULL);
@@ -319,6 +331,10 @@ bool init_http_handler(void)
   // registries
   evhtp_set_regex_cb(g_htp, "^/sip/registries/(.*)", cb_htp_sip_registries_detail, NULL);
   evhtp_set_regex_cb(g_htp, "^/sip/registries$", cb_htp_sip_registries, NULL);
+
+  // settings
+  evhtp_set_regex_cb(g_htp, "^/sip/settings/(.*)", cb_htp_sip_settings_detail, NULL);
+  evhtp_set_regex_cb(g_htp, "^/sip/settings$", cb_htp_sip_settings, NULL);
 
 
 
@@ -607,6 +623,132 @@ static void cb_htp_ping(evhtp_request_t *req, void *a)
 
 /**
  * http request handler
+ * ^/sip/config$
+ * @param req
+ * @param data
+ */
+static void cb_htp_sip_config(evhtp_request_t *req, void *data)
+{
+  int method;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_sip_config.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if((method != htp_method_GET) && (method != htp_method_PUT)) {
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  if(method == htp_method_GET) {
+    htp_get_sip_config(req, data);
+    return;
+  }
+  else if(method == htp_method_PUT) {
+    htp_put_sip_config(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+
+  return;
+}
+
+/**
+ * http request handler
+ * ^/sip/configs$
+ * @param req
+ * @param data
+ */
+static void cb_htp_sip_configs(evhtp_request_t *req, void *data)
+{
+  int method;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_sip_configs.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if(method != htp_method_GET) {
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  if(method == htp_method_GET) {
+    htp_get_sip_configs(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+
+  return;
+}
+
+/**
+ * http request handler
+ * ^/sip/configs/(.*)
+ * @param req
+ * @param data
+ */
+static void cb_htp_sip_configs_detail(evhtp_request_t *req, void *data)
+{
+  int method;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_sip_configs_detail.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if((method != htp_method_GET) && (method != htp_method_DELETE)) {
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // fire handlers
+  if(method == htp_method_GET) {
+    htp_get_sip_configs_detail(req, data);
+    return;
+  }
+  else if (method == htp_method_DELETE) {
+    htp_delete_sip_configs_detail(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+
+  return;
+}
+
+/**
+ * http request handler
  * ^/sip/peers
  * @param req
  * @param data
@@ -881,6 +1023,97 @@ static void cb_htp_sip_registries_detail(evhtp_request_t *req, void *data)
   simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   return;
 }
+
+/**
+ * http request handler
+ * ^/sip/settings$
+ * @param req
+ * @param data
+ */
+static void cb_htp_sip_settings(evhtp_request_t *req, void *data)
+{
+  int method;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_sip_settings.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if((method != htp_method_GET) && (method != htp_method_POST)) {
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // fire handlers
+  if(method == htp_method_GET) {
+    htp_get_sip_settings(req, data);
+    return;
+  }
+  else if(method == htp_method_POST) {
+    htp_post_sip_settings(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  return;
+}
+
+/**
+ * http request handler
+ * ^/sip/settings/detail
+ * @param req
+ * @param data
+ */
+static void cb_htp_sip_settings_detail(evhtp_request_t *req, void *data)
+{
+  int method;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_sip_settings_detail.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if((method != htp_method_GET) && (method != htp_method_PUT) && (method != htp_method_DELETE)) {
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  if(method == htp_method_GET) {
+    htp_get_sip_settings_detail(req, data);
+    return;
+  }
+  else if(method == htp_method_PUT) {
+    htp_put_sip_settings_detail(req, data);
+    return;
+  }
+  else if(method == htp_method_DELETE) {
+    htp_delete_queue_settings_detail(req,data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+
+  return;
+}
+
 
 /**
  * http request handler

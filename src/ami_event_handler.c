@@ -24,6 +24,7 @@
 #include "park_handler.h"
 #include "queue_handler.h"
 #include "pjsip_handler.h"
+#include "sip_handler.h"
 
 static void ami_response_handler(json_t* j_msg);
 
@@ -3420,6 +3421,9 @@ static void ami_event_reload(json_t* j_msg)
   }
   else if(strstr(module, "res_pjsip.so") != NULL) {
     ret = reload_pjsip_handler();
+  }
+  else if(strstr(module, "chan_sip.so") != NULL) {
+    ret = reload_sip_handler();
   }
 
   // update core_module info
