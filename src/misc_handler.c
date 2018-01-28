@@ -51,7 +51,7 @@ static bool init_modules_info(void)
   struct dirent **namelist;
   int i;
   int cnt;
-  char* module_name;
+  const char* module_name;
   char* full_filename;
   const char* dir;
   struct stat file_stat;
@@ -125,7 +125,6 @@ static bool init_modules_info(void)
       // send modulecheck request
       ami_action_modulecheck(module_name);
     }
-    sfree(module_name);
 
     free(namelist[i]);
   }
