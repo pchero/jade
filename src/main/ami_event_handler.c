@@ -303,6 +303,9 @@ static void ami_response_handler(json_t* j_msg)
   if(type == NULL) {
     slog(LOG_ERR, "Could not get action type info. id[%s]", action_id);
     json_decref(j_action);
+
+    // wrong action. should be deleted.
+    delete_action(action_id);
     return;
   }
 
@@ -332,22 +335,17 @@ static void ami_response_handler(json_t* j_msg)
     slog(LOG_ERR, "Could not find correct action response handler. action_id[%s], type[%s]", action_id, type);
     res_action = ACTION_RES_ERROR;
   }
-
-
-  //// End action response parse.
-
-  // release info.
+  // End action response parse.
   json_decref(j_action);
 
-  /////
-  /// result check
 
+  // result check
   if(res_action == ACTION_RES_CONTINUE) {
     slog(LOG_DEBUG, "The action response is not finished. Waiting for next event. action_id[%s]", action_id);
     // continue
     return;
   }
-  slog(LOG_DEBUG, "The action response if finished. action_id[%s], res[%d]", action_id, res_action);
+  slog(LOG_DEBUG, "The action response finished. action_id[%s], res[%d]", action_id, res_action);
 
   // delete action
   delete_action(action_id);
