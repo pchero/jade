@@ -14,4 +14,10 @@ bool init_user_handler(void);
 void term_user_handler(void);
 bool reload_user_handler(void);
 
+
+void htp_post_user_login(evhtp_request_t *req, void *data);
+void htp_delete_user_login(evhtp_request_t *req, void *data);
+
+
+
 #endif /* SRC_MAIN_USER_HANDLER_H_ */

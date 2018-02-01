@@ -20,6 +20,7 @@
 #include "zmq_handler.h"
 #include "websocket_handler.h"
 #include "conf_handler.h"
+#include "user_handler.h"
 
 #include "park_handler.h"
 #include "queue_handler.h"
@@ -112,6 +113,12 @@ bool init(void)
     return false;
   }
   slog(LOG_DEBUG, "Finished init_conf_handler.");
+
+  ret = init_user_handler();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate user_handler");
+    return false;
+  }
 
   ret = init_misc_handler();
   if(ret == false) {

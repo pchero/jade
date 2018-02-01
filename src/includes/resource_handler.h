@@ -181,6 +181,15 @@ json_t* get_sip_registries_all(void);
 json_t* get_sip_registry_info(const char* account);
 
 
+////// user
+json_t* get_user_userinfo_info(const char* key);
+json_t* get_user_userinfo_info_by_username_pass(const char* username, const char* pass);
+bool create_user_userinfo_info(const json_t* j_data);
+
+bool create_user_authtoken_info(const json_t* j_data);
+bool delete_user_authtoken_info(const char* key);
+
+
 ////// voicemail
 
 // voicemail

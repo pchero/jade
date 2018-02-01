@@ -18,6 +18,8 @@
 #include "utils.h"
 #include "http_handler.h"
 #include "resource_handler.h"
+#include "base64.h"
+
 #include "ob_http_handler.h"
 #include "voicemail_handler.h"
 #include "core_handler.h"
@@ -27,6 +29,7 @@
 #include "queue_handler.h"
 #include "park_handler.h"
 #include "dialplan_handler.h"
+#include "user_handler.h"
 
 
 
@@ -123,6 +126,10 @@ static void cb_htp_sip_registries(evhtp_request_t *req, void *data);
 static void cb_htp_sip_registries_detail(evhtp_request_t *req, void *data);
 static void cb_htp_sip_settings(evhtp_request_t *req, void *data);
 static void cb_htp_sip_settings_detail(evhtp_request_t *req, void *data);
+
+
+// user
+static void cb_htp_user_login(evhtp_request_t *req, void *data);
 
 
 // voicemail/
@@ -335,6 +342,12 @@ bool init_http_handler(void)
   // settings
   evhtp_set_regex_cb(g_htp, "^/sip/settings/(.*)", cb_htp_sip_settings_detail, NULL);
   evhtp_set_regex_cb(g_htp, "^/sip/settings$", cb_htp_sip_settings, NULL);
+
+
+
+  //// ^/user/
+  // login
+  evhtp_set_regex_cb(g_htp, "^/user/login$", cb_htp_user_login, NULL);
 
 
 
@@ -588,6 +601,73 @@ char* get_text_from_request_data(evhtp_request_t* req)
 
   return tmp;
 }
+
+/**
+ *
+ * @param req
+ * @param agent_uuid      (out) agent id
+ * @param agent_pass    (out) agent pass
+ * @return
+ */
+bool get_htp_id_pass(evhtp_request_t* req, char** agent_uuid, char** agent_pass)
+{
+  evhtp_connection_t* conn;
+  char *auth_hdr, *auth_b64;
+  char *outstr;
+  char username[1024], password[1024];
+  int  i;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  conn = evhtp_request_get_connection(req);
+  if(conn == NULL) {
+    slog(LOG_NOTICE, "Could not get correct evhtp_connection info.");
+    return false;
+  }
+
+  *agent_uuid = NULL;
+  *agent_pass = NULL;
+
+  // get Authorization
+  if((conn->request->headers_in == NULL)
+      || ((auth_hdr = (char*)evhtp_kv_find(conn->request->headers_in, "Authorization")) == NULL)
+      ) {
+    slog(LOG_WARNING, "Could not find Authorization header.");
+    return false;
+  }
+
+  // decode base_64
+  auth_b64 = auth_hdr;
+  while(*auth_b64++ != ' ');  // Something likes.. "Basic cGNoZXJvOjEyMzQ="
+
+  base64decode(auth_b64, &outstr);
+  if(outstr == NULL) {
+    slog(LOG_ERR, "Could not decode base64. info[%s]", auth_b64);
+    return false;
+  }
+  slog(LOG_DEBUG, "Decoded userinfo. info[%s]", outstr);
+
+  // parsing user:pass
+  for(i = 0; i < strlen(outstr); i++) {
+    if(outstr[i] == ':') {
+      break;
+    }
+    username[i] = outstr[i];
+  }
+  username[i] = '\0';
+  strncpy(password, outstr + i + 1, sizeof(password));
+  free(outstr);
+  slog(LOG_DEBUG, "User info. user[%s], pass[%s]", username, password);
+
+  asprintf(agent_uuid, "%s", username);
+  asprintf(agent_pass, "%s", password);
+
+  return true;
+}
+
 
 /**
  * http request handler
@@ -3634,5 +3714,48 @@ static void cb_htp_dp_dialplans_detail(evhtp_request_t *req, void *data)
 
   // should not reach to here.
   simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  return;
+}
+
+/**
+ * http request handler
+ * ^/user/login$
+ * @param req
+ * @param data
+ */
+static void cb_htp_user_login(evhtp_request_t *req, void *data)
+{
+  int method;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_user_login.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if((method != htp_method_POST) && (method != htp_method_DELETE)) {
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  if(method == htp_method_POST) {
+    htp_post_user_login(req, data);
+    return;
+  }
+  else if(method == htp_method_DELETE) {
+    htp_delete_user_login(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+
   return;
 }
