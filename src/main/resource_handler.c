@@ -354,6 +354,13 @@ static bool init_jade_database(void)
     return false;
   }
 
+  // user_permission
+  ret = db_ctx_exec(g_db_jade, g_sql_create_user_permission);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create table. table[%s]", "user_permission");
+    return false;
+  }
+
 
   return true;
 }
@@ -4488,7 +4495,6 @@ bool delete_dp_dialplan_info(const char* key)
   return true;
 }
 
-
 /**
  * Get corresponding user_userinfo detail info.
  * @return
@@ -4504,6 +4510,25 @@ json_t* get_user_userinfo_info(const char* key)
   slog(LOG_DEBUG, "Fired get_user_userinfo_info. key[%s]", key);
 
   j_res = get_jade_detail_item_key_string("user_userinfo", "uuid", key);
+
+  return j_res;
+}
+
+/**
+ * Get corresponding user_userinfo detail info.
+ * @return
+ */
+json_t* get_user_userinfo_info_by_username(const char* key)
+{
+  json_t* j_res;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_user_userinfo_info_by_username. key[%s]", key);
+
+  j_res = get_jade_detail_item_key_string("user_userinfo", "username", key);
 
   return j_res;
 }
@@ -4557,6 +4582,68 @@ bool create_user_userinfo_info(const json_t* j_data)
   return true;
 }
 
+bool update_user_userinfo_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired create_user_userinfo_info.");
+
+  // update info
+  ret = update_jade_item("user_userinfo", "uuid", j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update user_userinfo info.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Delete user_userinfo info.
+ * @return
+ */
+bool delete_user_userinfo_info(const char* key)
+{
+  int ret;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired delete_user_userinfo_info. key[%s]", key);
+
+  ret = delete_jade_items_string("user_userinfo", "uuid", key);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not delete dp_dialplan info. key[%s]", key);
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Get corresponding user_authtoken detail info.
+ * @return
+ */
+json_t* get_user_authtoken_info(const char* key)
+{
+  json_t* j_res;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_user_authtoken_info. key[%s]", key);
+
+  j_res = get_jade_detail_item_key_string("user_authtoken", "uuid", key);
+
+  return j_res;
+}
+
 bool create_user_authtoken_info(const json_t* j_data)
 {
   int ret;
@@ -4600,3 +4687,73 @@ bool delete_user_authtoken_info(const char* key)
 
   return true;
 }
+
+bool create_user_permission_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired create_user_permission_info.");
+
+  // insert authtoken info
+  ret = insert_jade_item("user_permission", j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert user_authtoken.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Get corresponding user_userinfo detail info.
+ * @return
+ */
+json_t* get_user_permission_info_by_useruuid_perm(const char* useruuid, const char* perm)
+{
+  json_t* j_res;
+  json_t* j_obj;
+
+  if((useruuid == NULL) || (perm == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_user_permission_info_by_useruuid_perm. useruuid[%s], perm[%s]", useruuid, perm);
+
+  j_obj = json_pack("{s:s, s:s}",
+      "user_uuid",    useruuid,
+      "permission",   perm
+      );
+
+  j_res = get_jade_detail_item_by_obj("user_permission", j_obj);
+  json_decref(j_obj);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
+bool create_user_contact_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired create_user_contact_info.");
+
+  // insert info
+  ret = insert_jade_item("user_contact", j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert user_contact.");
+    return false;
+  }
+
+  return true;
+}
+

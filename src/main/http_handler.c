@@ -130,6 +130,7 @@ static void cb_htp_sip_settings_detail(evhtp_request_t *req, void *data);
 
 // user
 static void cb_htp_user_login(evhtp_request_t *req, void *data);
+static void cb_htp_user_contacts(evhtp_request_t *req, void *data);
 
 
 // voicemail/
@@ -346,6 +347,9 @@ bool init_http_handler(void)
 
 
   //// ^/user/
+  // contacts
+  evhtp_set_regex_cb(g_htp, "^/user/contacts$", cb_htp_user_contacts, NULL);
+
   // login
   evhtp_set_regex_cb(g_htp, "^/user/login$", cb_htp_user_login, NULL);
 
@@ -3756,6 +3760,52 @@ static void cb_htp_user_login(evhtp_request_t *req, void *data)
 
   // should not reach to here.
   simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+
+  return;
+}
+
+/**
+ * http request handler
+ * ^/user/contacts
+ * @param req
+ * @param data
+ */
+static void cb_htp_user_contacts(evhtp_request_t *req, void *data)
+{
+  int method;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_user_contacts.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if((method != htp_method_GET)
+      && (method != htp_method_POST)
+      && (method != htp_method_PUT)
+      && (method != htp_method_DELETE)) {
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  if(method == htp_method_GET) {
+    htp_get_voicemail_users(req, data);
+    return;
+  }
+  else if(method == htp_method_POST) {
+    htp_post_user_contacts(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
 
   return;
 }

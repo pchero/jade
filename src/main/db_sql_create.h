@@ -919,6 +919,14 @@ static const char* g_sql_create_user_contact =
 "   primary key(uuid)"
 ");";
 
+// user_permission
+static const char* g_sql_create_user_permission =
+"create table if not exists user_permission("
+
+"   user_uuid   varchar(255),"
+"   permission  varchar(255)"
+
+");";
 
 
 #endif /* SRC_DB_SQL_CREATE_H_ */
