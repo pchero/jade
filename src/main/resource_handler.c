@@ -333,6 +333,28 @@ static bool init_jade_database(void)
     return false;
   }
 
+  // user_userinfo
+  ret = db_ctx_ecex(g_db_jade, g_sql_create_user_userinfo);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create table. table[%s]", "user_userinfo");
+    return false;
+  }
+
+  // user_authtoken
+  ret = db_ctx_exec(g_db_jade, g_sql_create_user_authtoken);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create table. table[%s]", "user_authtoken");
+    return false;
+  }
+
+  // user_contact
+  ret = db_ctx_exec(g_db_jade, g_sql_create_user_contact);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create table. table[%s]", "user_contact");
+    return false;
+  }
+
+
   return true;
 }
 

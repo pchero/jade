@@ -863,6 +863,62 @@ static const char* g_sql_create_dp_dialplan =
 "   primary key(dpma_uuid, sequence)"   ///
 ");";
 
+// user_userinfo
+static const char* g_sql_create_user_userinfo =
+"create table if not exists user_userinfo("
+
+// identity
+"		uuid				varchar(255),"
+"		username		varchar(255),"
+"		password		varchar(255),"
+
+// info
+"		name			varchar(255),"
+
+// timestamp. UTC."
+"   tm_create         datetime(6),"   // create time
+"   tm_update         datetime(6),"   // update time.
+
+"   primary key(uuid)"
+");";
+
+
+// user_authtoken
+static const char* g_sql_create_user_authtoken =
+"create table if not exists user_authtoken("
+
+// identity
+"   uuid        varchar(255),"
+
+"   user_uuid   varchar(255),"    // user uuid
+
+// timestamp. UTC."
+"   tm_create         datetime(6),"   // create time
+"   tm_update         datetime(6),"   // update time.
+
+"   primary key(uuid)"
+");";
+
+// user_contact
+static const char* g_sql_create_user_contact =
+"create table if not exists user_contact("
+
+"   uuid        varchar(255),"
+"   user_uuid   varchar(255),"
+
+"   type    varchar(255),"    // sip_peer, pjsip_endpoint, ...
+"   target  varchar(255),"    // peer name, endpoint name, ...
+
+"   name    varchar(255),"
+"   detail  varchar(1023),"
+
+// timestamp. UTC."
+"   tm_create         datetime(6),"   // create time
+"   tm_update         datetime(6),"   // update time.
+
+"   primary key(uuid)"
+");";
+
 
 
 #endif /* SRC_DB_SQL_CREATE_H_ */
