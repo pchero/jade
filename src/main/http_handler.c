@@ -674,6 +674,32 @@ bool http_get_htp_id_pass(evhtp_request_t* req, char** agent_uuid, char** agent_
   return true;
 }
 
+/**
+ * Get parsed detail info.
+ * Need to release by the caller.
+ * @param req
+ * @return
+ */
+char* http_get_parsed_detail(evhtp_request_t* req)
+{
+  const char* tmp_const;
+  char* detail;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  // detail parse
+  tmp_const = req->uri->path->file;
+  detail = uri_decode(tmp_const);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not decode detail info.");
+    return NULL;
+  }
+
+  return detail;
+}
 
 /**
  * http request handler

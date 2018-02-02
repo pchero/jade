@@ -787,7 +787,6 @@ static void htp_get_ob_destinations(evhtp_request_t *req, void *data)
  */
 static void htp_post_ob_destinations(evhtp_request_t *req, void *data)
 {
-  const char* uuid;
   const char* tmp_const;
   char* tmp;
   int ret;
@@ -800,13 +799,6 @@ static void htp_post_ob_destinations(evhtp_request_t *req, void *data)
     return;
   }
   slog(LOG_DEBUG, "Fired htp_post_ob_destinations.");
-
-  // get uuid
-  uuid = req->uri->path->file;
-  if(uuid == NULL) {
-    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
-    return;
-  }
 
   // get data
   tmp_const = (char*)evbuffer_pullup(req->buffer_in, evbuffer_get_length(req->buffer_in));
@@ -897,7 +889,7 @@ static void htp_get_ob_destinations_all(evhtp_request_t *req, void *data)
  */
 static void htp_get_ob_destinations_uuid(evhtp_request_t *req, void *data)
 {
-  const char* uuid;
+  char* detail;
   json_t* j_tmp;
   json_t* j_res;
   int ret;
@@ -907,22 +899,24 @@ static void htp_get_ob_destinations_uuid(evhtp_request_t *req, void *data)
     return;
   }
 
-  // get uuid
-  uuid = req->uri->path->file;
-  if(uuid == NULL) {
+  // get detail
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
     http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
     return;
   }
 
   // check existence
-  ret = is_exist_ob_destination(uuid);
+  ret = is_exist_ob_destination(detail);
   if(ret == false) {
+    sfree(detail);
     http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
     return;
   }
 
   // get destination info
-  j_tmp = get_ob_destination(uuid);
+  j_tmp = get_ob_destination(detail);
+  sfree(detail);
   if(j_tmp == NULL) {
     http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
     return;
@@ -947,9 +941,7 @@ static void htp_get_ob_destinations_uuid(evhtp_request_t *req, void *data)
  */
 static void htp_put_ob_destinations_uuid(evhtp_request_t *req, void *data)
 {
-  const char* uuid;
-  const char* tmp_const;
-  char* tmp;
+  char* detail;
   json_t* j_data;
   json_t* j_tmp;
   json_t* j_res;
@@ -961,39 +953,32 @@ static void htp_put_ob_destinations_uuid(evhtp_request_t *req, void *data)
   }
   slog(LOG_DEBUG, "Fired htp_put_ob_destinations_uuid");
 
-  // get uuid
-  uuid = req->uri->path->file;
-  if(uuid == NULL) {
+  // get detail
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
     http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  j_data = http_get_json_from_request_data(req);
+  if(j_data == NULL) {
+    sfree(detail);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
   // check existence
-  ret = is_exist_ob_destination(uuid);
+  ret = is_exist_ob_destination(detail);
   if(ret == false) {
+    sfree(detail);
+    json_decref(j_data);
     http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
     return;
   }
 
-  // get data
-  tmp_const = (char*)evbuffer_pullup(req->buffer_in, evbuffer_get_length(req->buffer_in));
-  if(tmp_const == NULL) {
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // create json
-  tmp = strndup(tmp_const, evbuffer_get_length(req->buffer_in));
-  slog(LOG_DEBUG, "Requested data. data[%s]", tmp);
-  j_data = json_loads(tmp, JSON_DECODE_ANY, NULL);
-  sfree(tmp);
-  if(j_data == NULL) {
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
   // update info
-  json_object_set_new(j_data, "uuid", json_string(uuid));
+  json_object_set_new(j_data, "uuid", json_string(detail));
+  sfree(detail);
   j_tmp = update_ob_destination(j_data);
   json_decref(j_data);
   if(j_tmp == NULL) {
@@ -1020,7 +1005,7 @@ static void htp_put_ob_destinations_uuid(evhtp_request_t *req, void *data)
  */
 static void htp_delete_ob_destinations_uuid(evhtp_request_t *req, void *data)
 {
-  const char* uuid;
+  char* detail;
   const char* tmp_const;
   json_t* j_tmp;
   json_t* j_res;
@@ -1034,16 +1019,17 @@ static void htp_delete_ob_destinations_uuid(evhtp_request_t *req, void *data)
   slog(LOG_INFO, "Fired htp_delete_ob_destinations_uuid.");
 
   // get uuid
-  uuid = req->uri->path->file;
-  if(uuid == NULL) {
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
     http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
     return;
   }
 
   // check existence
-  ret = is_exist_ob_destination(uuid);
+  ret = is_exist_ob_destination(detail);
   if(ret == false) {
-    slog(LOG_NOTICE, "Could not find correct ob_destination info. uuid[%s]", uuid);
+    slog(LOG_NOTICE, "Could not find correct ob_destination info. uuid[%s]", detail);
+    sfree(detail);
     http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
     return;
   }
@@ -1058,26 +1044,29 @@ static void htp_delete_ob_destinations_uuid(evhtp_request_t *req, void *data)
 
   // check force option
   if(force == 1) {
-    ret = clear_campaign_destination(uuid);
+    ret = clear_campaign_destination(detail);
     if(ret == false) {
-      slog(LOG_ERR, "Could not clear destination info from campaign. dest_uuid[%s]", uuid);
+      slog(LOG_ERR, "Could not clear destination info from campaign. dest_uuid[%s]", detail);
+      sfree(detail);
       http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
       return;
     }
   }
 
   // check deletable
-  ret = is_deletable_destination(uuid);
+  ret = is_deletable_destination(detail);
   if(ret == false) {
-    slog(LOG_NOTICE, "The given destination info is not deletable. uuid[%s]", uuid);
+    slog(LOG_NOTICE, "The given destination info is not deletable. uuid[%s]", detail);
+    sfree(detail);
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
   // delete info
-  j_tmp = delete_ob_destination(uuid);
+  j_tmp = delete_ob_destination(detail);
+  sfree(detail);
   if(j_tmp == NULL) {
-    slog(LOG_ERR, "Could not delete destination info. uuid[%s]", uuid);
+    slog(LOG_ERR, "Could not delete destination info.");
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }

@@ -198,8 +198,7 @@ void htp_get_dp_dpmas_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
-  const char* tmp_const;
-  char* key;
+  char* detail;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -208,17 +207,16 @@ void htp_get_dp_dpmas_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_dp_dpmas_detail.");
 
   // key parse
-  tmp_const = req->uri->path->file;
-  key = uri_decode(tmp_const);
-  if(key == NULL) {
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
     slog(LOG_ERR, "Could not get key info.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
   // get info
-  j_tmp = get_dp_dpma_info(key);
-  sfree(key);
+  j_tmp = get_dp_dpma_info(detail);
+  sfree(detail);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get dp_dpma info.");
     http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
@@ -246,7 +244,6 @@ void htp_put_dp_dpmas_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_data;
-  const char* tmp_const;
   char* detail;
   int ret;
 
@@ -257,8 +254,7 @@ void htp_put_dp_dpmas_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_put_dp_dpmas_detail.");
 
   // detail parse
-  tmp_const = req->uri->path->file;
-  detail = uri_decode(tmp_const);
+  detail = http_get_parsed_detail(req);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get detail info.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
@@ -302,7 +298,6 @@ void htp_put_dp_dpmas_detail(evhtp_request_t *req, void *data)
 void htp_delete_dp_dpmas_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
-  const char* tmp_const;
   char* detail;
   int ret;
 
@@ -313,8 +308,7 @@ void htp_delete_dp_dpmas_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_delete_dp_dpmas_detail.");
 
   // detail parse
-  tmp_const = req->uri->path->file;
-  detail = uri_decode(tmp_const);
+  detail = http_get_parsed_detail(req);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get name info.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
@@ -427,7 +421,6 @@ void htp_get_dp_dialplans_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
-  const char* tmp_const;
   char* detail;
 
   if(req == NULL) {
@@ -437,8 +430,7 @@ void htp_get_dp_dialplans_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_dp_dialplans_detail.");
 
   // detail parse
-  tmp_const = req->uri->path->file;
-  detail = uri_decode(tmp_const);
+  detail = http_get_parsed_detail(req);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get key info.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
@@ -475,7 +467,6 @@ void htp_put_dp_dialplans_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_data;
-  const char* tmp_const;
   char* detail;
   int ret;
 
@@ -486,8 +477,7 @@ void htp_put_dp_dialplans_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_put_dp_dialplans_detail.");
 
   // detail parse
-  tmp_const = req->uri->path->file;
-  detail = uri_decode(tmp_const);
+  detail = http_get_parsed_detail(req);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get detail info.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
@@ -531,7 +521,6 @@ void htp_put_dp_dialplans_detail(evhtp_request_t *req, void *data)
 void htp_delete_dp_dialplans_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
-  const char* tmp_const;
   char* detail;
   int ret;
 
@@ -542,8 +531,7 @@ void htp_delete_dp_dialplans_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_delete_dp_dialplans_detail.");
 
   // detail parse
-  tmp_const = req->uri->path->file;
-  detail = uri_decode(tmp_const);
+  detail = http_get_parsed_detail(req);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get name info.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);

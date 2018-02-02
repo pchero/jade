@@ -189,8 +189,7 @@ void htp_get_park_parkinglots_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
-  const char* tmp_const;
-  char* name;
+  char* detail;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -199,19 +198,18 @@ void htp_get_park_parkinglots_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_park_parking_lots_detail.");
 
   // name parse
-  tmp_const = req->uri->path->file;
-  name = uri_decode(tmp_const);
-  if(name == NULL) {
-    slog(LOG_ERR, "Could not get name info.");
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
   // get info
-  j_tmp = get_park_parkinglot_info(name);
-  sfree(name);
+  j_tmp = get_park_parkinglot_info(detail);
+  sfree(detail);
   if(j_tmp == NULL) {
-    slog(LOG_ERR, "Could not get name info.");
+    slog(LOG_ERR, "Could not get detail info.");
     http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
     return;
   }
@@ -237,7 +235,6 @@ void htp_put_park_parkinglots_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_data;
-  const char* tmp_const;
   char* detail;
   int ret;
 
@@ -248,8 +245,7 @@ void htp_put_park_parkinglots_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_put_park_parkinglots_detail.");
 
   // name parse
-  tmp_const = req->uri->path->file;
-  detail = uri_decode(tmp_const);
+  detail = http_get_parsed_detail(req);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get name info.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
@@ -293,7 +289,6 @@ void htp_put_park_parkinglots_detail(evhtp_request_t *req, void *data)
 void htp_delete_park_parkinglots_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
-  const char* tmp_const;
   char* detail;
   int ret;
 
@@ -303,9 +298,8 @@ void htp_delete_park_parkinglots_detail(evhtp_request_t *req, void *data)
   }
   slog(LOG_DEBUG, "Fired htp_delete_park_parkinglots_detail.");
 
-  // name parse
-  tmp_const = req->uri->path->file;
-  detail = uri_decode(tmp_const);
+  // get detail
+  detail = http_get_parsed_detail(req);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get name info.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
@@ -371,8 +365,7 @@ void htp_get_park_parkedcalls_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
-  const char* tmp_const;
-  char* name;
+  char* detail;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input htp_get_park_parkedcalls_detail.");
@@ -381,17 +374,16 @@ void htp_get_park_parkedcalls_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_park_parking_lots_detail.");
 
   // name parse
-  tmp_const = req->uri->path->file;
-  name = uri_decode(tmp_const);
-  if(name == NULL) {
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
     slog(LOG_ERR, "Could not get name info.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
   // get info
-  j_tmp = get_park_parkedcall_info(name);
-  sfree(name);
+  j_tmp = get_park_parkedcall_info(detail);
+  sfree(detail);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get name info.");
     http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
@@ -532,7 +524,6 @@ void htp_get_park_configs(evhtp_request_t *req, void *data)
 void htp_get_park_configs_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
-  const char* tmp_const;
   char* res;
   char* detail;
 
@@ -543,8 +534,7 @@ void htp_get_park_configs_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_park_configs_detail.");
 
   // detail parse
-  tmp_const = req->uri->path->file;
-  detail = uri_decode(tmp_const);
+  detail = http_get_parsed_detail(req);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get detail info.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
@@ -580,7 +570,6 @@ void htp_get_park_configs_detail(evhtp_request_t *req, void *data)
 void htp_delete_park_configs_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
-  const char* tmp_const;
   char* detail;
   int ret;
 
@@ -591,8 +580,7 @@ void htp_delete_park_configs_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_delete_park_configs_detail.");
 
   // detail parse
-  tmp_const = req->uri->path->file;
-  detail = uri_decode(tmp_const);
+  detail = http_get_parsed_detail(req);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get detail info.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
@@ -705,7 +693,6 @@ void htp_get_park_settings_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_tmp;
-  const char* tmp_const;
   char* detail;
 
   if(req == NULL) {
@@ -715,8 +702,7 @@ void htp_get_park_settings_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_park_settings_detail.");
 
   // detail parse
-  tmp_const = req->uri->path->file;
-  detail = uri_decode(tmp_const);
+  detail = http_get_parsed_detail(req);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get detail info.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
@@ -753,7 +739,6 @@ void htp_put_park_settings_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_data;
-  const char* tmp_const;
   char* detail;
   int ret;
 
@@ -764,8 +749,7 @@ void htp_put_park_settings_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_put_park_settings_detail.");
 
   // detail parse
-  tmp_const = req->uri->path->file;
-  detail = uri_decode(tmp_const);
+  detail = http_get_parsed_detail(req);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get detail info.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
@@ -810,7 +794,6 @@ void htp_put_park_settings_detail(evhtp_request_t *req, void *data)
 void htp_delete_park_settings_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
-  const char* tmp_const;
   char* detail;
   int ret;
 
@@ -821,8 +804,7 @@ void htp_delete_park_settings_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_delete_park_settings_detail.");
 
   // detail parse
-  tmp_const = req->uri->path->file;
-  detail = uri_decode(tmp_const);
+  detail = http_get_parsed_detail(req);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get detail info.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);

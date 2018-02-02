@@ -58,8 +58,7 @@ void htp_get_agent_agents_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_tmp;
-  char* id;
-  const char* tmp_const;
+  char* detail;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -67,18 +66,17 @@ void htp_get_agent_agents_detail(evhtp_request_t *req, void *data)
   }
   slog(LOG_INFO, "Fired htp_get_agent_agents_detail.");
 
-  // get id
-  tmp_const = req->uri->path->file;
-  id = uri_decode(tmp_const);
-  if(id == NULL) {
+  // get detail
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
     slog(LOG_NOTICE, "Could not get id info.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
   // get channel info.
-  j_tmp = get_agent_agent_info(id);
-  sfree(id);
+  j_tmp = get_agent_agent_info(detail);
+  sfree(detail);
   if(j_tmp == NULL) {
     slog(LOG_NOTICE, "Could not get agent info.");
     http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);

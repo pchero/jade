@@ -359,7 +359,6 @@ void htp_get_user_contacts_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_tmp;
-  const char* tmp_const;
   char* detail;
   int ret;
 
@@ -377,8 +376,7 @@ void htp_get_user_contacts_detail(evhtp_request_t *req, void *data)
   }
 
   // detail parse
-  tmp_const = req->uri->path->file;
-  detail = uri_decode(tmp_const);
+  detail = http_get_parsed_detail(req);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get detail info.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
@@ -414,7 +412,6 @@ void htp_put_user_contacts_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_data;
-  const char* tmp_const;
   char* detail;
   int ret;
 
@@ -432,8 +429,7 @@ void htp_put_user_contacts_detail(evhtp_request_t *req, void *data)
   }
 
   // detail parse
-  tmp_const = req->uri->path->file;
-  detail = uri_decode(tmp_const);
+  detail = http_get_parsed_detail(req);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get detail info.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
@@ -475,7 +471,6 @@ void htp_put_user_contacts_detail(evhtp_request_t *req, void *data)
 void htp_delete_user_contacts_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
-  const char* tmp_const;
   char* detail;
   int ret;
 
@@ -493,8 +488,7 @@ void htp_delete_user_contacts_detail(evhtp_request_t *req, void *data)
   }
 
   // detail parse
-  tmp_const = req->uri->path->file;
-  detail = uri_decode(tmp_const);
+  detail = http_get_parsed_detail(req);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get detail info.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);

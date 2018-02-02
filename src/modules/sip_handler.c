@@ -90,7 +90,7 @@ void htp_get_sip_peers_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_tmp;
-  const char* id;
+  char* detail;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -98,16 +98,17 @@ void htp_get_sip_peers_detail(evhtp_request_t *req, void *data)
   }
   slog(LOG_INFO, "Fired htp_get_sip_peers_detail.");
 
-  // get id
-  id = req->uri->path->file;
-  if(id == NULL) {
+  // get detail
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
     slog(LOG_NOTICE, "Could not get id info.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
   // get peer info.
-  j_tmp = get_sip_peer_info(id);
+  j_tmp = get_sip_peer_info(detail);
+  sfree(detail);
   if(j_tmp == NULL) {
     slog(LOG_NOTICE, "Could not get peer info.");
     http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
@@ -166,7 +167,7 @@ void htp_get_sip_registries_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_tmp;
-  const char* id;
+  char* detail;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -174,16 +175,17 @@ void htp_get_sip_registries_detail(evhtp_request_t *req, void *data)
   }
   slog(LOG_INFO, "Fired htp_get_sip_registries_detail.");
 
-  // get id
-  id = req->uri->path->file;
-  if(id == NULL) {
+  // get detail
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
     slog(LOG_NOTICE, "Could not get id info.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
   // get info.
-  j_tmp = get_sip_registry_info(id);
+  j_tmp = get_sip_registry_info(detail);
+  sfree(detail);
   if(j_tmp == NULL) {
     slog(LOG_NOTICE, "Could not get registry info.");
     http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
@@ -357,7 +359,6 @@ void htp_get_sip_configs_detail(evhtp_request_t *req, void *data)
 {
   char* tmp;
   json_t* j_res;
-  const char* tmp_const;
   char* detail;
 
   if(req == NULL) {
@@ -367,8 +368,7 @@ void htp_get_sip_configs_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_sip_configs_detail.");
 
   // detail parse
-  tmp_const = req->uri->path->file;
-  detail = uri_decode(tmp_const);
+  detail = http_get_parsed_detail(req);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get detail info.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
@@ -404,7 +404,6 @@ void htp_get_sip_configs_detail(evhtp_request_t *req, void *data)
 void htp_delete_sip_configs_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
-  const char* tmp_const;
   char* detail;
   int ret;
 
@@ -415,8 +414,7 @@ void htp_delete_sip_configs_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_delete_sip_configs_detail.");
 
   // detail parse
-  tmp_const = req->uri->path->file;
-  detail = uri_decode(tmp_const);
+  detail = http_get_parsed_detail(req);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get detail info.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
@@ -544,7 +542,6 @@ void htp_get_sip_settings_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_tmp;
-  const char* tmp_const;
   char* detail;
 
   if(req == NULL) {
@@ -554,8 +551,7 @@ void htp_get_sip_settings_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_sip_settings_detail.");
 
   // detail parse
-  tmp_const = req->uri->path->file;
-  detail = uri_decode(tmp_const);
+  detail = http_get_parsed_detail(req);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get detail info.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
@@ -592,7 +588,6 @@ void htp_put_sip_settings_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_data;
-  const char* tmp_const;
   char* detail;
   int ret;
 
@@ -603,8 +598,7 @@ void htp_put_sip_settings_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_put_sip_settings_detail.");
 
   // detail parse
-  tmp_const = req->uri->path->file;
-  detail = uri_decode(tmp_const);
+  detail = http_get_parsed_detail(req);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get detail info.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
@@ -649,7 +643,6 @@ void htp_put_sip_settings_detail(evhtp_request_t *req, void *data)
 void htp_delete_sip_settings_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
-  const char* tmp_const;
   char* detail;
   int ret;
 
@@ -660,8 +653,7 @@ void htp_delete_sip_settings_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_delete_sip_settings_detail.");
 
   // detail parse
-  tmp_const = req->uri->path->file;
-  detail = uri_decode(tmp_const);
+  detail = http_get_parsed_detail(req);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get detail info.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);

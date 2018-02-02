@@ -110,7 +110,7 @@ void htp_get_pjsip_endpoints_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
-  const char* name;
+  char* detail;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -118,15 +118,16 @@ void htp_get_pjsip_endpoints_detail(evhtp_request_t *req, void *data)
   }
   slog(LOG_DEBUG, "Fired htp_get_pjsip_endpoints_detail.");
 
-  name = req->uri->path->file;
-  if(name == NULL) {
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
     slog(LOG_ERR, "Could not get name info.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
   // get info
-  j_tmp = get_pjsip_endpoint_info(name);
+  j_tmp = get_pjsip_endpoint_info(detail);
+  sfree(detail);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get name info.");
     http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
@@ -184,7 +185,7 @@ void htp_get_pjsip_aors_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
-  const char* name;
+  char* detail;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -192,15 +193,16 @@ void htp_get_pjsip_aors_detail(evhtp_request_t *req, void *data)
   }
   slog(LOG_DEBUG, "Fired htp_get_pjsip_aors_detail.");
 
-  name = req->uri->path->file;
-  if(name == NULL) {
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
     slog(LOG_ERR, "Could not get name info.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
   // get info
-  j_tmp = get_pjsip_aor_info(name);
+  j_tmp = get_pjsip_aor_info(detail);
+  sfree(detail);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get name info.");
     http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
@@ -258,7 +260,7 @@ void htp_get_pjsip_auths_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
-  const char* name;
+  char* detail;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -266,15 +268,16 @@ void htp_get_pjsip_auths_detail(evhtp_request_t *req, void *data)
   }
   slog(LOG_DEBUG, "Fired htp_get_pjsip_auths_detail.");
 
-  name = req->uri->path->file;
-  if(name == NULL) {
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
     slog(LOG_ERR, "Could not get name info.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
   // get info
-  j_tmp = get_pjsip_auth_info(name);
+  j_tmp = get_pjsip_auth_info(detail);
+  sfree(detail);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get name info.");
     http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
@@ -332,8 +335,7 @@ void htp_get_pjsip_contacts_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
-  const char* tmp_const;
-  char* name;
+  char* detail;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -341,18 +343,17 @@ void htp_get_pjsip_contacts_detail(evhtp_request_t *req, void *data)
   }
   slog(LOG_DEBUG, "Fired htp_get_pjsip_contacts_detail.");
 
-  // name parse
-  tmp_const = req->uri->path->file;
-  name = uri_decode(tmp_const);
-  if(name == NULL) {
+  // detail parse
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
     slog(LOG_ERR, "Could not get name info.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
   // get info
-  j_tmp = get_pjsip_contact_info(name);
-  sfree(name);
+  j_tmp = get_pjsip_contact_info(detail);
+  sfree(detail);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get name info.");
     http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
@@ -493,7 +494,6 @@ void htp_get_pjsip_configs_detail(evhtp_request_t *req, void *data)
 {
  json_t* j_res;
  char* res;
- const char* tmp_const;
  char* detail;
 
  if(req == NULL) {
@@ -503,8 +503,7 @@ void htp_get_pjsip_configs_detail(evhtp_request_t *req, void *data)
  slog(LOG_DEBUG, "Fired htp_get_pjsip_configs_detail.");
 
  // detail parse
- tmp_const = req->uri->path->file;
- detail = uri_decode(tmp_const);
+ detail = http_get_parsed_detail(req);
  if(detail == NULL) {
    slog(LOG_ERR, "Could not get detail info.");
    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
@@ -540,7 +539,6 @@ void htp_get_pjsip_configs_detail(evhtp_request_t *req, void *data)
 void htp_delete_pjsip_configs_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
-  const char* tmp_const;
   char* detail;
   int ret;
 
@@ -551,8 +549,7 @@ void htp_delete_pjsip_configs_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_delete_pjsip_configs_detail.");
 
   // detail parse
-  tmp_const = req->uri->path->file;
-  detail = uri_decode(tmp_const);
+  detail = http_get_parsed_detail(req);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get detail info.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
@@ -588,7 +585,6 @@ void htp_get_pjsip_settings_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_tmp;
-  const char* tmp_const;
   char* detail;
 
   if(req == NULL) {
@@ -598,8 +594,7 @@ void htp_get_pjsip_settings_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_pjsip_settings_detail.");
 
   // detail parse
-  tmp_const = req->uri->path->file;
-  detail = uri_decode(tmp_const);
+  detail = http_get_parsed_detail(req);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get detail info.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
@@ -636,7 +631,6 @@ void htp_put_pjsip_settings_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_data;
-  const char* tmp_const;
   char* detail;
   int ret;
 
@@ -647,8 +641,7 @@ void htp_put_pjsip_settings_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_put_pjsip_settings_detail.");
 
   // detail parse
-  tmp_const = req->uri->path->file;
-  detail = uri_decode(tmp_const);
+  detail = http_get_parsed_detail(req);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get detail info.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
@@ -693,7 +686,6 @@ void htp_put_pjsip_settings_detail(evhtp_request_t *req, void *data)
 void htp_delete_pjsip_settings_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
-  const char* tmp_const;
   char* detail;
   int ret;
 
@@ -704,8 +696,7 @@ void htp_delete_pjsip_settings_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_delete_pjsip_settings_detail.");
 
   // detail parse
-  tmp_const = req->uri->path->file;
-  detail = uri_decode(tmp_const);
+  detail = http_get_parsed_detail(req);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get detail info.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);

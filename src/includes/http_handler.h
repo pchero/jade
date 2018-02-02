@@ -24,6 +24,7 @@ void http_simple_response_normal(evhtp_request_t *req, json_t* j_msg);
 
 json_t* http_get_json_from_request_data(evhtp_request_t* req);
 char* http_get_text_from_request_data(evhtp_request_t* req);
+char* http_get_parsed_detail(evhtp_request_t* req);
 
 bool http_get_htp_id_pass(evhtp_request_t* req, char** agent_uuid, char** agent_pass);
 

@@ -100,7 +100,7 @@ void htp_get_core_channels_detail(evhtp_request_t *req, void *data)
 void htp_delete_core_channels_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
-  const char* unique_id;
+  char* detail;
   int ret;
 
   if(req == NULL) {
@@ -109,18 +109,19 @@ void htp_delete_core_channels_detail(evhtp_request_t *req, void *data)
   }
   slog(LOG_INFO, "Fired htp_delete_core_channels_detail.");
 
-  // get channel unique_id
-  unique_id = req->uri->path->file;
-  if(unique_id == NULL) {
+  // get detail
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
     slog(LOG_NOTICE, "Could not get uuid info.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
   // send hangup
-  ret = ami_action_hangup_by_uniqueid(unique_id);
+  ret = ami_action_hangup_by_uniqueid(detail);
+  sfree(detail);
   if(ret == false) {
-    slog(LOG_ERR, "Could not send hangup. unique_id[%s]", unique_id);
+    slog(LOG_ERR, "Could not send hangup.");
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
@@ -220,7 +221,7 @@ void htp_get_core_systems_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_tmp;
-  const char* id;
+  char* detail;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -228,16 +229,17 @@ void htp_get_core_systems_detail(evhtp_request_t *req, void *data)
   }
   slog(LOG_INFO, "Fired htp_get_core_systems_detail.");
 
-  // get channel uuid
-  id = req->uri->path->file;
-  if(id == NULL) {
+  // get detail uuid
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
     slog(LOG_NOTICE, "Could not get id info.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
   // get channel info.
-  j_tmp = get_core_system_info(id);
+  j_tmp = get_core_system_info(detail);
+  sfree(detail);
   if(j_tmp == NULL) {
     slog(LOG_NOTICE, "Could not get system info.");
     http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);

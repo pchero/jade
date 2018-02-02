@@ -133,8 +133,7 @@ void htp_get_queue_entries_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
-  const char* tmp_const;
-  char* name;
+  char* detail;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -142,18 +141,17 @@ void htp_get_queue_entries_detail(evhtp_request_t *req, void *data)
   }
   slog(LOG_DEBUG, "Fired htp_get_queue_entries_detail.");
 
-  // name parse
-  tmp_const = req->uri->path->file;
-  name = uri_decode(tmp_const);
-  if(name == NULL) {
+  // detail parse
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
     slog(LOG_ERR, "Could not get name info.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
   // get info
-  j_tmp = get_queue_entry_info(name);
-  sfree(name);
+  j_tmp = get_queue_entry_info(detail);
+  sfree(detail);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get name info.");
     http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
@@ -212,8 +210,7 @@ void htp_get_queue_members_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
-  const char* tmp_const;
-  char* key;
+  char* detail;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -221,18 +218,17 @@ void htp_get_queue_members_detail(evhtp_request_t *req, void *data)
   }
   slog(LOG_DEBUG, "Fired htp_get_queue_members_detail.");
 
-  // key parse
-  tmp_const = req->uri->path->file;
-  key = uri_decode(tmp_const);
-  if(key == NULL) {
+  // detail parse
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
     slog(LOG_ERR, "Could not get name info.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
   // get info
-  j_tmp = get_queue_member_info(key);
-  sfree(key);
+  j_tmp = get_queue_member_info(detail);
+  sfree(detail);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get name info.");
     http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
@@ -336,8 +332,7 @@ void htp_get_queue_queues_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
-  const char* tmp_const;
-  char* name;
+  char* detail;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -345,18 +340,17 @@ void htp_get_queue_queues_detail(evhtp_request_t *req, void *data)
   }
   slog(LOG_DEBUG, "Fired htp_get_queue_queues_detail.");
 
-  // name parse
-  tmp_const = req->uri->path->file;
-  name = uri_decode(tmp_const);
-  if(name == NULL) {
+  // detail parse
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
     slog(LOG_ERR, "Could not get name info.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
   // get info
-  j_tmp = get_queue_param_info(name);
-  sfree(name);
+  j_tmp = get_queue_param_info(detail);
+  sfree(detail);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get name info.");
     http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
@@ -384,8 +378,7 @@ void htp_put_queue_queues_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_data;
-  const char* tmp_const;
-  char* name;
+  char* detail;
   int ret;
 
   if(req == NULL) {
@@ -394,10 +387,9 @@ void htp_put_queue_queues_detail(evhtp_request_t *req, void *data)
   }
   slog(LOG_DEBUG, "Fired htp_put_queue_queues_detail.");
 
-  // name parse
-  tmp_const = req->uri->path->file;
-  name = uri_decode(tmp_const);
-  if(name == NULL) {
+  // detail parse
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
     slog(LOG_ERR, "Could not get name info.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
@@ -407,14 +399,14 @@ void htp_put_queue_queues_detail(evhtp_request_t *req, void *data)
   j_data = http_get_json_from_request_data(req);
   if(j_data == NULL) {
     slog(LOG_ERR, "Could not get correct data from request.");
-    sfree(name);
+    sfree(detail);
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
   // update queue
-  ret = update_queue_info(name, j_data);
-  sfree(name);
+  ret = update_queue_info(detail, j_data);
+  sfree(detail);
   json_decref(j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update queue info.");
@@ -441,8 +433,7 @@ void htp_put_queue_queues_detail(evhtp_request_t *req, void *data)
 void htp_delete_queue_queues_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
-  const char* tmp_const;
-  char* name;
+  char* detail;
   int ret;
 
   if(req == NULL) {
@@ -452,17 +443,16 @@ void htp_delete_queue_queues_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_delete_queue_queues_detail.");
 
   // name parse
-  tmp_const = req->uri->path->file;
-  name = uri_decode(tmp_const);
-  if(name == NULL) {
-    slog(LOG_ERR, "Could not get name info.");
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
   // delete queue
-  ret = delete_queue_info(name);
-  sfree(name);
+  ret = delete_queue_info(detail);
+  sfree(detail);
   if(ret == false) {
     slog(LOG_ERR, "Could not get delete queue info.");
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
@@ -521,8 +511,7 @@ void htp_get_queue_statuses_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
-  char* name;
-  const char* tmp_const;
+  char* detail;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -530,18 +519,17 @@ void htp_get_queue_statuses_detail(evhtp_request_t *req, void *data)
   }
   slog(LOG_DEBUG, "Fired htp_get_queue_statuses_detail.");
 
-  // name parse
-  tmp_const = req->uri->path->file;
-  name = uri_decode(tmp_const);
-  if(name == NULL) {
+  // detail parse
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
     slog(LOG_ERR, "Could not get name info.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
   // get info
-  j_tmp = get_queue_status_info(name);
-  sfree(name);
+  j_tmp = get_queue_status_info(detail);
+  sfree(detail);
 
   // create result
   j_res = http_create_default_result(EVHTP_RES_OK);
@@ -677,7 +665,6 @@ void htp_get_queue_configs_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   char* res;
-  const char* tmp_const;
   char* detail;
 
   if(req == NULL) {
@@ -687,8 +674,7 @@ void htp_get_queue_configs_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_queue_configs_detail.");
 
   // detail parse
-  tmp_const = req->uri->path->file;
-  detail = uri_decode(tmp_const);
+  detail = http_get_parsed_detail(req);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get detail info.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
@@ -724,7 +710,6 @@ void htp_get_queue_configs_detail(evhtp_request_t *req, void *data)
 void htp_delete_queue_configs_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
-  const char* tmp_const;
   char* detail;
   int ret;
 
@@ -735,8 +720,7 @@ void htp_delete_queue_configs_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_delete_queue_configs_detail.");
 
   // detail parse
-  tmp_const = req->uri->path->file;
-  detail = uri_decode(tmp_const);
+  detail = http_get_parsed_detail(req);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get detail info.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
@@ -864,7 +848,6 @@ void htp_get_queue_settings_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_tmp;
-  const char* tmp_const;
   char* detail;
 
   if(req == NULL) {
@@ -874,8 +857,7 @@ void htp_get_queue_settings_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_queue_settings_detail.");
 
   // detail parse
-  tmp_const = req->uri->path->file;
-  detail = uri_decode(tmp_const);
+  detail = http_get_parsed_detail(req);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get detail info.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
@@ -912,7 +894,6 @@ void htp_put_queue_settings_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_data;
-  const char* tmp_const;
   char* detail;
   int ret;
 
@@ -923,8 +904,7 @@ void htp_put_queue_settings_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_put_queue_settings_detail.");
 
   // detail parse
-  tmp_const = req->uri->path->file;
-  detail = uri_decode(tmp_const);
+  detail = http_get_parsed_detail(req);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get detail info.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
@@ -969,7 +949,6 @@ void htp_put_queue_settings_detail(evhtp_request_t *req, void *data)
 void htp_delete_queue_settings_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
-  const char* tmp_const;
   char* detail;
   int ret;
 
@@ -980,8 +959,7 @@ void htp_delete_queue_settings_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_delete_queue_settings_detail.");
 
   // detail parse
-  tmp_const = req->uri->path->file;
-  detail = uri_decode(tmp_const);
+  detail = http_get_parsed_detail(req);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get detail info.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
