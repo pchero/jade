@@ -63,17 +63,17 @@ void htp_get_voicemail_users(evhtp_request_t *req, void *data)
   // get info
   j_tmp = get_voicemail_users_all();
   if(j_tmp == NULL) {
-    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", json_object());
   json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -97,10 +97,10 @@ void htp_post_voicemail_users(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_post_voicemail_users.");
 
   // get data
-  j_data = get_json_from_request_data(req);
+  j_data = http_get_json_from_request_data(req);
   if(j_data == NULL) {
     // no request data
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -108,15 +108,15 @@ void htp_post_voicemail_users(evhtp_request_t *req, void *data)
   ret = create_voicemail_user(j_data);
   json_decref(j_data);
   if(ret == false) {
-    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -147,16 +147,16 @@ void htp_get_voicemail_users_detail(evhtp_request_t *req, void *data)
   j_tmp = get_voicemail_user_info(key);
   sfree(key);
   if(j_tmp == NULL) {
-    simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", j_tmp);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 }
 
@@ -189,18 +189,18 @@ void htp_put_voicemail_users_detail(evhtp_request_t *req, void *data)
   ret = parse_voicemail_id(key, &mailbox, &context);
   if(ret == false) {
     // no request data
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
   sfree(key);
 
   // get data
-  j_data = get_json_from_request_data(req);
+  j_data = http_get_json_from_request_data(req);
   if(j_data == NULL) {
     // no request data
     sfree(mailbox);
     sfree(context);
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -215,15 +215,15 @@ void htp_put_voicemail_users_detail(evhtp_request_t *req, void *data)
   json_decref(j_data);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not update voicemail user info.");
-    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 }
 
@@ -255,7 +255,7 @@ void htp_delete_voicemail_users_detail(evhtp_request_t *req, void *data)
   ret = parse_voicemail_id(key, &mailbox, &context);
   if(ret == false) {
     // no request data
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
   sfree(key);
@@ -263,15 +263,15 @@ void htp_delete_voicemail_users_detail(evhtp_request_t *req, void *data)
   ret = delete_voicemail_user(context, mailbox);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete voicemail user info.");
-    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -299,7 +299,7 @@ void htp_get_voicemail_vms(evhtp_request_t *req, void *data)
   context = evhtp_kv_find(req->uri->query, "context");
   if(context == NULL) {
     slog(LOG_ERR, "Could not get context info.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -307,24 +307,24 @@ void htp_get_voicemail_vms(evhtp_request_t *req, void *data)
   mailbox = evhtp_kv_find(req->uri->query, "mailbox");
   if(mailbox == NULL) {
     slog(LOG_ERR, "Could not get mailbox info.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
   // get info
   j_tmp = get_vms_info_all(context, mailbox);
   if(j_tmp == NULL) {
-    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", json_object());
   json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -357,7 +357,7 @@ void htp_get_voicemail_vms_msgname(evhtp_request_t *req, void *data)
   context = evhtp_kv_find(req->uri->query, "context");
   if(context == NULL) {
     slog(LOG_ERR, "Could not get context info.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -365,7 +365,7 @@ void htp_get_voicemail_vms_msgname(evhtp_request_t *req, void *data)
   mailbox = evhtp_kv_find(req->uri->query, "mailbox");
   if(context == NULL) {
     slog(LOG_ERR, "Could not get mailbox info.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -373,7 +373,7 @@ void htp_get_voicemail_vms_msgname(evhtp_request_t *req, void *data)
   dir = evhtp_kv_find(req->uri->query, "dir");
   if(context == NULL) {
     slog(LOG_ERR, "Could not get dir info.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -381,7 +381,7 @@ void htp_get_voicemail_vms_msgname(evhtp_request_t *req, void *data)
   msgname = req->uri->path->file;
   if(msgname == NULL) {
     slog(LOG_NOTICE, "Could not get msgname.");
-    simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
     return;
   }
 
@@ -389,7 +389,7 @@ void htp_get_voicemail_vms_msgname(evhtp_request_t *req, void *data)
   filename = get_vm_filename(context, mailbox, dir, msgname);
   if(filename == NULL) {
     slog(LOG_NOTICE, "Could not get filename.");
-    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
   slog(LOG_INFO, "Get vm filename. filename[%s]", filename);
@@ -400,10 +400,10 @@ void htp_get_voicemail_vms_msgname(evhtp_request_t *req, void *data)
   if(fd < 0) {
     slog(LOG_NOTICE, "Could not open vm file. err[%d:%s]", errno, strerror(errno));
     if(errno == ENOENT) {
-      simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+      http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
     }
     else {
-      simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+      http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     }
     return;
   }
@@ -412,14 +412,14 @@ void htp_get_voicemail_vms_msgname(evhtp_request_t *req, void *data)
   ret = fstat(fd, &sb);
   if(ret < 0) {
     slog(LOG_ERR, "Could not get stat info. err[%d:%s]", errno, strerror(errno));
-    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
   if(S_ISREG(sb.st_mode) != 1) {
 //  if((sb.st_mode & S_IFREG) != 1) {
     slog(LOG_ERR, "Opened file is not voicemail file.");
     close(fd);
-    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
 
@@ -428,7 +428,7 @@ void htp_get_voicemail_vms_msgname(evhtp_request_t *req, void *data)
   close(fd);
   if(ret != 0) {
     slog(LOG_ERR, "Could not add the file.");
-    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
 
@@ -468,7 +468,7 @@ void htp_delete_voicemail_vms_msgname(evhtp_request_t *req, void *data)
   context = evhtp_kv_find(req->uri->query, "context");
   if(context == NULL) {
     slog(LOG_ERR, "Could not get context info.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -476,7 +476,7 @@ void htp_delete_voicemail_vms_msgname(evhtp_request_t *req, void *data)
   mailbox = evhtp_kv_find(req->uri->query, "mailbox");
   if(context == NULL) {
     slog(LOG_ERR, "Could not get mailbox info.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -484,7 +484,7 @@ void htp_delete_voicemail_vms_msgname(evhtp_request_t *req, void *data)
   dir = evhtp_kv_find(req->uri->query, "dir");
   if(context == NULL) {
     slog(LOG_ERR, "Could not get dir info.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -492,7 +492,7 @@ void htp_delete_voicemail_vms_msgname(evhtp_request_t *req, void *data)
   msgname = req->uri->path->file;
   if(msgname == NULL) {
     slog(LOG_NOTICE, "Could not get msgname.");
-    simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
     return;
   }
 
@@ -500,13 +500,13 @@ void htp_delete_voicemail_vms_msgname(evhtp_request_t *req, void *data)
   ret = remove_vm(context, mailbox, dir, msgname);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not remove vm file.");
-    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
 
   // response
-  j_res = create_default_result(EVHTP_RES_OK);
-  simple_response_normal(req, j_res);
+  j_res = http_create_default_result(EVHTP_RES_OK);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -532,17 +532,17 @@ void htp_get_voicemail_config(evhtp_request_t *req, void *data)
   res = get_ast_current_config_info_text(DEF_VOICEMAIL_CONFNAME);
   if(res == NULL) {
     slog(LOG_ERR, "Could not get voicemail conf.");
-    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", json_string(res));
   sfree(res);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -566,10 +566,10 @@ void htp_put_voicemail_config(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_put_voicemail_config.");
 
   // get data
-  req_data = get_text_from_request_data(req);
+  req_data = http_get_text_from_request_data(req);
   if(req_data == NULL) {
     slog(LOG_ERR, "Could not get data.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -578,15 +578,15 @@ void htp_put_voicemail_config(evhtp_request_t *req, void *data)
   sfree(req_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update voicemail config info.");
-    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -611,17 +611,17 @@ void htp_get_voicemail_configs(evhtp_request_t *req, void *data)
   // get info
   j_tmp = get_ast_backup_configs_info_all(DEF_VOICEMAIL_CONFNAME);
   if(j_tmp == NULL) {
-    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", json_object());
   json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -650,7 +650,7 @@ void htp_get_voicemail_configs_detail(evhtp_request_t *req, void *data)
   detail = uri_decode(tmp_const);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get detail info.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -659,17 +659,17 @@ void htp_get_voicemail_configs_detail(evhtp_request_t *req, void *data)
   sfree(detail);
   if(tmp == NULL) {
     slog(LOG_NOTICE, "Could not find config info.");
-    simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", json_string(tmp));
   sfree(tmp);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -698,7 +698,7 @@ void htp_delete_voicemail_configs_detail(evhtp_request_t *req, void *data)
   detail = uri_decode(tmp_const);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get detail info.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -707,15 +707,15 @@ void htp_delete_voicemail_configs_detail(evhtp_request_t *req, void *data)
   sfree(detail);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not delete config file.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;

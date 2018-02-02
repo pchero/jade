@@ -33,16 +33,16 @@ void htp_get_agent_agents(evhtp_request_t *req, void *data)
 
   j_tmp = get_agent_agents_all();
   if(j_tmp == NULL) {
-    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", json_object());
   json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
 
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -72,7 +72,7 @@ void htp_get_agent_agents_detail(evhtp_request_t *req, void *data)
   id = uri_decode(tmp_const);
   if(id == NULL) {
     slog(LOG_NOTICE, "Could not get id info.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -81,15 +81,15 @@ void htp_get_agent_agents_detail(evhtp_request_t *req, void *data)
   sfree(id);
   if(j_tmp == NULL) {
     slog(LOG_NOTICE, "Could not get agent info.");
-    simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", j_tmp);
 
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;

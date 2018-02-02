@@ -32,16 +32,16 @@ void htp_get_core_channels(evhtp_request_t *req, void *data)
 
   j_tmp = get_core_channels_all();
   if(j_tmp == NULL) {
-    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", json_object());
   json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
 
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -69,7 +69,7 @@ void htp_get_core_channels_detail(evhtp_request_t *req, void *data)
   unique_id = uri_decode(req->uri->path->file);
   if(unique_id == NULL) {
     slog(LOG_NOTICE, "Could not get uuid info.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -78,15 +78,15 @@ void htp_get_core_channels_detail(evhtp_request_t *req, void *data)
   sfree(unique_id);
   if(j_tmp == NULL) {
     slog(LOG_NOTICE, "Could not get channel info.");
-    simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", j_tmp);
 
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -113,7 +113,7 @@ void htp_delete_core_channels_detail(evhtp_request_t *req, void *data)
   unique_id = req->uri->path->file;
   if(unique_id == NULL) {
     slog(LOG_NOTICE, "Could not get uuid info.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -121,14 +121,14 @@ void htp_delete_core_channels_detail(evhtp_request_t *req, void *data)
   ret = ami_action_hangup_by_uniqueid(unique_id);
   if(ret == false) {
     slog(LOG_ERR, "Could not send hangup. unique_id[%s]", unique_id);
-    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
 
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -152,16 +152,16 @@ void htp_get_core_agis(evhtp_request_t *req, void *data)
 
   j_tmp = get_core_agis_all();
   if(j_tmp == NULL) {
-    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", json_object());
   json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
 
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -188,7 +188,7 @@ void htp_get_core_agis_detail(evhtp_request_t *req, void *data)
   unique_id = uri_decode(req->uri->path->file);
   if(unique_id == NULL) {
     slog(LOG_NOTICE, "Could not get uuid info.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -197,15 +197,15 @@ void htp_get_core_agis_detail(evhtp_request_t *req, void *data)
   sfree(unique_id);
   if(j_tmp == NULL) {
     slog(LOG_NOTICE, "Could not get agi info.");
-    simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", j_tmp);
 
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -232,7 +232,7 @@ void htp_get_core_systems_detail(evhtp_request_t *req, void *data)
   id = req->uri->path->file;
   if(id == NULL) {
     slog(LOG_NOTICE, "Could not get id info.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -240,15 +240,15 @@ void htp_get_core_systems_detail(evhtp_request_t *req, void *data)
   j_tmp = get_core_system_info(id);
   if(j_tmp == NULL) {
     slog(LOG_NOTICE, "Could not get system info.");
-    simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", j_tmp);
 
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -272,16 +272,16 @@ void htp_get_core_systems(evhtp_request_t *req, void *data)
 
   j_tmp = get_core_systems_all();
   if(j_tmp == NULL) {
-    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", json_object());
   json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
 
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -305,16 +305,16 @@ void htp_get_core_modules(evhtp_request_t *req, void *data)
 
   j_tmp = get_core_modules_all();
   if(j_tmp == NULL) {
-    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", json_object());
   json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
 
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -340,7 +340,7 @@ void htp_get_core_modules_detail(evhtp_request_t *req, void *data)
   // get module name
   name = uri_decode(req->uri->path->file);
   if(name == NULL) {
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -349,10 +349,10 @@ void htp_get_core_modules_detail(evhtp_request_t *req, void *data)
   sfree(name);
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", j_tmp);
 
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -380,7 +380,7 @@ void htp_post_core_modules_detail(evhtp_request_t *req, void *data)
   // get module name
   name = uri_decode(req->uri->path->file);
   if(name == NULL) {
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -388,14 +388,14 @@ void htp_post_core_modules_detail(evhtp_request_t *req, void *data)
   ret = ami_action_moduleload(name, "load");
   sfree(name);
   if(ret == false) {
-    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
 
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -421,7 +421,7 @@ void htp_put_core_modules_detail(evhtp_request_t *req, void *data)
   // get module name
   name = uri_decode(req->uri->path->file);
   if(name == NULL) {
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -429,14 +429,14 @@ void htp_put_core_modules_detail(evhtp_request_t *req, void *data)
   ret = ami_action_moduleload(name, "reload");
   sfree(name);
   if(ret == false) {
-    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
 
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -462,7 +462,7 @@ void htp_delete_core_modules_detail(evhtp_request_t *req, void *data)
   // get module name
   name = uri_decode(req->uri->path->file);
   if(name == NULL) {
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -470,14 +470,14 @@ void htp_delete_core_modules_detail(evhtp_request_t *req, void *data)
   ret = ami_action_moduleload(name, "unload");
   sfree(name);
   if(ret == false) {
-    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
 
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;

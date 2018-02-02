@@ -113,12 +113,12 @@ void htp_get_queue_entries(evhtp_request_t *req, void *data)
   j_tmp = get_queue_entries_all();
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", json_object());
   json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -147,7 +147,7 @@ void htp_get_queue_entries_detail(evhtp_request_t *req, void *data)
   name = uri_decode(tmp_const);
   if(name == NULL) {
     slog(LOG_ERR, "Could not get name info.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -156,16 +156,16 @@ void htp_get_queue_entries_detail(evhtp_request_t *req, void *data)
   sfree(name);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get name info.");
-    simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", j_tmp);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -192,12 +192,12 @@ void htp_get_queue_members(evhtp_request_t *req, void *data)
   j_tmp = get_queue_members_all();
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", json_object());
   json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -226,7 +226,7 @@ void htp_get_queue_members_detail(evhtp_request_t *req, void *data)
   key = uri_decode(tmp_const);
   if(key == NULL) {
     slog(LOG_ERR, "Could not get name info.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -235,16 +235,16 @@ void htp_get_queue_members_detail(evhtp_request_t *req, void *data)
   sfree(key);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get name info.");
-    simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", j_tmp);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -271,12 +271,12 @@ void htp_get_queue_queues(evhtp_request_t *req, void *data)
   j_tmp = get_queue_params_all();
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", json_object());
   json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -301,10 +301,10 @@ void htp_post_queue_queues(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_post_queue_queues.");
 
   // get data
-  j_data = get_json_from_request_data(req);
+  j_data = http_get_json_from_request_data(req);
   if(j_data == NULL) {
     slog(LOG_ERR, "Could not get correct data from request.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -313,15 +313,15 @@ void htp_post_queue_queues(evhtp_request_t *req, void *data)
   json_decref(j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not get create queue info.");
-    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -350,7 +350,7 @@ void htp_get_queue_queues_detail(evhtp_request_t *req, void *data)
   name = uri_decode(tmp_const);
   if(name == NULL) {
     slog(LOG_ERR, "Could not get name info.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -359,16 +359,16 @@ void htp_get_queue_queues_detail(evhtp_request_t *req, void *data)
   sfree(name);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get name info.");
-    simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", j_tmp);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -399,16 +399,16 @@ void htp_put_queue_queues_detail(evhtp_request_t *req, void *data)
   name = uri_decode(tmp_const);
   if(name == NULL) {
     slog(LOG_ERR, "Could not get name info.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
   // get data
-  j_data = get_json_from_request_data(req);
+  j_data = http_get_json_from_request_data(req);
   if(j_data == NULL) {
     slog(LOG_ERR, "Could not get correct data from request.");
     sfree(name);
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -418,15 +418,15 @@ void htp_put_queue_queues_detail(evhtp_request_t *req, void *data)
   json_decref(j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update queue info.");
-    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -456,7 +456,7 @@ void htp_delete_queue_queues_detail(evhtp_request_t *req, void *data)
   name = uri_decode(tmp_const);
   if(name == NULL) {
     slog(LOG_ERR, "Could not get name info.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -465,15 +465,15 @@ void htp_delete_queue_queues_detail(evhtp_request_t *req, void *data)
   sfree(name);
   if(ret == false) {
     slog(LOG_ERR, "Could not get delete queue info.");
-    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -500,12 +500,12 @@ void htp_get_queue_statuses(evhtp_request_t *req, void *data)
   j_tmp = get_queue_statuses_all();
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", json_object());
   json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -535,7 +535,7 @@ void htp_get_queue_statuses_detail(evhtp_request_t *req, void *data)
   name = uri_decode(tmp_const);
   if(name == NULL) {
     slog(LOG_ERR, "Could not get name info.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -544,11 +544,11 @@ void htp_get_queue_statuses_detail(evhtp_request_t *req, void *data)
   sfree(name);
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", j_tmp);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -574,17 +574,17 @@ void htp_get_queue_config(evhtp_request_t *req, void *data)
   res = get_ast_current_config_info_text(DEF_QUEUE_CONFNAME);
   if(res == NULL) {
     slog(LOG_ERR, "Could not get queue conf.");
-    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", json_string(res));
   sfree(res);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -607,10 +607,10 @@ void htp_put_queue_config(evhtp_request_t *req, void *data)
   }
   slog(LOG_DEBUG, "Fired htp_put_queue_config.");
 
-  req_data = get_text_from_request_data(req);
+  req_data = http_get_text_from_request_data(req);
   if(req_data == NULL) {
     slog(LOG_ERR, "Could not get data.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -619,15 +619,15 @@ void htp_put_queue_config(evhtp_request_t *req, void *data)
   sfree(req_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update queue config info.");
-    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -652,17 +652,17 @@ void htp_get_queue_configs(evhtp_request_t *req, void *data)
   // get info
   j_tmp = get_ast_backup_configs_info_all(DEF_QUEUE_CONFNAME);
   if(j_tmp == NULL) {
-    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", json_object());
   json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -691,7 +691,7 @@ void htp_get_queue_configs_detail(evhtp_request_t *req, void *data)
   detail = uri_decode(tmp_const);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get detail info.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -700,17 +700,17 @@ void htp_get_queue_configs_detail(evhtp_request_t *req, void *data)
   sfree(detail);
   if(res == NULL) {
     slog(LOG_NOTICE, "Could not find config info.");
-    simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", json_string(res));
   sfree(res);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -739,7 +739,7 @@ void htp_delete_queue_configs_detail(evhtp_request_t *req, void *data)
   detail = uri_decode(tmp_const);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get detail info.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -748,15 +748,15 @@ void htp_delete_queue_configs_detail(evhtp_request_t *req, void *data)
   sfree(detail);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not delete config file.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -783,12 +783,12 @@ void htp_get_queue_settings(evhtp_request_t *req, void *data)
   j_tmp = get_ast_settings_all(DEF_QUEUE_CONFNAME);
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", json_object());
   json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -815,24 +815,24 @@ void htp_post_queue_settings(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_post_queue_settings.");
 
   // get data
-  j_data = get_json_from_request_data(req);
+  j_data = http_get_json_from_request_data(req);
   if(j_data == NULL) {
   	slog(LOG_ERR, "Could not get data from request.");
-  	simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+  	http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
   	return;
   }
 
   name = json_string_value(json_object_get(j_data, "name"));
   if(name == NULL) {
     slog(LOG_ERR, "Could not get setting name.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
   j_setting = json_object_get(j_data, "setting");
   if(j_setting == NULL) {
     slog(LOG_ERR, "Could not get setting.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -840,15 +840,15 @@ void htp_post_queue_settings(evhtp_request_t *req, void *data)
   json_decref(j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not create queue setting.");
-    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -878,7 +878,7 @@ void htp_get_queue_settings_detail(evhtp_request_t *req, void *data)
   detail = uri_decode(tmp_const);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get detail info.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -887,16 +887,16 @@ void htp_get_queue_settings_detail(evhtp_request_t *req, void *data)
   sfree(detail);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get queue setting.");
-    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", j_tmp);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -927,16 +927,16 @@ void htp_put_queue_settings_detail(evhtp_request_t *req, void *data)
   detail = uri_decode(tmp_const);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get detail info.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
   // get data
-  j_data = get_json_from_request_data(req);
+  j_data = http_get_json_from_request_data(req);
   if(j_data == NULL) {
     slog(LOG_ERR, "Could not get correct data from request.");
     sfree(detail);
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -946,15 +946,15 @@ void htp_put_queue_settings_detail(evhtp_request_t *req, void *data)
   json_decref(j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update queue setting.");
-    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -984,7 +984,7 @@ void htp_delete_queue_settings_detail(evhtp_request_t *req, void *data)
   detail = uri_decode(tmp_const);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get detail info.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -993,15 +993,15 @@ void htp_delete_queue_settings_detail(evhtp_request_t *req, void *data)
   sfree(detail);
   if(ret == false) {
     slog(LOG_ERR, "Could not remove queue setting.");
-    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;

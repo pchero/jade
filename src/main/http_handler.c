@@ -443,7 +443,7 @@ void term_http_handler(void)
   }
 }
 
-void simple_response_normal(evhtp_request_t *req, json_t* j_msg)
+void http_simple_response_normal(evhtp_request_t *req, json_t* j_msg)
 {
   char* res;
 
@@ -468,7 +468,7 @@ void simple_response_normal(evhtp_request_t *req, json_t* j_msg)
   return;
 }
 
-void simple_response_error(evhtp_request_t *req, int status_code, int err_code, const char* err_msg)
+void http_simple_response_error(evhtp_request_t *req, int status_code, int err_code, const char* err_msg)
 {
   char* res;
   json_t* j_tmp;
@@ -493,7 +493,7 @@ void simple_response_error(evhtp_request_t *req, int status_code, int err_code, 
   }
 
   // create default result
-  j_res = create_default_result(status_code);
+  j_res = http_create_default_result(status_code);
 
   // create error
   if(err_code == 0) {
@@ -518,7 +518,7 @@ void simple_response_error(evhtp_request_t *req, int status_code, int err_code, 
   return;
 }
 
-json_t* create_default_result(int code)
+json_t* http_create_default_result(int code)
 {
   json_t* j_res;
   char* timestamp;
@@ -568,7 +568,7 @@ static char* get_data_from_request(evhtp_request_t* req)
  * @param req
  * @return
  */
-json_t* get_json_from_request_data(evhtp_request_t* req)
+json_t* http_get_json_from_request_data(evhtp_request_t* req)
 {
   char* tmp;
   json_t* j_data;
@@ -599,7 +599,7 @@ json_t* get_json_from_request_data(evhtp_request_t* req)
  * @param req
  * @return
  */
-char* get_text_from_request_data(evhtp_request_t* req)
+char* http_get_text_from_request_data(evhtp_request_t* req)
 {
   char* tmp;
 
@@ -615,7 +615,7 @@ char* get_text_from_request_data(evhtp_request_t* req)
  * @param agent_pass    (out) agent pass
  * @return
  */
-bool get_htp_id_pass(evhtp_request_t* req, char** agent_uuid, char** agent_pass)
+bool http_get_htp_id_pass(evhtp_request_t* req, char** agent_uuid, char** agent_pass)
 {
   evhtp_connection_t* conn;
   char *auth_hdr, *auth_b64;
@@ -697,11 +697,11 @@ static void cb_htp_ping(evhtp_request_t *req, void *a)
       "message",  "pong"
       );
 
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", j_tmp);
 
   // send response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -726,7 +726,7 @@ static void cb_htp_sip_config(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if((method != htp_method_GET) && (method != htp_method_PUT)) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -740,12 +740,12 @@ static void cb_htp_sip_config(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
 
   return;
 }
@@ -769,7 +769,7 @@ static void cb_htp_sip_configs(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if(method != htp_method_GET) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -779,12 +779,12 @@ static void cb_htp_sip_configs(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
 
   return;
 }
@@ -808,7 +808,7 @@ static void cb_htp_sip_configs_detail(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if((method != htp_method_GET) && (method != htp_method_DELETE)) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -823,12 +823,12 @@ static void cb_htp_sip_configs_detail(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
 
   return;
 }
@@ -852,7 +852,7 @@ static void cb_htp_sip_peers(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if(method != htp_method_GET) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -862,12 +862,12 @@ static void cb_htp_sip_peers(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
 
   return;
 }
@@ -891,7 +891,7 @@ static void cb_htp_sip_peers_detail(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if(method != htp_method_GET) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -901,12 +901,12 @@ static void cb_htp_sip_peers_detail(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
 
   return;
 }
@@ -925,7 +925,7 @@ static void cb_htp_databases(evhtp_request_t *req, void *data)
   json_t* j_tmp;
 
   slog(LOG_WARNING, "Deprecated api.");
-  simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -936,27 +936,27 @@ static void cb_htp_databases(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if(method != htp_method_GET) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   if(method == htp_method_GET) {
     j_tmp = get_databases_all_key();
     if(j_tmp == NULL) {
-      simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+      http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
       return;
     }
 
     // create result
-    j_res = create_default_result(EVHTP_RES_OK);
+    j_res = http_create_default_result(EVHTP_RES_OK);
     json_object_set_new(j_res, "result", j_tmp);
 
-    simple_response_normal(req, j_res);
+    http_simple_response_normal(req, j_res);
     json_decref(j_res);
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   }
 
   return;
@@ -978,7 +978,7 @@ static void cb_htp_databases_key(evhtp_request_t *req, void *data)
   char* tmp;
 
   slog(LOG_WARNING, "Deprecated api.");
-  simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -989,7 +989,7 @@ static void cb_htp_databases_key(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if(method != htp_method_GET) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -997,7 +997,7 @@ static void cb_htp_databases_key(evhtp_request_t *req, void *data)
     // get data
     tmp_const = (char*)evbuffer_pullup(req->buffer_in, evbuffer_get_length(req->buffer_in));
     if(tmp_const == NULL) {
-      simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+      http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
       return;
     }
 
@@ -1007,7 +1007,7 @@ static void cb_htp_databases_key(evhtp_request_t *req, void *data)
     j_data = json_loads(tmp, JSON_DECODE_ANY, NULL);
     sfree(tmp);
     if(j_data == NULL) {
-      simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+      http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
       return;
     }
 
@@ -1015,20 +1015,20 @@ static void cb_htp_databases_key(evhtp_request_t *req, void *data)
     j_tmp = get_database_info(json_string_value(json_object_get(j_data, "key")));
     json_decref(j_data);
     if(j_tmp == NULL) {
-      simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+      http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
       return;
     }
 
     // create result
-    j_res = create_default_result(EVHTP_RES_OK);
+    j_res = http_create_default_result(EVHTP_RES_OK);
     json_object_set_new(j_res, "result", j_tmp);
 
-    simple_response_normal(req, j_res);
+    http_simple_response_normal(req, j_res);
     json_decref(j_res);
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   }
 
   return;
@@ -1053,7 +1053,7 @@ static void cb_htp_sip_registries(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if(method != htp_method_GET) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -1063,12 +1063,12 @@ static void cb_htp_sip_registries(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   return;
 }
 
@@ -1091,7 +1091,7 @@ static void cb_htp_sip_registries_detail(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if(method != htp_method_GET) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -1101,12 +1101,12 @@ static void cb_htp_sip_registries_detail(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   return;
 }
 
@@ -1129,7 +1129,7 @@ static void cb_htp_sip_settings(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if((method != htp_method_GET) && (method != htp_method_POST)) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -1144,12 +1144,12 @@ static void cb_htp_sip_settings(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   return;
 }
 
@@ -1172,7 +1172,7 @@ static void cb_htp_sip_settings_detail(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if((method != htp_method_GET) && (method != htp_method_PUT) && (method != htp_method_DELETE)) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -1190,12 +1190,12 @@ static void cb_htp_sip_settings_detail(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
 
   return;
 }
@@ -1220,7 +1220,7 @@ static void cb_htp_queue_queues(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if((method != htp_method_GET) && (method != htp_method_POST)) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -1235,12 +1235,12 @@ static void cb_htp_queue_queues(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   return;
 }
 
@@ -1263,7 +1263,7 @@ static void cb_htp_queue_queues_detail(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if((method != htp_method_GET) && (method != htp_method_PUT) && (method != htp_method_DELETE)) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -1282,12 +1282,12 @@ static void cb_htp_queue_queues_detail(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   return;
 }
 
@@ -1310,7 +1310,7 @@ static void cb_htp_queue_config(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if((method != htp_method_GET) && (method != htp_method_PUT)) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -1325,12 +1325,12 @@ static void cb_htp_queue_config(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
 
   return;
 }
@@ -1354,7 +1354,7 @@ static void cb_htp_queue_configs_detail(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if((method != htp_method_GET) && (method != htp_method_DELETE)) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -1369,12 +1369,12 @@ static void cb_htp_queue_configs_detail(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
 
   return;
 }
@@ -1398,7 +1398,7 @@ static void cb_htp_queue_configs(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if(method != htp_method_GET) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -1408,12 +1408,12 @@ static void cb_htp_queue_configs(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
 
   return;
 }
@@ -1437,7 +1437,7 @@ static void cb_htp_queue_statuses(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if(method != htp_method_GET) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -1448,12 +1448,12 @@ static void cb_htp_queue_statuses(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   return;
 }
 
@@ -1476,7 +1476,7 @@ static void cb_htp_queue_statuses_detail(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if(method != htp_method_GET) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -1487,12 +1487,12 @@ static void cb_htp_queue_statuses_detail(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   return;
 }
 
@@ -1516,7 +1516,7 @@ static void cb_htp_queue_members(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if(method != htp_method_GET) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -1527,12 +1527,12 @@ static void cb_htp_queue_members(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   return;
 }
 
@@ -1555,7 +1555,7 @@ static void cb_htp_queue_members_detail(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if(method != htp_method_GET) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -1566,12 +1566,12 @@ static void cb_htp_queue_members_detail(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   return;
 }
 
@@ -1594,7 +1594,7 @@ static void cb_htp_queue_entries(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if(method != htp_method_GET) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -1605,12 +1605,12 @@ static void cb_htp_queue_entries(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
 
   return;
 }
@@ -1634,7 +1634,7 @@ static void cb_htp_queue_entries_detail(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if((method != htp_method_GET) && (method != htp_method_DELETE)) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -1650,12 +1650,12 @@ static void cb_htp_queue_entries_detail(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   return;
 }
 
@@ -1678,7 +1678,7 @@ static void cb_htp_queue_settings(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if((method != htp_method_GET) && (method != htp_method_POST)) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -1693,12 +1693,12 @@ static void cb_htp_queue_settings(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   return;
 }
 
@@ -1721,7 +1721,7 @@ static void cb_htp_queue_settings_detail(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if((method != htp_method_GET) && (method != htp_method_PUT) && (method != htp_method_DELETE)) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -1739,12 +1739,12 @@ static void cb_htp_queue_settings_detail(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
 
   return;
 }
@@ -1768,7 +1768,7 @@ static void cb_htp_core_agis(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if(method != htp_method_GET) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -1778,12 +1778,12 @@ static void cb_htp_core_agis(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
 
   return;
 }
@@ -1807,7 +1807,7 @@ static void cb_htp_core_agis_detail(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if((method != htp_method_GET) && (method != htp_method_DELETE)) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -1822,12 +1822,12 @@ static void cb_htp_core_agis_detail(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
 
   return;
 }
@@ -1851,7 +1851,7 @@ static void cb_htp_core_channels(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if(method != htp_method_GET) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -1861,12 +1861,12 @@ static void cb_htp_core_channels(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
 
   return;
 }
@@ -1890,7 +1890,7 @@ static void cb_htp_core_channels_detail(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if((method != htp_method_GET) && (method != htp_method_DELETE)) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -1904,12 +1904,12 @@ static void cb_htp_core_channels_detail(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
 
   return;
 }
@@ -1933,7 +1933,7 @@ static void cb_htp_core_modules(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if(method != htp_method_GET) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -1943,12 +1943,12 @@ static void cb_htp_core_modules(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
 
   return;
 }
@@ -1972,7 +1972,7 @@ static void cb_htp_core_modules_detail(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if((method != htp_method_GET) && (method != htp_method_POST) && (method != htp_method_PUT) && (method != htp_method_DELETE)) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -1995,12 +1995,12 @@ static void cb_htp_core_modules_detail(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   return;
 }
 
@@ -2024,7 +2024,7 @@ static void cb_htp_agent_agents(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if(method != htp_method_GET) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -2034,12 +2034,12 @@ static void cb_htp_agent_agents(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   return;
 
 }
@@ -2063,7 +2063,7 @@ static void cb_htp_agent_agents_detail(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if(method != htp_method_GET) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -2073,12 +2073,12 @@ static void cb_htp_agent_agents_detail(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   return;
 }
 
@@ -2101,7 +2101,7 @@ static void cb_htp_core_systems(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if(method != htp_method_GET) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -2111,12 +2111,12 @@ static void cb_htp_core_systems(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   return;
 
 }
@@ -2140,7 +2140,7 @@ static void cb_htp_core_systems_detail(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if(method != htp_method_GET) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -2150,12 +2150,12 @@ static void cb_htp_core_systems_detail(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   return;
 }
 
@@ -2180,33 +2180,33 @@ static void cb_htp_device_states(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if(method != htp_method_GET) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   if(method == htp_method_GET) {
     j_tmp = get_device_states_all_device();
     if(j_tmp == NULL) {
-      simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+      http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
       return;
     }
 
     // create result
-    j_res = create_default_result(EVHTP_RES_OK);
+    j_res = http_create_default_result(EVHTP_RES_OK);
     json_object_set_new(j_res, "result", json_object());
     json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
 
-    simple_response_normal(req, j_res);
+    http_simple_response_normal(req, j_res);
     json_decref(j_res);
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   return;
 }
 
@@ -2234,7 +2234,7 @@ static void cb_htp_device_states_detail(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if(method != htp_method_GET) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -2242,7 +2242,7 @@ static void cb_htp_device_states_detail(evhtp_request_t *req, void *data)
     // get data
     tmp_const = (char*)evbuffer_pullup(req->buffer_in, evbuffer_get_length(req->buffer_in));
     if(tmp_const == NULL) {
-      simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+      http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
       return;
     }
 
@@ -2252,7 +2252,7 @@ static void cb_htp_device_states_detail(evhtp_request_t *req, void *data)
     j_data = json_loads(tmp, JSON_DECODE_ANY, NULL);
     sfree(tmp);
     if(j_data == NULL) {
-      simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+      http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
       return;
     }
 
@@ -2262,20 +2262,20 @@ static void cb_htp_device_states_detail(evhtp_request_t *req, void *data)
         );
     json_decref(j_data);
     if(j_tmp == NULL) {
-      simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+      http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
       return;
     }
 
     // create result
-    j_res = create_default_result(EVHTP_RES_OK);
+    j_res = http_create_default_result(EVHTP_RES_OK);
     json_object_set_new(j_res, "result", j_tmp);
 
-    simple_response_normal(req, j_res);
+    http_simple_response_normal(req, j_res);
     json_decref(j_res);
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -2301,7 +2301,7 @@ static void cb_htp_park_parkinglots(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if((method != htp_method_GET) && (method != htp_method_POST)) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -2316,12 +2316,12 @@ static void cb_htp_park_parkinglots(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   return;
 }
 
@@ -2344,7 +2344,7 @@ static void cb_htp_park_parkinglots_detail(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if((method != htp_method_GET) && (method != htp_method_PUT) && (method != htp_method_DELETE)) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -2363,12 +2363,12 @@ static void cb_htp_park_parkinglots_detail(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   return;
 }
 
@@ -2391,7 +2391,7 @@ static void cb_htp_park_parkedcalls(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if(method != htp_method_GET) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -2402,12 +2402,12 @@ static void cb_htp_park_parkedcalls(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
 
   return;
 }
@@ -2431,7 +2431,7 @@ static void cb_htp_park_parkedcalls_detail(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if((method != htp_method_GET) && (method != htp_method_DELETE)) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -2446,12 +2446,12 @@ static void cb_htp_park_parkedcalls_detail(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   return;
 }
 
@@ -2474,7 +2474,7 @@ static void cb_htp_park_config(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if((method != htp_method_GET) && (method != htp_method_PUT)) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -2489,12 +2489,12 @@ static void cb_htp_park_config(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
 
   return;
 }
@@ -2518,7 +2518,7 @@ static void cb_htp_park_configs_detail(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if((method != htp_method_GET) && (method != htp_method_DELETE)) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -2533,12 +2533,12 @@ static void cb_htp_park_configs_detail(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
 
   return;
 }
@@ -2562,7 +2562,7 @@ static void cb_htp_park_configs(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if(method != htp_method_GET) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -2572,12 +2572,12 @@ static void cb_htp_park_configs(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
 
   return;
 }
@@ -2601,7 +2601,7 @@ static void cb_htp_park_settings(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if((method != htp_method_GET) && (method != htp_method_POST)) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -2616,12 +2616,12 @@ static void cb_htp_park_settings(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   return;
 }
 
@@ -2644,7 +2644,7 @@ static void cb_htp_park_settings_detail(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if((method != htp_method_GET) && (method != htp_method_PUT) && (method != htp_method_DELETE)) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -2662,12 +2662,12 @@ static void cb_htp_park_settings_detail(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
 
   return;
 }
@@ -2692,7 +2692,7 @@ static void cb_htp_voicemail_users(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if((method != htp_method_GET) && (method != htp_method_POST)) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -2706,12 +2706,12 @@ static void cb_htp_voicemail_users(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
 
   return;
 }
@@ -2735,7 +2735,7 @@ static void cb_htp_voicemail_config(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if((method != htp_method_GET) && (method != htp_method_PUT)) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -2749,12 +2749,12 @@ static void cb_htp_voicemail_config(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
 
   return;
 }
@@ -2778,7 +2778,7 @@ static void cb_htp_voicemail_configs(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if(method != htp_method_GET) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -2788,12 +2788,12 @@ static void cb_htp_voicemail_configs(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
 
   return;
 }
@@ -2817,7 +2817,7 @@ static void cb_htp_voicemail_configs_detail(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if((method != htp_method_GET) && (method != htp_method_DELETE)) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -2832,12 +2832,12 @@ static void cb_htp_voicemail_configs_detail(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
 
   return;
 }
@@ -2861,7 +2861,7 @@ static void cb_htp_voicemail_users_detail(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if((method != htp_method_GET) && (method != htp_method_PUT) && (method != htp_method_DELETE)) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -2879,12 +2879,12 @@ static void cb_htp_voicemail_users_detail(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
 
   return;
 }
@@ -2909,7 +2909,7 @@ static void cb_htp_voicemail_vms(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if(method != htp_method_GET) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -2919,11 +2919,11 @@ static void cb_htp_voicemail_vms(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
 
   return;
 }
@@ -2947,7 +2947,7 @@ static void cb_htp_voicemail_vms_msgname(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if((method != htp_method_GET) && (method != htp_method_DELETE)) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -2961,11 +2961,11 @@ static void cb_htp_voicemail_vms_msgname(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
 
   return;
 }
@@ -2989,7 +2989,7 @@ static void cb_htp_pjsip_endpoints(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if(method != htp_method_GET) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -2999,12 +2999,12 @@ static void cb_htp_pjsip_endpoints(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   return;
 }
 
@@ -3027,7 +3027,7 @@ static void cb_htp_pjsip_endpoints_detail(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if(method != htp_method_GET) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -3038,12 +3038,12 @@ static void cb_htp_pjsip_endpoints_detail(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   return;
 }
 
@@ -3066,7 +3066,7 @@ static void cb_htp_pjsip_aors(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if(method != htp_method_GET) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -3077,12 +3077,12 @@ static void cb_htp_pjsip_aors(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   return;
 }
 
@@ -3105,7 +3105,7 @@ static void cb_htp_pjsip_aors_detail(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if(method != htp_method_GET) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -3116,12 +3116,12 @@ static void cb_htp_pjsip_aors_detail(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   return;
 }
 
@@ -3144,7 +3144,7 @@ static void cb_htp_pjsip_auths(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if(method != htp_method_GET) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -3155,12 +3155,12 @@ static void cb_htp_pjsip_auths(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   return;
 }
 
@@ -3183,7 +3183,7 @@ static void cb_htp_pjsip_auths_detail(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if(method != htp_method_GET) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -3194,12 +3194,12 @@ static void cb_htp_pjsip_auths_detail(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   return;
 }
 
@@ -3222,7 +3222,7 @@ static void cb_htp_pjsip_config(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if((method != htp_method_GET) && (method != htp_method_PUT)) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -3237,12 +3237,12 @@ static void cb_htp_pjsip_config(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
 
   return;
 }
@@ -3266,7 +3266,7 @@ static void cb_htp_pjsip_configs(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if(method != htp_method_GET) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -3276,12 +3276,12 @@ static void cb_htp_pjsip_configs(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
 
   return;
 }
@@ -3305,7 +3305,7 @@ static void cb_htp_pjsip_configs_detail(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if((method != htp_method_GET) && (method != htp_method_DELETE)) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -3320,12 +3320,12 @@ static void cb_htp_pjsip_configs_detail(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
 
   return;
 }
@@ -3349,7 +3349,7 @@ static void cb_htp_pjsip_settings_detail(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if((method != htp_method_GET) && (method != htp_method_PUT) && (method != htp_method_DELETE)) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -3367,12 +3367,12 @@ static void cb_htp_pjsip_settings_detail(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
 
   return;
 }
@@ -3396,7 +3396,7 @@ static void cb_htp_pjsip_settings(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if((method != htp_method_GET) && (method != htp_method_POST)) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -3411,12 +3411,12 @@ static void cb_htp_pjsip_settings(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   return;
 }
 
@@ -3439,7 +3439,7 @@ static void cb_htp_pjsip_contacts(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if(method != htp_method_GET) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -3450,12 +3450,12 @@ static void cb_htp_pjsip_contacts(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   return;
 }
 
@@ -3478,7 +3478,7 @@ static void cb_htp_pjsip_contacts_detail(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if(method != htp_method_GET) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -3489,12 +3489,12 @@ static void cb_htp_pjsip_contacts_detail(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   return;
 }
 
@@ -3518,7 +3518,7 @@ static void cb_htp_dp_config(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if((method != htp_method_GET) && (method != htp_method_PUT)) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -3533,12 +3533,12 @@ static void cb_htp_dp_config(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
 
   return;
 }
@@ -3562,7 +3562,7 @@ static void cb_htp_dp_dpmas(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if((method != htp_method_GET) && (method != htp_method_POST)) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -3576,12 +3576,12 @@ static void cb_htp_dp_dpmas(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
 
   return;
 }
@@ -3605,7 +3605,7 @@ static void cb_htp_dp_dpmas_detail(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if((method != htp_method_GET) && (method != htp_method_PUT) && (method != htp_method_DELETE)) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -3624,12 +3624,12 @@ static void cb_htp_dp_dpmas_detail(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   return;
 }
 
@@ -3652,7 +3652,7 @@ static void cb_htp_dp_dialplans(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if((method != htp_method_GET) && (method != htp_method_POST)) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -3666,12 +3666,12 @@ static void cb_htp_dp_dialplans(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
 
   return;
 }
@@ -3695,7 +3695,7 @@ static void cb_htp_dp_dialplans_detail(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if((method != htp_method_GET) && (method != htp_method_PUT) && (method != htp_method_DELETE)) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -3714,12 +3714,12 @@ static void cb_htp_dp_dialplans_detail(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   return;
 }
 
@@ -3742,7 +3742,7 @@ static void cb_htp_user_login(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if((method != htp_method_POST) && (method != htp_method_DELETE)) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -3756,12 +3756,12 @@ static void cb_htp_user_login(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
 
   return;
 }
@@ -3785,7 +3785,7 @@ static void cb_htp_user_contacts(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if((method != htp_method_GET) && (method != htp_method_POST)) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -3799,12 +3799,12 @@ static void cb_htp_user_contacts(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
 
   return;
 }
@@ -3828,7 +3828,7 @@ static void cb_htp_user_contacts_detail(evhtp_request_t *req, void *data)
   // method check
   method = evhtp_request_get_method(req);
   if((method != htp_method_GET) && (method != htp_method_PUT) && (method != htp_method_DELETE)) {
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
@@ -3846,12 +3846,12 @@ static void cb_htp_user_contacts_detail(evhtp_request_t *req, void *data)
   }
   else {
     // should not reach to here.
-    simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   // should not reach to here.
-  simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
 
   return;
 }
