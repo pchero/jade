@@ -649,17 +649,99 @@ char* db_ctx_get_update_str(const json_t* j_data)
  */
 char* db_ctx_get_select_str(const json_t* j_data)
 {
-  char* res;
+  char*   res;
+  char*   tmp;
+  char*   tmp_sub;
+  char*   tmp_sqlite_buf;
+  json_t*  j_val;
+  json_t*  j_data_cp;
+  const char* key;
+  bool        is_first;
+  json_type   type;
 
-  if(j_data == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return NULL;
-  }
+  // copy original data.
+  j_data_cp = json_deep_copy(j_data);
 
-  res = db_ctx_get_update_str(j_data);
-  if(res == NULL) {
-    return NULL;
+  is_first = true;
+  res = NULL;
+  tmp = NULL;
+  tmp_sub = NULL;
+
+  json_object_foreach(j_data_cp, key, j_val) {
+
+    // create update string
+    type = json_typeof(j_val);
+    switch(type) {
+      // string
+      case JSON_STRING: {
+        asprintf(&tmp_sub, "%s = \'%s\'", key, json_string_value(j_val));
+      }
+      break;
+
+      // numbers
+      case JSON_INTEGER: {
+        asprintf(&tmp_sub, "%s = %lld", key, json_integer_value(j_val));
+      }
+      break;
+
+      case JSON_REAL: {
+        asprintf(&tmp_sub, "%s = %lf", key, json_real_value(j_val));
+      }
+      break;
+
+      // true
+      case JSON_TRUE: {
+        asprintf(&tmp_sub, "%s = \"%s\"", key, "true");
+      }
+      break;
+
+      // false
+      case JSON_FALSE: {
+        asprintf(&tmp_sub, "%s = \"%s\"", key, "false");
+      }
+      break;
+
+      case JSON_NULL: {
+        asprintf(&tmp_sub, "%s = %s", key, "null");
+      }
+      break;
+
+      case JSON_ARRAY:
+      case JSON_OBJECT: {
+        tmp = json_dumps(j_val, JSON_ENCODE_ANY);
+        tmp_sqlite_buf = sqlite3_mprintf("%q", tmp);
+        sfree(tmp);
+
+        asprintf(&tmp_sub, "%s = '%s'", key, tmp_sqlite_buf);
+        sqlite3_free(tmp_sqlite_buf);
+      }
+      break;
+
+      default: {
+        // Not done yet.
+        // we don't support another types.
+        slog(LOG_WARNING, "Wrong type input. We don't handle this.");
+        asprintf(&tmp_sub, "%s = %s", key, "null");
+      }
+      break;
+    }
+
+    // copy/set previous sql.
+    sfree(tmp);
+    if(is_first == true) {
+      asprintf(&tmp, "%s", tmp_sub);
+      is_first = false;
+    }
+    else {
+      asprintf(&tmp, "%s and %s", res, tmp_sub);
+    }
+    sfree(res);
+    sfree(tmp_sub);
+
+    res = strdup(tmp);
+    sfree(tmp);
   }
+  json_decref(j_data_cp);
 
   return res;
 }

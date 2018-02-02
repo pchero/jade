@@ -180,6 +180,35 @@ int get_utc_timestamp_day(void)
   return localtime(&time)->tm_wday;
 }
 
+time_t get_unixtime_from_utc_timestamp(const char* timestamp)
+{
+  int ret;
+  struct tm ti={0};
+
+  if(timestamp == NULL) {
+    // wrong input parameter.
+    return 0;
+  }
+
+  ret = sscanf(timestamp, "%d-%d-%dT%d:%d:%d",
+    &ti.tm_year,
+    &ti.tm_mon,
+    &ti.tm_mday,
+    &ti.tm_hour,
+    &ti.tm_min,
+    &ti.tm_sec
+    );
+  if(ret != 6) {
+    // could not convert correctly.
+    return 0;
+  }
+
+  ti.tm_year  -= 1900;
+  ti.tm_mon   -= 1;
+
+  return mktime(&ti);
+}
+
 /**
  *
  * @param str

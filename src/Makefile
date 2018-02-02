@@ -1,7 +1,7 @@
 
 TARGET = jade_backend
 
-LIBS = -ljansson -levhtp -levent -levent_openssl -lssl -lcrypto -lpthread -luuid -lsqlite3 -lbsd -lonig -lzmq -levent_pthreads -lwebsockets
+LIBS = -ljansson -levhtp -levent -levent_openssl -lssl -lcrypto -lpthread -luuid -lsqlite3 -lbsd -lonig -lzmq -levent_pthreads -lwebsockets -lm
 BUILDDIR = build
 SUBDIRS = modules main
 CC = gcc
