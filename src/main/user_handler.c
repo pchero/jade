@@ -30,9 +30,12 @@ extern app* g_app;
 static struct event* g_ev_validate_authtoken = NULL;
 
 static char* create_authtoken(const char* username, const char* password);
+static bool update_authtoken_tm_update(const char* uuid);
+
 static bool create_userinfo(json_t* j_data);
 static bool create_permission(const char* user_uuid, const char* permission);
 static bool create_contact(json_t* j_data);
+static bool update_contact(const char* uuid, json_t* j_data);
 
 
 static bool is_user_has_permission(const char* user_uuid, const char* permission);
@@ -347,6 +350,175 @@ void htp_post_user_contacts(evhtp_request_t *req, void *data)
   return;
 }
 
+/**
+ * GET ^/user/contacts/(.*) request handler.
+ * @param req
+ * @param data
+ */
+void htp_get_user_contacts_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+  const char* tmp_const;
+  char* detail;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired htp_get_user_contacts_detail.");
+
+  // check authorization
+  ret = is_authorized(req, DEF_PERM_ADMIN);
+  if(ret == false) {
+    simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  // detail parse
+  tmp_const = req->uri->path->file;
+  detail = uri_decode(tmp_const);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // get detail info
+  j_tmp = get_user_contact_info(detail);
+  sfree(detail);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not find contact info.");
+    simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", j_tmp);
+
+  // response
+  simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * PUT ^/user/contacts/(.*) request handler.
+ * @param req
+ * @param data
+ */
+void htp_put_user_contacts_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_data;
+  const char* tmp_const;
+  char* detail;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired htp_put_user_contacts_detail.");
+
+  // check authorization
+  ret = is_authorized(req, DEF_PERM_ADMIN);
+  if(ret == false) {
+    simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  // detail parse
+  tmp_const = req->uri->path->file;
+  detail = uri_decode(tmp_const);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  j_data = get_json_from_request_data(req);
+  if(j_data == NULL) {
+    slog(LOG_NOTICE, "Could not get data info.");
+    sfree(detail);
+    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // update
+  ret = update_contact(detail, j_data);
+  sfree(detail);
+  json_decref(j_data);
+  if(ret == false) {
+    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = create_default_result(EVHTP_RES_OK);
+
+  // response
+  simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * DELETE ^/user/contacts/(.*) request handler.
+ * @param req
+ * @param data
+ */
+void htp_delete_user_contacts_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  const char* tmp_const;
+  char* detail;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired htp_delete_user_contacts_detail.");
+
+  // check authorization
+  ret = is_authorized(req, DEF_PERM_ADMIN);
+  if(ret == false) {
+    simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  // detail parse
+  tmp_const = req->uri->path->file;
+  detail = uri_decode(tmp_const);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // delete
+  ret = delete_user_contact_info(detail);
+  sfree(detail);
+  if(ret == false) {
+    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = create_default_result(EVHTP_RES_OK);
+
+  // response
+  simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
 static char* create_authtoken(const char* username, const char* password)
 {
   json_t* j_user;
@@ -385,6 +557,37 @@ static char* create_authtoken(const char* username, const char* password)
   json_decref(j_auth);
 
   return token;
+}
+
+static bool update_authtoken_tm_update(const char* uuid)
+{
+  json_t* j_token;
+  char* timestamp;
+  int ret;
+
+  if(uuid == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  j_token = get_user_authtoken_info(uuid);
+  if(j_token == NULL) {
+    slog(LOG_NOTICE, "Could not get authtoken info. uuid[%s]", uuid);
+    return false;
+  }
+
+  timestamp = get_utc_timestamp();
+  json_object_set_new(j_token, "tm_update", json_string(timestamp));
+  sfree(timestamp);
+
+  ret = update_user_authtoken_info(j_token);
+  json_decref(j_token);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update authtoken info. uuid[%s]", uuid);
+    return false;
+  }
+
+  return true;
 }
 
 static bool create_userinfo(json_t* j_data)
@@ -517,6 +720,49 @@ static bool create_contact(json_t* j_data)
   return true;
 }
 
+static bool update_contact(const char* uuid, json_t* j_data)
+{
+  json_t* j_tmp;
+  char* timestamp;
+  int ret;
+
+  if((uuid == NULL) || (j_data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired update_contact. uuid[%s]", uuid);
+
+  timestamp = get_utc_timestamp();
+  j_tmp = json_pack("{"
+      "s:s, s:s, "
+      "s:s, s:s, "
+      "s:s, s:s, "
+      "s:s "
+      "}",
+
+      "uuid",       uuid,
+      "user_uuid",  json_string_value(json_object_get(j_data, "user_uuid"))? : "",
+
+      "type",     json_string_value(json_object_get(j_data, "type"))? : "",
+      "target",   json_string_value(json_object_get(j_data, "target"))? : "",
+
+      "name",     json_string_value(json_object_get(j_data, "name"))? : "",
+      "detail",   json_string_value(json_object_get(j_data, "detail"))? : "",
+
+      "tm_update", timestamp
+      );
+  sfree(timestamp);
+
+  ret = update_user_contact_info(j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update contact info.");
+    return false;
+  }
+
+  return true;
+}
+
 static bool is_authorized(evhtp_request_t *req, const char* permission)
 {
   const char* authtoken;
@@ -538,6 +784,13 @@ static bool is_authorized(evhtp_request_t *req, const char* permission)
   ret = is_authtoken_has_permission(authtoken, permission);
   if(ret == false) {
     slog(LOG_NOTICE, "No permission.");
+    return false;
+  }
+
+  // update authtoken tm_update
+  ret = update_authtoken_tm_update(authtoken);
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not update authtoken tm_update info.");
     return false;
   }
 

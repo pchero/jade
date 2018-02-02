@@ -4676,6 +4676,26 @@ bool create_user_authtoken_info(const json_t* j_data)
   return true;
 }
 
+bool update_user_authtoken_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired update_user_authtoken_info.");
+
+  // update info
+  ret = update_jade_item("user_authtoken", "uuid", j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update user_authtoken info.");
+    return false;
+  }
+
+  return true;
+}
+
 /**
  * Delete user_authtoken info.
  * @param key
@@ -4757,6 +4777,25 @@ json_t* get_user_contacts_all(void)
   return j_res;
 }
 
+/**
+ * Get corresponding user_contact detail info.
+ * @return
+ */
+json_t* get_user_contact_info(const char* key)
+{
+  json_t* j_res;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_user_contact_info. key[%s]", key);
+
+  j_res = get_jade_detail_item_key_string("user_contact", "uuid", key);
+
+  return j_res;
+}
+
 bool create_user_contact_info(const json_t* j_data)
 {
   int ret;
@@ -4777,3 +4816,46 @@ bool create_user_contact_info(const json_t* j_data)
   return true;
 }
 
+bool update_user_contact_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired update_user_contact_info.");
+
+  // update info
+  ret = update_jade_item("user_contact", "uuid", j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update user_contact info.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Delete user_contact info.
+ * @param key
+ * @return
+ */
+bool delete_user_contact_info(const char* key)
+{
+  int ret;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired delete_user_contact_info. key[%s]", key);
+
+  ret = delete_jade_items_string("user_contact", "uuid", key);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not delete user_contact info. key[%s]", key);
+    return false;
+  }
+
+  return true;
+}
