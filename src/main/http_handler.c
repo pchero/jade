@@ -3782,16 +3782,13 @@ static void cb_htp_user_contacts(evhtp_request_t *req, void *data)
 
   // method check
   method = evhtp_request_get_method(req);
-  if((method != htp_method_GET)
-      && (method != htp_method_POST)
-      && (method != htp_method_PUT)
-      && (method != htp_method_DELETE)) {
+  if((method != htp_method_GET) && (method != htp_method_POST)) {
     simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   if(method == htp_method_GET) {
-    htp_get_voicemail_users(req, data);
+    htp_get_user_contacts(req, data);
     return;
   }
   else if(method == htp_method_POST) {

@@ -4626,6 +4626,18 @@ bool delete_user_userinfo_info(const char* key)
 }
 
 /**
+ * Get corresponding user_authtoken all detail info.
+ * @return
+ */
+json_t* get_user_authtokens_all(void)
+{
+  json_t* j_res;
+
+  j_res = get_jade_items("user_authtoken", "*");
+  return j_res;
+}
+
+/**
  * Get corresponding user_authtoken detail info.
  * @return
  */
@@ -4734,6 +4746,14 @@ json_t* get_user_permission_info_by_useruuid_perm(const char* useruuid, const ch
     return NULL;
   }
 
+  return j_res;
+}
+
+json_t* get_user_contacts_all(void)
+{
+  json_t* j_res;
+
+  j_res = get_jade_items("user_contact", "*");
   return j_res;
 }
 

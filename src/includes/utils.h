@@ -8,6 +8,8 @@
 #ifndef BACKEND_SRC_UTILS_H_
 #define BACKEND_SRC_UTILS_H_
 
+#include <time.h>
+
 #define sfree(p) { if(p != NULL) free(p); p=NULL; }
 
 void trim(char * s);
@@ -18,6 +20,8 @@ int   get_utc_timestamp_day(void);
 char* get_utc_timestamp_date(void);
 char* get_utc_timestamp_time(void);
 char* get_utc_timestamp_using_timespec(struct timespec timeptr);
+time_t get_unixtime_from_utc_timestamp(const char* timestamp);
+
 char* get_variables_info_ami_str_from_string(const char* str);
 char* get_variables_ami_str_from_object(json_t* j_variables);
 

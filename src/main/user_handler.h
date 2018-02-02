@@ -18,6 +18,7 @@ bool reload_user_handler(void);
 void htp_post_user_login(evhtp_request_t *req, void *data);
 void htp_delete_user_login(evhtp_request_t *req, void *data);
 
+void htp_get_user_contacts(evhtp_request_t *req, void *data);
 void htp_post_user_contacts(evhtp_request_t *req, void *data);
 
 
