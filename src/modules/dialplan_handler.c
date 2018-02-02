@@ -53,17 +53,17 @@ void htp_get_dp_config(evhtp_request_t *req, void *data)
   tmp = get_ast_current_config_info_text(DEF_DIALPLAN_CONFNAME);
   if(tmp == NULL) {
     slog(LOG_ERR, "Could not get dialplan conf.");
-    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", json_string(tmp));
   sfree(tmp);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -86,10 +86,10 @@ void htp_put_dp_config(evhtp_request_t *req, void *data)
   }
   slog(LOG_DEBUG, "Fired htp_put_dp_config.");
 
-  tmp = get_text_from_request_data(req);
+  tmp = http_get_text_from_request_data(req);
   if(tmp == NULL) {
     slog(LOG_ERR, "Could not get data.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -98,15 +98,15 @@ void htp_put_dp_config(evhtp_request_t *req, void *data)
   sfree(tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not update dialplan config info.");
-    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -130,16 +130,16 @@ void htp_get_dp_dpmas(evhtp_request_t *req, void *data)
 
   j_tmp = get_dp_dpmas_all();
   if(j_tmp == NULL) {
-    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", json_object());
   json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
 
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -164,10 +164,10 @@ void htp_post_dp_dpmas(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_post_dp_dpmas.");
 
   // get data
-  j_data = get_json_from_request_data(req);
+  j_data = http_get_json_from_request_data(req);
   if(j_data == NULL) {
     // no request data
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -175,15 +175,15 @@ void htp_post_dp_dpmas(evhtp_request_t *req, void *data)
   ret = create_dpma_info(j_data);
   json_decref(j_data);
   if(ret == false) {
-    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -198,8 +198,7 @@ void htp_get_dp_dpmas_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
-  const char* tmp_const;
-  char* key;
+  char* detail;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -208,29 +207,28 @@ void htp_get_dp_dpmas_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_dp_dpmas_detail.");
 
   // key parse
-  tmp_const = req->uri->path->file;
-  key = uri_decode(tmp_const);
-  if(key == NULL) {
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
     slog(LOG_ERR, "Could not get key info.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
   // get info
-  j_tmp = get_dp_dpma_info(key);
-  sfree(key);
+  j_tmp = get_dp_dpma_info(detail);
+  sfree(detail);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get dp_dpma info.");
-    simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", j_tmp);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -246,7 +244,6 @@ void htp_put_dp_dpmas_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_data;
-  const char* tmp_const;
   char* detail;
   int ret;
 
@@ -257,20 +254,19 @@ void htp_put_dp_dpmas_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_put_dp_dpmas_detail.");
 
   // detail parse
-  tmp_const = req->uri->path->file;
-  detail = uri_decode(tmp_const);
+  detail = http_get_parsed_detail(req);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get detail info.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
   // get data
-  j_data = get_json_from_request_data(req);
+  j_data = http_get_json_from_request_data(req);
   if(j_data == NULL) {
     slog(LOG_ERR, "Could not get correct data from request.");
     sfree(detail);
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -280,15 +276,15 @@ void htp_put_dp_dpmas_detail(evhtp_request_t *req, void *data)
   json_decref(j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update dp_dpma info.");
-    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -302,7 +298,6 @@ void htp_put_dp_dpmas_detail(evhtp_request_t *req, void *data)
 void htp_delete_dp_dpmas_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
-  const char* tmp_const;
   char* detail;
   int ret;
 
@@ -313,11 +308,10 @@ void htp_delete_dp_dpmas_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_delete_dp_dpmas_detail.");
 
   // detail parse
-  tmp_const = req->uri->path->file;
-  detail = uri_decode(tmp_const);
+  detail = http_get_parsed_detail(req);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get name info.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -326,15 +320,15 @@ void htp_delete_dp_dpmas_detail(evhtp_request_t *req, void *data)
   sfree(detail);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete detail info.");
-    simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -358,16 +352,16 @@ void htp_get_dp_dialplans(evhtp_request_t *req, void *data)
 
   j_tmp = get_dp_dialplans_all();
   if(j_tmp == NULL) {
-    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", json_object());
   json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
 
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -392,10 +386,10 @@ void htp_post_dp_dialplans(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_post_dp_dialplans.");
 
   // get data
-  j_data = get_json_from_request_data(req);
+  j_data = http_get_json_from_request_data(req);
   if(j_data == NULL) {
     // no request data
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -403,15 +397,15 @@ void htp_post_dp_dialplans(evhtp_request_t *req, void *data)
   ret = create_dialplan_info(j_data);
   json_decref(j_data);
   if(ret == false) {
-    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -427,7 +421,6 @@ void htp_get_dp_dialplans_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
-  const char* tmp_const;
   char* detail;
 
   if(req == NULL) {
@@ -437,11 +430,10 @@ void htp_get_dp_dialplans_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_dp_dialplans_detail.");
 
   // detail parse
-  tmp_const = req->uri->path->file;
-  detail = uri_decode(tmp_const);
+  detail = http_get_parsed_detail(req);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get key info.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -450,16 +442,16 @@ void htp_get_dp_dialplans_detail(evhtp_request_t *req, void *data)
   sfree(detail);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get dp_dialplan info.");
-    simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", j_tmp);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -475,7 +467,6 @@ void htp_put_dp_dialplans_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_data;
-  const char* tmp_const;
   char* detail;
   int ret;
 
@@ -486,20 +477,19 @@ void htp_put_dp_dialplans_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_put_dp_dialplans_detail.");
 
   // detail parse
-  tmp_const = req->uri->path->file;
-  detail = uri_decode(tmp_const);
+  detail = http_get_parsed_detail(req);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get detail info.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
   // get data
-  j_data = get_json_from_request_data(req);
+  j_data = http_get_json_from_request_data(req);
   if(j_data == NULL) {
     slog(LOG_ERR, "Could not get correct data from request.");
     sfree(detail);
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -509,15 +499,15 @@ void htp_put_dp_dialplans_detail(evhtp_request_t *req, void *data)
   json_decref(j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update dp_dpma info.");
-    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -531,7 +521,6 @@ void htp_put_dp_dialplans_detail(evhtp_request_t *req, void *data)
 void htp_delete_dp_dialplans_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
-  const char* tmp_const;
   char* detail;
   int ret;
 
@@ -542,11 +531,10 @@ void htp_delete_dp_dialplans_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_delete_dp_dialplans_detail.");
 
   // detail parse
-  tmp_const = req->uri->path->file;
-  detail = uri_decode(tmp_const);
+  detail = http_get_parsed_detail(req);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get name info.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -555,15 +543,15 @@ void htp_delete_dp_dialplans_detail(evhtp_request_t *req, void *data)
   sfree(detail);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete detail info.");
-    simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;

@@ -125,12 +125,12 @@ void htp_get_park_parkinglots(evhtp_request_t *req, void *data)
   j_tmp = get_park_parkinglots_all();
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", json_object());
   json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -155,10 +155,10 @@ void htp_post_park_parkinglots(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_post_park_parkinglots.");
 
   // get data
-  j_data = get_json_from_request_data(req);
+  j_data = http_get_json_from_request_data(req);
   if(j_data == NULL) {
     // no request data
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -166,15 +166,15 @@ void htp_post_park_parkinglots(evhtp_request_t *req, void *data)
   ret = create_parkinglot_info(j_data);
   json_decref(j_data);
   if(ret == false) {
-    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -189,8 +189,7 @@ void htp_get_park_parkinglots_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
-  const char* tmp_const;
-  char* name;
+  char* detail;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -199,29 +198,28 @@ void htp_get_park_parkinglots_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_park_parking_lots_detail.");
 
   // name parse
-  tmp_const = req->uri->path->file;
-  name = uri_decode(tmp_const);
-  if(name == NULL) {
-    slog(LOG_ERR, "Could not get name info.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
   // get info
-  j_tmp = get_park_parkinglot_info(name);
-  sfree(name);
+  j_tmp = get_park_parkinglot_info(detail);
+  sfree(detail);
   if(j_tmp == NULL) {
-    slog(LOG_ERR, "Could not get name info.");
-    simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    slog(LOG_ERR, "Could not get detail info.");
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", j_tmp);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -237,7 +235,6 @@ void htp_put_park_parkinglots_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_data;
-  const char* tmp_const;
   char* detail;
   int ret;
 
@@ -248,20 +245,19 @@ void htp_put_park_parkinglots_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_put_park_parkinglots_detail.");
 
   // name parse
-  tmp_const = req->uri->path->file;
-  detail = uri_decode(tmp_const);
+  detail = http_get_parsed_detail(req);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get name info.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
   // get data
-  j_data = get_json_from_request_data(req);
+  j_data = http_get_json_from_request_data(req);
   if(j_data == NULL) {
     slog(LOG_ERR, "Could not get correct data from request.");
     sfree(detail);
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -271,15 +267,15 @@ void htp_put_park_parkinglots_detail(evhtp_request_t *req, void *data)
   json_decref(j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update parkinglot info.");
-    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -293,7 +289,6 @@ void htp_put_park_parkinglots_detail(evhtp_request_t *req, void *data)
 void htp_delete_park_parkinglots_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
-  const char* tmp_const;
   char* detail;
   int ret;
 
@@ -303,12 +298,11 @@ void htp_delete_park_parkinglots_detail(evhtp_request_t *req, void *data)
   }
   slog(LOG_DEBUG, "Fired htp_delete_park_parkinglots_detail.");
 
-  // name parse
-  tmp_const = req->uri->path->file;
-  detail = uri_decode(tmp_const);
+  // get detail
+  detail = http_get_parsed_detail(req);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get name info.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -317,15 +311,15 @@ void htp_delete_park_parkinglots_detail(evhtp_request_t *req, void *data)
   sfree(detail);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete detail info.");
-    simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -351,12 +345,12 @@ void htp_get_park_parkedcalls(evhtp_request_t *req, void *data)
   j_tmp = get_park_parkedcalls_all();
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", json_object());
   json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -371,8 +365,7 @@ void htp_get_park_parkedcalls_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
-  const char* tmp_const;
-  char* name;
+  char* detail;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input htp_get_park_parkedcalls_detail.");
@@ -381,29 +374,28 @@ void htp_get_park_parkedcalls_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_park_parking_lots_detail.");
 
   // name parse
-  tmp_const = req->uri->path->file;
-  name = uri_decode(tmp_const);
-  if(name == NULL) {
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
     slog(LOG_ERR, "Could not get name info.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
   // get info
-  j_tmp = get_park_parkedcall_info(name);
-  sfree(name);
+  j_tmp = get_park_parkedcall_info(detail);
+  sfree(detail);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get name info.");
-    simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", j_tmp);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -429,17 +421,17 @@ void htp_get_park_config(evhtp_request_t *req, void *data)
   res = get_ast_current_config_info_text(DEF_PARK_CONFNAME);
   if(res == NULL) {
     slog(LOG_ERR, "Could not get park conf.");
-    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", json_string(res));
   sfree(res);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -463,10 +455,10 @@ void htp_put_park_config(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_put_park_config.");
 
   // get data
-  req_data = get_text_from_request_data(req);
+  req_data = http_get_text_from_request_data(req);
   if(data == NULL) {
     slog(LOG_ERR, "Could not get data.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -475,15 +467,15 @@ void htp_put_park_config(evhtp_request_t *req, void *data)
   sfree(req_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update park config info.");
-    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -508,17 +500,17 @@ void htp_get_park_configs(evhtp_request_t *req, void *data)
   // get info
   j_tmp = get_ast_backup_configs_info_all(DEF_PARK_CONFNAME);
   if(j_tmp == NULL) {
-    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", json_object());
   json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -532,7 +524,6 @@ void htp_get_park_configs(evhtp_request_t *req, void *data)
 void htp_get_park_configs_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
-  const char* tmp_const;
   char* res;
   char* detail;
 
@@ -543,11 +534,10 @@ void htp_get_park_configs_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_park_configs_detail.");
 
   // detail parse
-  tmp_const = req->uri->path->file;
-  detail = uri_decode(tmp_const);
+  detail = http_get_parsed_detail(req);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get detail info.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -556,17 +546,17 @@ void htp_get_park_configs_detail(evhtp_request_t *req, void *data)
   sfree(detail);
   if(res == NULL) {
   	slog(LOG_NOTICE, "Could not get backup config info.");
-		simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+		http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
 		return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", json_string(res));
   sfree(res);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -580,7 +570,6 @@ void htp_get_park_configs_detail(evhtp_request_t *req, void *data)
 void htp_delete_park_configs_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
-  const char* tmp_const;
   char* detail;
   int ret;
 
@@ -591,11 +580,10 @@ void htp_delete_park_configs_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_delete_park_configs_detail.");
 
   // detail parse
-  tmp_const = req->uri->path->file;
-  detail = uri_decode(tmp_const);
+  detail = http_get_parsed_detail(req);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get detail info.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -604,15 +592,15 @@ void htp_delete_park_configs_detail(evhtp_request_t *req, void *data)
   sfree(detail);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not delete setting file.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -639,12 +627,12 @@ void htp_get_park_settings(evhtp_request_t *req, void *data)
   j_tmp = get_ast_settings_all(DEF_PARK_CONFNAME);
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", json_object());
   json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -669,10 +657,10 @@ void htp_post_park_settings(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_post_park_settings.");
 
   // get data
-  j_data = get_json_from_request_data(req);
+  j_data = http_get_json_from_request_data(req);
   if(j_data == NULL) {
   	slog(LOG_ERR, "Could not get data from request.");
-  	simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+  	http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
   	return;
   }
 
@@ -681,15 +669,15 @@ void htp_post_park_settings(evhtp_request_t *req, void *data)
   json_decref(j_data);
   if(ret == false) {
   	slog(LOG_ERR, "Could not create park setting.");
-  	simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+  	http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
 		return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -705,7 +693,6 @@ void htp_get_park_settings_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_tmp;
-  const char* tmp_const;
   char* detail;
 
   if(req == NULL) {
@@ -715,11 +702,10 @@ void htp_get_park_settings_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_park_settings_detail.");
 
   // detail parse
-  tmp_const = req->uri->path->file;
-  detail = uri_decode(tmp_const);
+  detail = http_get_parsed_detail(req);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get detail info.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -728,16 +714,16 @@ void htp_get_park_settings_detail(evhtp_request_t *req, void *data)
   sfree(detail);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get park setting.");
-    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", j_tmp);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -753,7 +739,6 @@ void htp_put_park_settings_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_data;
-  const char* tmp_const;
   char* detail;
   int ret;
 
@@ -764,20 +749,19 @@ void htp_put_park_settings_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_put_park_settings_detail.");
 
   // detail parse
-  tmp_const = req->uri->path->file;
-  detail = uri_decode(tmp_const);
+  detail = http_get_parsed_detail(req);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get detail info.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
   // get data
-  j_data = get_json_from_request_data(req);
+  j_data = http_get_json_from_request_data(req);
   if(j_data == NULL) {
     slog(LOG_ERR, "Could not get correct data from request.");
     sfree(detail);
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -787,15 +771,15 @@ void htp_put_park_settings_detail(evhtp_request_t *req, void *data)
   json_decref(j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update park setting.");
-    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -810,7 +794,6 @@ void htp_put_park_settings_detail(evhtp_request_t *req, void *data)
 void htp_delete_park_settings_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
-  const char* tmp_const;
   char* detail;
   int ret;
 
@@ -821,11 +804,10 @@ void htp_delete_park_settings_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_delete_park_settings_detail.");
 
   // detail parse
-  tmp_const = req->uri->path->file;
-  detail = uri_decode(tmp_const);
+  detail = http_get_parsed_detail(req);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get detail info.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -834,15 +816,15 @@ void htp_delete_park_settings_detail(evhtp_request_t *req, void *data)
   sfree(detail);
   if(ret == false) {
     slog(LOG_ERR, "Could not remove park setting.");
-    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;

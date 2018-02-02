@@ -185,11 +185,11 @@ void htp_post_user_login(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_queue_entries.");
 
   // get username/pass
-  ret = get_htp_id_pass(req, &username, &password);
+  ret = http_get_htp_id_pass(req, &username, &password);
   if(ret == false) {
     sfree(username);
     sfree(password);
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -198,7 +198,7 @@ void htp_post_user_login(evhtp_request_t *req, void *data)
   sfree(username);
   sfree(password);
   if(authtoken == NULL) {
-    simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
     return;
   }
 
@@ -208,11 +208,11 @@ void htp_post_user_login(evhtp_request_t *req, void *data)
   sfree(authtoken);
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", j_tmp);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -239,19 +239,19 @@ void htp_delete_user_login(evhtp_request_t *req, void *data)
   // get authtoken
   authtoken = evhtp_kv_find(req->uri->query, "authtoken");
   if(authtoken == NULL) {
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
   // delete authtoken
   ret = delete_user_authtoken_info(authtoken);
   if(ret == false) {
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
-  j_res = create_default_result(EVHTP_RES_OK);
-  simple_response_normal(req, j_res);
+  j_res = http_create_default_result(EVHTP_RES_OK);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -277,24 +277,24 @@ void htp_get_user_contacts(evhtp_request_t *req, void *data)
   // check authorization
   ret = is_authorized(req, DEF_PERM_ADMIN);
   if(ret == false) {
-    simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
     return;
   }
 
   // get info
   j_tmp = get_user_contacts_all();
   if(j_tmp == NULL) {
-    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", json_object());
   json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -321,14 +321,14 @@ void htp_post_user_contacts(evhtp_request_t *req, void *data)
   // check authorization
   ret = is_authorized(req, DEF_PERM_ADMIN);
   if(ret == false) {
-    simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
     return;
   }
 
   // get data
-  j_data = get_json_from_request_data(req);
+  j_data = http_get_json_from_request_data(req);
   if(j_data == NULL) {
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -336,15 +336,15 @@ void htp_post_user_contacts(evhtp_request_t *req, void *data)
   ret = create_contact(j_data);
   json_decref(j_data);
   if(ret == false) {
-    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -359,7 +359,6 @@ void htp_get_user_contacts_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_tmp;
-  const char* tmp_const;
   char* detail;
   int ret;
 
@@ -372,16 +371,15 @@ void htp_get_user_contacts_detail(evhtp_request_t *req, void *data)
   // check authorization
   ret = is_authorized(req, DEF_PERM_ADMIN);
   if(ret == false) {
-    simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
     return;
   }
 
   // detail parse
-  tmp_const = req->uri->path->file;
-  detail = uri_decode(tmp_const);
+  detail = http_get_parsed_detail(req);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get detail info.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -390,16 +388,16 @@ void htp_get_user_contacts_detail(evhtp_request_t *req, void *data)
   sfree(detail);
   if(j_tmp == NULL) {
     slog(LOG_NOTICE, "Could not find contact info.");
-    simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", j_tmp);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -414,7 +412,6 @@ void htp_put_user_contacts_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_data;
-  const char* tmp_const;
   char* detail;
   int ret;
 
@@ -427,24 +424,23 @@ void htp_put_user_contacts_detail(evhtp_request_t *req, void *data)
   // check authorization
   ret = is_authorized(req, DEF_PERM_ADMIN);
   if(ret == false) {
-    simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
     return;
   }
 
   // detail parse
-  tmp_const = req->uri->path->file;
-  detail = uri_decode(tmp_const);
+  detail = http_get_parsed_detail(req);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get detail info.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
-  j_data = get_json_from_request_data(req);
+  j_data = http_get_json_from_request_data(req);
   if(j_data == NULL) {
     slog(LOG_NOTICE, "Could not get data info.");
     sfree(detail);
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -453,15 +449,15 @@ void htp_put_user_contacts_detail(evhtp_request_t *req, void *data)
   sfree(detail);
   json_decref(j_data);
   if(ret == false) {
-    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
@@ -475,7 +471,6 @@ void htp_put_user_contacts_detail(evhtp_request_t *req, void *data)
 void htp_delete_user_contacts_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
-  const char* tmp_const;
   char* detail;
   int ret;
 
@@ -488,16 +483,15 @@ void htp_delete_user_contacts_detail(evhtp_request_t *req, void *data)
   // check authorization
   ret = is_authorized(req, DEF_PERM_ADMIN);
   if(ret == false) {
-    simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
     return;
   }
 
   // detail parse
-  tmp_const = req->uri->path->file;
-  detail = uri_decode(tmp_const);
+  detail = http_get_parsed_detail(req);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get detail info.");
-    simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
@@ -505,15 +499,15 @@ void htp_delete_user_contacts_detail(evhtp_request_t *req, void *data)
   ret = delete_user_contact_info(detail);
   sfree(detail);
   if(ret == false) {
-    simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
   }
 
   // create result
-  j_res = create_default_result(EVHTP_RES_OK);
+  j_res = http_create_default_result(EVHTP_RES_OK);
 
   // response
-  simple_response_normal(req, j_res);
+  http_simple_response_normal(req, j_res);
   json_decref(j_res);
 
   return;
