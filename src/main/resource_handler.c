@@ -36,6 +36,7 @@ static json_t* get_detail_item_key_string(db_ctx_t* ctx, const char* table, cons
 static json_t* get_detail_items_key_string(db_ctx_t* ctx, const char* table, const char* key, const char* val);
 static bool delete_items_string(db_ctx_t* ctx, const char* table, const char* key, const char* val);
 static json_t* get_detail_item_by_obj(db_ctx_t* ctx, const char* table, json_t* j_obj);
+static json_t* get_detail_items_by_obj(db_ctx_t* ctx, const char* table, json_t* j_obj);
 static json_t* get_detail_items_by_obj_order(db_ctx_t* ctx, const char* table, json_t* j_obj, const char* order);
 
 
@@ -55,6 +56,7 @@ static bool delete_jade_items_string(const char* table, const char* key, const c
 static json_t* get_jade_items(const char* table, const char* item);
 static json_t* get_jade_detail_item_key_string(const char* table, const char* key, const char* val);
 static json_t* get_jade_detail_item_by_obj(const char* table, json_t* j_obj);
+static json_t* get_jade_detail_items_by_obj(const char* table, json_t* j_obj);
 static json_t* get_jade_detail_items_by_obj_order(const char* table, json_t* j_obj, const char* order);
 
 
@@ -667,6 +669,54 @@ static json_t* get_detail_item_by_obj(db_ctx_t* ctx, const char* table, json_t* 
 }
 
 /**
+ * Get details info of key="val" from table. Get all items.
+ * "select * from <table> where <key>=<val>;"
+ * @param table
+ * @param item
+ * @return
+ */
+static json_t* get_detail_items_by_obj(db_ctx_t* ctx, const char* table, json_t* j_obj)
+{
+  int ret;
+  json_t* j_res;
+  json_t* j_tmp;
+  char* sql;
+  char* sql_cond;
+
+  if((ctx == NULL) || (table == NULL) || (j_obj == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_detail_items_by_obj. table[%s]", table);
+
+  sql_cond = db_ctx_get_select_str(j_obj);
+  if(sql_cond == NULL) {
+    return NULL;
+  }
+
+  asprintf(&sql, "select * from %s where %s;", table, sql_cond);
+  sfree(sql_cond);
+  ret = db_ctx_query(ctx, sql);
+  sfree(sql);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not get detail info.");
+    return NULL;
+  }
+
+  j_res = json_array();
+  while(true) {
+    j_tmp = db_ctx_get_record(ctx);
+    if(j_tmp == NULL) {
+      break;
+    }
+    json_array_append_new(j_res, j_tmp);
+  }
+  db_ctx_free(ctx);
+
+  return j_res;
+}
+
+/**
  * Get detail info of key="val" from table. Get all items.
  * "select * from <table> where <key>=<val>;"
  * @param table
@@ -1011,7 +1061,23 @@ static json_t* get_jade_detail_item_by_obj(const char* table, json_t* j_obj)
   }
 
   return j_res;
+}
 
+static json_t* get_jade_detail_items_by_obj(const char* table, json_t* j_obj)
+{
+  json_t* j_res;
+
+  if((table == NULL) || (j_obj == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  j_res = get_detail_items_by_obj(g_db_jade, table, j_obj);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
 }
 
 static json_t* get_jade_detail_items_by_obj_order(const char* table, json_t* j_obj, const char* order)
@@ -4562,6 +4628,41 @@ json_t* get_user_userinfo_info_by_username_pass(const char* username, const char
   return j_res;
 }
 
+json_t* get_user_userinfo_by_authtoken(const char* authtoken)
+{
+  json_t* j_auth;
+  json_t* j_user;
+  const char* user_uuid;
+
+  if(authtoken == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_user_userinfo_by_authtoken. authtoken[%s]", authtoken);
+
+  j_auth = get_user_authtoken_info(authtoken);
+  if(j_auth == NULL) {
+    slog(LOG_ERR, "Could not get authtoken info.");
+    return NULL;
+  }
+
+  user_uuid = json_string_value(json_object_get(j_auth, "user_uuid"));
+  if(user_uuid == NULL) {
+    slog(LOG_ERR, "Could not get user_uuid.");
+    json_decref(j_auth);
+    return NULL;
+  }
+
+  j_user = get_user_userinfo_info(user_uuid);
+  json_decref(j_auth);
+  if(j_user == NULL) {
+    slog(LOG_ERR, "Could not get user info.");
+    return NULL;
+  }
+
+  return j_user;
+}
+
 bool create_user_userinfo_info(const json_t* j_data)
 {
   int ret;
@@ -4696,6 +4797,38 @@ bool update_user_authtoken_info(const json_t* j_data)
   return true;
 }
 
+bool update_user_authtoken_tm_update(const char* uuid)
+{
+  json_t* j_token;
+  char* timestamp;
+  int ret;
+
+  if(uuid == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  j_token = get_user_authtoken_info(uuid);
+  if(j_token == NULL) {
+    slog(LOG_NOTICE, "Could not get authtoken info. uuid[%s]", uuid);
+    return false;
+  }
+
+  timestamp = get_utc_timestamp();
+  json_object_set_new(j_token, "tm_update", json_string(timestamp));
+  sfree(timestamp);
+
+  ret = update_user_authtoken_info(j_token);
+  json_decref(j_token);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update authtoken info. uuid[%s]", uuid);
+    return false;
+  }
+
+  return true;
+}
+
+
 /**
  * Delete user_authtoken info.
  * @param key
@@ -4774,6 +4907,26 @@ json_t* get_user_contacts_all(void)
   json_t* j_res;
 
   j_res = get_jade_items("user_contact", "*");
+  return j_res;
+}
+
+/**
+ * Returns conntact info array of given user_uuid.
+ * @param user_uuid
+ * @return
+ */
+json_t* get_user_contacts_by_user_uuid(const char* user_uuid)
+{
+  json_t* j_res;
+  json_t* j_obj;
+
+  j_obj = json_pack("{s:s}",
+      "user_uuid",  user_uuid
+      );
+
+  j_res = get_jade_detail_items_by_obj("user_contact", j_obj);
+  json_decref(j_obj);
+
   return j_res;
 }
 

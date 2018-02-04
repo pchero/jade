@@ -30,6 +30,7 @@
 #include "park_handler.h"
 #include "dialplan_handler.h"
 #include "user_handler.h"
+#include "me_handler.h"
 
 
 
@@ -70,6 +71,11 @@ static void cb_htp_dp_dialplans_detail(evhtp_request_t *req, void *data);
 static void cb_htp_dp_dpmas(evhtp_request_t *req, void *data);
 static void cb_htp_dp_dpmas_detail(evhtp_request_t *req, void *data);
 static void cb_htp_dp_config(evhtp_request_t *req, void *data);
+
+
+
+// me
+static void cb_htp_me_info(evhtp_request_t *req, void *data);
 
 
 // park
@@ -214,6 +220,14 @@ bool init_http_handler(void)
   // dpmas
   evhtp_set_regex_cb(g_htp, "^/dp/dpmas/(.*)", cb_htp_dp_dpmas_detail, NULL);
   evhtp_set_regex_cb(g_htp, "^/dp/dpmas$", cb_htp_dp_dpmas, NULL);
+
+
+
+  //// ^/me/
+  // info
+  evhtp_set_regex_cb(g_htp, "^/me/info$", cb_htp_me_info, NULL);
+
+
 
 
   ////// ^/ob/
@@ -699,6 +713,73 @@ char* http_get_parsed_detail(evhtp_request_t* req)
   }
 
   return detail;
+}
+
+char* http_get_authtoken(evhtp_request_t* req)
+{
+  char* res;
+  const char* tmp_const;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  // get authtoken
+  tmp_const = evhtp_kv_find(req->uri->query, "authtoken");
+  if(tmp_const == NULL) {
+    slog(LOG_NOTICE, "Could not get authtoken info.");
+    return NULL;
+  }
+
+  res = strdup(tmp_const);
+  return res;
+}
+
+bool http_is_request_has_permission(evhtp_request_t *req, const char* permission)
+{
+  json_t* j_user;
+  json_t* j_perm;
+  const char* user_uuid;
+  char* token;
+  int ret;
+
+  if((req == NULL) || (permission == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired http_is_request_has_permission. permission[%s]", permission);
+
+  token = http_get_authtoken(req);
+  if(token == NULL) {
+    slog(LOG_ERR, "Could not get authtoken.");
+    return false;
+  }
+
+  // update tm_update
+  ret = update_user_authtoken_tm_update(token);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update tm_update.");
+    sfree(token);
+    return false;
+  }
+
+  j_user = get_user_userinfo_by_authtoken(token);
+  sfree(token);
+  if(j_user == NULL) {
+    slog(LOG_ERR, "Could not get userinfo.");
+    return false;
+  }
+
+  user_uuid = json_string_value(json_object_get(j_user, "uuid"));
+  j_perm = get_user_permission_info_by_useruuid_perm(user_uuid, permission);
+  json_decref(j_user);
+  if(j_perm == NULL) {
+    return false;
+  }
+
+  json_decref(j_perm);
+  return true;
 }
 
 /**
@@ -3868,6 +3949,46 @@ static void cb_htp_user_contacts_detail(evhtp_request_t *req, void *data)
   }
   else if (method == htp_method_DELETE) {
     htp_delete_user_contacts_detail(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+
+  return;
+}
+
+/**
+ * http request handler
+ * ^/me/info
+ * @param req
+ * @param data
+ */
+static void cb_htp_me_info(evhtp_request_t *req, void *data)
+{
+  int method;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_me_info.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if(method != htp_method_GET) {
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // fire handlers
+  if(method == htp_method_GET) {
+    htp_get_me_info(req, data);
     return;
   }
   else {

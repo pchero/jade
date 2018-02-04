@@ -27,5 +27,9 @@ char* http_get_text_from_request_data(evhtp_request_t* req);
 char* http_get_parsed_detail(evhtp_request_t* req);
 
 bool http_get_htp_id_pass(evhtp_request_t* req, char** agent_uuid, char** agent_pass);
+char* http_get_authtoken(evhtp_request_t* req);
+
+bool http_is_request_has_permission(evhtp_request_t *req, const char* permission);
+
 
 #endif /* BACKEND_SRC_HTTP_HANDLER_H_ */
