@@ -182,9 +182,15 @@ json_t* get_sip_registry_info(const char* account);
 
 
 ////// user
+#define DEF_USER_CONTACT_TYPE_PEER       "sip_peer"
+#define DEF_USER_CONTACT_TYPE_ENDPOINT   "pjsip_endpoint"
+#define DEF_USER_PERM_ADMIN    "admin"
+#define DEF_USER_PERM_USER     "user"
+
 json_t* get_user_userinfo_info(const char* key);
 json_t* get_user_userinfo_info_by_username(const char* key);
 json_t* get_user_userinfo_info_by_username_pass(const char* username, const char* pass);
+json_t* get_user_userinfo_by_authtoken(const char* authtoken);
 bool create_user_userinfo_info(const json_t* j_data);
 bool update_user_userinfo_info(const json_t* j_data);
 bool delete_user_userinfo_info(const char* key);
@@ -193,12 +199,14 @@ json_t* get_user_authtokens_all(void);
 json_t* get_user_authtoken_info(const char* key);
 bool create_user_authtoken_info(const json_t* j_data);
 bool update_user_authtoken_info(const json_t* j_data);
+bool update_user_authtoken_tm_update(const char* uuid);
 bool delete_user_authtoken_info(const char* key);
 
 bool create_user_permission_info(const json_t* j_data);
 json_t* get_user_permission_info_by_useruuid_perm(const char* useruuid, const char* perm);
 
 json_t* get_user_contacts_all(void);
+json_t* get_user_contacts_by_user_uuid(const char* user_uuid);
 json_t* get_user_contact_info(const char* key);
 bool create_user_contact_info(const json_t* j_data);
 bool update_user_contact_info(const json_t* j_data);
