@@ -21,6 +21,7 @@
 
 #define DEF_CONF_FILENAME "./jade.conf"
 
+#define DEF_GENERAL_AST_SERV_ADDR "127.0.0.1"
 #define DEF_GENERAL_AMI_SERV_ADDR "127.0.0.1"
 #define DEF_GENERAL_AMI_SERV_PORT "5038"
 #define DEF_GENERAL_HTTP_ADDR "0.0.0.0"
@@ -109,7 +110,7 @@ static bool load_config(void)
   // create default conf
   j_conf_def = json_pack("{"
       "s:{"
-      	"s:s, s:s, s:s, s:s, s:s, "
+      	"s:s, s:s, s:s, s:s, s:s, s:s, "
       	"s:s, s:s, "
       	"s:s, s:s, "
         "s:s, s:s, s:s, "
@@ -120,6 +121,7 @@ static bool load_config(void)
       "s:{s:s, s:s, s:s}"	// ob
       "}",
       "general",
+        "ast_serv_addr",    DEF_GENERAL_AST_SERV_ADDR,
         "ami_serv_addr",    DEF_GENERAL_AMI_SERV_ADDR,
         "ami_serv_port",    DEF_GENERAL_AMI_SERV_PORT,
         "ami_username",     "",

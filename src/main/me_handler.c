@@ -5,12 +5,15 @@
  *      Author: pchero
  */
 
+#define _GNU_SOURCE
+
 #include <stdio.h>
 #include <stdbool.h>
 #include <jansson.h>
 #include <string.h>
 
 #include "slog.h"
+#include "common.h"
 #include "utils.h"
 
 #include "http_handler.h"
@@ -21,6 +24,10 @@
 
 
 static json_t* get_me_info(const char* authtoken);
+
+static json_t* get_contact_info(const char* type, const char* target);
+static json_t* get_contact_info_pjsip(const char* target);
+static json_t* get_contact_info_sip(const char* target);
 
 bool init_me_handler(void)
 {
@@ -148,14 +155,10 @@ static json_t* get_me_info(const char* authtoken)
       continue;
     }
 
-    if(strcmp(contact_type, DEF_USER_CONTACT_TYPE_ENDPOINT) == 0) {
-      j_tmp = get_pjsip_endpoint_info(contact_target);
-    }
-    else if(strcmp(contact_type, DEF_USER_CONTACT_TYPE_PEER) == 0) {
-      j_tmp = get_sip_peer_info(contact_target);
-    }
-    else {
-      slog(LOG_WARNING, "Wrong contact type. type[%s], target[%s]", contact_type, contact_target);
+    // get contact info
+    j_tmp = get_contact_info(contact_type, contact_target);
+    if(j_tmp == NULL) {
+      slog(LOG_NOTICE, "Could not get contact info. contact_type[%s], contact_target[%s]", contact_type, contact_target);
       continue;
     }
 
@@ -167,3 +170,121 @@ static json_t* get_me_info(const char* authtoken)
   return j_res;
 }
 
+static json_t* get_contact_info(const char* type, const char* target)
+{
+  json_t* j_tmp;
+
+  if((type == NULL) || (target == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_contact_info. type[%s], target[%s]", type, target);
+
+  if(strcmp(type, DEF_USER_CONTACT_TYPE_ENDPOINT) == 0) {
+    j_tmp = get_contact_info_pjsip(target);
+  }
+  else if(strcmp(type, DEF_USER_CONTACT_TYPE_PEER) == 0) {
+    j_tmp = get_contact_info_sip(target);
+  }
+  else {
+    slog(LOG_WARNING, "Wrong contact type. type[%s], target[%s]", type, target);
+    j_tmp = NULL;
+  }
+
+  return j_tmp;
+}
+
+static json_t* get_contact_info_pjsip(const char* target)
+{
+  json_t* j_res;
+  json_t* j_endpoint;
+  json_t* j_auth;
+  char* pub_url;  // public url
+
+  if(target == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_contact_info_pjsip. target[%s]", target);
+
+  j_endpoint = get_pjsip_endpoint_info(target);
+  if(j_endpoint == NULL) {
+    slog(LOG_NOTICE, "Could not get pjsip endpoint info.");
+    return NULL;
+  }
+
+  j_auth = get_pjsip_auth_info(json_string_value(json_object_get(j_endpoint, "auth")));
+  if(j_auth == NULL) {
+    slog(LOG_NOTICE, "Could not get pjsip auth info.");
+    json_decref(j_endpoint);
+    return NULL;
+  }
+
+  // create full url
+  // sip:rtcagent-01@192.168.200.14
+  asprintf(&pub_url, "sip:%s@%s",
+      json_string_value(json_object_get(j_endpoint, "object_name")),
+      json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "ast_serv_addr"))
+      );
+
+  j_res = json_pack("{"
+      "s:s, s:s, s:s, s:s"
+      "}",
+
+      "realm",        "localhost",
+      "id",           json_string_value(json_object_get(j_endpoint, "object_name")),
+      "password",     json_string_value(json_object_get(j_auth, "password")),
+      "public_url",   pub_url
+      );
+  sfree(pub_url);
+  json_decref(j_endpoint);
+  json_decref(j_auth);
+
+  return j_res;
+}
+
+static json_t* get_contact_info_sip(const char* target)
+{
+  if(target == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_contact_info_sip. target[%s]", target);
+
+  // currently, jade does not support chan_sip for this.
+  // because, it's ami action does not support to getting sip peer's password
+  return NULL;
+
+//  j_endpoint = get_pjsip_endpoint_info(target);
+//  if(j_endpoint == NULL) {
+//    slog(LOG_NOTICE, "Could not get sip peer info.");
+//    return NULL;
+//  }
+//
+//  j_auth = get_pjsip_auth_info(json_string_value(json_object_get(j_endpoint, "auth")));
+//  if(j_auth == NULL) {
+//    slog(LOG_NOTICE, "Could not get pjsip auth info.");
+//    json_decref(j_endpoint);
+//    return NULL;
+//  }
+//
+//  // create full url
+//  // sip:rtcagent-01@192.168.200.14
+//  asprintf(&full_url, "sip:%s@%s",
+//      json_string_value(json_object_get(j_endpoint, "object_name")),
+//      json_string_value(json_object_get(g_app->j_conf, "ast_serv_addr"))
+//      );
+//
+//  j_res = json_pack("{"
+//      "s:s, s:s, s:s, s:s"
+//      "}",
+//
+//      "realm",        "localhost",
+//      "id",           json_string_value(json_object_get(j_endpoint, "object_name")),
+//      "password",     json_string_value(json_object_get(j_auth, "password")),
+//      "full_url",     full_url
+//      );
+//  sfree(full_url);
+//  json_decref(j_endpoint);
+//  json_decref(j_auth);
+}
