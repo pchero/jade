@@ -54,8 +54,8 @@ Example
 +++++++
 ::
 
-  $ curl -X POST localhost:8081/user/contacts -d \
-    '{"user_uuid": "b47977bc-913a-44d9-aaa9-33cc10970c30", "type": "pjsip_endpoint", "target": "pjagent-01", "name": "test target", "detail": "test target detail"}'
+  $ curl -X POST localhost:8081/user/contacts\?authtoken=674b1d39-9c48-476c-951c-a6a172500f06 -d \
+    '{"user_uuid": "59e3a7d5-b05f-43cd-abdf-db7009eed6cf", "type": "pjsip_endpoint", "target": "rtcagent-01", "name": "test target", "detail": "test target detail"}'
   
   {"api_ver": "0.1", "timestamp": "2018-02-04T01:34:34.983477950Z", "statuscode": 200}
 
