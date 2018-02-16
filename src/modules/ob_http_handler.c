@@ -28,7 +28,7 @@
 #include "ob_plan_handler.h"
 #include "ob_dlma_handler.h"
 
-extern evhtp_t* g_htp;
+extern evhtp_t* g_htps;
 
 ///// outbound modules
 
