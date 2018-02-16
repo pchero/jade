@@ -24,8 +24,9 @@
 #define DEF_GENERAL_AST_SERV_ADDR "127.0.0.1"
 #define DEF_GENERAL_AMI_SERV_ADDR "127.0.0.1"
 #define DEF_GENERAL_AMI_SERV_PORT "5038"
-#define DEF_GENERAL_HTTP_ADDR "0.0.0.0"
-#define DEF_GENERAL_HTTP_PORT "8081"
+#define DEF_GENERAL_HTTPS_ADDR "0.0.0.0"
+#define DEF_GENERAL_HTTPS_PORT "8081"
+#define DEF_GENERAL_HTTPS_PEMFILE "./jade.pem"
 #define DEF_GENERAL_ZMQ_ADDR_PUBLISH "tcp://*:8082"   // zmq address for publish
 #define DEF_GENERAL_WEBSOCK_ADDR "0.0.0.0"
 #define DEF_GENERAL_WEBSOCK_PORT "8083"
@@ -112,7 +113,7 @@ static bool load_config(void)
       "s:{"
       	"s:s, s:s, s:s, s:s, s:s, s:s, "
       	"s:s, s:s, "
-      	"s:s, s:s, "
+      	"s:s, s:s, s:s, "
         "s:s, s:s, s:s, "
       	"s:s, s:s, "
       	"s:s, s:s "
@@ -131,8 +132,9 @@ static bool load_config(void)
         "database_name_ast",    DEF_GENERAL_DATABASE_NAME_AST,
         "database_name_jade",   DEF_GENERAL_DATABASE_NAME_JADE,
 
-        "http_addr",        DEF_GENERAL_HTTP_ADDR,
-        "http_port",        DEF_GENERAL_HTTP_PORT,
+        "https_addr",       DEF_GENERAL_HTTPS_ADDR,
+        "https_port",       DEF_GENERAL_HTTPS_PORT,
+        "https_pemfile",    DEF_GENERAL_HTTPS_PEMFILE,
 
         "zmq_addr_pub",     DEF_GENERAL_ZMQ_ADDR_PUBLISH,
         "websock_addr",     DEF_GENERAL_WEBSOCK_ADDR,
