@@ -11,6 +11,11 @@
 #include <stdbool.h>
 #include <jansson.h>
 
+#define DEF_PUB_TYPE_CREATE   "create"
+#define DEF_PUB_TYPE_UPDATE   "update"
+#define DEF_PUB_TYPE_DELETE   "delete"
+
+
 bool publish_event_core_channel(const char* type, json_t* j_data);
 bool publish_event_core_agi(const char* type, json_t* j_data);
 bool publish_event_core_module(const char* type, json_t* j_data);

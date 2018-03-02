@@ -15,6 +15,7 @@
 
 #include "http_handler.h"
 #include "resource_handler.h"
+#include "sip_handler.h"
 
 #include "user_handler.h"
 
