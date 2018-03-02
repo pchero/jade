@@ -36,6 +36,8 @@ static bool init_sip_info_registry(void);
 static bool init_sip_info_peer(void);
 static bool init_sip_info_peeraccount(void);
 
+static bool term_sip_database(void);
+
 
 bool init_sip_handler(void)
 {
@@ -64,7 +66,7 @@ bool term_sip_handler(void)
 {
   int ret;
 
-  ret = clear_sip();
+  ret = term_sip_database();
   if(ret == false) {
     slog(LOG_ERR, "Could not clear sip.");
     return false;
@@ -1018,6 +1020,26 @@ bool create_sip_peeraccount_info(const json_t* j_data)
 }
 
 /**
+ * Get given peeraccount's detail info.
+ * @param peer
+ * @return
+ */
+json_t* get_sip_peeraccount_info(const char* peer)
+{
+  json_t* j_res;
+
+  if(peer == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_sip_peeraccount_info.");
+
+  j_res = get_ast_detail_item_key_string(DEF_DB_TABLE_SIP_PEERACCOUNT, "peer", peer);
+
+  return j_res;
+}
+
+/**
  * Get given peer's detail info.
  * @return
  */
@@ -1026,12 +1048,13 @@ json_t* get_sip_peer_info(const char* peer)
   json_t* j_res;
 
   if(peer == NULL) {
-    slog(LOG_WARNING, "Wrong parameter.");
+    slog(LOG_WARNING, "Wrong input parameter.");
     return NULL;
   }
-  slog(LOG_DEBUG, "Fired get_sip_peer_detail.");
+  slog(LOG_DEBUG, "Fired get_sip_peer_info.");
 
   j_res = get_ast_detail_item_key_string(DEF_DB_TABLE_SIP_PEER, "peer", peer);
+
   return j_res;
 }
 
@@ -1363,7 +1386,41 @@ bool delete_sip_registry_info(const char* key)
     return false;
   }
 
+  return true;
+}
+
+/**
+ * Clear all sip resources.
+ * @return
+ */
+static bool term_sip_database(void)
+{
+  int ret;
+
+  // peer
+  ret = clear_ast_table(DEF_DB_TABLE_SIP_PEER);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not clear sip table. table[%s]", DEF_DB_TABLE_SIP_PEER);
+    return false;
+  }
+
+  // peeraccount
+  ret = clear_ast_table(DEF_DB_TABLE_SIP_PEERACCOUNT);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not clear sip table. table[%s]", DEF_DB_TABLE_SIP_PEERACCOUNT);
+    return false;
+  }
+
+  // registry
+  ret = clear_ast_table(DEF_DB_TABLE_SIP_REGISTRY);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not clear table. table[%s]", DEF_DB_TABLE_SIP_REGISTRY);
+    return false;
+  }
 
   return true;
 }
+
+
+
 

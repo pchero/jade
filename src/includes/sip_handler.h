@@ -35,12 +35,6 @@ void htp_get_sip_settings_detail(evhtp_request_t *req, void *data);
 void htp_put_sip_settings_detail(evhtp_request_t *req, void *data);
 
 
-
-
-
-////// sip
-bool clear_sip(void);
-
 // sip_peer
 bool create_sip_peer_info(const json_t* j_data);
 bool update_sip_peer_info(const json_t* j_data);
@@ -57,9 +51,9 @@ json_t* get_sip_registries_all_account(void);
 json_t* get_sip_registries_all(void);
 json_t* get_sip_registry_info(const char* account);
 
-
 // sip_peeraccount
 bool create_sip_peeraccount_info(const json_t* j_data);
+json_t* get_sip_peeraccount_info(const char* peer);
 
 
 #endif /* SRC_SIP_HANDLER_H_ */

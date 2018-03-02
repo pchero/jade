@@ -3178,31 +3178,6 @@ bool update_core_module_info(const json_t* j_data)
 }
 
 /**
- * Clear all sip resources.
- * @return
- */
-bool clear_sip(void)
-{
-  int ret;
-
-  ret = clear_ast_table(DEF_DB_TABLE_SIP_PEER);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not clear sip_peer");
-    return false;
-  }
-
-  ret = clear_ast_table("registry");
-  if(ret == false) {
-    slog(LOG_ERR, "Could not clear pjsip_aor");
-    return false;
-  }
-
-  return true;
-}
-
-
-
-/**
  * Create agent agent info.
  * @param j_data
  * @return
