@@ -17,35 +17,45 @@
 #include "http_handler.h"
 #include "sip_handler.h"
 #include "resource_handler.h"
+#include "publish_handler.h"
 
 #define DEF_SIP_CONFNAME  "sip.conf"
+
+#define DEF_DB_TABLE_SIP_PEER           "sip_peer"
+#define DEF_DB_TABLE_SIP_PEERACCOUNT    "sip_peeraccount"
+#define DEF_DB_TABLE_SIP_REGISTRY       "sip_registry"
+
+
+static bool init_sip_database(void);
+static bool init_sip_database_peer(void);
+static bool init_sip_database_peeraccount(void);
+static bool init_sip_database_registry(void);
+
+static bool init_sip_info(void);
+static bool init_sip_info_registry(void);
+static bool init_sip_info_peer(void);
+static bool init_sip_info_peeraccount(void);
+
+static bool term_sip_database(void);
+
 
 bool init_sip_handler(void)
 {
   int ret;
-  json_t* j_tmp;
 
   slog(LOG_DEBUG, "Fired init_sip_handler.");
 
-  // sip peers
-  j_tmp = json_pack("{s:s}",
-      "Action", "SipPeers"
-      );
-  ret = send_ami_cmd(j_tmp);
-  json_decref(j_tmp);
+  // init database
+  ret = init_sip_database();
   if(ret == false) {
-    slog(LOG_ERR, "Could not send ami action. action[%s]", "SipPeers");
+    slog(LOG_ERR, "Could not initiate sip database.");
     return false;
   }
 
-  // registry
-  j_tmp = json_pack("{s:s}",
-      "Action", "SIPshowregistry"
-      );
-  ret = send_ami_cmd(j_tmp);
-  json_decref(j_tmp);
+  // init info
+  ret = init_sip_info();
   if(ret == false) {
-    slog(LOG_ERR, "Could not send ami action. action[%s]", "SIPshowregistry");
+    slog(LOG_ERR, "Could not initiate sip info.");
     return false;
   }
 
@@ -56,7 +66,7 @@ bool term_sip_handler(void)
 {
   int ret;
 
-  ret = clear_sip();
+  ret = term_sip_database();
   if(ret == false) {
     slog(LOG_ERR, "Could not clear sip.");
     return false;
@@ -81,6 +91,173 @@ bool reload_sip_handler(void)
 
   return true;
 }
+
+static bool init_sip_database_peer(void)
+{
+  int ret;
+  const char* drop_table;
+  const char* create_table;
+
+  drop_table = "drop table if exists " DEF_DB_TABLE_SIP_PEER ";";
+  create_table =
+      "create table " DEF_DB_TABLE_SIP_PEER " ("
+
+      // identity
+      "   peer         varchar(255)    not null,"
+      "   status       varchar(255),"
+      "   address      varchar(255),"     // ip_address:port
+
+      // peer info
+      "   channel_type     varchar(255),"   // channel type(SIP, ...)
+      "   chan_object_type varchar(255),"   // (peer, ...)
+      "   monitor_status   varchar(255),"
+
+      "   dynamic          varchar(255),"   // dynamic(yes, ...)
+      "   auto_force_port  varchar(255),"   //
+      "   force_port       varchar(255),"   //
+      "   auto_comedia     varchar(255),"   //
+      "   comedia          varchar(255),"   //
+      "   video_support    varchar(255),"   //
+      "   text_support     varchar(255),"   //
+
+      "   acl              varchar(255),"   //
+      "   realtime_device  varchar(255),"   //
+      "   description      varchar(255),"   //
+
+      // timestamp. UTC."
+      "   tm_update        datetime(6),"   // update time."
+
+      "   primary key(peer)"
+
+      ");";
+
+  // execute
+  ret = exec_ast_sql(drop_table);
+  ret = exec_ast_sql(create_table);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate sip_peer database.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Initiate sip_peeraccount database.
+ * @return true:success, false:failed
+ */
+static bool init_sip_database_peeraccount(void)
+{
+  int ret;
+  const char* drop_table;
+  const char* create_table;
+
+  drop_table = "drop table if exists " DEF_DB_TABLE_SIP_PEERACCOUNT ";";
+  create_table =
+      "create table " DEF_DB_TABLE_SIP_PEERACCOUNT " ("
+
+      // identity
+      "   peer         varchar(255)    not null,"
+      "   secret       varchar(255),"
+
+      // info
+      "   host       varchar(255),"
+      "   context    varchar(255),"
+      "   type       varchar(255),"
+
+      // timestamp. UTC."
+      "   tm_update        datetime(6),"   // update time."
+
+      "   primary key(peer)"
+
+      ");";
+
+  // execute
+  ret = exec_ast_sql(drop_table);
+  ret = exec_ast_sql(create_table);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate sip_peeraccount database.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Initiate sip_registry database.
+ * @return true:success, false:failed
+ */
+static bool init_sip_database_registry(void)
+{
+  int ret;
+  const char* drop_table;
+  const char* create_table;
+
+  drop_table = "drop table if exists " DEF_DB_TABLE_SIP_REGISTRY ";";
+  create_table =
+      "create table " DEF_DB_TABLE_SIP_REGISTRY "("
+
+      // identity
+      "   account     varchar(255),"
+      "   username    varchar(255),"
+      "   host        varchar(255),"
+      "   port        int,"
+
+      // info
+      "   domain            varchar(255),"
+      "   domain_port       int,"
+      "   refresh           int,"
+      "   state             text,"
+      "   registration_time int,"
+
+      // timestamp. UTC."
+      "   tm_update         datetime(6),"   // update time."
+
+      "   primary key(account)"
+
+      ");";
+
+  // execute
+  ret = exec_ast_sql(drop_table);
+  ret = exec_ast_sql(create_table);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate sip_registry database.");
+    return false;
+  }
+
+  return true;
+}
+
+
+/**
+ * Initiate sip database.
+ * @return
+ */
+static bool init_sip_database(void)
+{
+  int ret;
+
+  ret = init_sip_database_peer();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate sip_peer database.");
+    return false;
+  }
+
+  ret = init_sip_database_peeraccount();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate sip_peeraccount database.");
+    return false;
+  }
+
+  ret = init_sip_database_registry();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate sip_registry database.");
+    return false;
+  }
+
+  return true;
+}
+
 /**
  * GET ^/sip/peers/(*) request handler.
  * @param req
@@ -678,5 +855,572 @@ void htp_delete_sip_settings_detail(evhtp_request_t *req, void *data)
 
   return;
 }
+
+/**
+ * Initiate all sip info.
+ * @return
+ */
+static bool init_sip_info(void)
+{
+  int ret;
+
+  ret = init_sip_info_peer();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate sip_peer info.");
+    return false;
+  }
+
+  ret = init_sip_info_registry();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate sip_registry info.");
+    return false;
+  }
+
+  ret = init_sip_info_peeraccount();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate sip_peeraccount info.");
+    return false;
+  }
+
+
+  return true;
+}
+
+/**
+ * Initiate sip registry info.
+ * @return
+ */
+static bool init_sip_info_registry(void)
+{
+  json_t* j_tmp;
+  int ret;
+
+  // registry
+  j_tmp = json_pack("{s:s}",
+      "Action", "SIPshowregistry"
+      );
+  ret = send_ami_cmd(j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not send ami action. action[%s]", "SIPshowregistry");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Initiate sip peer info.
+ * @return
+ */
+static bool init_sip_info_peer(void)
+{
+  json_t* j_tmp;
+  int ret;
+
+  // sip peers
+  j_tmp = json_pack("{s:s}",
+      "Action", "SipPeers"
+      );
+  ret = send_ami_cmd(j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not send ami action. action[%s]", "SipPeers");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Init sip peeraccount info.
+ * @return
+ */
+static bool init_sip_info_peeraccount(void)
+{
+  int ret;
+  json_t* j_conf;
+  json_t* j_tmp;
+  json_t* j_info;
+  char* timestamp;
+  const char* key;
+
+  j_conf = get_ast_current_config_info(DEF_SIP_CONFNAME);
+  if(j_conf == NULL) {
+    slog(LOG_ERR, "Could not load sip config info.");
+    return false;
+  }
+
+  timestamp = get_utc_timestamp();
+  json_object_foreach(j_conf, key, j_tmp) {
+    if(key == NULL) {
+      continue;
+    }
+
+    // check
+    if((strcmp(key, "general") == 0) || (strcmp(key, "authentication") == 0)) {
+      continue;
+    }
+
+    // create peeraccount
+    j_info = json_pack("{"
+        "s:s, s:s,"
+        "s:s, s:s, s:s,"
+        "s:s "
+        "}",
+
+        "peer",     key,
+        "secret",   json_string_value(json_object_get(j_tmp, "secret"))? : "",
+
+        "type",     json_string_value(json_object_get(j_tmp, "type"))? : "",
+        "host",     json_string_value(json_object_get(j_tmp, "host"))? : "",
+        "context",  json_string_value(json_object_get(j_tmp, "context"))? : "",
+
+        "tm_update", timestamp
+        );
+
+    ret = create_sip_peeraccount_info(j_info);
+    json_decref(j_info);
+    if(ret == false) {
+      slog(LOG_ERR, "Could not create peeraccount info. peer[%s]", key);
+      json_decref(j_conf);
+      sfree(timestamp);
+      return false;
+    }
+  }
+
+  json_decref(j_conf);
+  sfree(timestamp);
+  return true;
+}
+
+/**
+ * Create sip peeraccount info.
+ * @param j_data
+ * @return
+ */
+bool create_sip_peeraccount_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired create_sip_peeraccount_info.");
+
+  // insert peeraccount info
+  ret = insert_ast_item(DEF_DB_TABLE_SIP_PEERACCOUNT, j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert sip peeraccount.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Get given peeraccount's detail info.
+ * @param peer
+ * @return
+ */
+json_t* get_sip_peeraccount_info(const char* peer)
+{
+  json_t* j_res;
+
+  if(peer == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_sip_peeraccount_info.");
+
+  j_res = get_ast_detail_item_key_string(DEF_DB_TABLE_SIP_PEERACCOUNT, "peer", peer);
+
+  return j_res;
+}
+
+/**
+ * Get given peer's detail info.
+ * @return
+ */
+json_t* get_sip_peer_info(const char* peer)
+{
+  json_t* j_res;
+
+  if(peer == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_sip_peer_info.");
+
+  j_res = get_ast_detail_item_key_string(DEF_DB_TABLE_SIP_PEER, "peer", peer);
+
+  return j_res;
+}
+
+/**
+ * Get all peers array
+ * @return
+ */
+json_t* get_sip_peers_all_peer(void)
+{
+  json_t* j_res;
+
+  slog(LOG_DEBUG, "Fired get_sip_peers_all_peer.");
+
+  j_res = get_ast_items(DEF_DB_TABLE_SIP_PEER, "peer");
+
+  return j_res;
+}
+
+/**
+ * Get all peers array
+ * @return
+ */
+json_t* get_sip_peers_all(void)
+{
+  json_t* j_res;
+
+  slog(LOG_DEBUG, "Fired get_sip_peers_all.");
+
+  j_res = get_ast_items(DEF_DB_TABLE_SIP_PEER, "*");
+
+  return j_res;
+}
+
+/**
+ * Get all registry account array
+ * @return
+ */
+json_t* get_sip_registries_all_account(void)
+{
+  json_t* j_res;
+
+  slog(LOG_DEBUG, "Fired get_sip_registries_all_account.");
+
+  j_res = get_ast_items(DEF_DB_TABLE_SIP_REGISTRY, "account");
+
+  return j_res;
+}
+
+/**
+ * Get corresponding registry info.
+ * @return
+ */
+json_t* get_sip_registry_info(const char* account)
+{
+  json_t* j_res;
+
+  if(account == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_sip_registry_info. account[%s]", account);
+
+  j_res = get_ast_detail_item_key_string(DEF_DB_TABLE_SIP_REGISTRY, "account", account);
+
+  return j_res;
+}
+
+/**
+ * Get all registries array
+ * @return
+ */
+json_t* get_sip_registries_all(void)
+{
+  json_t* j_res;
+
+  j_res = get_ast_items(DEF_DB_TABLE_SIP_REGISTRY, "*");
+  return j_res;
+}
+
+/**
+ * Create sip peer info.
+ * @param j_data
+ * @return
+ */
+bool create_sip_peer_info(const json_t* j_data)
+{
+  int ret;
+  const char* tmp_const;
+  json_t* j_tmp;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired create_sip_peer_info.");
+
+  // insert peer info
+  ret = insert_ast_item(DEF_DB_TABLE_SIP_PEER, j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert sip peer..");
+    return false;
+  }
+
+  // publish
+  // get info
+  tmp_const = json_string_value(json_object_get(j_data, "peer"));
+  j_tmp = get_sip_peer_info(tmp_const);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get sip_peer info. peer[%s]", tmp_const);
+    return false;
+  }
+
+  // publish event
+  ret = publish_event_sip_peer(DEF_PUB_TYPE_CREATE, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Update sip peer info.
+ * @param j_data
+ * @return
+ */
+bool update_sip_peer_info(const json_t* j_data)
+{
+  int ret;
+  const char* tmp_const;
+  json_t* j_tmp;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired update_sip_peer_info.");
+
+  ret = update_ast_item(DEF_DB_TABLE_SIP_PEER, "peer", j_data);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not update sip peer info.");
+    return false;
+  }
+
+  // publish
+  // get info
+  tmp_const = json_string_value(json_object_get(j_data, "peer"));
+  j_tmp = get_sip_peer_info(tmp_const);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get sip_peer info. peer[%s]", tmp_const);
+    return false;
+  }
+
+  // publish event
+  ret = publish_event_sip_peer(DEF_PUB_TYPE_UPDATE, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * delete sip peer info.
+ * @return
+ */
+bool delete_sip_peer_info(const char* key)
+{
+  int ret;
+  json_t* j_tmp;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired delete_sip_peer_info. peer[%s]", key);
+
+  // get info
+  j_tmp = get_sip_peer_info(key);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get sip_peer info. peer[%s]", key);
+    return false;
+  }
+
+  ret = delete_ast_items_string(DEF_DB_TABLE_SIP_PEER, "peer", key);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not delete sip peer info. name[%s]", key);
+    json_decref(j_tmp);
+    return false;
+  }
+
+  // publish
+  // publish event
+  ret = publish_event_sip_peer(DEF_PUB_TYPE_DELETE, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Create sip registry info.
+ * @param j_data
+ * @return
+ */
+bool create_sip_registry_info(const json_t* j_data)
+{
+  int ret;
+  const char* tmp_const;
+  json_t* j_tmp;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired create_sip_registry_info.");
+
+  // insert queue info
+  ret = insert_ast_item(DEF_DB_TABLE_SIP_REGISTRY, j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert sip registry.");
+    return false;
+  }
+
+  // publish
+  // get info
+  tmp_const = json_string_value(json_object_get(j_data, "account"));
+  j_tmp = get_sip_registry_info(tmp_const);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get sip_registry info. account[%s]", tmp_const);
+    return false;
+  }
+
+  // publish event
+  ret = publish_event_sip_registry(DEF_PUB_TYPE_CREATE, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Update sip registry info.
+ * @param j_data
+ * @return
+ */
+bool update_sip_registry_info(const json_t* j_data)
+{
+  int ret;
+  const char* tmp_const;
+  json_t* j_tmp;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired update_sip_registry_info.");
+
+  ret = update_ast_item(DEF_DB_TABLE_SIP_REGISTRY, "account", j_data);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not update sip registry info.");
+    return false;
+  }
+
+  // publish
+  // get info
+  tmp_const = json_string_value(json_object_get(j_data, "account"));
+  j_tmp = get_sip_registry_info(tmp_const);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get sip_registry info. account[%s]", tmp_const);
+    return false;
+  }
+
+  // publish event
+  ret = publish_event_sip_registry(DEF_PUB_TYPE_UPDATE, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * delete sip registry info.
+ * @return
+ */
+bool delete_sip_registry_info(const char* key)
+{
+  int ret;
+  json_t* j_tmp;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired delete_sip_registry_info. account[%s]", key);
+
+  // get info
+  j_tmp = get_sip_registry_info(key);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get sip_registry info. account[%s]", key);
+    return false;
+  }
+
+  ret = delete_ast_items_string(DEF_DB_TABLE_SIP_REGISTRY, "account", key);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not delete sip registry info. account[%s]", key);
+    return false;
+  }
+
+  // publish
+  // publish event
+  ret = publish_event_sip_registry(DEF_PUB_TYPE_DELETE, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Clear all sip resources.
+ * @return
+ */
+static bool term_sip_database(void)
+{
+  int ret;
+
+  // peer
+  ret = clear_ast_table(DEF_DB_TABLE_SIP_PEER);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not clear sip table. table[%s]", DEF_DB_TABLE_SIP_PEER);
+    return false;
+  }
+
+  // peeraccount
+  ret = clear_ast_table(DEF_DB_TABLE_SIP_PEERACCOUNT);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not clear sip table. table[%s]", DEF_DB_TABLE_SIP_PEERACCOUNT);
+    return false;
+  }
+
+  // registry
+  ret = clear_ast_table(DEF_DB_TABLE_SIP_REGISTRY);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not clear table. table[%s]", DEF_DB_TABLE_SIP_REGISTRY);
+    return false;
+  }
+
+  return true;
+}
+
+
 
 

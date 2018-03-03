@@ -18,9 +18,6 @@
 
 #include "resource_handler.h"
 
-#define DEF_PUB_TYPE_CREATE   "create"
-#define DEF_PUB_TYPE_UPDATE   "update"
-#define DEF_PUB_TYPE_DELETE   "delete"
 
 extern app* g_app;
 
@@ -41,13 +38,6 @@ static json_t* get_detail_items_by_obj_order(db_ctx_t* ctx, const char* table, j
 
 
 // db_ast
-static bool clear_ast_table(const char* table);
-static bool insert_ast_item(const char* table, const json_t* j_data);
-static bool update_ast_item(const char* table, const char* key_column, const json_t* j_data);
-static json_t* get_ast_items(const char* table, const char* item);
-static json_t* get_ast_detail_item_key_string(const char* table, const char* key, const char* val);
-static json_t* get_ast_detail_items_key_string(const char* table, const char* key, const char* val);
-static bool delete_ast_items_string(const char* table, const char* key, const char* val);
 
 // db_jade
 static bool insert_jade_item(const char* table, const json_t* j_data);
@@ -187,14 +177,6 @@ static bool init_ast_database(void)
     return false;
   }
 
-  // peer
-  db_ctx_exec(g_db_ast, g_sql_drop_peer);
-  ret = db_ctx_exec(g_db_ast, g_sql_create_peer);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create table. table[%s]", "peer");
-    return false;
-  }
-
   // queue_param
   db_ctx_exec(g_db_ast, g_sql_drop_queue_param);
   ret = db_ctx_exec(g_db_ast, g_sql_create_queue_param);
@@ -224,14 +206,6 @@ static bool init_ast_database(void)
   ret = db_ctx_exec(g_db_ast, g_sql_create_database);
   if(ret == false) {
     slog(LOG_ERR, "Could not create table. table[%s]", "database");
-    return false;
-  }
-
-  // registry
-  db_ctx_exec(g_db_ast, g_sql_drop_registry);
-  ret = db_ctx_exec(g_db_ast, g_sql_create_registry);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create table. table[%s]", "registry");
     return false;
   }
 
@@ -764,7 +738,25 @@ static json_t* get_detail_items_by_obj_order(db_ctx_t* ctx, const char* table, j
   return j_res;
 }
 
-static bool clear_ast_table(const char* table)
+bool exec_ast_sql(const char* sql)
+{
+  int ret;
+
+  if(sql == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  ret = db_ctx_exec(g_db_ast, sql);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not execute sql for ast database.");
+    return false;
+  }
+
+  return true;
+}
+
+bool clear_ast_table(const char* table)
 {
   int ret;
 
@@ -788,7 +780,7 @@ static bool clear_ast_table(const char* table)
  * @param item
  * @return
  */
-static bool insert_ast_item(const char* table, const json_t* j_data)
+bool insert_ast_item(const char* table, const json_t* j_data)
 {
   int ret;
 
@@ -813,7 +805,7 @@ static bool insert_ast_item(const char* table, const json_t* j_data)
  * @param j_data
  * @return
  */
-static bool update_ast_item(const char* table, const char* key_column, const json_t* j_data)
+bool update_ast_item(const char* table, const char* key_column, const json_t* j_data)
 {
   int ret;
 
@@ -838,7 +830,7 @@ static bool update_ast_item(const char* table, const char* key_column, const jso
  * @param item
  * @return
  */
-static json_t* get_ast_items(const char* table, const char* item)
+json_t* get_ast_items(const char* table, const char* item)
 {
   json_t* j_res;
 
@@ -857,7 +849,7 @@ static json_t* get_ast_items(const char* table, const char* item)
  * delete all selected items with string value.
  * @return
  */
-static bool delete_ast_items_string(const char* table, const char* key, const char* val)
+bool delete_ast_items_string(const char* table, const char* key, const char* val)
 {
   int ret;
 
@@ -883,7 +875,7 @@ static bool delete_ast_items_string(const char* table, const char* key, const ch
  * @param item
  * @return
  */
-static json_t* get_ast_detail_item_key_string(const char* table, const char* key, const char* val)
+json_t* get_ast_detail_item_key_string(const char* table, const char* key, const char* val)
 {
   json_t* j_res;
 
@@ -908,7 +900,7 @@ static json_t* get_ast_detail_item_key_string(const char* table, const char* key
  * @param item
  * @return
  */
-static json_t* get_ast_detail_items_key_string(const char* table, const char* key, const char* val)
+json_t* get_ast_detail_items_key_string(const char* table, const char* key, const char* val)
 {
   json_t* j_res;
 
@@ -1101,54 +1093,8 @@ static json_t* get_jade_detail_items_by_obj_order(const char* table, json_t* j_o
 
 
 
-/**
- * Get all peers array
- * @return
- */
-json_t* get_sip_peers_all_peer(void)
-{
-  json_t* j_res;
-
-  slog(LOG_DEBUG, "Fired get_peers_all_peer.");
-
-  j_res = get_ast_items("peer", "peer");
-
-  return j_res;
-}
-
-/**
- * Get all peers array
- * @return
- */
-json_t* get_sip_peers_all(void)
-{
-  json_t* j_res;
-
-  slog(LOG_DEBUG, "Fired get_peers_all.");
-
-  j_res = get_ast_items("peer", "*");
-
-  return j_res;
-}
 
 
-/**
- * Get given peer's detail info.
- * @return
- */
-json_t* get_sip_peer_info(const char* peer)
-{
-  json_t* j_res;
-
-  if(peer == NULL) {
-    slog(LOG_WARNING, "Wrong parameter.");
-    return NULL;
-  }
-  slog(LOG_DEBUG, "Fired get_peer_detail.");
-
-  j_res = get_ast_detail_item_key_string("peer", "peer", peer);
-  return j_res;
-}
 
 
 /**
@@ -1226,92 +1172,6 @@ json_t* get_database_info(const char* key)
   }
   return j_tmp;
 }
-
-/**
- * Get all registry account array
- * @return
- */
-json_t* get_sip_registries_all_account(void)
-{
-  char* sql;
-  int ret;
-  json_t* j_res;
-  json_t* j_res_tmp;
-  json_t* j_tmp;
-
-  asprintf(&sql, "select * from registry;");
-  ret = db_ctx_query(g_db_ast, sql);
-  sfree(sql);
-  if(ret == false) {
-    slog(LOG_WARNING, "Could not get correct registry account info.");
-    return NULL;
-  }
-
-  j_res = json_array();
-  while(1) {
-    j_tmp = db_ctx_get_record(g_db_ast);
-    if(j_tmp == NULL) {
-      break;
-    }
-
-    j_res_tmp = json_pack("{s:s}",
-        "account", json_string_value(json_object_get(j_tmp, "account"))
-        );
-    json_decref(j_tmp);
-    if(j_res_tmp == NULL) {
-      continue;
-    }
-
-    json_array_append_new(j_res, j_res_tmp);
-  }
-  db_ctx_free(g_db_ast);
-
-  return j_res;
-}
-
-/**
- * Get corresponding registry info.
- * @return
- */
-json_t* get_sip_registry_info(const char* account)
-{
-  char* sql;
-  int ret;
-  json_t* j_tmp;
-
-  if(account == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return NULL;
-  }
-
-  asprintf(&sql, "select * from registry where account=\"%s\";", account);
-  ret = db_ctx_query(g_db_ast, sql);
-  sfree(sql);
-  if(ret == false) {
-    slog(LOG_WARNING, "Could not get correct registry account info.");
-    return NULL;
-  }
-
-  j_tmp = db_ctx_get_record(g_db_ast);
-  db_ctx_free(g_db_ast);
-  if(j_tmp == NULL) {
-    return NULL;
-  }
-  return j_tmp;
-}
-
-/**
- * Get all registries array
- * @return
- */
-json_t* get_sip_registries_all(void)
-{
-  json_t* j_res;
-
-  j_res = get_ast_items("registry", "*");
-  return j_res;
-}
-
 
 bool clear_queue_param(void)
 {
@@ -3313,286 +3173,6 @@ bool update_core_module_info(const json_t* j_data)
   if(ret == false) {
     return false;
   }
-
-  return true;
-}
-
-/**
- * Clear all sip resources.
- * @return
- */
-bool clear_sip(void)
-{
-  int ret;
-
-  ret = clear_ast_table("peer");
-  if(ret == false) {
-    slog(LOG_ERR, "Could not clear peer");
-    return false;
-  }
-
-  ret = clear_ast_table("registry");
-  if(ret == false) {
-    slog(LOG_ERR, "Could not clear pjsip_aor");
-    return false;
-  }
-
-  return true;
-}
-
-
-/**
- * Create sip peer info.
- * @param j_data
- * @return
- */
-bool create_sip_peer_info(const json_t* j_data)
-{
-  int ret;
-  const char* tmp_const;
-  json_t* j_tmp;
-
-  if(j_data == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return false;
-  }
-  slog(LOG_DEBUG, "Fired create_sip_peer_info.");
-
-  // insert peer info
-  ret = insert_ast_item("peer", j_data);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not insert sip peer..");
-    return false;
-  }
-
-  // publish
-  // get info
-  tmp_const = json_string_value(json_object_get(j_data, "peer"));
-  j_tmp = get_sip_peer_info(tmp_const);
-  if(j_tmp == NULL) {
-    slog(LOG_ERR, "Could not get sip_peer info. peer[%s]", tmp_const);
-    return false;
-  }
-
-  // publish event
-  ret = publish_event_sip_peer(DEF_PUB_TYPE_CREATE, j_tmp);
-  json_decref(j_tmp);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not publish event.");
-    return false;
-  }
-
-  return true;
-}
-
-/**
- * Update sip peer info.
- * @param j_data
- * @return
- */
-bool update_sip_peer_info(const json_t* j_data)
-{
-  int ret;
-  const char* tmp_const;
-  json_t* j_tmp;
-
-  if(j_data == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return false;
-  }
-  slog(LOG_DEBUG, "Fired update_sip_peer_info.");
-
-  ret = update_ast_item("peer", "peer", j_data);
-  if(ret == false) {
-    slog(LOG_WARNING, "Could not update sip peer info.");
-    return false;
-  }
-
-  // publish
-  // get info
-  tmp_const = json_string_value(json_object_get(j_data, "peer"));
-  j_tmp = get_sip_peer_info(tmp_const);
-  if(j_tmp == NULL) {
-    slog(LOG_ERR, "Could not get sip_peer info. peer[%s]", tmp_const);
-    return false;
-  }
-
-  // publish event
-  ret = publish_event_sip_peer(DEF_PUB_TYPE_UPDATE, j_tmp);
-  json_decref(j_tmp);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not publish event.");
-    return false;
-  }
-
-  return true;
-}
-
-/**
- * delete sip peer info.
- * @return
- */
-bool delete_sip_peer_info(const char* key)
-{
-  int ret;
-  json_t* j_tmp;
-
-  if(key == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return false;
-  }
-  slog(LOG_DEBUG, "Fired delete_sip_peer_info. peer[%s]", key);
-
-  // get info
-  j_tmp = get_sip_peer_info(key);
-  if(j_tmp == NULL) {
-    slog(LOG_ERR, "Could not get sip_peer info. peer[%s]", key);
-    return false;
-  }
-
-  ret = delete_ast_items_string("peer", "peer", key);
-  if(ret == false) {
-    slog(LOG_WARNING, "Could not delete sip peer info. name[%s]", key);
-    json_decref(j_tmp);
-    return false;
-  }
-
-  // publish
-  // publish event
-  ret = publish_event_sip_peer(DEF_PUB_TYPE_DELETE, j_tmp);
-  json_decref(j_tmp);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not publish event.");
-    return false;
-  }
-
-  return true;
-}
-
-/**
- * Create sip registry info.
- * @param j_data
- * @return
- */
-bool create_sip_registry_info(const json_t* j_data)
-{
-  int ret;
-  const char* tmp_const;
-  json_t* j_tmp;
-
-  if(j_data == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return false;
-  }
-  slog(LOG_DEBUG, "Fired create_sip_registry_info.");
-
-  // insert queue info
-  ret = insert_ast_item("registry", j_data);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not insert sip registry.");
-    return false;
-  }
-
-  // publish
-  // get info
-  tmp_const = json_string_value(json_object_get(j_data, "account"));
-  j_tmp = get_sip_registry_info(tmp_const);
-  if(j_tmp == NULL) {
-    slog(LOG_ERR, "Could not get sip_registry info. account[%s]", tmp_const);
-    return false;
-  }
-
-  // publish event
-  ret = publish_event_sip_registry(DEF_PUB_TYPE_CREATE, j_tmp);
-  json_decref(j_tmp);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not publish event.");
-    return false;
-  }
-
-  return true;
-}
-
-/**
- * Update sip registry info.
- * @param j_data
- * @return
- */
-bool update_sip_registry_info(const json_t* j_data)
-{
-  int ret;
-  const char* tmp_const;
-  json_t* j_tmp;
-
-  if(j_data == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return false;
-  }
-  slog(LOG_DEBUG, "Fired update_sip_registry_info.");
-
-  ret = update_ast_item("registry", "account", j_data);
-  if(ret == false) {
-    slog(LOG_WARNING, "Could not update sip registry info.");
-    return false;
-  }
-
-  // publish
-  // get info
-  tmp_const = json_string_value(json_object_get(j_data, "account"));
-  j_tmp = get_sip_registry_info(tmp_const);
-  if(j_tmp == NULL) {
-    slog(LOG_ERR, "Could not get sip_registry info. account[%s]", tmp_const);
-    return false;
-  }
-
-  // publish event
-  ret = publish_event_sip_registry(DEF_PUB_TYPE_UPDATE, j_tmp);
-  json_decref(j_tmp);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not publish event.");
-    return false;
-  }
-
-  return true;
-}
-
-/**
- * delete sip registry info.
- * @return
- */
-bool delete_sip_registry_info(const char* key)
-{
-  int ret;
-  json_t* j_tmp;
-
-  if(key == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return false;
-  }
-  slog(LOG_DEBUG, "Fired delete_sip_registry_info. account[%s]", key);
-
-  // get info
-  j_tmp = get_sip_registry_info(key);
-  if(j_tmp == NULL) {
-    slog(LOG_ERR, "Could not get sip_registry info. account[%s]", key);
-    return false;
-  }
-
-  ret = delete_ast_items_string("registry", "account", key);
-  if(ret == false) {
-    slog(LOG_WARNING, "Could not delete sip registry info. account[%s]", key);
-    return false;
-  }
-
-  // publish
-  // publish event
-  ret = publish_event_sip_registry(DEF_PUB_TYPE_DELETE, j_tmp);
-  json_decref(j_tmp);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not publish event.");
-    return false;
-  }
-
 
   return true;
 }

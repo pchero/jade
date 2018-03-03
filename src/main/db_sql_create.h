@@ -9,6 +9,10 @@
 #define SRC_DB_SQL_CREATE_H_
 
 
+
+#define DEF_DB_TABLE_SIP_PEER           "sip_peer"
+#define DEF_DB_TABLE_SIP_PEERACCOUNT    "sip_peeraccount"
+
 // action
 static const char* g_sql_drop_action = "drop table if exists action;";
 static const char* g_sql_create_action =
@@ -137,39 +141,61 @@ static const char* g_sql_create_core_module =
 ");";
 
 
-// peer
-static const char* g_sql_drop_peer = "drop table if exists peer;";
-static const char* g_sql_create_peer =
-"create table peer("
+//// sip_peer
+//static const char* g_sql_drop_sip_peer = "drop table if exists " DEF_DB_TABLE_SIP_PEER ";";
+//static const char* g_sql_create_sip_peer =
+//"create table " DEF_DB_TABLE_SIP_PEER " ("
+//
+//// identity
+//"   peer         varchar(255)    not null,"
+//"   status       varchar(255),"
+//"   address      varchar(255),"     // ip_address:port
+//
+//// peer info
+//"   channel_type     varchar(255),"   // channel type(SIP, ...)
+//"   chan_object_type varchar(255),"   // (peer, ...)
+//"   monitor_status   varchar(255),"
+//
+//"   dynamic          varchar(255),"   // dynamic(yes, ...)
+//"   auto_force_port  varchar(255),"   //
+//"   force_port       varchar(255),"   //
+//"   auto_comedia     varchar(255),"   //
+//"   comedia          varchar(255),"   //
+//"   video_support    varchar(255),"   //
+//"   text_support     varchar(255),"   //
+//
+//"   acl              varchar(255),"   //
+//"   realtime_device  varchar(255),"   //
+//"   description      varchar(255),"   //
+//
+//// timestamp. UTC."
+//"   tm_update        datetime(6),"   // update time."
+//
+//"   primary key(peer)"
+//
+//");";
 
-// identity
-"   peer         varchar(255)    not null,"
-"   status       varchar(255),"
-"   address      varchar(255),"     // ip_address:port
+//// sip_peeraccount
+//static const char* g_sql_drop_sip_peeraccount = "drop table if exists " DEF_DB_TABLE_SIP_PEERACCOUNT ";";
+//static const char* g_sql_create_sip_peeraccount =
+//"create table " DEF_DB_TABLE_SIP_PEERACCOUNT " ("
+//
+//// identity
+//"   peer         varchar(255)    not null,"
+//"   secret       varchar(255),"
+//
+//// info
+//"   host       varchar(255),"
+//"   context    varchar(255),"
+//"   type       varchar(255)"
+//
+//// timestamp. UTC."
+//"   tm_update        datetime(6),"   // update time."
+//
+//"   primary key(peer)"
+//
+//");";
 
-// peer info
-"   channel_type     varchar(255),"   // channel type(SIP, ...)
-"   chan_object_type varchar(255),"   // (peer, ...)
-"   monitor_status   varchar(255),"
-
-"   dynamic          varchar(255),"   // dynamic(yes, ...)
-"   auto_force_port  varchar(255),"   //
-"   force_port       varchar(255),"   //
-"   auto_comedia     varchar(255),"   //
-"   comedia          varchar(255),"   //
-"   video_support    varchar(255),"   //
-"   text_support     varchar(255),"   //
-
-"   acl              varchar(255),"   //
-"   realtime_device  varchar(255),"   //
-"   description      varchar(255),"   //
-
-// timestamp. UTC."
-"   tm_update        datetime(6),"   // update time."
-
-"   primary key(peer)"
-
-");";
 
 
 // queue param
@@ -277,32 +303,6 @@ static const char* g_sql_create_database =
 "   primary key(key)"
 
 ");";
-
-// registry
-static const char* g_sql_drop_registry = "drop table if exists registry;";
-static const char* g_sql_create_registry =
-"create table registry("
-
-// identity
-"   account     varchar(255),"
-"   username    varchar(255),"
-"   host        varchar(255),"
-"   port        int,"
-
-// info
-"   domain            varchar(255),"
-"   domain_port       int,"
-"   refresh           int,"
-"   state             text,"
-"   registration_time int,"
-
-// timestamp. UTC."
-"   tm_update         datetime(6),"   // update time."
-
-"   primary key(account)"
-
-");";
-
 
 // agent
 static const char* g_sql_drop_agent = "drop table if exists agent;";

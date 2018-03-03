@@ -360,7 +360,6 @@ static void ami_response_handler(json_t* j_msg)
 static void ami_event_peerentry(json_t* j_msg)
 {
   json_t* j_tmp;
-  char* peer;
   char* address;
   char* timestamp;
   int ret;
@@ -370,12 +369,6 @@ static void ami_event_peerentry(json_t* j_msg)
     return;
   }
   slog(LOG_DEBUG, "Fired ami_event_peerentry.");
-
-  // create peer
-  asprintf(&peer, "%s/%s",
-      json_string_value(json_object_get(j_msg, "Channeltype"))? : "",
-      json_string_value(json_object_get(j_msg, "ObjectName"))? : ""
-      );
 
   // create address
   asprintf(&address, "%s:%s",
@@ -392,7 +385,7 @@ static void ami_event_peerentry(json_t* j_msg)
     "s:s"
     "}",
 
-    "peer",     peer,
+    "peer",     json_string_value(json_object_get(j_msg, "ObjectName"))? : "",
     "address",  address,
 
     "channel_type", json_string_value(json_object_get(j_msg, "Channeltype"))? : "",
@@ -414,7 +407,6 @@ static void ami_event_peerentry(json_t* j_msg)
     "tm_update",  timestamp
   );
   sfree(timestamp);
-  sfree(peer);
   sfree(address);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not create message.");
@@ -440,7 +432,8 @@ static void ami_event_peerentry(json_t* j_msg)
 static void ami_event_peerstatus(json_t* j_msg)
 {
   int ret;
-  const char* peer;
+  const char* tmp_const;
+  char* peer;
   json_t* j_tmp;
 
   if(j_msg == NULL) {
@@ -449,7 +442,8 @@ static void ami_event_peerstatus(json_t* j_msg)
   }
 
   // get peer
-  peer = json_string_value(json_object_get(j_msg, "Peer"));
+  tmp_const = json_string_value(json_object_get(j_msg, "Peer"));
+  peer = strdup(tmp_const + 4); // "SIP/"
   if(peer == NULL) {
     slog(LOG_ERR, "Could not get peer.");
     return;
@@ -462,6 +456,7 @@ static void ami_event_peerstatus(json_t* j_msg)
       "address",        json_string_value(json_object_get(j_msg, "Address"))? : "",
       "channel_type",   json_string_value(json_object_get(j_msg, "ChannelType"))? : ""
       );
+  sfree(peer);
 
   // update info
   ret = update_sip_peer_info(j_tmp);

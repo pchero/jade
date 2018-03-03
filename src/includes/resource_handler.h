@@ -14,6 +14,18 @@
 bool init_resource_handler(void);
 void term_resource_handler(void);
 
+// ast
+bool exec_ast_sql(const char* sql);
+bool clear_ast_table(const char* table);
+bool insert_ast_item(const char* table, const json_t* j_data);
+bool update_ast_item(const char* table, const char* key_column, const json_t* j_data);
+json_t* get_ast_items(const char* table, const char* item);
+json_t* get_ast_detail_item_key_string(const char* table, const char* key, const char* val);
+json_t* get_ast_detail_items_key_string(const char* table, const char* key, const char* val);
+bool delete_ast_items_string(const char* table, const char* key, const char* val);
+
+
+
 //////// agent
 // agent
 bool create_agent_agent_info(const json_t* j_data);
@@ -159,26 +171,6 @@ bool update_pjsip_contact_info(const json_t* j_data);
 bool delete_pjsip_contact_info(const char* key);
 json_t* get_pjsip_contacts_all(void);
 json_t* get_pjsip_contact_info(const char* key);
-
-
-////// sip
-bool clear_sip(void);
-
-// sip_peer
-bool create_sip_peer_info(const json_t* j_data);
-bool update_sip_peer_info(const json_t* j_data);
-bool delete_sip_peer_info(const char* key);
-json_t* get_sip_peers_all_peer(void);
-json_t* get_sip_peers_all(void);
-json_t* get_sip_peer_info(const char* name);
-
-// sip_registry
-bool create_sip_registry_info(const json_t* j_data);
-bool update_sip_registry_info(const json_t* j_data);
-bool delete_sip_registry_info(const char* key);
-json_t* get_sip_registries_all_account(void);
-json_t* get_sip_registries_all(void);
-json_t* get_sip_registry_info(const char* account);
 
 
 ////// user
