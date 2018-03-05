@@ -772,13 +772,15 @@ bool init_websocket_handler(void)
   struct lws_context_creation_info info;
   const char* addr;
   const char* port;
+  const char* pem_file;
   int ret;
 
   memset(&info, 0, sizeof(info));
 
-  // get addr info
+  // get init info
   addr = json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "websock_addr"));
   port = json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "websock_port"));
+  pem_file = json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "https_pemfile"));
   slog(LOG_INFO, "Initiating websock. addr[%s], port[%s]", addr, port);
 
   // set protocols
@@ -806,6 +808,9 @@ bool init_websocket_handler(void)
   info.gid = -1;
   info.uid = -1;
   info.options = LWS_SERVER_OPTION_LIBEVENT;
+  info.ssl_cert_filepath = pem_file;
+  info.ssl_private_key_filepath = pem_file;
+  info.options |= LWS_SERVER_OPTION_REDIRECT_HTTP_TO_HTTPS;
   lws_set_log_level(0, NULL);
   g_websocket_context = lws_create_context(&info);
 
