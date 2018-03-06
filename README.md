@@ -54,9 +54,20 @@ Or may be used by either companies who wish to make calls on their own behalf, o
   * http://project.pchero21.com/jade/
 
 * jade-admin
+  * Simple administrator tool for jade.
   * You can try jade-admin web application at here.
-  * http://project.pchero21.com/jade-admin/
+  * ID: admin
+  * Password: admin
+  * https://project.pchero21.com/jade-admin/
   * ![Screen Preview](https://raw.githubusercontent.com/pchero/jade-admin/master/jade-admin.png)
+  
+* jade-agent
+  * Simple agent tool for jade.
+  * Webrtc(jssip) support.
+  * ID: admin
+  * Password: admin
+  * https://project.pchero21.com/jade-agent/
+  * ![Screen Preview](https://raw.githubusercontent.com/pchero/jade-agent/master/jade-agent.png)
 
 ## Library issue
 * libwebsocket
