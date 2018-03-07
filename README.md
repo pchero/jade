@@ -54,6 +54,7 @@ Or may be used by either companies who wish to make calls on their own behalf, o
   * http://project.pchero21.com/jade/
 
 * jade-admin
+  * https://github.com/pchero/jade-admin
   * Simple administrator tool for jade.
   * You can try jade-admin web application at here.
   * ID: admin
@@ -62,6 +63,7 @@ Or may be used by either companies who wish to make calls on their own behalf, o
   * ![Screen Preview](https://raw.githubusercontent.com/pchero/jade-admin/master/jade-admin.png)
   
 * jade-agent
+  * https://github.com/pchero/jade-agent
   * Simple agent tool for jade.
   * Webrtc(jssip) support.
   * ID: admin
