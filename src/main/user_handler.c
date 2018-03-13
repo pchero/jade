@@ -21,9 +21,23 @@
 
 extern app* g_app;
 
+#define DEF_DB_TABLE_USER_CONTACT     "user_contact"
+#define DEF_DB_TABLE_USER_USERINFO    "user_userinfo"
+#define DEF_DB_TABLE_USER_GROUP       "user_group"
+#define DEF_DB_TABLE_USER_PERMISSION  "user_permission"
+#define DEF_DB_TABLE_USER_AUTHTOKEN   "user_authtoken"
+
+
+
 #define DEF_AUTHTOKEN_TIMEOUT   3600
 
 static struct event* g_ev_validate_authtoken = NULL;
+
+static bool init_user_database_contact(void);
+static bool init_user_database_permission(void);
+static bool init_user_database_authtoken(void);
+static bool init_user_database_userinfo(void);
+
 
 static char* create_authtoken(const char* username, const char* password);
 
@@ -42,10 +56,35 @@ static void cb_user_validate_authtoken(__attribute__((unused)) int fd, __attribu
 
 bool init_user_handler(void)
 {
+  int ret;
   json_t* j_tmp;
   struct timeval tm_slow;
 
 	slog(LOG_INFO, "Fired init_user_handler.");
+
+	ret = init_user_database_contact();
+	if(ret == false) {
+	  slog(LOG_ERR, "Could not initiate database for contact.");
+	  return false;
+	}
+
+	ret = init_user_database_permission();
+	if(ret == false) {
+	  slog(LOG_ERR, "Could not initiate database for permission.");
+	  return false;
+	}
+
+	ret = init_user_database_authtoken();
+	if(ret == false) {
+	  slog(LOG_ERR, "Could not initiate database for authtoken.");
+	  return false;
+	}
+
+	ret = init_user_database_userinfo();
+	if(ret == false) {
+	  slog(LOG_ERR, "Could not initiate database for userinfo.");
+	  return false;
+	}
 
 	// test code..
 
@@ -95,6 +134,144 @@ bool reload_user_handler(void)
 
 	return true;
 }
+
+/**
+ * Initiate contact database.
+ * @return
+ */
+static bool init_user_database_contact(void)
+{
+  int ret;
+  const char* create_table;
+
+  create_table =
+    "create table if not exists " DEF_DB_TABLE_USER_CONTACT " ("
+
+    "   uuid        varchar(255),"
+    "   user_uuid   varchar(255),"
+
+    "   type    varchar(255),"    // sip_peer, pjsip_endpoint, ...
+    "   target  varchar(255),"    // peer name, endpoint name, ...
+
+    "   name    varchar(255),"
+    "   detail  varchar(1023),"
+
+    // timestamp. UTC."
+    "   tm_create         datetime(6),"   // create time
+    "   tm_update         datetime(6),"   // update time.
+
+    "   primary key(uuid)"
+    ");";
+
+  // execute
+  ret = exec_jade_sql(create_table);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate database. database[%s]", DEF_DB_TABLE_USER_CONTACT);
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Initiate permission database.
+ * @return
+ */
+static bool init_user_database_permission(void)
+{
+  int ret;
+  const char* create_table;
+
+  create_table =
+    "create table if not exists " DEF_DB_TABLE_USER_PERMISSION " ("
+
+    "   user_uuid   varchar(255),"
+    "   permission  varchar(255)"
+
+    ");";
+
+  // execute
+  ret = exec_jade_sql(create_table);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate database. database[%s]", DEF_DB_TABLE_USER_PERMISSION);
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Initiate authtoken database.
+ * @return
+ */
+static bool init_user_database_authtoken(void)
+{
+  int ret;
+  const char* create_table;
+
+  create_table =
+    "create table if not exists " DEF_DB_TABLE_USER_AUTHTOKEN " ("
+
+    // identity
+    "   uuid        varchar(255),"
+
+    "   user_uuid   varchar(255),"    // user uuid
+
+    // timestamp. UTC."
+    "   tm_create         datetime(6),"   // create time
+    "   tm_update         datetime(6),"   // update time.
+
+    "   primary key(uuid)"
+    ");";
+
+  // execute
+  ret = exec_jade_sql(create_table);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate database. database[%s]", DEF_DB_TABLE_USER_AUTHTOKEN);
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Initiate userinfo database.
+ * @return
+ */
+static bool init_user_database_userinfo(void)
+{
+  int ret;
+  const char* create_table;
+
+  create_table =
+      "create table if not exists " DEF_DB_TABLE_USER_USERINFO " ("
+
+      // identity
+      "   uuid        varchar(255),"
+      "   username    varchar(255),"
+      "   password    varchar(255),"
+
+      // info
+      "   name      varchar(255),"
+
+      // timestamp. UTC."
+      "   tm_create         datetime(6),"   // create time
+      "   tm_update         datetime(6),"   // update time.
+
+      "   primary key(uuid)"
+      ");";
+
+  // execute
+  ret = exec_jade_sql(create_table);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate database. database[%s]", DEF_DB_TABLE_USER_USERINFO);
+    return false;
+  }
+
+  return true;
+}
+
+
 
 /**
  *  @brief  Check the user_authtoken and validate
@@ -505,6 +682,57 @@ void htp_delete_user_contacts_detail(evhtp_request_t *req, void *data)
   return;
 }
 
+/**
+ * htp request handler.
+ * request: POST ^/user/users
+ * @param req
+ * @param data
+ */
+void htp_post_user_users(evhtp_request_t *req, void *data)
+{
+  json_t* j_data;
+  json_t* j_res;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired htp_post_user_users.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, DEF_USER_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  // get data
+  j_data = http_get_json_from_request_data(req);
+  if(j_data == NULL) {
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // create contact
+  ret = create_contact(j_data);
+  json_decref(j_data);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+
 static char* create_authtoken(const char* username, const char* password)
 {
   json_t* j_user;
@@ -621,7 +849,7 @@ static bool create_contact(json_t* j_data)
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
-    return NULL;
+    return false;
   }
   slog(LOG_DEBUG, "Fired create_contact.");
 
@@ -712,6 +940,65 @@ static bool update_contact(const char* uuid, json_t* j_data)
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not update contact info.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Create user info.
+ * @param j_data
+ * @return
+ */
+static bool create_user(json_t* j_data)
+{
+  json_t* j_tmp;
+  char* timestamp;
+  char* uuid;
+  const char* username;
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired create_user.");
+
+  // validate info.
+  username = json_string_value(json_object_get(j_data, "username"));
+  if(username == NULL) {
+    slog(LOG_ERR, "Could not get username info.");
+    return false;
+  }
+
+  // create contact info
+  timestamp = get_utc_timestamp();
+  uuid = gen_uuid();
+  j_tmp = json_pack("{"
+      "s:s, "
+      "s:s, s:s, "
+      "s:s, "
+      "s:s "
+      "}",
+
+      "uuid",         uuid,
+
+      "username",     username,
+      "password",     json_string_value(json_object_get(j_data, "password"))? : "",
+
+      "name",         json_string_value(json_object_get(j_data, "name"))? : "",
+
+      "tm_create",    timestamp
+      );
+  sfree(timestamp);
+  sfree(uuid);
+
+  // create resource
+  ret = create_user_contact_info(j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create user contact info.");
     return false;
   }
 

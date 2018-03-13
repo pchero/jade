@@ -24,7 +24,8 @@ json_t* get_ast_detail_item_key_string(const char* table, const char* key, const
 json_t* get_ast_detail_items_key_string(const char* table, const char* key, const char* val);
 bool delete_ast_items_string(const char* table, const char* key, const char* val);
 
-
+// jade
+bool exec_jade_sql(const char* sql);
 
 //////// agent
 // agent

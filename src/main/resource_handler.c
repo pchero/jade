@@ -309,35 +309,6 @@ static bool init_jade_database(void)
     return false;
   }
 
-  // user_userinfo
-  ret = db_ctx_exec(g_db_jade, g_sql_create_user_userinfo);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create table. table[%s]", "user_userinfo");
-    return false;
-  }
-
-  // user_authtoken
-  ret = db_ctx_exec(g_db_jade, g_sql_create_user_authtoken);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create table. table[%s]", "user_authtoken");
-    return false;
-  }
-
-  // user_contact
-  ret = db_ctx_exec(g_db_jade, g_sql_create_user_contact);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create table. table[%s]", "user_contact");
-    return false;
-  }
-
-  // user_permission
-  ret = db_ctx_exec(g_db_jade, g_sql_create_user_permission);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create table. table[%s]", "user_permission");
-    return false;
-  }
-
-
   return true;
 }
 
@@ -918,6 +889,23 @@ json_t* get_ast_detail_items_key_string(const char* table, const char* key, cons
   return j_res;
 }
 
+bool exec_jade_sql(const char* sql)
+{
+  int ret;
+
+  if(sql == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  ret = db_ctx_exec(g_db_jade, sql);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not execute sql for jade database.");
+    return false;
+  }
+
+  return true;
+}
 
 /**
  *
