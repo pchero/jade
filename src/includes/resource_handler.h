@@ -26,6 +26,16 @@ bool delete_ast_items_string(const char* table, const char* key, const char* val
 
 // jade
 bool exec_jade_sql(const char* sql);
+bool insert_jade_item(const char* table, const json_t* j_data);
+bool update_jade_item(const char* table, const char* key_column, const json_t* j_data);
+bool delete_jade_items_string(const char* table, const char* key, const char* val);
+json_t* get_jade_items(const char* table, const char* item);
+json_t* get_jade_detail_item_key_string(const char* table, const char* key, const char* val);
+json_t* get_jade_detail_item_by_obj(const char* table, json_t* j_obj);
+json_t* get_jade_detail_items_by_obj(const char* table, json_t* j_obj);
+json_t* get_jade_detail_items_by_obj_order(const char* table, json_t* j_obj, const char* order);
+
+
 
 //////// agent
 // agent
@@ -172,38 +182,6 @@ bool update_pjsip_contact_info(const json_t* j_data);
 bool delete_pjsip_contact_info(const char* key);
 json_t* get_pjsip_contacts_all(void);
 json_t* get_pjsip_contact_info(const char* key);
-
-
-////// user
-#define DEF_USER_CONTACT_TYPE_PEER       "sip_peer"
-#define DEF_USER_CONTACT_TYPE_ENDPOINT   "pjsip_endpoint"
-#define DEF_USER_PERM_ADMIN    "admin"
-#define DEF_USER_PERM_USER     "user"
-
-json_t* get_user_userinfo_info(const char* key);
-json_t* get_user_userinfo_info_by_username(const char* key);
-json_t* get_user_userinfo_info_by_username_pass(const char* username, const char* pass);
-json_t* get_user_userinfo_by_authtoken(const char* authtoken);
-bool create_user_userinfo_info(const json_t* j_data);
-bool update_user_userinfo_info(const json_t* j_data);
-bool delete_user_userinfo_info(const char* key);
-
-json_t* get_user_authtokens_all(void);
-json_t* get_user_authtoken_info(const char* key);
-bool create_user_authtoken_info(const json_t* j_data);
-bool update_user_authtoken_info(const json_t* j_data);
-bool update_user_authtoken_tm_update(const char* uuid);
-bool delete_user_authtoken_info(const char* key);
-
-bool create_user_permission_info(const json_t* j_data);
-json_t* get_user_permission_info_by_useruuid_perm(const char* useruuid, const char* perm);
-
-json_t* get_user_contacts_all(void);
-json_t* get_user_contacts_by_user_uuid(const char* user_uuid);
-json_t* get_user_contact_info(const char* key);
-bool create_user_contact_info(const json_t* j_data);
-bool update_user_contact_info(const json_t* j_data);
-bool delete_user_contact_info(const char* key);
 
 
 ////// voicemail

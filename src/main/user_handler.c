@@ -28,7 +28,6 @@ extern app* g_app;
 #define DEF_DB_TABLE_USER_AUTHTOKEN   "user_authtoken"
 
 
-
 #define DEF_AUTHTOKEN_TIMEOUT   3600
 
 static struct event* g_ev_validate_authtoken = NULL;
@@ -1084,3 +1083,456 @@ static bool is_valid_type_target(const char* type, const char* target)
   slog(LOG_ERR, "Should not reach to here. Something was wrong.");
   return false;
 }
+
+/**
+ * Get corresponding user_userinfo detail info.
+ * @return
+ */
+json_t* get_user_userinfo_info(const char* key)
+{
+  json_t* j_res;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_user_userinfo_info. key[%s]", key);
+
+  j_res = get_jade_detail_item_key_string("user_userinfo", "uuid", key);
+
+  return j_res;
+}
+
+/**
+ * Get corresponding user_userinfo detail info.
+ * @return
+ */
+json_t* get_user_userinfo_info_by_username(const char* key)
+{
+  json_t* j_res;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_user_userinfo_info_by_username. key[%s]", key);
+
+  j_res = get_jade_detail_item_key_string("user_userinfo", "username", key);
+
+  return j_res;
+}
+
+/**
+ * Get corresponding user_userinfo detail info.
+ * @return
+ */
+json_t* get_user_userinfo_info_by_username_pass(const char* username, const char* pass)
+{
+  json_t* j_res;
+  json_t* j_obj;
+
+  if((username == NULL) || (pass == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_user_userinfo_info_by_username_pass. username[%s], pass[%s]", username, "*");
+
+  j_obj = json_pack("{s:s, s:s}",
+      "username",   username,
+      "password",   pass
+      );
+
+  j_res = get_jade_detail_item_by_obj("user_userinfo", j_obj);
+  json_decref(j_obj);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
+json_t* get_user_userinfo_by_authtoken(const char* authtoken)
+{
+  json_t* j_auth;
+  json_t* j_user;
+  const char* user_uuid;
+
+  if(authtoken == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_user_userinfo_by_authtoken. authtoken[%s]", authtoken);
+
+  j_auth = get_user_authtoken_info(authtoken);
+  if(j_auth == NULL) {
+    slog(LOG_ERR, "Could not get authtoken info.");
+    return NULL;
+  }
+
+  user_uuid = json_string_value(json_object_get(j_auth, "user_uuid"));
+  if(user_uuid == NULL) {
+    slog(LOG_ERR, "Could not get user_uuid.");
+    json_decref(j_auth);
+    return NULL;
+  }
+
+  j_user = get_user_userinfo_info(user_uuid);
+  json_decref(j_auth);
+  if(j_user == NULL) {
+    slog(LOG_ERR, "Could not get user info.");
+    return NULL;
+  }
+
+  return j_user;
+}
+
+bool create_user_userinfo_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired create_user_userinfo_info.");
+
+  // insert userinfo info
+  ret = insert_jade_item("user_userinfo", j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert user_userinfo.");
+    return false;
+  }
+
+  return true;
+}
+
+bool update_user_userinfo_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired create_user_userinfo_info.");
+
+  // update info
+  ret = update_jade_item("user_userinfo", "uuid", j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update user_userinfo info.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Delete user_userinfo info.
+ * @return
+ */
+bool delete_user_userinfo_info(const char* key)
+{
+  int ret;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired delete_user_userinfo_info. key[%s]", key);
+
+  ret = delete_jade_items_string("user_userinfo", "uuid", key);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not delete dp_dialplan info. key[%s]", key);
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Get corresponding user_authtoken all detail info.
+ * @return
+ */
+json_t* get_user_authtokens_all(void)
+{
+  json_t* j_res;
+
+  j_res = get_jade_items("user_authtoken", "*");
+  return j_res;
+}
+
+/**
+ * Get corresponding user_authtoken detail info.
+ * @return
+ */
+json_t* get_user_authtoken_info(const char* key)
+{
+  json_t* j_res;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_user_authtoken_info. key[%s]", key);
+
+  j_res = get_jade_detail_item_key_string("user_authtoken", "uuid", key);
+
+  return j_res;
+}
+
+bool create_user_authtoken_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired create_user_authtoken_info.");
+
+  // insert authtoken info
+  ret = insert_jade_item("user_authtoken", j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert user_authtoken.");
+    return false;
+  }
+
+  return true;
+}
+
+bool update_user_authtoken_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired update_user_authtoken_info.");
+
+  // update info
+  ret = update_jade_item("user_authtoken", "uuid", j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update user_authtoken info.");
+    return false;
+  }
+
+  return true;
+}
+
+bool update_user_authtoken_tm_update(const char* uuid)
+{
+  json_t* j_token;
+  char* timestamp;
+  int ret;
+
+  if(uuid == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  j_token = get_user_authtoken_info(uuid);
+  if(j_token == NULL) {
+    slog(LOG_NOTICE, "Could not get authtoken info. uuid[%s]", uuid);
+    return false;
+  }
+
+  timestamp = get_utc_timestamp();
+  json_object_set_new(j_token, "tm_update", json_string(timestamp));
+  sfree(timestamp);
+
+  ret = update_user_authtoken_info(j_token);
+  json_decref(j_token);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update authtoken info. uuid[%s]", uuid);
+    return false;
+  }
+
+  return true;
+}
+
+
+/**
+ * Delete user_authtoken info.
+ * @param key
+ * @return
+ */
+bool delete_user_authtoken_info(const char* key)
+{
+  int ret;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired delete_user_authtoken_info. key[%s]", key);
+
+  ret = delete_jade_items_string("user_authtoken", "uuid", key);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not delete user_authtoken info. key[%s]", key);
+    return false;
+  }
+
+  return true;
+}
+
+bool create_user_permission_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired create_user_permission_info.");
+
+  // insert authtoken info
+  ret = insert_jade_item("user_permission", j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert user_authtoken.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Get corresponding user_userinfo detail info.
+ * @return
+ */
+json_t* get_user_permission_info_by_useruuid_perm(const char* useruuid, const char* perm)
+{
+  json_t* j_res;
+  json_t* j_obj;
+
+  if((useruuid == NULL) || (perm == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_user_permission_info_by_useruuid_perm. useruuid[%s], perm[%s]", useruuid, perm);
+
+  j_obj = json_pack("{s:s, s:s}",
+      "user_uuid",    useruuid,
+      "permission",   perm
+      );
+
+  j_res = get_jade_detail_item_by_obj("user_permission", j_obj);
+  json_decref(j_obj);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
+json_t* get_user_contacts_all(void)
+{
+  json_t* j_res;
+
+  j_res = get_jade_items("user_contact", "*");
+  return j_res;
+}
+
+/**
+ * Returns conntact info array of given user_uuid.
+ * @param user_uuid
+ * @return
+ */
+json_t* get_user_contacts_by_user_uuid(const char* user_uuid)
+{
+  json_t* j_res;
+  json_t* j_obj;
+
+  j_obj = json_pack("{s:s}",
+      "user_uuid",  user_uuid
+      );
+
+  j_res = get_jade_detail_items_by_obj("user_contact", j_obj);
+  json_decref(j_obj);
+
+  return j_res;
+}
+
+/**
+ * Get corresponding user_contact detail info.
+ * @return
+ */
+json_t* get_user_contact_info(const char* key)
+{
+  json_t* j_res;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_user_contact_info. key[%s]", key);
+
+  j_res = get_jade_detail_item_key_string("user_contact", "uuid", key);
+
+  return j_res;
+}
+
+bool create_user_contact_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired create_user_contact_info.");
+
+  // insert info
+  ret = insert_jade_item("user_contact", j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert user_contact.");
+    return false;
+  }
+
+  return true;
+}
+
+bool update_user_contact_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired update_user_contact_info.");
+
+  // update info
+  ret = update_jade_item("user_contact", "uuid", j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update user_contact info.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Delete user_contact info.
+ * @param key
+ * @return
+ */
+bool delete_user_contact_info(const char* key)
+{
+  int ret;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired delete_user_contact_info. key[%s]", key);
+
+  ret = delete_jade_items_string("user_contact", "uuid", key);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not delete user_contact info. key[%s]", key);
+    return false;
+  }
+
+  return true;
+}
+
