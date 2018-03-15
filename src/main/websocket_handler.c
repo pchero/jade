@@ -813,6 +813,10 @@ bool init_websocket_handler(void)
   info.options |= LWS_SERVER_OPTION_REDIRECT_HTTP_TO_HTTPS;
   lws_set_log_level(0, NULL);
   g_websocket_context = lws_create_context(&info);
+  if(g_websocket_context == NULL) {
+    slog(LOG_ERR, "Could not create lws context.");
+    return false;
+  }
 
   ret = lws_event_initloop(g_websocket_context, g_app->evt_base, 0);
   slog(LOG_DEBUG, "Check value. ret[%d]", ret);
