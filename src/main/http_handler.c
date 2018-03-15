@@ -369,8 +369,8 @@ bool init_http_handler(void)
   evhtp_set_regex_cb(g_htps, "^/user/login$", cb_htp_user_login, NULL);
 
   // users
-  evhtp_set_regex_cb(g_htps, "^/user/users$", cb_htp_user_users, NULL);
   evhtp_set_regex_cb(g_htps, "^/user/users/(.*)", cb_htp_user_users_detail, NULL);
+  evhtp_set_regex_cb(g_htps, "^/user/users$", cb_htp_user_users, NULL);
 
 
   //// ^/voicemail/
