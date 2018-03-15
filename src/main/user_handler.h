@@ -36,6 +36,10 @@ void htp_delete_user_contacts_detail(evhtp_request_t *req, void *data);
 void htp_post_user_users(evhtp_request_t *req, void *data);
 void htp_get_user_users(evhtp_request_t *req, void *data);
 
+void htp_get_user_users_detail(evhtp_request_t *req, void *data);
+void htp_put_user_users_detail(evhtp_request_t *req, void *data);
+void htp_delete_user_users_detail(evhtp_request_t *req, void *data);
+
 
 json_t* get_user_userinfo_info(const char* key);
 json_t* get_user_userinfo_info_by_username(const char* key);

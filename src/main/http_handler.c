@@ -142,6 +142,7 @@ static void cb_htp_user_login(evhtp_request_t *req, void *data);
 static void cb_htp_user_contacts(evhtp_request_t *req, void *data);
 static void cb_htp_user_contacts_detail(evhtp_request_t *req, void *data);
 static void cb_htp_user_users(evhtp_request_t *req, void *data);
+static void cb_htp_user_users_detail(evhtp_request_t *req, void *data);
 
 
 // voicemail/
@@ -369,6 +370,7 @@ bool init_http_handler(void)
 
   // users
   evhtp_set_regex_cb(g_htps, "^/user/users$", cb_htp_user_users, NULL);
+  evhtp_set_regex_cb(g_htps, "^/user/users/(.*)", cb_htp_user_users_detail, NULL);
 
 
   //// ^/voicemail/
@@ -3953,6 +3955,53 @@ static void cb_htp_user_users(evhtp_request_t *req, void *data)
   // should not reach to here.
   http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
 
+  return;
+}
+
+/**
+ * http request handler
+ * ^/user/users/(.*)
+ * @param req
+ * @param data
+ */
+static void cb_htp_user_users_detail(evhtp_request_t *req, void *data)
+{
+  int method;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_user_users_detail.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if((method != htp_method_GET) && (method != htp_method_PUT) && (method != htp_method_DELETE)) {
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // fire handlers
+  if(method == htp_method_GET) {
+    htp_get_user_users_detail(req, data);
+    return;
+  }
+  else if(method == htp_method_PUT) {
+    htp_put_user_users_detail(req, data);
+    return;
+  }
+  else if(method == htp_method_DELETE) {
+    htp_delete_user_users_detail(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
   return;
 }
 
