@@ -14,10 +14,6 @@
 #define DEF_USER_CONTACT_TYPE_PEER       "sip_peer"
 #define DEF_USER_CONTACT_TYPE_ENDPOINT   "pjsip_endpoint"
 
-#define DEF_USER_PERM_ADMIN    "admin"
-#define DEF_USER_PERM_USER     "user"
-
-
 bool init_user_handler(void);
 void term_user_handler(void);
 bool reload_user_handler(void);

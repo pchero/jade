@@ -14,6 +14,9 @@
 
 #define DEF_REG_UUID "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
 
+#define DEF_USER_PERM_ADMIN    "admin"
+#define DEF_USER_PERM_USER     "user"
+
 bool init_http_handler(void);
 void term_http_handler(void);
 
