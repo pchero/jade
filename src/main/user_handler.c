@@ -40,6 +40,9 @@ static bool init_user_database_userinfo(void);
 
 static char* create_authtoken(const char* username, const char* password);
 
+static bool create_user_userinfo_info(const json_t* j_data);
+
+
 static bool create_userinfo(json_t* j_data);
 static bool create_permission(const char* user_uuid, const char* permission);
 static bool create_contact(json_t* j_data);
@@ -713,8 +716,8 @@ void htp_post_user_users(evhtp_request_t *req, void *data)
     return;
   }
 
-  // create contact
-  ret = create_contact(j_data);
+  // create user
+  ret = create_userinfo(j_data);
   json_decref(j_data);
   if(ret == false) {
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
@@ -723,6 +726,50 @@ void htp_post_user_users(evhtp_request_t *req, void *data)
 
   // create result
   j_res = http_create_default_result(EVHTP_RES_OK);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * htp request handler.
+ * request: GET ^/user/users
+ * @param req
+ * @param data
+ */
+void htp_get_user_users(evhtp_request_t *req, void *data)
+{
+  json_t* j_tmp;
+  json_t* j_res;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired htp_get_user_users.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, DEF_USER_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  // get info
+  j_tmp = get_user_userinfos_all();
+  if(j_tmp == NULL) {
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", json_object());
+  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
 
   // response
   http_simple_response_normal(req, j_res);
@@ -770,46 +817,6 @@ static char* create_authtoken(const char* username, const char* password)
   json_decref(j_auth);
 
   return token;
-}
-
-static bool create_userinfo(json_t* j_data)
-{
-  char* timestamp;
-  char* uuid;
-  const char* username;
-  json_t* j_tmp;
-  int ret;
-
-  if(j_data == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return false;
-  }
-  slog(LOG_DEBUG, "Fired create_userinfo.");
-
-  // check existence
-  username = json_string_value(json_object_get(j_data, "username"));
-  ret = is_user_exsit_by_username(username);
-  if(ret == true) {
-    slog(LOG_NOTICE, "Username is already exist. username[%s]", username);
-    return false;
-  }
-
-  j_tmp = json_deep_copy(j_data);
-
-  timestamp = get_utc_timestamp();
-  uuid = gen_uuid();
-  json_object_set_new(j_tmp, "uuid", json_string(uuid));
-  json_object_set_new(j_tmp, "tm_create", json_string(timestamp));
-  sfree(uuid);
-  sfree(timestamp);
-
-  ret = create_user_userinfo_info(j_tmp);
-  json_decref(j_tmp);
-  if(ret == false) {
-    return false;
-  }
-
-  return true;
 }
 
 static bool create_permission(const char* user_uuid, const char* permission)
@@ -950,7 +957,7 @@ static bool update_contact(const char* uuid, json_t* j_data)
  * @param j_data
  * @return
  */
-static bool create_user(json_t* j_data)
+static bool create_userinfo(json_t* j_data)
 {
   json_t* j_tmp;
   char* timestamp;
@@ -968,6 +975,13 @@ static bool create_user(json_t* j_data)
   username = json_string_value(json_object_get(j_data, "username"));
   if(username == NULL) {
     slog(LOG_ERR, "Could not get username info.");
+    return false;
+  }
+
+  // check exist
+  ret = is_user_exsit_by_username(username);
+  if(ret == true) {
+    slog(LOG_ERR, "The given username is already exist. username[%s]", username);
     return false;
   }
 
@@ -994,7 +1008,7 @@ static bool create_user(json_t* j_data)
   sfree(uuid);
 
   // create resource
-  ret = create_user_contact_info(j_tmp);
+  ret = create_user_userinfo_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not create user contact info.");
@@ -1104,6 +1118,22 @@ json_t* get_user_userinfo_info(const char* key)
 }
 
 /**
+ * Get all user_userinfo detail info.
+ * @return
+ */
+json_t* get_user_userinfos_all(void)
+{
+  json_t* j_res;
+
+  slog(LOG_DEBUG, "Fired get_user_userinfos_all.");
+
+  j_res = get_jade_items(DEF_DB_TABLE_USER_USERINFO, "*");
+
+  return j_res;
+}
+
+
+/**
  * Get corresponding user_userinfo detail info.
  * @return
  */
@@ -1186,7 +1216,7 @@ json_t* get_user_userinfo_by_authtoken(const char* authtoken)
   return j_user;
 }
 
-bool create_user_userinfo_info(const json_t* j_data)
+static bool create_user_userinfo_info(const json_t* j_data)
 {
   int ret;
 

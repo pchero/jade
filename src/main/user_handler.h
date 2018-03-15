@@ -33,14 +33,17 @@ void htp_get_user_contacts_detail(evhtp_request_t *req, void *data);
 void htp_put_user_contacts_detail(evhtp_request_t *req, void *data);
 void htp_delete_user_contacts_detail(evhtp_request_t *req, void *data);
 
+void htp_post_user_users(evhtp_request_t *req, void *data);
+void htp_get_user_users(evhtp_request_t *req, void *data);
+
 
 json_t* get_user_userinfo_info(const char* key);
 json_t* get_user_userinfo_info_by_username(const char* key);
 json_t* get_user_userinfo_info_by_username_pass(const char* username, const char* pass);
 json_t* get_user_userinfo_by_authtoken(const char* authtoken);
-bool create_user_userinfo_info(const json_t* j_data);
 bool update_user_userinfo_info(const json_t* j_data);
 bool delete_user_userinfo_info(const char* key);
+json_t* get_user_userinfos_all(void);
 
 json_t* get_user_authtokens_all(void);
 json_t* get_user_authtoken_info(const char* key);
