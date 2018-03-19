@@ -20,6 +20,7 @@
 #include "user_handler.h"
 #include "resource_handler.h"
 #include "sip_handler.h"
+#include "pjsip_handler.h"
 
 #include "me_handler.h"
 

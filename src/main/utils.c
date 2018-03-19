@@ -14,8 +14,10 @@
 #include <uuid/uuid.h>
 #include <ctype.h>
 #include <jansson.h>
+#include <errno.h>
 
 #include "utils.h"
+#include "slog.h"
 
 #define DEF_UUID_STR_LEN 37
 
@@ -412,3 +414,106 @@ char* strip_ext(char *fname)
 
   return filename;
 }
+
+/**
+ * Return true if given string is exist in the given file.
+ * @param filename
+ * @param str
+ * @return
+ */
+bool is_exist_string_in_file(const char* filename, const char* str)
+{
+  FILE* fp;
+  char* tmp;
+  char tmp_str[1024];
+  bool find;
+
+  if((filename == NULL) || (str == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  fp = fopen(filename, "r");
+  if(fp == NULL) {
+    slog(LOG_ERR, "Could not open file. filename[%s], err[%d:%s]", filename, errno, strerror(errno));
+    return false;
+  }
+
+  find = false;
+  while(1) {
+    tmp = fgets(tmp_str, sizeof(tmp_str), fp);
+    if(tmp == NULL) {
+      break;
+    }
+
+    tmp = strstr(tmp_str, str);
+    if(tmp != NULL) {
+      find = true;
+      break;
+    }
+  }
+  fclose(fp);
+
+  if(find == false) {
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Append given string with new line at the EOF.
+ * @param filename
+ * @param str
+ * @return
+ */
+bool append_string_to_file_end(const char* filename, const char* str)
+{
+  FILE* fp;
+  int ret;
+  char* tmp;
+
+  if((filename == NULL) || (str == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  fp = fopen(filename, "a");
+  if(fp == NULL) {
+    slog(LOG_ERR, "Could not open file. filename[%s], err[%d:%s]", filename, errno, strerror(errno));
+    return false;
+  }
+
+  asprintf(&tmp, "%s\n", str);
+
+  ret = fputs(tmp, fp);
+  sfree(tmp);
+  fclose(fp);
+  if(ret < 0) {
+    slog(LOG_ERR, "Could not write string. filename[%s], err[%d:%s]", filename, errno, strerror(errno));
+    return false;
+  }
+
+  return true;
+}
+
+bool create_empty_file(const char* filename)
+{
+  FILE* fp;
+
+  if(filename == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  fp = fopen(filename, "a");
+  if(fp == NULL) {
+    slog(LOG_ERR, "Could not create empty file. filename[%s], err[%d:%s]", filename, errno, strerror(errno));
+    return false;
+  }
+
+  fclose(fp);
+
+  return true;
+}
+
