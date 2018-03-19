@@ -25,7 +25,7 @@
 
 #define DEF_PJSIP_CONFNAME_AOR            "pjsip.aor.conf"
 #define DEF_PJSIP_CONFNAME_AUTH           "pjsip.auth.conf"
-#define DEF_PJSIP_CONFNAME_CONTACT        "pjsip.auth.conf"
+#define DEF_PJSIP_CONFNAME_CONTACT        "pjsip.contact.conf"
 #define DEF_PJSIP_CONFNAME_ENDPOINT       "pjsip.endpoint.conf"
 #define DEF_PJSIP_CONFNAME_IDENTIFY       "pjsip.identify.conf"
 #define DEF_PJSIP_CONFNAME_REGISTRATION   "pjsip.registration.conf"
@@ -52,6 +52,9 @@ static bool init_pjsip_config(void);
 static bool init_pjsip_config_file(const char* filename);
 
 
+static bool create_config_pjsip_endpoint(const json_t* j_data);
+static bool update_config_pjsip_endpoint(const char* name, const json_t* j_data);
+static bool delete_config_pjsip_endpoint(const char* name);
 
 bool init_pjsip_handler(void)
 {
@@ -119,8 +122,10 @@ bool reload_pjsip_handler(void)
 }
 
 /**
+ * Initiate for given pjsip sub config filename.
  * Checks include of given filename in the PJSIP's config file.
  * If not exist, append it at the EOF.
+ * Create empty given sub config filename if not exist.
  * @param filename
  * @return
  */
@@ -128,6 +133,7 @@ static bool init_pjsip_config_file(const char* filename)
 {
   char* conf;
   char* str_include;
+  char* tmp;
   int ret;
 
   if(filename == NULL) {
@@ -157,6 +163,20 @@ static bool init_pjsip_config_file(const char* filename)
   sfree(str_include);
   if(ret == false) {
     slog(LOG_ERR, "Could not append include string to the config file.");
+    return false;
+  }
+
+  // create filename
+  asprintf(&tmp, "%s/%s",
+      json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "directory_conf")),
+      filename
+      );
+
+  // create empty file
+  ret = create_empty_file(tmp);
+  sfree(tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create init empty file. filename[%s]", filename);
     return false;
   }
 
@@ -670,6 +690,51 @@ void htp_get_pjsip_endpoints(evhtp_request_t *req, void *data)
 }
 
 /**
+ * htp request handler.
+ * request: POST ^/pjsip/endpoints$
+ * @param req
+ * @param data
+ */
+void htp_post_pjsip_endpoints(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_data;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired htp_post_pjsip_endpoints.");
+
+  // get data
+  j_data = http_get_json_from_request_data(req);
+  if(j_data == NULL) {
+    slog(LOG_ERR, "Could not get data from request.");
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // create
+  ret = create_config_pjsip_endpoint(j_data);
+  json_decref(j_data);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+
+/**
  * GET ^/pjsip/endpoints/(*) request handler.
  * @param req
  * @param data
@@ -686,6 +751,7 @@ void htp_get_pjsip_endpoints_detail(evhtp_request_t *req, void *data)
   }
   slog(LOG_DEBUG, "Fired htp_get_pjsip_endpoints_detail.");
 
+  // get detail
   detail = http_get_parsed_detail(req);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get name info.");
@@ -705,6 +771,104 @@ void htp_get_pjsip_endpoints_detail(evhtp_request_t *req, void *data)
   // create result
   j_res = http_create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", j_tmp);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * PUT ^/pjsip/endpoints/(*) request handler.
+ * @param req
+ * @param data
+ */
+void htp_put_pjsip_endpoints_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_data;
+  char* detail;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired htp_put_pjsip_endpoints_detail.");
+
+  // get detail
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get name info.");
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // get data
+  j_data = http_get_json_from_request_data(req);
+  if(j_data == NULL) {
+    slog(LOG_ERR, "Could not get data from request.");
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // update
+  ret = update_config_pjsip_endpoint(detail, j_data);
+  sfree(detail);
+  json_decref(j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update pjsip endpoint info.");
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * DELETE ^/pjsip/endpoints/(*) request handler.
+ * @param req
+ * @param data
+ */
+void htp_delete_pjsip_endpoints_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  char* detail;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired htp_delete_pjsip_endpoints_detail.");
+
+  // get detail
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get name info.");
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // delete
+  ret = delete_config_pjsip_endpoint(detail);
+  sfree(detail);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update pjsip endpoint info.");
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
 
   // response
   http_simple_response_normal(req, j_res);
@@ -2081,3 +2245,107 @@ bool clear_pjsip(void)
   return true;
 
 }
+
+/**
+ * Create pjsip endpoint info to the pjsip-endpoint config file
+ * @param j_data
+ * @return
+ */
+static bool create_config_pjsip_endpoint(const json_t* j_data)
+{
+  json_t* j_tmp;
+  const char* tmp_const;
+  char* name;
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  j_tmp = json_deep_copy(j_data);
+
+  // get name
+  tmp_const = json_string_value(json_object_get(j_tmp, "object_name"));
+  if(tmp_const == NULL) {
+    slog(LOG_ERR, "Could not get object_name.");
+    json_decref(j_tmp);
+    return false;
+  }
+  name = strdup(tmp_const);
+
+  // delete, add items
+  json_object_del(j_tmp, "object_name");
+  json_object_del(j_tmp, "object_type");
+  json_object_set_new(j_tmp, "type", json_string("endpoint"));
+
+  // create
+  ret = create_ast_setting(DEF_PJSIP_CONFNAME_ENDPOINT, name, j_tmp);
+  sfree(name);
+  json_decref(j_tmp);
+
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create pjsip endpoint.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Update pjsip endpoint info to the pjsip-endpoint config file
+ * @param j_data
+ * @return
+ */
+static bool update_config_pjsip_endpoint(const char* name, const json_t* j_data)
+{
+  json_t* j_tmp;
+  int ret;
+
+  if((name == NULL) || (j_data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  j_tmp = json_deep_copy(j_data);
+
+  // delete, add items
+  json_object_del(j_tmp, "object_name");
+  json_object_del(j_tmp, "object_type");
+  json_object_set_new(j_tmp, "type", json_string("endpoint"));
+
+  // update
+  ret = update_ast_setting(DEF_PJSIP_CONFNAME_ENDPOINT, name, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update pjsip endpoint.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Delete pjsip endpoint info to the pjsip-endpoint config file
+ * @param j_data
+ * @return
+ */
+static bool delete_config_pjsip_endpoint(const char* name)
+{
+  int ret;
+
+  if(name == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  // delete
+  ret = remove_ast_setting(DEF_PJSIP_CONFNAME_ENDPOINT, name);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not delete pjsip endpoint.");
+    return false;
+  }
+
+  return true;
+}
+

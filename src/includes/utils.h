@@ -34,6 +34,6 @@ char* strip_ext(char *fname);
 
 bool is_exist_string_in_file(const char* filename, const char* str);
 bool append_string_to_file_end(const char* filename, const char* str);
-
+bool create_empty_file(const char* filename);
 
 #endif /* BACKEND_SRC_UTILS_H_ */

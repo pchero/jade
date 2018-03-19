@@ -497,3 +497,23 @@ bool append_string_to_file_end(const char* filename, const char* str)
   return true;
 }
 
+bool create_empty_file(const char* filename)
+{
+  FILE* fp;
+
+  if(filename == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  fp = fopen(filename, "a");
+  if(fp == NULL) {
+    slog(LOG_ERR, "Could not create empty file. filename[%s], err[%d:%s]", filename, errno, strerror(errno));
+    return false;
+  }
+
+  fclose(fp);
+
+  return true;
+}
+

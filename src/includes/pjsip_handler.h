@@ -16,7 +16,13 @@ bool reload_pjsip_handler(void);
 bool term_pjsip_handler(void);
 
 void htp_get_pjsip_endpoints(evhtp_request_t *req, void *data);
+void htp_post_pjsip_endpoints(evhtp_request_t *req, void *data);
+
 void htp_get_pjsip_endpoints_detail(evhtp_request_t *req, void *data);
+void htp_put_pjsip_endpoints_detail(evhtp_request_t *req, void *data);
+void htp_delete_pjsip_endpoints_detail(evhtp_request_t *req, void *data);
+
+
 void htp_get_pjsip_aors(evhtp_request_t *req, void *data);
 void htp_get_pjsip_aors_detail(evhtp_request_t *req, void *data);
 void htp_get_pjsip_auths(evhtp_request_t *req, void *data);
