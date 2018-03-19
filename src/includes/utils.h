@@ -9,6 +9,7 @@
 #define BACKEND_SRC_UTILS_H_
 
 #include <time.h>
+#include <stdbool.h>
 
 #define sfree(p) { if(p != NULL) free(p); p=NULL; }
 
@@ -31,12 +32,8 @@ int convert_time_string(const char* time, const char* format);
 char* strip_ext(char *fname);
 
 
-
-//char* get_variables_info_ami_str(struct ast_json* j_obj, const char* name);
-//struct ast_json* get_variables_info_json_object(struct ast_json* j_obj, const char* name);
-//char* get_variables_info_ami_str_from_json_array(struct ast_json* j_arr);
-//char* get_variables_info_ami_str_from_string(const char* str);
-//const char* message_get_header(const struct message *m, char *var);
+bool is_exist_string_in_file(const char* filename, const char* str);
+bool append_string_to_file_end(const char* filename, const char* str);
 
 
 #endif /* BACKEND_SRC_UTILS_H_ */

@@ -5,9 +5,12 @@
  *      Author: pchero
  */
 
+#define _GNU_SOURCE
 
+#include <stdio.h>
 #include <jansson.h>
 
+#include "common.h"
 #include "slog.h"
 #include "utils.h"
 #include "resource_handler.h"
@@ -36,11 +39,18 @@
 #define DEF_DB_TABLE_PJSIP_REGISTRATION   "pjsip_registration"
 #define DEF_DB_TABLE_PJSIP_TRANSPORT      "pjsip_transport"
 
+extern app* g_app;
+
+
 static bool init_pjsip_databases(void);
 static bool init_pjsip_database_aor(void);
 static bool init_pjsip_database_auth(void);
 static bool init_pjsip_database_contact(void);
 static bool init_pjsip_database_endpoint(void);
+
+static bool init_pjsip_config(void);
+static bool init_pjsip_config_file(const char* filename);
+
 
 
 bool init_pjsip_handler(void)
@@ -49,6 +59,13 @@ bool init_pjsip_handler(void)
   json_t* j_tmp;
 
   slog(LOG_DEBUG, "Fired init_pjsip_handler.");
+
+  // init config
+  ret = init_pjsip_config();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate pjsip config.");
+    return false;
+  }
 
   // init database
   ret = init_pjsip_databases();
@@ -101,6 +118,115 @@ bool reload_pjsip_handler(void)
   return true;
 }
 
+/**
+ * Checks include of given filename in the PJSIP's config file.
+ * If not exist, append it at the EOF.
+ * @param filename
+ * @return
+ */
+static bool init_pjsip_config_file(const char* filename)
+{
+  char* conf;
+  char* str_include;
+  int ret;
+
+  if(filename == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired init_pjsip_config_file. filename[%s]", filename);
+
+  // create pjsip conf filename
+  asprintf(&conf, "%s/%s",
+      json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "directory_conf")),
+      DEF_PJSIP_CONFNAME
+      );
+
+  // check include exist
+  asprintf(&str_include, "#include \"%s\"", filename);
+  ret = is_exist_string_in_file(conf, str_include);
+  if(ret == true) {
+    sfree(conf);
+    sfree(str_include);
+    return true;
+  }
+
+  // if not exist, append it at the EOF
+  ret = append_string_to_file_end(conf, str_include);
+  sfree(conf);
+  sfree(str_include);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not append include string to the config file.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Initiate pjsip config file.
+ * @return
+ */
+static bool init_pjsip_config(void)
+{
+  int ret;
+
+  // aor
+  ret = init_pjsip_config_file(DEF_PJSIP_CONFNAME_AOR);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate aor config.");
+    return false;
+  }
+
+  // auth
+  ret = init_pjsip_config_file(DEF_PJSIP_CONFNAME_AUTH);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate auth config.");
+    return false;
+  }
+
+  // contact
+  ret = init_pjsip_config_file(DEF_PJSIP_CONFNAME_CONTACT);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate contact config.");
+    return false;
+  }
+
+  // endpoint
+  ret = init_pjsip_config_file(DEF_PJSIP_CONFNAME_ENDPOINT);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate endpoint config.");
+    return false;
+  }
+
+  // identify
+  ret = init_pjsip_config_file(DEF_PJSIP_CONFNAME_IDENTIFY);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate identify config.");
+    return false;
+  }
+
+  // registration
+  ret = init_pjsip_config_file(DEF_PJSIP_CONFNAME_REGISTRATION);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate registration config.");
+    return false;
+  }
+
+  // transport
+  ret = init_pjsip_config_file(DEF_PJSIP_CONFNAME_TRANSPORT);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate transport config.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Initiate pjsip database.
+ * @return
+ */
 static bool init_pjsip_databases(void)
 {
   int ret;
