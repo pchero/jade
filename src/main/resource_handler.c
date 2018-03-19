@@ -233,38 +233,6 @@ static bool init_ast_database(void)
     return false;
   }
 
-  // pjsip_contact
-  db_ctx_exec(g_db_ast, g_sql_drop_pjsip_contact);
-  ret = db_ctx_exec(g_db_ast, g_sql_create_pjsip_contact);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create table. table[%s]", "pjsip_contact");
-    return false;
-  }
-
-  // pjsip_endpoint
-  db_ctx_exec(g_db_ast, g_sql_drop_pjsip_endpoint);
-  ret = db_ctx_exec(g_db_ast, g_sql_create_pjsip_endpoint);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create table. table[%s]", "pjsip_endpoint");
-    return false;
-  }
-
-  // pjsip_aor
-  db_ctx_exec(g_db_ast, g_sql_drop_pjsip_aor);
-  ret = db_ctx_exec(g_db_ast, g_sql_create_pjsip_aor);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create table. table[%s]", "pjsip_aor");
-    return false;
-  }
-
-  // pjsip_auth
-  db_ctx_exec(g_db_ast, g_sql_drop_pjsip_auth);
-  ret = db_ctx_exec(g_db_ast, g_sql_create_pjsip_auth);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create table. table[%s]", "pjsip_auth");
-    return false;
-  }
-
   // voicemail_user
   db_ctx_exec(g_db_ast, g_sql_drop_voicemail_user);
   ret = db_ctx_exec(g_db_ast, g_sql_create_voicemail_user);

@@ -20,6 +20,29 @@
 
 #define DEF_PJSIP_CONFNAME  "pjsip.conf"
 
+#define DEF_PJSIP_CONFNAME_AOR            "pjsip.aor.conf"
+#define DEF_PJSIP_CONFNAME_AUTH           "pjsip.auth.conf"
+#define DEF_PJSIP_CONFNAME_CONTACT        "pjsip.auth.conf"
+#define DEF_PJSIP_CONFNAME_ENDPOINT       "pjsip.endpoint.conf"
+#define DEF_PJSIP_CONFNAME_IDENTIFY       "pjsip.identify.conf"
+#define DEF_PJSIP_CONFNAME_REGISTRATION   "pjsip.registration.conf"
+#define DEF_PJSIP_CONFNAME_TRANSPORT      "pjsip.transports.conf"
+
+#define DEF_DB_TABLE_PJSIP_AOR            "pjsip_aor"
+#define DEF_DB_TABLE_PJSIP_AUTH           "pjsip_auth"
+#define DEF_DB_TABLE_PJSIP_CONTACT        "pjsip_contact"
+#define DEF_DB_TABLE_PJSIP_ENDPOINT       "pjsip_endpoint"
+#define DEF_DB_TABLE_PJSIP_INDENTIFY      "pjsip_identify"
+#define DEF_DB_TABLE_PJSIP_REGISTRATION   "pjsip_registration"
+#define DEF_DB_TABLE_PJSIP_TRANSPORT      "pjsip_transport"
+
+static bool init_pjsip_databases(void);
+static bool init_pjsip_database_aor(void);
+static bool init_pjsip_database_auth(void);
+static bool init_pjsip_database_contact(void);
+static bool init_pjsip_database_endpoint(void);
+
+
 bool init_pjsip_handler(void)
 {
   int ret;
@@ -27,7 +50,14 @@ bool init_pjsip_handler(void)
 
   slog(LOG_DEBUG, "Fired init_pjsip_handler.");
 
-  // pjsip
+  // init database
+  ret = init_pjsip_databases();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate pjsip database.");
+    return false;
+  }
+
+  // send pjsip initiate request
   j_tmp = json_pack("{s:s}",
       "Action", "PJSIPShowEndpoints"
       );
@@ -70,6 +100,417 @@ bool reload_pjsip_handler(void)
 
   return true;
 }
+
+static bool init_pjsip_databases(void)
+{
+  int ret;
+
+  ret = init_pjsip_database_aor();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate aor database.");
+    return false;
+  }
+
+  ret = init_pjsip_database_auth();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate auth database.");
+    return false;
+  }
+
+  ret = init_pjsip_database_contact();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate contact database.");
+    return false;
+  }
+
+  ret = init_pjsip_database_endpoint();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate endpoint database.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Initiate aor database.
+ * @return
+ */
+static bool init_pjsip_database_aor(void)
+{
+  int ret;
+  const char* drop_table;
+  const char* create_table;
+
+  drop_table = "drop table if exists " DEF_DB_TABLE_PJSIP_AOR;
+
+  create_table =
+    "create table " DEF_DB_TABLE_PJSIP_AOR " ("
+
+    // basic info
+    "   object_type         varchar(255),"
+    "   object_name         varchar(255),"
+    "   endpoint_name       varchar(255),"
+
+    // expiration
+    "   minimum_expiration  int,"
+    "   default_expiration  int,"
+    "   maximum_expiration  int,"
+
+    // qualify
+    "   qualify_timeout     int,"
+    "   qualify_frequency   int,"
+
+    // contact
+    "   contacts                    string,"
+    "   max_contacts                int,"
+    "   total_contacts              int,"
+    "   contacts_registered         int,"
+    "   remove_existing             varchar(255),"
+
+    // etc
+    "   mailboxes                   varchar(1023),"
+    "   support_path                varchar(255),"
+    "   voicemail_extension         varchar(1023),"
+    "   authenticate_qualify        varchar(255),"
+    "   outbound_proxy              varchar(1023),"
+
+    // timestamp. UTC."
+    "   tm_update         datetime(6),"   // update time."
+
+    "   primary  key(object_name)"
+
+    ");";
+
+  // execute
+  exec_ast_sql(drop_table);
+  ret = exec_ast_sql(create_table);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate database. database[%s]", DEF_DB_TABLE_PJSIP_AOR);
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Initiate auth database.
+ * @return
+ */
+static bool init_pjsip_database_auth(void)
+{
+  int ret;
+  const char* drop_table;
+  const char* create_table;
+
+  drop_table = "drop table if exists " DEF_DB_TABLE_PJSIP_AUTH;
+
+  create_table =
+    "create table " DEF_DB_TABLE_PJSIP_AUTH " ("
+
+    // basic info
+    "   object_type         varchar(255),"
+    "   object_name         varchar(1023),"
+    "   username            varchar(1023),"
+    "   endpoint_name       varchar(1023),"
+
+    // credential
+    "   auth_type           varchar(255),"
+    "   password            varchar(1023),"
+    "   md5_cred            varchar(1023),"
+
+    // etc
+    "   realm               varchar(255),"
+    "   nonce_lifetime      int,"
+
+    // timestamp. UTC."
+    "   tm_update         datetime(6),"   // update time."
+
+    "   primary key(object_name)"
+
+    ");";
+
+  // execute
+  exec_ast_sql(drop_table);
+  ret = exec_ast_sql(create_table);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate database. database[%s]", DEF_DB_TABLE_PJSIP_AUTH);
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Initiate contact database.
+ * @return
+ */
+static bool init_pjsip_database_contact(void)
+{
+  int ret;
+  const char* drop_table;
+  const char* create_table;
+
+  drop_table = "drop table if exists " DEF_DB_TABLE_PJSIP_CONTACT;
+
+  create_table =
+    "create table " DEF_DB_TABLE_PJSIP_CONTACT " ("
+
+    "   uri             varchar(1023),"
+    "   id              varchar(1023),"
+    "   aor             varchar(1023),"
+    "   endpoint_name   varchar(1023),"
+
+    "   status  varchar(255),"
+
+    "   round_trip_usec varchar(255),"
+    "   user_agent      varchar(4095),"
+    "   reg_expire      int,"
+    "   via_address     varchar(1023),"
+    "   call_id         varchar(1023),"
+
+    "   authentication_qualify  int,"
+    "   outbound_proxy          varchar(1023),"
+    "   path                    varchar(1023),"
+
+    "   qualify_frequency   int,"
+    "   qualify_timout      int,"
+
+    // timestamp. UTC."
+    "   tm_update         datetime(6),"   // update time."
+
+    "   primary key(uri)"
+
+    ");";
+
+  // execute
+  exec_ast_sql(drop_table);
+  ret = exec_ast_sql(create_table);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate database. database[%s]", DEF_DB_TABLE_PJSIP_CONTACT);
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Initiate endpoint database.
+ * @return
+ */
+static bool init_pjsip_database_endpoint(void)
+{
+  int ret;
+  const char* drop_table;
+  const char* create_table;
+
+  drop_table = "drop table if exists " DEF_DB_TABLE_PJSIP_ENDPOINT;
+
+  create_table =
+    "create table " DEF_DB_TABLE_PJSIP_ENDPOINT " ("
+
+    // basic info
+    "   object_type     varchar(255),"
+    "   object_name     varchar(1023),"
+    "   auth            varchar(1023),"
+    "   aors            varchar(1023),"
+
+    // context
+    "   context             varchar(255),"
+    "   message_context     varchar(1023),"
+    "   subscribe_context   varchar(1023),"
+
+    // mailbox
+    "   mailboxes               varchar(1023),"
+    "   voicemail_extension     varchar(1023),"
+    "   incoming_mwi_mailbox    varchar(1023),"
+
+    // allow and disallow
+    "   disallow            varchar(255),"
+    "   allow               varchar(1023),"
+    "   allow_subscribe     varchar(1023),"
+    "   allow_overlap       varchar(1023),"
+    "   allow_transfer      varchar(1023),"
+
+    "   webrtc          varchar(255),"
+
+    "   dtmf_mode       varchar(1023),"
+
+    // rtp
+    "   rtp_engine            varchar(1023),"
+    "   rtp_ipv6              varchar(1023),"
+    "   rtp_symmetric         varchar(1023),"
+    "   rtp_keepalive         int,"
+    "   rtp_timeout           int,"
+    "   rtp_timeout_hold      int,"
+    "   asymmetric_rtp_codec  varchar(255),"
+
+    "   rtcp_mux        varchar(255),"
+
+    "   ice_support     varchar(1023),"
+    "   use_ptime       varchar(1023),"
+
+    "   force_rport         varchar(1023),"
+    "   rewrite_contact     varchar(1023),"
+    "   transport           varchar(1023),"
+    "   moh_suggest         varchar(1023),"
+
+    "   rel_100                 varchar(1023),"
+
+    // timers
+    "   timers                  varchar(1023),"
+    "   timers_min_se           varchar(1023),"
+    "   timers_sess_expires     int,"
+
+    // outbound
+    "   outbound_proxy          varchar(1023),"
+    "   outbound_auth           varchar(1023),"
+
+    "   identify_by             varchar(1023),"
+
+    "   redirect_method         varchar(1023),"
+
+    // direct media
+    "   direct_media                    varchar(1023),"
+    "   direct_media_method             varchar(1023),"
+    "   direct_media_glare_mitigation   varchar(1023),"
+    "   disable_direct_media_on_nat     varchar(1023),"
+
+    "   connected_line_method           varchar(1023),"
+
+    // caller id
+    "   caller_id               varchar(1023),"
+    "   caller_id_privacy       varchar(1023),"
+    "   caller_id_tag           varchar(1023),"
+
+    // trust id
+    "   trust_id_inbound        varchar(1023),"
+    "   trust_id_outbound       varchar(1023),"
+
+    "   send_pai                varchar(1023),"
+
+    "   rpid_immediate          varchar(255),"
+    "   send_rpid               varchar(1023),"
+    "   send_diversion          varchar(1023),"
+
+    "   aggregate_mwi           varchar(1023),"
+
+    // media
+    "   media_address           varchar(1023),"
+    "   media_encryption                varchar(1023),"
+    "   media_encryption_optimistic     varchar(1023),"
+    "   media_use_received_transport    varchar(1023),"
+
+    "   use_avpf                        varchar(1023),"
+    "   force_avp                       varchar(1023),"
+
+    "   one_touch_recording             varchar(1023),"
+
+    // prgoress
+    "   inband_progress         varchar(1023),"
+    "   refer_blind_progress    varchar(255),"
+
+    // group
+    "   call_group              varchar(1023),"
+    "   pickup_group            varchar(1023),"
+    "   named_call_group        varchar(1023),"
+    "   named_pickup_group      varchar(1023),"
+
+    "   device_state            varchar(1023),"
+    "   device_state_busy_at    int,"
+
+    // t38 fax
+    "   fax_detect              varchar(1023),"
+    "   fax_detect_time         int,"
+    "   t38_udptl               varchar(1023),"
+    "   t38_udptl_ec            varchar(1023),"
+    "   t38_udptl_maxdatagram   int,"
+    "   t38_udptl_nat           varchar(1023),"
+    "   t38_udptl_ipv6          varchar(1023),"
+
+    "   tone_zone               varchar(1023),"
+    "   language                varchar(1023),"
+
+    // record
+    "   record_on_feature       varchar(1023),"
+    "   record_off_feature      varchar(1023),"
+
+    "   user_eq_phone       varchar(1023),"
+    "   moh_passthrough     varchar(1023),"
+
+    // sdp
+    "   sdp_owner       varchar(1023),"
+    "   sdp_session     varchar(1023),"
+
+    // tos
+    "   tos_audio       int,"
+    "   tos_video       int,"
+
+    // cos
+    "   cos_audio       int,"
+    "   cos_video       int,"
+
+    "   sub_min_expiry      varchar(1023),"
+    "   from_user           varchar(1023),"
+    "   from_domain         varchar(1023),"
+
+    // mwi
+    "   mwi_from_user                       varchar(1023),"
+    "   mwi_subscribe_replaces_unsolicited  varchar(255),"
+
+    // dtls
+    "   dtls_verify         varchar(1023),"
+    "   dtls_rekey          int,"
+    "   dtls_cert_file      varchar(1023),"
+    "   dtls_private_key    varchar(1023),"
+    "   dtls_cipher         varchar(1023),"
+    "   dtls_ca_file        varchar(1023),"
+    "   dtls_ca_path        varchar(1023),"
+    "   dtls_setup          varchar(1023),"
+    "   dtls_fingerprint    varchar(1023),"
+
+    "   srtp_tag32      varchar(1023),"
+
+    "   set_var                 varchar(1023),"
+
+    "   account_code            varchar(1023),"
+    "   preferred_codec_only    varchar(1023),"
+
+    "   active_channels     varchar(1023),"
+
+    // max streams
+    "   max_audio_streams           int,"
+    "   max_video_streams           int,"
+
+    // acl
+    "   acl                         varchar(1023),"
+    "   contact_acl                 varchar(1023),"
+
+    // etc
+    "   g_726_non_standard          varchar(255),"
+    "   notify_early_inuse_ringing  varchar(255),"
+    "   bind_rtp_to_media_address   varchar(255),"
+    "   bundle                      varchar(255),"
+
+
+    // timestamp. UTC."
+    "   tm_update         datetime(6),"   // update time."
+
+    "   primary key(object_name)"
+
+    ");";
+
+  // execute
+  exec_ast_sql(drop_table);
+  ret = exec_ast_sql(create_table);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate database. database[%s]", DEF_DB_TABLE_PJSIP_ENDPOINT);
+    return false;
+  }
+
+  return true;
+}
+
 
 /**
  * htp request handler.
@@ -832,7 +1273,7 @@ json_t* get_pjsip_endpoint_info(const char* name)
   }
   slog(LOG_DEBUG, "Fired get_pjsip_endpoint_info. object_name[%s]", name);
 
-  j_res = get_ast_detail_item_key_string("pjsip_endpoint", "object_name", name);
+  j_res = get_ast_detail_item_key_string(DEF_DB_TABLE_PJSIP_ENDPOINT, "object_name", name);
 
   return j_res;
 }
@@ -848,7 +1289,7 @@ json_t* get_pjsip_endpoints_all(void)
 
   slog(LOG_DEBUG, "Fired get_pjsip_endpoints_all.");
 
-  j_res = get_ast_items("pjsip_endpoint", "*");
+  j_res = get_ast_items(DEF_DB_TABLE_PJSIP_ENDPOINT, "*");
 
   return j_res;
 }
@@ -864,7 +1305,7 @@ json_t* get_pjsip_aors_all(void)
 
   slog(LOG_DEBUG, "Fired pjsip_aor.");
 
-  j_res = get_ast_items("pjsip_aor", "*");
+  j_res = get_ast_items(DEF_DB_TABLE_PJSIP_AOR, "*");
 
   return j_res;
 }
@@ -884,7 +1325,7 @@ json_t* get_pjsip_aor_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired get_pjsip_aors_info.");
 
-  j_res = get_ast_detail_item_key_string("pjsip_aor", "object_name", key);
+  j_res = get_ast_detail_item_key_string(DEF_DB_TABLE_PJSIP_AOR, "object_name", key);
 
   return j_res;
 }
@@ -900,7 +1341,7 @@ json_t* get_pjsip_auths_all(void)
 
   slog(LOG_DEBUG, "Fired get_pjsip_auths_all.");
 
-  j_res = get_ast_items("pjsip_auth", "*");
+  j_res = get_ast_items(DEF_DB_TABLE_PJSIP_AUTH, "*");
 
   return j_res;
 }
@@ -920,7 +1361,7 @@ json_t* get_pjsip_auth_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired get_pjsip_auth_info.");
 
-  j_res = get_ast_detail_item_key_string("pjsip_auth", "object_name", key);
+  j_res = get_ast_detail_item_key_string(DEF_DB_TABLE_PJSIP_AUTH, "object_name", key);
 
   return j_res;
 }
@@ -936,7 +1377,7 @@ json_t* get_pjsip_contacts_all(void)
 
   slog(LOG_DEBUG, "Fired get_pjsip_contacts_all.");
 
-  j_res = get_ast_items("pjsip_contact", "*");
+  j_res = get_ast_items(DEF_DB_TABLE_PJSIP_CONTACT, "*");
 
   return j_res;
 }
@@ -956,7 +1397,7 @@ json_t* get_pjsip_contact_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired get_pjsip_contact_info.");
 
-  j_res = get_ast_detail_item_key_string("pjsip_contact", "uri", key);
+  j_res = get_ast_detail_item_key_string(DEF_DB_TABLE_PJSIP_CONTACT, "uri", key);
 
   return j_res;
 }
@@ -980,7 +1421,7 @@ bool create_pjsip_endpoint_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired create_pjsip_endpoint_info.");
 
   // insert queue info
-  ret = insert_ast_item("pjsip_endpoint", j_data);
+  ret = insert_ast_item(DEF_DB_TABLE_PJSIP_ENDPOINT, j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert pjsip endpoint.");
     return false;
@@ -1023,7 +1464,7 @@ bool update_pjsip_endpoint_info(const json_t* j_data)
   }
   slog(LOG_DEBUG, "Fired update_pjsip_endpoint_info.");
 
-  ret = update_ast_item("pjsip_endpoint", "object_name", j_data);
+  ret = update_ast_item(DEF_DB_TABLE_PJSIP_ENDPOINT, "object_name", j_data);
   if(ret == false) {
     slog(LOG_WARNING, "Could not update pjsip endpoint info.");
     return false;
@@ -1072,7 +1513,7 @@ bool delete_pjsip_endpoint_info(const char* key)
   }
 
   // delete info
-  ret = delete_ast_items_string("pjsip_endpoint", "object_name", key);
+  ret = delete_ast_items_string(DEF_DB_TABLE_PJSIP_ENDPOINT, "object_name", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete pjsip_endpoint info. key[%s]", key);
     json_decref(j_tmp);
@@ -1109,7 +1550,7 @@ bool create_pjsip_auth_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired create_pjsip_auth_info.");
 
   // insert queue info
-  ret = insert_ast_item("pjsip_auth", j_data);
+  ret = insert_ast_item(DEF_DB_TABLE_PJSIP_AUTH, j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert pjsip auth.");
     return false;
@@ -1153,7 +1594,7 @@ bool update_pjsip_auth_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired update_pjsip_auth_info.");
 
   // update
-  ret = update_ast_item("pjsip_auth", "object_name", j_data);
+  ret = update_ast_item(DEF_DB_TABLE_PJSIP_AUTH, "object_name", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update pjsip_auth info.");
     return false;
@@ -1201,7 +1642,7 @@ bool delete_pjsip_auth_info(const char* key)
     return false;
   }
 
-  ret = delete_ast_items_string("pjsip_auth", "object_name", key);
+  ret = delete_ast_items_string(DEF_DB_TABLE_PJSIP_AUTH, "object_name", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete pjsip_auth info. key[%s]", key);
     json_decref(j_tmp);
@@ -1238,7 +1679,7 @@ bool create_pjsip_aor_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired create_pjsip_aor_info.");
 
   // insert queue info
-  ret = insert_ast_item("pjsip_aor", j_data);
+  ret = insert_ast_item(DEF_DB_TABLE_PJSIP_AOR, j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert pjsip aor.");
     return false;
@@ -1282,7 +1723,7 @@ bool update_pjsip_aor_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired update_pjsip_aor_info.");
 
   // update
-  ret = update_ast_item("pjsip_aor", "object_name", j_data);
+  ret = update_ast_item(DEF_DB_TABLE_PJSIP_AOR, "object_name", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update pjsip_aor info.");
     return false;
@@ -1332,7 +1773,7 @@ bool delete_pjsip_aor_info(const char* key)
     return false;
   }
 
-  ret = delete_ast_items_string("pjsip_aor", "object_name", key);
+  ret = delete_ast_items_string(DEF_DB_TABLE_PJSIP_AOR, "object_name", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete pjsip_aor info. key[%s]", key);
     return false;
@@ -1367,7 +1808,7 @@ bool create_pjsip_contact_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired create_pjsip_contact_info.");
 
   // insert info
-  ret = insert_ast_item("pjsip_contact", j_data);
+  ret = insert_ast_item(DEF_DB_TABLE_PJSIP_CONTACT, j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert pjsip contact.");
     return false;
@@ -1411,7 +1852,7 @@ bool update_pjsip_contact_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired update_pjsip_contact_info.");
 
   // update
-  ret = update_ast_item("pjsip_contact", "uri", j_data);
+  ret = update_ast_item(DEF_DB_TABLE_PJSIP_CONTACT, "uri", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update pjsip_contact info.");
     return false;
@@ -1459,7 +1900,7 @@ bool delete_pjsip_contact_info(const char* key)
     return false;
   }
 
-  ret = delete_ast_items_string("pjsip_contact", "uri", key);
+  ret = delete_ast_items_string(DEF_DB_TABLE_PJSIP_CONTACT, "uri", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete pjsip_contact info. key[%s]", key);
     json_decref(j_tmp);
@@ -1487,25 +1928,25 @@ bool clear_pjsip(void)
 {
   int ret;
 
-  ret = clear_ast_table("pjsip_endpoint");
+  ret = clear_ast_table(DEF_DB_TABLE_PJSIP_ENDPOINT);
   if(ret == false) {
     slog(LOG_ERR, "Could not clear pjsip_endpoint");
     return false;
   }
 
-  ret = clear_ast_table("pjsip_aor");
+  ret = clear_ast_table(DEF_DB_TABLE_PJSIP_AOR);
   if(ret == false) {
     slog(LOG_ERR, "Could not clear pjsip_aor");
     return false;
   }
 
-  ret = clear_ast_table("pjsip_auth");
+  ret = clear_ast_table(DEF_DB_TABLE_PJSIP_AUTH);
   if(ret == false) {
     slog(LOG_ERR, "Could not clear pjsip_auth");
     return false;
   }
 
-  ret = clear_ast_table("pjsip_contact");
+  ret = clear_ast_table(DEF_DB_TABLE_PJSIP_CONTACT);
   if(ret == false) {
     slog(LOG_ERR, "Could not clear pjsip_contact");
     return false;
