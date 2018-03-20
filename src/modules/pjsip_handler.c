@@ -2202,40 +2202,14 @@ void htp_delete_pjsip_configs_detail(evhtp_request_t *req, void *data)
  */
 void htp_get_pjsip_settings_detail(evhtp_request_t *req, void *data)
 {
-  json_t* j_res;
-  json_t* j_tmp;
-  char* detail;
-
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
   slog(LOG_DEBUG, "Fired htp_get_pjsip_settings_detail.");
 
-  // detail parse
-  detail = http_get_parsed_detail(req);
-  if(detail == NULL) {
-    slog(LOG_ERR, "Could not get detail info.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // get setting
-  j_tmp =get_ast_setting(DEF_PJSIP_CONFNAME, detail);
-  sfree(detail);
-  if(j_tmp == NULL) {
-    slog(LOG_ERR, "Could not get pjsip setting.");
-    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-  json_object_set_new(j_res, "result", j_tmp);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
+  // deprecated.
+  http_simple_response_error(req, EVHTP_RES_GONE, 0, NULL);
 
   return;
 }
@@ -2248,50 +2222,14 @@ void htp_get_pjsip_settings_detail(evhtp_request_t *req, void *data)
  */
 void htp_put_pjsip_settings_detail(evhtp_request_t *req, void *data)
 {
-  json_t* j_res;
-  json_t* j_data;
-  char* detail;
-  int ret;
-
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
   slog(LOG_DEBUG, "Fired htp_put_pjsip_settings_detail.");
 
-  // detail parse
-  detail = http_get_parsed_detail(req);
-  if(detail == NULL) {
-    slog(LOG_ERR, "Could not get detail info.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // get data
-  j_data = http_get_json_from_request_data(req);
-  if(j_data == NULL) {
-    slog(LOG_ERR, "Could not get correct data from request.");
-    sfree(detail);
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // update setting
-  ret = update_ast_setting(DEF_PJSIP_CONFNAME, detail, j_data);
-  sfree(detail);
-  json_decref(j_data);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not update pjsip setting.");
-    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
+  // deprecated.
+  http_simple_response_error(req, EVHTP_RES_GONE, 0, NULL);
 
   return;
 }
@@ -2304,39 +2242,14 @@ void htp_put_pjsip_settings_detail(evhtp_request_t *req, void *data)
  */
 void htp_delete_pjsip_settings_detail(evhtp_request_t *req, void *data)
 {
-  json_t* j_res;
-  char* detail;
-  int ret;
-
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
   slog(LOG_DEBUG, "Fired htp_delete_pjsip_settings_detail.");
 
-  // detail parse
-  detail = http_get_parsed_detail(req);
-  if(detail == NULL) {
-    slog(LOG_ERR, "Could not get detail info.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // delete setting
-  ret = remove_ast_setting(DEF_PJSIP_CONFNAME, detail);
-  sfree(detail);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not remove pjsip setting.");
-    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
+  // deprecated.
+  http_simple_response_error(req, EVHTP_RES_GONE, 0, NULL);
 
   return;
 }
@@ -2349,26 +2262,14 @@ void htp_delete_pjsip_settings_detail(evhtp_request_t *req, void *data)
  */
 void htp_get_pjsip_settings(evhtp_request_t *req, void *data)
 {
-  json_t* j_tmp;
-  json_t* j_res;
-
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
   slog(LOG_DEBUG, "Fired htp_get_pjsip_settings.");
 
-  // get info
-  j_tmp = get_ast_settings_all(DEF_PJSIP_CONFNAME);
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-  json_object_set_new(j_res, "result", json_object());
-  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
+  // deprecated.
+  http_simple_response_error(req, EVHTP_RES_GONE, 0, NULL);
 
   return;
 }
@@ -2381,61 +2282,17 @@ void htp_get_pjsip_settings(evhtp_request_t *req, void *data)
  */
 void htp_post_pjsip_settings(evhtp_request_t *req, void *data)
 {
-  json_t* j_res;
-  json_t* j_data;
-  const char* name;
-  json_t* j_setting;
-  int ret;
-
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
   slog(LOG_DEBUG, "Fired htp_post_pjsip_settings.");
 
-  // get data
-  j_data = http_get_json_from_request_data(req);
-  if(j_data == NULL) {
-    slog(LOG_ERR, "Could not get data from request.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // get name
-  name = json_string_value(json_object_get(j_data, "name"));
-  if(name == NULL) {
-    slog(LOG_ERR, "Could not get setting name.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // get setting info
-  j_setting = json_object_get(j_data, "setting");
-  if(j_setting == NULL) {
-    slog(LOG_ERR, "Could not get setting.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // create setting
-  ret = create_ast_setting(DEF_PJSIP_CONFNAME, name, j_setting);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create pjsip setting.");
-    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
+  // deprecated.
+  http_simple_response_error(req, EVHTP_RES_GONE, 0, NULL);
 
   return;
 }
-
-
 
 /**
  * Get corresponding pjsip_endpoint info.
