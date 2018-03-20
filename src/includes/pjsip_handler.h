@@ -72,6 +72,8 @@ void htp_put_pjsip_config(evhtp_request_t *req, void *data);
 void htp_get_pjsip_configs(evhtp_request_t *req, void *data);
 void htp_get_pjsip_configs_detail(evhtp_request_t *req, void *data);
 void htp_delete_pjsip_configs_detail(evhtp_request_t *req, void *data);
+
+// settings
 void htp_get_pjsip_settings_detail(evhtp_request_t *req, void *data);
 void htp_put_pjsip_settings_detail(evhtp_request_t *req, void *data);
 void htp_delete_pjsip_settings_detail(evhtp_request_t *req, void *data);
