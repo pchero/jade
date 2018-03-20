@@ -73,8 +73,12 @@ Or may be used by either companies who wish to make calls on their own behalf, o
 
 ## Library issue
 * libwebsocket
+  * Required libevent option. 
+    * $ cd build  
+    * $ cmake -DLWS_WITH_LIBEVENT=1 ../
+    * $ make && sudo make install
   * v2.4.1 has memory leak problem(https://github.com/warmcat/libwebsockets/pull/1155)
-  * Fixed in master branch.
+    * Fixed in master branch.
 
 * libevhtp
   * The libevhtp repository has been changed(https://github.com/criticalstack/libevhtp).
