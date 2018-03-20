@@ -82,7 +82,7 @@ static int write_ast_config_info(const char* filename, json_t* j_conf)
   // write config
   json_object_foreach(j_conf, section, j_item) {
     slog(LOG_DEBUG, "Writing section info. section[%s]", section);
-    fprintf(fp, "[%s]\n", section);
+    fprintf(fp, "\n[%s]\n", section);
     json_object_foreach(j_item, key, j_val) {
 
       // check is array
