@@ -94,17 +94,24 @@ static void cb_htp_park_settings_detail(evhtp_request_t *req, void *data);
 
 
 // pjsip
-static void cb_htp_pjsip_endpoints(evhtp_request_t *req, void *data);
-static void cb_htp_pjsip_endpoints_detail(evhtp_request_t *req, void *data);
 static void cb_htp_pjsip_aors(evhtp_request_t *req, void *data);
 static void cb_htp_pjsip_aors_detail(evhtp_request_t *req, void *data);
 static void cb_htp_pjsip_auths(evhtp_request_t *req, void *data);
 static void cb_htp_pjsip_auths_detail(evhtp_request_t *req, void *data);
+static void cb_htp_pjsip_contacts(evhtp_request_t *req, void *data);
+static void cb_htp_pjsip_contacts_detail(evhtp_request_t *req, void *data);
+static void cb_htp_pjsip_endpoints(evhtp_request_t *req, void *data);
+static void cb_htp_pjsip_endpoints_detail(evhtp_request_t *req, void *data);
+static void cb_htp_pjsip_identifies(evhtp_request_t *req, void *data);
+static void cb_htp_pjsip_identifies_detail(evhtp_request_t *req, void *data);
+static void cb_htp_pjsip_registrations(evhtp_request_t *req, void *data);
+static void cb_htp_pjsip_registrations_detail(evhtp_request_t *req, void *data);
+static void cb_htp_pjsip_transports(evhtp_request_t *req, void *data);
+static void cb_htp_pjsip_transports_detail(evhtp_request_t *req, void *data);
+
 static void cb_htp_pjsip_config(evhtp_request_t *req, void *data);
 static void cb_htp_pjsip_configs(evhtp_request_t *req, void *data);
 static void cb_htp_pjsip_configs_detail(evhtp_request_t *req, void *data);
-static void cb_htp_pjsip_contacts(evhtp_request_t *req, void *data);
-static void cb_htp_pjsip_contacts_detail(evhtp_request_t *req, void *data);
 static void cb_htp_pjsip_settings(evhtp_request_t *req, void *data);
 static void cb_htp_pjsip_settings_detail(evhtp_request_t *req, void *data);
 
@@ -302,9 +309,21 @@ bool init_http_handler(void)
   evhtp_set_regex_cb(g_htps, "^/pjsip/endpoints/(.*)", cb_htp_pjsip_endpoints_detail, NULL);
   evhtp_set_regex_cb(g_htps, "^/pjsip/endpoints$", cb_htp_pjsip_endpoints, NULL);
 
+  // identifies
+  evhtp_set_regex_cb(g_htps, "^/pjsip/identifies/(.*)", cb_htp_pjsip_identifies_detail, NULL);
+  evhtp_set_regex_cb(g_htps, "^/pjsip/identifies$", cb_htp_pjsip_identifies, NULL);
+
+  // registrations
+  evhtp_set_regex_cb(g_htps, "^/pjsip/registrations/(.*)", cb_htp_pjsip_registrations_detail, NULL);
+  evhtp_set_regex_cb(g_htps, "^/pjsip/registrations$", cb_htp_pjsip_registrations, NULL);
+
   // settings
   evhtp_set_regex_cb(g_htps, "^/pjsip/settings/(.*)", cb_htp_pjsip_settings_detail, NULL);
   evhtp_set_regex_cb(g_htps, "^/pjsip/settings$", cb_htp_pjsip_settings, NULL);
+
+  // transports
+  evhtp_set_regex_cb(g_htps, "^/pjsip/transports/(.*)", cb_htp_pjsip_transports_detail, NULL);
+  evhtp_set_regex_cb(g_htps, "^/pjsip/transports$", cb_htp_pjsip_transports, NULL);
 
 
 
@@ -3210,6 +3229,273 @@ static void cb_htp_pjsip_endpoints_detail(evhtp_request_t *req, void *data)
 
 /**
  * http request handler
+ * ^/pjsip/identifies
+ * @param req
+ * @param data
+ */
+static void cb_htp_pjsip_identifies(evhtp_request_t *req, void *data)
+{
+  int method;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_pjsip_identifies.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if((method != htp_method_GET) && (method != htp_method_POST)) {
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  if(method == htp_method_GET) {
+    // todo: not support now
+    return;
+  }
+  else if(method == htp_method_POST) {
+    htp_post_pjsip_identifies(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  return;
+}
+
+/**
+ * http request handler
+ * ^/pjsip/identifies/(*)
+ * @param req
+ * @param data
+ */
+static void cb_htp_pjsip_identifies_detail(evhtp_request_t *req, void *data)
+{
+  int method;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_pjsip_identifies_detail.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if((method != htp_method_GET) && (method != htp_method_PUT) && (method != htp_method_DELETE)) {
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // fire handlers
+  if(method == htp_method_GET) {
+    // todo: not support now
+    return;
+  }
+  else if(method == htp_method_PUT) {
+    htp_put_pjsip_identifies_detail(req, data);
+    return;
+  }
+  else if(method == htp_method_DELETE) {
+    htp_delete_pjsip_identifies_detail(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  return;
+}
+
+/**
+ * http request handler
+ * ^/pjsip/registrations
+ * @param req
+ * @param data
+ */
+static void cb_htp_pjsip_registrations(evhtp_request_t *req, void *data)
+{
+  int method;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_pjsip_registrations.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if((method != htp_method_GET) && (method != htp_method_POST)) {
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  if(method == htp_method_GET) {
+    // todo: not support now
+    return;
+  }
+  else if(method == htp_method_POST) {
+    htp_post_pjsip_registrations(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  return;
+}
+
+/**
+ * http request handler
+ * ^/pjsip/registrations/(*)
+ * @param req
+ * @param data
+ */
+static void cb_htp_pjsip_registrations_detail(evhtp_request_t *req, void *data)
+{
+  int method;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_pjsip_registrations_detail.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if((method != htp_method_GET) && (method != htp_method_PUT) && (method != htp_method_DELETE)) {
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // fire handlers
+  if(method == htp_method_GET) {
+    // todo: not support now
+    return;
+  }
+  else if(method == htp_method_PUT) {
+    htp_put_pjsip_registrations_detail(req, data);
+    return;
+  }
+  else if(method == htp_method_DELETE) {
+    htp_delete_pjsip_registrations_detail(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  return;
+}
+
+/**
+ * http request handler
+ * ^/pjsip/transports
+ * @param req
+ * @param data
+ */
+static void cb_htp_pjsip_transports(evhtp_request_t *req, void *data)
+{
+  int method;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_pjsip_transports.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if((method != htp_method_GET) && (method != htp_method_POST)) {
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  if(method == htp_method_GET) {
+    // todo: not support now
+    return;
+  }
+  else if(method == htp_method_POST) {
+    htp_post_pjsip_transports(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  return;
+}
+
+/**
+ * http request handler
+ * ^/pjsip/transports/(*)
+ * @param req
+ * @param data
+ */
+static void cb_htp_pjsip_transports_detail(evhtp_request_t *req, void *data)
+{
+  int method;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_pjsip_transports_detail.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if((method != htp_method_GET) && (method != htp_method_PUT) && (method != htp_method_DELETE)) {
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // fire handlers
+  if(method == htp_method_GET) {
+    // todo: not support now
+    return;
+  }
+  else if(method == htp_method_PUT) {
+    htp_put_pjsip_transports_detail(req, data);
+    return;
+  }
+  else if(method == htp_method_DELETE) {
+    htp_delete_pjsip_transports_detail(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+  return;
+}
+
+/**
+ * http request handler
  * ^/pjsip/aors$
  * @param req
  * @param data
@@ -3226,7 +3512,7 @@ static void cb_htp_pjsip_aors(evhtp_request_t *req, void *data)
 
   // method check
   method = evhtp_request_get_method(req);
-  if(method != htp_method_GET) {
+  if((method != htp_method_GET) && (method != htp_method_POST)) {
     http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
@@ -3234,6 +3520,10 @@ static void cb_htp_pjsip_aors(evhtp_request_t *req, void *data)
   // fire handlers
   if(method == htp_method_GET) {
     htp_get_pjsip_aors(req, data);
+    return;
+  }
+  else if(method == htp_method_POST) {
+    htp_post_pjsip_aors(req, data);
     return;
   }
   else {
@@ -3265,7 +3555,7 @@ static void cb_htp_pjsip_aors_detail(evhtp_request_t *req, void *data)
 
   // method check
   method = evhtp_request_get_method(req);
-  if(method != htp_method_GET) {
+  if((method != htp_method_GET) && (method != htp_method_PUT) && (method != htp_method_DELETE)) {
     http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
@@ -3273,6 +3563,14 @@ static void cb_htp_pjsip_aors_detail(evhtp_request_t *req, void *data)
   // fire handlers
   if(method == htp_method_GET) {
     htp_get_pjsip_aors_detail(req, data);
+    return;
+  }
+  else if(method == htp_method_PUT) {
+    htp_put_pjsip_aors_detail(req, data);
+    return;
+  }
+  else if(method == htp_method_DELETE) {
+    htp_delete_pjsip_aors_detail(req, data);
     return;
   }
   else {
@@ -3304,7 +3602,7 @@ static void cb_htp_pjsip_auths(evhtp_request_t *req, void *data)
 
   // method check
   method = evhtp_request_get_method(req);
-  if(method != htp_method_GET) {
+  if((method != htp_method_GET) && (method != htp_method_POST)) {
     http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
@@ -3312,6 +3610,10 @@ static void cb_htp_pjsip_auths(evhtp_request_t *req, void *data)
   // fire handlers
   if(method == htp_method_GET) {
     htp_get_pjsip_auths(req, data);
+    return;
+  }
+  else if(method == htp_method_POST) {
+    htp_post_pjsip_auths(req, data);
     return;
   }
   else {
@@ -3343,7 +3645,7 @@ static void cb_htp_pjsip_auths_detail(evhtp_request_t *req, void *data)
 
   // method check
   method = evhtp_request_get_method(req);
-  if(method != htp_method_GET) {
+  if((method != htp_method_GET) && (method != htp_method_PUT) && (method != htp_method_DELETE)) {
     http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
@@ -3351,6 +3653,14 @@ static void cb_htp_pjsip_auths_detail(evhtp_request_t *req, void *data)
   // fire handlers
   if(method == htp_method_GET) {
     htp_get_pjsip_auths_detail(req, data);
+    return;
+  }
+  else if(method == htp_method_PUT) {
+    htp_put_pjsip_auths_detail(req, data);
+    return;
+  }
+  else if(method == htp_method_DELETE) {
+    htp_delete_pjsip_auths_detail(req, data);
     return;
   }
   else {
@@ -3599,7 +3909,7 @@ static void cb_htp_pjsip_contacts(evhtp_request_t *req, void *data)
 
   // method check
   method = evhtp_request_get_method(req);
-  if(method != htp_method_GET) {
+  if((method != htp_method_GET) && (method != htp_method_POST)) {
     http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
@@ -3608,6 +3918,9 @@ static void cb_htp_pjsip_contacts(evhtp_request_t *req, void *data)
   if(method == htp_method_GET) {
     htp_get_pjsip_contacts(req, data);
     return;
+  }
+  else if(method == htp_method_POST) {
+    htp_post_pjsip_contacts(req, data);
   }
   else {
     // should not reach to here.
@@ -3638,7 +3951,7 @@ static void cb_htp_pjsip_contacts_detail(evhtp_request_t *req, void *data)
 
   // method check
   method = evhtp_request_get_method(req);
-  if(method != htp_method_GET) {
+  if((method != htp_method_GET) && (method != htp_method_PUT) && (method != htp_method_DELETE)) {
     http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
@@ -3646,6 +3959,14 @@ static void cb_htp_pjsip_contacts_detail(evhtp_request_t *req, void *data)
   // fire handlers
   if(method == htp_method_GET) {
     htp_get_pjsip_contacts_detail(req, data);
+    return;
+  }
+  else if(method == htp_method_PUT) {
+    htp_put_pjsip_contacts_detail(req, data);
+    return;
+  }
+  else if(method == htp_method_DELETE) {
+    htp_delete_pjsip_contacts_detail(req, data);
     return;
   }
   else {
