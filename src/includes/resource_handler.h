@@ -29,6 +29,7 @@ bool exec_jade_sql(const char* sql);
 bool insert_jade_item(const char* table, const json_t* j_data);
 bool update_jade_item(const char* table, const char* key_column, const json_t* j_data);
 bool delete_jade_items_string(const char* table, const char* key, const char* val);
+bool delete_jade_items_by_obj(const char* table, json_t* j_obj);
 json_t* get_jade_items(const char* table, const char* item);
 json_t* get_jade_detail_item_key_string(const char* table, const char* key, const char* val);
 json_t* get_jade_detail_item_by_obj(const char* table, json_t* j_obj);

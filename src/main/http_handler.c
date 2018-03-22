@@ -134,6 +134,8 @@ static void cb_htp_sip_settings_detail(evhtp_request_t *req, void *data);
 static void cb_htp_user_login(evhtp_request_t *req, void *data);
 static void cb_htp_user_contacts(evhtp_request_t *req, void *data);
 static void cb_htp_user_contacts_detail(evhtp_request_t *req, void *data);
+static void cb_htp_user_permissions(evhtp_request_t *req, void *data);
+static void cb_htp_user_permissions_detail(evhtp_request_t *req, void *data);
 static void cb_htp_user_users(evhtp_request_t *req, void *data);
 static void cb_htp_user_users_detail(evhtp_request_t *req, void *data);
 
@@ -368,6 +370,10 @@ bool init_http_handler(void)
 
   // login
   evhtp_set_regex_cb(g_htps, "^/user/login$", cb_htp_user_login, NULL);
+
+  // permissions
+  evhtp_set_regex_cb(g_htps, "^/user/permissions/(.*)", cb_htp_user_permissions_detail, NULL);
+  evhtp_set_regex_cb(g_htps, "^/user/permissions$", cb_htp_user_permissions, NULL);
 
   // users
   evhtp_set_regex_cb(g_htps, "^/user/users/(.*)", cb_htp_user_users_detail, NULL);
@@ -763,6 +769,11 @@ char* http_get_parsed_detail(evhtp_request_t* req)
   return detail;
 }
 
+/**
+ * Get given request's authtoken.
+ * @param req
+ * @return
+ */
 char* http_get_authtoken(evhtp_request_t* req)
 {
   char* res;
@@ -781,6 +792,34 @@ char* http_get_authtoken(evhtp_request_t* req)
   }
 
   res = strdup(tmp_const);
+  return res;
+}
+
+/**
+ * Get given key's value from request.
+ * The return string is uri decoded.
+ * @param req
+ * @param key
+ * @return
+ */
+char* http_get_parameter(evhtp_request_t* req, const char* key)
+{
+  char* res;
+  const char* tmp_const;
+
+  if((req == NULL) || (key == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  // get key value
+  tmp_const = evhtp_kv_find(req->uri->query, key);
+  if(tmp_const == NULL) {
+    slog(LOG_NOTICE, "Could not get key value.");
+    return NULL;
+  }
+
+  res = uri_decode(tmp_const);
   return res;
 }
 
@@ -4821,6 +4860,105 @@ static void cb_htp_user_login(evhtp_request_t *req, void *data)
 
   // should not reach to here.
   http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+
+  return;
+}
+
+/**
+ * http request handler
+ * ^/user/permissions$
+ * @param req
+ * @param data
+ */
+static void cb_htp_user_permissions(evhtp_request_t *req, void *data)
+{
+  int method;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_user_permissions.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if((method != htp_method_POST) && (method != htp_method_GET)) {
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  if(method == htp_method_POST) {
+    htp_post_user_permissions(req, data);
+    return;
+  }
+  else if(method == htp_method_GET) {
+    htp_get_user_permissions(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+
+  return;
+}
+
+/**
+ * http request handler
+ * ^/user/permissions/(.*)
+ * @param req
+ * @param data
+ */
+static void cb_htp_user_permissions_detail(evhtp_request_t *req, void *data)
+{
+  int method;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_user_permissions_detail.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if(method != htp_method_DELETE) {
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // fire handlers
+  if (method == htp_method_DELETE) {
+    htp_delete_user_permissions_detail(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
 
   return;
 }

@@ -47,6 +47,7 @@ static bool create_user_userinfo_info(const json_t* j_data);
 static bool create_userinfo(json_t* j_data);
 static bool update_userinfo(const char* uuid, json_t* j_data);
 static bool create_permission(const char* user_uuid, const char* permission);
+static bool create_permission_by_json(json_t* j_data);
 static bool create_contact(json_t* j_data);
 static bool update_contact(const char* uuid, json_t* j_data);
 
@@ -190,7 +191,9 @@ static bool init_user_database_permission(void)
     "create table if not exists " DEF_DB_TABLE_USER_PERMISSION " ("
 
     "   user_uuid   varchar(255),"
-    "   permission  varchar(255)"
+    "   permission  varchar(255),"
+
+    "   primary key(user_uuid, permission)"
 
     ");";
 
@@ -439,20 +442,12 @@ void htp_get_user_contacts(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
-  int ret;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
   slog(LOG_DEBUG, "Fired htp_get_user_contacts.");
-
-  // check authorization
-  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
-    return;
-  }
 
   // get info
   j_tmp = get_user_contacts_all();
@@ -491,13 +486,6 @@ void htp_post_user_contacts(evhtp_request_t *req, void *data)
   }
   slog(LOG_DEBUG, "Fired htp_post_user_contacts.");
 
-  // check authorization
-  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
-    return;
-  }
-
   // get data
   j_data = http_get_json_from_request_data(req);
   if(j_data == NULL) {
@@ -533,20 +521,12 @@ void htp_get_user_contacts_detail(evhtp_request_t *req, void *data)
   json_t* j_res;
   json_t* j_tmp;
   char* detail;
-  int ret;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
   slog(LOG_DEBUG, "Fired htp_get_user_contacts_detail.");
-
-  // check authorization
-  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
-    return;
-  }
 
   // detail parse
   detail = http_get_parsed_detail(req);
@@ -593,13 +573,6 @@ void htp_put_user_contacts_detail(evhtp_request_t *req, void *data)
     return;
   }
   slog(LOG_DEBUG, "Fired htp_put_user_contacts_detail.");
-
-  // check authorization
-  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
-    return;
-  }
 
   // detail parse
   detail = http_get_parsed_detail(req);
@@ -653,13 +626,6 @@ void htp_delete_user_contacts_detail(evhtp_request_t *req, void *data)
   }
   slog(LOG_DEBUG, "Fired htp_delete_user_contacts_detail.");
 
-  // check authorization
-  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
-    return;
-  }
-
   // detail parse
   detail = http_get_parsed_detail(req);
   if(detail == NULL) {
@@ -704,13 +670,6 @@ void htp_post_user_users(evhtp_request_t *req, void *data)
   }
   slog(LOG_DEBUG, "Fired htp_post_user_users.");
 
-  // check authorization
-  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
-    return;
-  }
-
   // get data
   j_data = http_get_json_from_request_data(req);
   if(j_data == NULL) {
@@ -746,20 +705,12 @@ void htp_get_user_users(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
-  int ret;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
   slog(LOG_DEBUG, "Fired htp_get_user_users.");
-
-  // check authorization
-  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
-    return;
-  }
 
   // get info
   j_tmp = get_user_userinfos_all();
@@ -790,20 +741,12 @@ void htp_get_user_users_detail(evhtp_request_t *req, void *data)
   json_t* j_res;
   json_t* j_tmp;
   char* detail;
-  int ret;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
   slog(LOG_DEBUG, "Fired htp_get_user_users_detail.");
-
-  // check authorization
-  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
-    return;
-  }
 
   // detail parse
   detail = http_get_parsed_detail(req);
@@ -850,13 +793,6 @@ void htp_put_user_users_detail(evhtp_request_t *req, void *data)
     return;
   }
   slog(LOG_DEBUG, "Fired htp_put_user_users_detail.");
-
-  // check authorization
-  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
-    return;
-  }
 
   // detail parse
   detail = http_get_parsed_detail(req);
@@ -910,13 +846,6 @@ void htp_delete_user_users_detail(evhtp_request_t *req, void *data)
   }
   slog(LOG_DEBUG, "Fired htp_delete_user_users_detail.");
 
-  // check authorization
-  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
-    return;
-  }
-
   // detail parse
   detail = http_get_parsed_detail(req);
   if(detail == NULL) {
@@ -943,6 +872,131 @@ void htp_delete_user_users_detail(evhtp_request_t *req, void *data)
   return;
 }
 
+/**
+ * GET ^/user/permissions request handler.
+ * @param req
+ * @param data
+ */
+void htp_get_user_permissions(evhtp_request_t *req, void *data)
+{
+  json_t* j_tmp;
+  json_t* j_res;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired htp_get_user_permissions.");
+
+  // get info
+  j_tmp = get_user_permissions_all();
+  if(j_tmp == NULL) {
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", json_object());
+  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * htp request handler.
+ * request: POST ^/user/permissions
+ * @param req
+ * @param data
+ */
+void htp_post_user_permissions(evhtp_request_t *req, void *data)
+{
+  json_t* j_data;
+  json_t* j_res;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired htp_post_user_permissions.");
+
+  // get data
+  j_data = http_get_json_from_request_data(req);
+  if(j_data == NULL) {
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // create data
+  ret = create_permission_by_json(j_data);
+  json_decref(j_data);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * DELETE ^/user/permissions/(.*) request handler.
+ * @param req
+ * @param data
+ */
+void htp_delete_user_permissions_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  char* detail;
+  char* permission;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired htp_delete_user_permissions_detail.");
+
+  // detail parse
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // get parameter
+  permission = http_get_parameter(req, "permission");
+
+  // delete
+  ret = delete_user_permission_info(detail, permission);
+  sfree(detail);
+  sfree(permission);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
 
 static char* create_authtoken(const char* username, const char* password)
 {
@@ -982,6 +1036,29 @@ static char* create_authtoken(const char* username, const char* password)
   json_decref(j_auth);
 
   return token;
+}
+
+static bool create_permission_by_json(json_t* j_data)
+{
+  const char* user_uuid;
+  const char* permission;
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  user_uuid = json_string_value(json_object_get(j_data, "user_uuid"));
+  permission = json_string_value(json_object_get(j_data, "permission"));
+
+  ret = create_permission(user_uuid, permission);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create permission by json.");
+    return false;
+  }
+
+  return true;
 }
 
 static bool create_permission(const char* user_uuid, const char* permission)
@@ -1322,7 +1399,7 @@ json_t* get_user_userinfo_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired get_user_userinfo_info. key[%s]", key);
 
-  j_res = get_jade_detail_item_key_string("user_userinfo", "uuid", key);
+  j_res = get_jade_detail_item_key_string(DEF_DB_TABLE_USER_USERINFO, "uuid", key);
 
   return j_res;
 }
@@ -1357,7 +1434,7 @@ json_t* get_user_userinfo_info_by_username(const char* key)
   }
   slog(LOG_DEBUG, "Fired get_user_userinfo_info_by_username. key[%s]", key);
 
-  j_res = get_jade_detail_item_key_string("user_userinfo", "username", key);
+  j_res = get_jade_detail_item_key_string(DEF_DB_TABLE_USER_USERINFO, "username", key);
 
   return j_res;
 }
@@ -1382,7 +1459,7 @@ json_t* get_user_userinfo_info_by_username_pass(const char* username, const char
       "password",   pass
       );
 
-  j_res = get_jade_detail_item_by_obj("user_userinfo", j_obj);
+  j_res = get_jade_detail_item_by_obj(DEF_DB_TABLE_USER_USERINFO, j_obj);
   json_decref(j_obj);
   if(j_res == NULL) {
     return NULL;
@@ -1437,7 +1514,7 @@ static bool create_user_userinfo_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired create_user_userinfo_info.");
 
   // insert userinfo info
-  ret = insert_jade_item("user_userinfo", j_data);
+  ret = insert_jade_item(DEF_DB_TABLE_USER_USERINFO, j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert user_userinfo.");
     return false;
@@ -1457,7 +1534,7 @@ bool update_user_userinfo_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired create_user_userinfo_info.");
 
   // update info
-  ret = update_jade_item("user_userinfo", "uuid", j_data);
+  ret = update_jade_item(DEF_DB_TABLE_USER_USERINFO, "uuid", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update user_userinfo info.");
     return false;
@@ -1480,7 +1557,7 @@ bool delete_user_userinfo_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired delete_user_userinfo_info. key[%s]", key);
 
-  ret = delete_jade_items_string("user_userinfo", "uuid", key);
+  ret = delete_jade_items_string(DEF_DB_TABLE_USER_USERINFO, "uuid", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete dp_dialplan info. key[%s]", key);
     return false;
@@ -1497,7 +1574,7 @@ json_t* get_user_authtokens_all(void)
 {
   json_t* j_res;
 
-  j_res = get_jade_items("user_authtoken", "*");
+  j_res = get_jade_items(DEF_DB_TABLE_USER_AUTHTOKEN, "*");
   return j_res;
 }
 
@@ -1515,7 +1592,7 @@ json_t* get_user_authtoken_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired get_user_authtoken_info. key[%s]", key);
 
-  j_res = get_jade_detail_item_key_string("user_authtoken", "uuid", key);
+  j_res = get_jade_detail_item_key_string(DEF_DB_TABLE_USER_AUTHTOKEN, "uuid", key);
 
   return j_res;
 }
@@ -1531,7 +1608,7 @@ bool create_user_authtoken_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired create_user_authtoken_info.");
 
   // insert authtoken info
-  ret = insert_jade_item("user_authtoken", j_data);
+  ret = insert_jade_item(DEF_DB_TABLE_USER_AUTHTOKEN, j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert user_authtoken.");
     return false;
@@ -1551,7 +1628,7 @@ bool update_user_authtoken_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired update_user_authtoken_info.");
 
   // update info
-  ret = update_jade_item("user_authtoken", "uuid", j_data);
+  ret = update_jade_item(DEF_DB_TABLE_USER_AUTHTOKEN, "uuid", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update user_authtoken info.");
     return false;
@@ -1607,7 +1684,7 @@ bool delete_user_authtoken_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired delete_user_authtoken_info. key[%s]", key);
 
-  ret = delete_jade_items_string("user_authtoken", "uuid", key);
+  ret = delete_jade_items_string(DEF_DB_TABLE_USER_AUTHTOKEN, "uuid", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete user_authtoken info. key[%s]", key);
     return false;
@@ -1626,10 +1703,52 @@ bool create_user_permission_info(const json_t* j_data)
   }
   slog(LOG_DEBUG, "Fired create_user_permission_info.");
 
-  // insert authtoken info
-  ret = insert_jade_item("user_permission", j_data);
+  // insert permission info
+  ret = insert_jade_item(DEF_DB_TABLE_USER_PERMISSION, j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert user_authtoken.");
+    return false;
+  }
+
+  return true;
+}
+
+json_t* get_user_permissions_all(void)
+{
+  json_t* j_res;
+
+  j_res = get_jade_items(DEF_DB_TABLE_USER_PERMISSION, "*");
+  return j_res;
+}
+
+/**
+ * Delete user_permission info.
+ * @param key
+ * @return
+ */
+bool delete_user_permission_info(const char* user_uuid, const char* permission)
+{
+  int ret;
+  json_t* j_tmp;
+
+  if(user_uuid == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired delete_user_permission_info. user_uuid[%s], permission[%s]", user_uuid, permission? : "");
+
+  // create condition
+  j_tmp = json_object();
+  json_object_set_new(j_tmp, "user_uuid", json_string(user_uuid));
+  if(permission != NULL) {
+    json_object_set_new(j_tmp, "permission", json_string(permission));
+  }
+
+  // delete
+  ret = delete_jade_items_by_obj(DEF_DB_TABLE_USER_PERMISSION, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not delete permission info. user_uuid[%s], permission[%s]", user_uuid, permission? : "");
     return false;
   }
 
@@ -1656,7 +1775,7 @@ json_t* get_user_permission_info_by_useruuid_perm(const char* useruuid, const ch
       "permission",   perm
       );
 
-  j_res = get_jade_detail_item_by_obj("user_permission", j_obj);
+  j_res = get_jade_detail_item_by_obj(DEF_DB_TABLE_USER_PERMISSION, j_obj);
   json_decref(j_obj);
   if(j_res == NULL) {
     return NULL;
@@ -1669,7 +1788,7 @@ json_t* get_user_contacts_all(void)
 {
   json_t* j_res;
 
-  j_res = get_jade_items("user_contact", "*");
+  j_res = get_jade_items(DEF_DB_TABLE_USER_CONTACT, "*");
   return j_res;
 }
 
@@ -1687,7 +1806,7 @@ json_t* get_user_contacts_by_user_uuid(const char* user_uuid)
       "user_uuid",  user_uuid
       );
 
-  j_res = get_jade_detail_items_by_obj("user_contact", j_obj);
+  j_res = get_jade_detail_items_by_obj(DEF_DB_TABLE_USER_CONTACT, j_obj);
   json_decref(j_obj);
 
   return j_res;
@@ -1707,7 +1826,7 @@ json_t* get_user_contact_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired get_user_contact_info. key[%s]", key);
 
-  j_res = get_jade_detail_item_key_string("user_contact", "uuid", key);
+  j_res = get_jade_detail_item_key_string(DEF_DB_TABLE_USER_CONTACT, "uuid", key);
 
   return j_res;
 }
@@ -1723,7 +1842,7 @@ bool create_user_contact_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired create_user_contact_info.");
 
   // insert info
-  ret = insert_jade_item("user_contact", j_data);
+  ret = insert_jade_item(DEF_DB_TABLE_USER_CONTACT, j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert user_contact.");
     return false;
@@ -1743,7 +1862,7 @@ bool update_user_contact_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired update_user_contact_info.");
 
   // update info
-  ret = update_jade_item("user_contact", "uuid", j_data);
+  ret = update_jade_item(DEF_DB_TABLE_USER_CONTACT, "uuid", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update user_contact info.");
     return false;
@@ -1767,7 +1886,7 @@ bool delete_user_contact_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired delete_user_contact_info. key[%s]", key);
 
-  ret = delete_jade_items_string("user_contact", "uuid", key);
+  ret = delete_jade_items_string(DEF_DB_TABLE_USER_CONTACT, "uuid", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete user_contact info. key[%s]", key);
     return false;

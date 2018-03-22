@@ -645,9 +645,9 @@ char* db_ctx_get_update_str(const json_t* j_data)
 }
 
 /*
- * Return the string for select given data.
+ * Return the condition string for given data.
  */
-char* db_ctx_get_select_str(const json_t* j_data)
+char* db_ctx_get_condition_str(const json_t* j_data)
 {
   char*   res;
   char*   tmp;

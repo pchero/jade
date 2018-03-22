@@ -32,6 +32,7 @@ static json_t* get_items(db_ctx_t* ctx, const char* table, const char* item);
 static json_t* get_detail_item_key_string(db_ctx_t* ctx, const char* table, const char* key, const char* val);
 static json_t* get_detail_items_key_string(db_ctx_t* ctx, const char* table, const char* key, const char* val);
 static bool delete_items_string(db_ctx_t* ctx, const char* table, const char* key, const char* val);
+static bool delete_items_by_obj(db_ctx_t* ctx, const char* table, json_t* j_obj);
 static json_t* get_detail_item_by_obj(db_ctx_t* ctx, const char* table, json_t* j_obj);
 static json_t* get_detail_items_by_obj(db_ctx_t* ctx, const char* table, json_t* j_obj);
 static json_t* get_detail_items_by_obj_order(db_ctx_t* ctx, const char* table, json_t* j_obj, const char* order);
@@ -453,6 +454,43 @@ static bool delete_items_string(db_ctx_t* ctx, const char* table, const char* ke
 }
 
 /**
+ * delete all selected items with given conditions.
+ * @param ctx
+ * @param table
+ * @param j_obj
+ * @return
+ */
+static bool delete_items_by_obj(db_ctx_t* ctx, const char* table, json_t* j_obj)
+{
+  int ret;
+  char* sql;
+  char* sql_cond;
+
+  if((ctx == NULL) || (table == NULL) || (j_obj == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired delete_items_by_obj. table[%s]", table);
+
+  sql_cond = db_ctx_get_condition_str(j_obj);
+  if(sql_cond == NULL) {
+    return false;
+  }
+
+  asprintf(&sql, "delete from %s where %s;", table, sql_cond);
+  sfree(sql_cond);
+  ret = db_ctx_exec(ctx, sql);
+  slog(LOG_DEBUG, "Check value. sql[%s]", sql);
+  sfree(sql);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not delete items.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
  * Get detail info of key="val" from table. get only 1 item.
  * "select * from <table> where <key>=<val>;"
  * @param table
@@ -550,7 +588,7 @@ static json_t* get_detail_item_by_obj(db_ctx_t* ctx, const char* table, json_t* 
   }
   slog(LOG_DEBUG, "Fired get_detail_items_by_obj. table[%s]", table);
 
-  sql_cond = db_ctx_get_select_str(j_obj);
+  sql_cond = db_ctx_get_condition_str(j_obj);
   if(sql_cond == NULL) {
     return NULL;
   }
@@ -594,7 +632,7 @@ static json_t* get_detail_items_by_obj(db_ctx_t* ctx, const char* table, json_t*
   }
   slog(LOG_DEBUG, "Fired get_detail_items_by_obj. table[%s]", table);
 
-  sql_cond = db_ctx_get_select_str(j_obj);
+  sql_cond = db_ctx_get_condition_str(j_obj);
   if(sql_cond == NULL) {
     return NULL;
   }
@@ -642,7 +680,7 @@ static json_t* get_detail_items_by_obj_order(db_ctx_t* ctx, const char* table, j
   }
   slog(LOG_DEBUG, "Fired get_detail_items_by_obj. table[%s]", table);
 
-  sql_cond = db_ctx_get_select_str(j_obj);
+  sql_cond = db_ctx_get_condition_str(j_obj);
   if(sql_cond == NULL) {
     return NULL;
   }
@@ -934,6 +972,27 @@ bool delete_jade_items_string(const char* table, const char* key, const char* va
   ret = delete_items_string(g_db_jade, table, key, val);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete jade info.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * delete all selected items with string value.
+ * @return
+ */
+bool delete_jade_items_by_obj(const char* table, json_t* j_obj)
+{
+  int ret;
+
+  if((table == NULL) || (j_obj == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  ret = delete_items_by_obj(g_db_jade, table, j_obj);
+  if(ret == false) {
     return false;
   }
 
