@@ -47,6 +47,7 @@ static bool create_user_userinfo_info(const json_t* j_data);
 static bool create_userinfo(json_t* j_data);
 static bool update_userinfo(const char* uuid, json_t* j_data);
 static bool create_permission(const char* user_uuid, const char* permission);
+static bool create_permission_by_json(json_t* j_data);
 static bool create_contact(json_t* j_data);
 static bool update_contact(const char* uuid, json_t* j_data);
 
@@ -943,6 +944,98 @@ void htp_delete_user_users_detail(evhtp_request_t *req, void *data)
   return;
 }
 
+/**
+ * GET ^/user/permissions request handler.
+ * @param req
+ * @param data
+ */
+void htp_get_user_permissions(evhtp_request_t *req, void *data)
+{
+  json_t* j_tmp;
+  json_t* j_res;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired htp_get_user_permissions.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  // get info
+  j_tmp = get_user_permissions_all();
+  if(j_tmp == NULL) {
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", json_object());
+  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * htp request handler.
+ * request: POST ^/user/permissions
+ * @param req
+ * @param data
+ */
+void htp_post_user_permissions(evhtp_request_t *req, void *data)
+{
+  json_t* j_data;
+  json_t* j_res;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired htp_post_user_permissions.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  // get data
+  j_data = http_get_json_from_request_data(req);
+  if(j_data == NULL) {
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // create data
+  ret = create_permission_by_json(j_data);
+  json_decref(j_data);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
 
 static char* create_authtoken(const char* username, const char* password)
 {
@@ -982,6 +1075,29 @@ static char* create_authtoken(const char* username, const char* password)
   json_decref(j_auth);
 
   return token;
+}
+
+static bool create_permission_by_json(json_t* j_data)
+{
+  const char* user_uuid;
+  const char* permission;
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  user_uuid = json_string_value(json_object_get(j_data, "user_uuid"));
+  permission = json_string_value(json_object_get(j_data, "permission"));
+
+  ret = create_permission(user_uuid, permission);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create permission by json.");
+    return false;
+  }
+
+  return true;
 }
 
 static bool create_permission(const char* user_uuid, const char* permission)
@@ -1626,7 +1742,7 @@ bool create_user_permission_info(const json_t* j_data)
   }
   slog(LOG_DEBUG, "Fired create_user_permission_info.");
 
-  // insert authtoken info
+  // insert permission info
   ret = insert_jade_item("user_permission", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert user_authtoken.");
@@ -1634,6 +1750,14 @@ bool create_user_permission_info(const json_t* j_data)
   }
 
   return true;
+}
+
+json_t* get_user_permissions_all(void)
+{
+  json_t* j_res;
+
+  j_res = get_jade_items("user_permission", "*");
+  return j_res;
 }
 
 /**
