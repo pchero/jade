@@ -88,12 +88,20 @@ static void htp_delete_ob_dialings_uuid(evhtp_request_t *req, void *data);
 void cb_htp_ob_destinations(evhtp_request_t *req, void *data)
 {
   int method;
+  int ret;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
   slog(LOG_DEBUG, "Fired cb_htp_ob_destinations.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
 
   // method check
   method = evhtp_request_get_method(req);
@@ -169,12 +177,20 @@ void cb_htp_ob_destinations_all(evhtp_request_t *req, void *data)
 void cb_htp_ob_destinations_uuid(evhtp_request_t *req, void *data)
 {
   int method;
+  int ret;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
   slog(LOG_DEBUG, "Fired cb_htp_ob_destinations_uuid.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
 
   // method check
   method = evhtp_request_get_method(req);
@@ -216,12 +232,20 @@ void cb_htp_ob_destinations_uuid(evhtp_request_t *req, void *data)
 void cb_htp_ob_plans(evhtp_request_t *req, void *data)
 {
   int method;
+  int ret;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
   slog(LOG_DEBUG, "Fired cb_htp_ob_plans.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
 
   // method check
   method = evhtp_request_get_method(req);
@@ -298,12 +322,20 @@ void cb_htp_ob_plans_all(evhtp_request_t *req, void *data)
 void cb_htp_ob_plans_uuid(evhtp_request_t *req, void *data)
 {
   int method;
+  int ret;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
   slog(LOG_DEBUG, "Fired cb_htp_ob_plans_uuid.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
 
   // method check
   method = evhtp_request_get_method(req);
@@ -346,12 +378,20 @@ void cb_htp_ob_plans_uuid(evhtp_request_t *req, void *data)
 void cb_htp_ob_campaigns(evhtp_request_t *req, void *data)
 {
   int method;
+  int ret;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
   slog(LOG_DEBUG, "Fired cb_htp_ob_campaigns.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
 
   // method check
   method = evhtp_request_get_method(req);
@@ -389,12 +429,20 @@ void cb_htp_ob_campaigns_uuid(evhtp_request_t *req, void *data)
 {
   int method;
   const char* uuid;
+  int ret;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
   slog(LOG_DEBUG, "Fired cb_htp_ob_campaigns_uuid.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
 
   // method check
   method = evhtp_request_get_method(req);
@@ -482,12 +530,20 @@ void cb_htp_ob_campaigns_all(evhtp_request_t *req, void *data)
 void cb_htp_ob_dlmas(evhtp_request_t *req, void *data)
 {
   int method;
+  int ret;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
   slog(LOG_DEBUG, "Fired cb_htp_ob_dlmas.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
 
   // method check
   method = evhtp_request_get_method(req);
@@ -563,12 +619,20 @@ void cb_htp_ob_dlmas_uuid(evhtp_request_t *req, void *data)
 {
   int method;
   const char* uuid;
+  int ret;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
   slog(LOG_DEBUG, "Fired cb_htp_ob_dlmas_uuid.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
 
   // method check
   method = evhtp_request_get_method(req);
@@ -655,12 +719,20 @@ void cb_htp_ob_dls_all(evhtp_request_t *req, void *data)
 void cb_htp_ob_dls(evhtp_request_t *req, void *data)
 {
   int method;
+  int ret;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
   slog(LOG_DEBUG, "Fired cb_htp_ob_dls.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
 
   // method check
   method = evhtp_request_get_method(req);
@@ -698,12 +770,20 @@ void cb_htp_ob_dls_uuid(evhtp_request_t *req, void *data)
 {
   int method;
   const char* uuid;
+  int ret;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
   slog(LOG_DEBUG, "Fired cb_htp_ob_dls_uuid.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
 
   // method check
   method = evhtp_request_get_method(req);
@@ -2507,12 +2587,20 @@ static void htp_delete_ob_dls_uuid(evhtp_request_t *req, void *data)
 void cb_htp_ob_dialings(evhtp_request_t *req, void *data)
 {
   int method;
+  int ret;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
   slog(LOG_DEBUG, "Fired cb_htp_ob_dialings.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
 
   // method check
   method = evhtp_request_get_method(req);
@@ -2665,12 +2753,20 @@ void cb_htp_ob_dialings_uuid(evhtp_request_t *req, void *data)
 {
   int method;
   const char* uuid;
+  int ret;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
   slog(LOG_DEBUG, "Fired cb_htp_ob_dialings_uuid.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
 
   // method check
   method = evhtp_request_get_method(req);

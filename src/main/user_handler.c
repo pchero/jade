@@ -448,7 +448,7 @@ void htp_get_user_contacts(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_user_contacts.");
 
   // check authorization
-  ret = http_is_request_has_permission(req, DEF_USER_PERM_ADMIN);
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
   if(ret == false) {
     http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
     return;
@@ -492,7 +492,7 @@ void htp_post_user_contacts(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_post_user_contacts.");
 
   // check authorization
-  ret = http_is_request_has_permission(req, DEF_USER_PERM_ADMIN);
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
   if(ret == false) {
     http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
     return;
@@ -542,7 +542,7 @@ void htp_get_user_contacts_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_user_contacts_detail.");
 
   // check authorization
-  ret = http_is_request_has_permission(req, DEF_USER_PERM_ADMIN);
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
   if(ret == false) {
     http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
     return;
@@ -595,7 +595,7 @@ void htp_put_user_contacts_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_put_user_contacts_detail.");
 
   // check authorization
-  ret = http_is_request_has_permission(req, DEF_USER_PERM_ADMIN);
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
   if(ret == false) {
     http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
     return;
@@ -654,7 +654,7 @@ void htp_delete_user_contacts_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_delete_user_contacts_detail.");
 
   // check authorization
-  ret = http_is_request_has_permission(req, DEF_USER_PERM_ADMIN);
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
   if(ret == false) {
     http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
     return;
@@ -705,7 +705,7 @@ void htp_post_user_users(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_post_user_users.");
 
   // check authorization
-  ret = http_is_request_has_permission(req, DEF_USER_PERM_ADMIN);
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
   if(ret == false) {
     http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
     return;
@@ -755,7 +755,7 @@ void htp_get_user_users(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_user_users.");
 
   // check authorization
-  ret = http_is_request_has_permission(req, DEF_USER_PERM_ADMIN);
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
   if(ret == false) {
     http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
     return;
@@ -799,7 +799,7 @@ void htp_get_user_users_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_user_users_detail.");
 
   // check authorization
-  ret = http_is_request_has_permission(req, DEF_USER_PERM_ADMIN);
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
   if(ret == false) {
     http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
     return;
@@ -852,7 +852,7 @@ void htp_put_user_users_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_put_user_users_detail.");
 
   // check authorization
-  ret = http_is_request_has_permission(req, DEF_USER_PERM_ADMIN);
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
   if(ret == false) {
     http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
     return;
@@ -911,7 +911,7 @@ void htp_delete_user_users_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_delete_user_users_detail.");
 
   // check authorization
-  ret = http_is_request_has_permission(req, DEF_USER_PERM_ADMIN);
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
   if(ret == false) {
     http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
     return;
