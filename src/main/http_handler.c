@@ -33,29 +33,23 @@
 #include "me_handler.h"
 
 
-
 #define API_VER "0.1"
-
-extern app* g_app;
-evhtp_t* g_htps = NULL;
 
 #define DEF_REG_MSGNAME "msg[0-9]{4}"
 
+#define DEF_USER_PERM_ADMIN    "admin"
+#define DEF_USER_PERM_USER     "user"
 
 static bool init_https(void);
 
-
 static char* get_data_from_request(evhtp_request_t* req);
-
 
 // ping
 static void cb_htp_ping(evhtp_request_t *req, void *a);
 
-
 // agent
 static void cb_htp_agent_agents(evhtp_request_t *req, void *data);
 static void cb_htp_agent_agents_detail(evhtp_request_t *req, void *data);
-
 
 // core
 static void cb_htp_core_agis(evhtp_request_t *req, void *data);
@@ -67,7 +61,6 @@ static void cb_htp_core_modules_detail(evhtp_request_t *req, void *data);
 static void cb_htp_core_systems(evhtp_request_t *req, void *data);
 static void cb_htp_core_systems_detail(evhtp_request_t *req, void *data);
 
-
 // dp
 static void cb_htp_dp_dialplans(evhtp_request_t *req, void *data);
 static void cb_htp_dp_dialplans_detail(evhtp_request_t *req, void *data);
@@ -75,11 +68,8 @@ static void cb_htp_dp_dpmas(evhtp_request_t *req, void *data);
 static void cb_htp_dp_dpmas_detail(evhtp_request_t *req, void *data);
 static void cb_htp_dp_config(evhtp_request_t *req, void *data);
 
-
-
 // me
 static void cb_htp_me_info(evhtp_request_t *req, void *data);
-
 
 // park
 static void cb_htp_park_config(evhtp_request_t *req, void *data);
@@ -91,7 +81,6 @@ static void cb_htp_park_parkedcalls(evhtp_request_t *req, void *data);
 static void cb_htp_park_parkedcalls_detail(evhtp_request_t *req, void *data);
 static void cb_htp_park_settings(evhtp_request_t *req, void *data);
 static void cb_htp_park_settings_detail(evhtp_request_t *req, void *data);
-
 
 // pjsip
 static void cb_htp_pjsip_aors(evhtp_request_t *req, void *data);
@@ -115,7 +104,6 @@ static void cb_htp_pjsip_configs_detail(evhtp_request_t *req, void *data);
 static void cb_htp_pjsip_settings(evhtp_request_t *req, void *data);
 static void cb_htp_pjsip_settings_detail(evhtp_request_t *req, void *data);
 
-
 // queue
 static void cb_htp_queue_entries(evhtp_request_t *req, void *data);
 static void cb_htp_queue_entries_detail(evhtp_request_t *req, void *data);
@@ -131,7 +119,6 @@ static void cb_htp_queue_settings_detail(evhtp_request_t *req, void *data);
 static void cb_htp_queue_statuses(evhtp_request_t *req, void *data);
 static void cb_htp_queue_statuses_detail(evhtp_request_t *req, void *data);
 
-
 // sip
 static void cb_htp_sip_config(evhtp_request_t *req, void *data);
 static void cb_htp_sip_configs(evhtp_request_t *req, void *data);
@@ -143,14 +130,12 @@ static void cb_htp_sip_registries_detail(evhtp_request_t *req, void *data);
 static void cb_htp_sip_settings(evhtp_request_t *req, void *data);
 static void cb_htp_sip_settings_detail(evhtp_request_t *req, void *data);
 
-
 // user
 static void cb_htp_user_login(evhtp_request_t *req, void *data);
 static void cb_htp_user_contacts(evhtp_request_t *req, void *data);
 static void cb_htp_user_contacts_detail(evhtp_request_t *req, void *data);
 static void cb_htp_user_users(evhtp_request_t *req, void *data);
 static void cb_htp_user_users_detail(evhtp_request_t *req, void *data);
-
 
 // voicemail/
 static void cb_htp_voicemail_config(evhtp_request_t *req, void *data);
@@ -161,16 +146,17 @@ static void cb_htp_voicemail_users_detail(evhtp_request_t *req, void *data);
 static void cb_htp_voicemail_vms(evhtp_request_t *req, void *data);
 static void cb_htp_voicemail_vms_msgname(evhtp_request_t *req, void *data);
 
-
 // databases
 static void cb_htp_databases(evhtp_request_t *req, void *data);
 static void cb_htp_databases_key(evhtp_request_t *req, void *data);
-
 
 // device_states
 static void cb_htp_device_states(evhtp_request_t *req, void *data);
 static void cb_htp_device_states_detail(evhtp_request_t *req, void *data);
 
+
+extern app* g_app;
+evhtp_t* g_htps = NULL;
 
 
 bool init_http_handler(void)
@@ -797,19 +783,44 @@ char* http_get_authtoken(evhtp_request_t* req)
   return res;
 }
 
-bool http_is_request_has_permission(evhtp_request_t *req, const char* permission)
+//bool http_is_request_has_permission(evhtp_request_t *req, const char* permission)
+bool http_is_request_has_permission(evhtp_request_t *req, enum EN_HTTP_PERMS perm)
 {
   json_t* j_user;
   json_t* j_perm;
   const char* user_uuid;
+  const char* permission;
   char* token;
   int ret;
 
-  if((req == NULL) || (permission == NULL)) {
+  if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
-  slog(LOG_DEBUG, "Fired http_is_request_has_permission. permission[%s]", permission);
+  slog(LOG_DEBUG, "Fired http_is_request_has_permission. perm[%u]", perm);
+
+  // get permission string
+  switch(perm) {
+    case EN_HTTP_PERM_ADMIN: {
+      permission = DEF_USER_PERM_ADMIN;
+    }
+    break;
+
+    case EN_HTTP_PERM_USER: {
+      permission = DEF_USER_PERM_USER;
+    }
+    break;
+
+    default: {
+      slog(LOG_ERR, "Could not find correct permission string. perm[%u]", perm);
+      permission = NULL;
+    }
+    break;
+  }
+  if(permission == NULL) {
+    slog(LOG_ERR, "Could not get permission string.");
+    return false;
+  }
 
   token = http_get_authtoken(req);
   if(token == NULL) {

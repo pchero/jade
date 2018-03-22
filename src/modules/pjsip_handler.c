@@ -1001,12 +1001,20 @@ void htp_get_pjsip_aors_detail(evhtp_request_t *req, void *data)
   json_t* j_tmp;
   json_t* j_res;
   char* detail;
+  int ret;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
   slog(LOG_DEBUG, "Fired htp_get_pjsip_aors_detail.");
+
+  // permission check
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
 
   detail = http_get_parsed_detail(req);
   if(detail == NULL) {

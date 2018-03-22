@@ -75,7 +75,7 @@ void htp_get_me_info(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_me_info.");
 
   // check permission
-  ret = http_is_request_has_permission(req, DEF_USER_PERM_USER);
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_USER);
   if(ret == false) {
     http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
     return;
