@@ -303,10 +303,6 @@ bool init_http_handler(void)
   evhtp_set_regex_cb(g_htps, "^/pjsip/registrations/(.*)", cb_htp_pjsip_registrations_detail, NULL);
   evhtp_set_regex_cb(g_htps, "^/pjsip/registrations$", cb_htp_pjsip_registrations, NULL);
 
-  // settings
-  evhtp_set_regex_cb(g_htps, "^/pjsip/settings/(.*)", cb_htp_pjsip_settings_detail, NULL);
-  evhtp_set_regex_cb(g_htps, "^/pjsip/settings$", cb_htp_pjsip_settings, NULL);
-
   // transports
   evhtp_set_regex_cb(g_htps, "^/pjsip/transports/(.*)", cb_htp_pjsip_transports_detail, NULL);
   evhtp_set_regex_cb(g_htps, "^/pjsip/transports$", cb_htp_pjsip_transports, NULL);
@@ -399,6 +395,11 @@ bool init_http_handler(void)
 
   // old apis.
   // will be deprecated.
+
+  // pjsip/settings
+  evhtp_set_regex_cb(g_htps, "^/pjsip/settings/(.*)", cb_htp_pjsip_settings_detail, NULL);
+  evhtp_set_regex_cb(g_htps, "^/pjsip/settings$", cb_htp_pjsip_settings, NULL);
+
 
   // register callback
   evhtp_set_cb(g_htps, "/ping", cb_htp_ping, NULL);
@@ -783,7 +784,12 @@ char* http_get_authtoken(evhtp_request_t* req)
   return res;
 }
 
-//bool http_is_request_has_permission(evhtp_request_t *req, const char* permission)
+/**
+ * Check the request has given permission.
+ * @param req
+ * @param perm
+ * @return true: has permission, false: has no permission.
+ */
 bool http_is_request_has_permission(evhtp_request_t *req, enum EN_HTTP_PERMS perm)
 {
   json_t* j_user;
@@ -3158,12 +3164,20 @@ static void cb_htp_voicemail_vms_msgname(evhtp_request_t *req, void *data)
 static void cb_htp_pjsip_endpoints(evhtp_request_t *req, void *data)
 {
   int method;
+  int ret;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
   slog(LOG_INFO, "Fired cb_htp_pjsip_endpoints.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
 
   // method check
   method = evhtp_request_get_method(req);
@@ -3200,12 +3214,20 @@ static void cb_htp_pjsip_endpoints(evhtp_request_t *req, void *data)
 static void cb_htp_pjsip_endpoints_detail(evhtp_request_t *req, void *data)
 {
   int method;
+  int ret;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
   slog(LOG_INFO, "Fired cb_htp_pjsip_endpoints_detail.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
 
   // method check
   method = evhtp_request_get_method(req);
@@ -3247,12 +3269,20 @@ static void cb_htp_pjsip_endpoints_detail(evhtp_request_t *req, void *data)
 static void cb_htp_pjsip_identifies(evhtp_request_t *req, void *data)
 {
   int method;
+  int ret;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
   slog(LOG_INFO, "Fired cb_htp_pjsip_identifies.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
 
   // method check
   method = evhtp_request_get_method(req);
@@ -3289,12 +3319,20 @@ static void cb_htp_pjsip_identifies(evhtp_request_t *req, void *data)
 static void cb_htp_pjsip_identifies_detail(evhtp_request_t *req, void *data)
 {
   int method;
+  int ret;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
   slog(LOG_INFO, "Fired cb_htp_pjsip_identifies_detail.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
 
   // method check
   method = evhtp_request_get_method(req);
@@ -3336,12 +3374,20 @@ static void cb_htp_pjsip_identifies_detail(evhtp_request_t *req, void *data)
 static void cb_htp_pjsip_registrations(evhtp_request_t *req, void *data)
 {
   int method;
+  int ret;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
   slog(LOG_INFO, "Fired cb_htp_pjsip_registrations.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
 
   // method check
   method = evhtp_request_get_method(req);
@@ -3378,12 +3424,20 @@ static void cb_htp_pjsip_registrations(evhtp_request_t *req, void *data)
 static void cb_htp_pjsip_registrations_detail(evhtp_request_t *req, void *data)
 {
   int method;
+  int ret;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
   slog(LOG_INFO, "Fired cb_htp_pjsip_registrations_detail.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
 
   // method check
   method = evhtp_request_get_method(req);
@@ -3425,12 +3479,20 @@ static void cb_htp_pjsip_registrations_detail(evhtp_request_t *req, void *data)
 static void cb_htp_pjsip_transports(evhtp_request_t *req, void *data)
 {
   int method;
+  int ret;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
   slog(LOG_INFO, "Fired cb_htp_pjsip_transports.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
 
   // method check
   method = evhtp_request_get_method(req);
@@ -3467,12 +3529,20 @@ static void cb_htp_pjsip_transports(evhtp_request_t *req, void *data)
 static void cb_htp_pjsip_transports_detail(evhtp_request_t *req, void *data)
 {
   int method;
+  int ret;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
   slog(LOG_INFO, "Fired cb_htp_pjsip_transports_detail.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
 
   // method check
   method = evhtp_request_get_method(req);
@@ -3514,12 +3584,20 @@ static void cb_htp_pjsip_transports_detail(evhtp_request_t *req, void *data)
 static void cb_htp_pjsip_aors(evhtp_request_t *req, void *data)
 {
   int method;
+  int ret;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
   slog(LOG_INFO, "Fired cb_htp_pjsip_aors.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
 
   // method check
   method = evhtp_request_get_method(req);
@@ -3557,12 +3635,20 @@ static void cb_htp_pjsip_aors(evhtp_request_t *req, void *data)
 static void cb_htp_pjsip_aors_detail(evhtp_request_t *req, void *data)
 {
   int method;
+  int ret;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
   slog(LOG_INFO, "Fired cb_htp_pjsip_aors_detail.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
 
   // method check
   method = evhtp_request_get_method(req);
@@ -3604,12 +3690,20 @@ static void cb_htp_pjsip_aors_detail(evhtp_request_t *req, void *data)
 static void cb_htp_pjsip_auths(evhtp_request_t *req, void *data)
 {
   int method;
+  int ret;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
   slog(LOG_INFO, "Fired cb_htp_pjsip_auths.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
 
   // method check
   method = evhtp_request_get_method(req);
@@ -3647,12 +3741,20 @@ static void cb_htp_pjsip_auths(evhtp_request_t *req, void *data)
 static void cb_htp_pjsip_auths_detail(evhtp_request_t *req, void *data)
 {
   int method;
+  int ret;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
   slog(LOG_INFO, "Fired cb_htp_pjsip_auths_detail.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
 
   // method check
   method = evhtp_request_get_method(req);
@@ -3694,12 +3796,20 @@ static void cb_htp_pjsip_auths_detail(evhtp_request_t *req, void *data)
 static void cb_htp_pjsip_config(evhtp_request_t *req, void *data)
 {
   int method;
+  int ret;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
   slog(LOG_INFO, "Fired cb_htp_pjsip_config.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
 
   // method check
   method = evhtp_request_get_method(req);
@@ -3738,12 +3848,20 @@ static void cb_htp_pjsip_config(evhtp_request_t *req, void *data)
 static void cb_htp_pjsip_configs(evhtp_request_t *req, void *data)
 {
   int method;
+  int ret;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
   slog(LOG_INFO, "Fired cb_htp_pjsip_configs.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
 
   // method check
   method = evhtp_request_get_method(req);
@@ -3777,12 +3895,20 @@ static void cb_htp_pjsip_configs(evhtp_request_t *req, void *data)
 static void cb_htp_pjsip_configs_detail(evhtp_request_t *req, void *data)
 {
   int method;
+  int ret;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
   slog(LOG_INFO, "Fired cb_htp_pjsip_configs_detail.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
 
   // method check
   method = evhtp_request_get_method(req);
@@ -3911,12 +4037,20 @@ static void cb_htp_pjsip_settings(evhtp_request_t *req, void *data)
 static void cb_htp_pjsip_contacts(evhtp_request_t *req, void *data)
 {
   int method;
+  int ret;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
   slog(LOG_INFO, "Fired cb_htp_pjsip_contacts.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
 
   // method check
   method = evhtp_request_get_method(req);
@@ -3953,12 +4087,20 @@ static void cb_htp_pjsip_contacts(evhtp_request_t *req, void *data)
 static void cb_htp_pjsip_contacts_detail(evhtp_request_t *req, void *data)
 {
   int method;
+  int ret;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
   slog(LOG_INFO, "Fired cb_htp_pjsip_contacts_detail.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
 
   // method check
   method = evhtp_request_get_method(req);
