@@ -442,20 +442,12 @@ void htp_get_user_contacts(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
-  int ret;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
   slog(LOG_DEBUG, "Fired htp_get_user_contacts.");
-
-  // check authorization
-  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
-    return;
-  }
 
   // get info
   j_tmp = get_user_contacts_all();
@@ -494,13 +486,6 @@ void htp_post_user_contacts(evhtp_request_t *req, void *data)
   }
   slog(LOG_DEBUG, "Fired htp_post_user_contacts.");
 
-  // check authorization
-  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
-    return;
-  }
-
   // get data
   j_data = http_get_json_from_request_data(req);
   if(j_data == NULL) {
@@ -536,20 +521,12 @@ void htp_get_user_contacts_detail(evhtp_request_t *req, void *data)
   json_t* j_res;
   json_t* j_tmp;
   char* detail;
-  int ret;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
   slog(LOG_DEBUG, "Fired htp_get_user_contacts_detail.");
-
-  // check authorization
-  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
-    return;
-  }
 
   // detail parse
   detail = http_get_parsed_detail(req);
@@ -596,13 +573,6 @@ void htp_put_user_contacts_detail(evhtp_request_t *req, void *data)
     return;
   }
   slog(LOG_DEBUG, "Fired htp_put_user_contacts_detail.");
-
-  // check authorization
-  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
-    return;
-  }
 
   // detail parse
   detail = http_get_parsed_detail(req);
@@ -656,13 +626,6 @@ void htp_delete_user_contacts_detail(evhtp_request_t *req, void *data)
   }
   slog(LOG_DEBUG, "Fired htp_delete_user_contacts_detail.");
 
-  // check authorization
-  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
-    return;
-  }
-
   // detail parse
   detail = http_get_parsed_detail(req);
   if(detail == NULL) {
@@ -707,13 +670,6 @@ void htp_post_user_users(evhtp_request_t *req, void *data)
   }
   slog(LOG_DEBUG, "Fired htp_post_user_users.");
 
-  // check authorization
-  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
-    return;
-  }
-
   // get data
   j_data = http_get_json_from_request_data(req);
   if(j_data == NULL) {
@@ -749,20 +705,12 @@ void htp_get_user_users(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
-  int ret;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
   slog(LOG_DEBUG, "Fired htp_get_user_users.");
-
-  // check authorization
-  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
-    return;
-  }
 
   // get info
   j_tmp = get_user_userinfos_all();
@@ -793,20 +741,12 @@ void htp_get_user_users_detail(evhtp_request_t *req, void *data)
   json_t* j_res;
   json_t* j_tmp;
   char* detail;
-  int ret;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
   slog(LOG_DEBUG, "Fired htp_get_user_users_detail.");
-
-  // check authorization
-  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
-    return;
-  }
 
   // detail parse
   detail = http_get_parsed_detail(req);
@@ -853,13 +793,6 @@ void htp_put_user_users_detail(evhtp_request_t *req, void *data)
     return;
   }
   slog(LOG_DEBUG, "Fired htp_put_user_users_detail.");
-
-  // check authorization
-  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
-    return;
-  }
 
   // detail parse
   detail = http_get_parsed_detail(req);
@@ -913,13 +846,6 @@ void htp_delete_user_users_detail(evhtp_request_t *req, void *data)
   }
   slog(LOG_DEBUG, "Fired htp_delete_user_users_detail.");
 
-  // check authorization
-  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
-    return;
-  }
-
   // detail parse
   detail = http_get_parsed_detail(req);
   if(detail == NULL) {
@@ -955,20 +881,12 @@ void htp_get_user_permissions(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
-  int ret;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
   slog(LOG_DEBUG, "Fired htp_get_user_permissions.");
-
-  // check authorization
-  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
-    return;
-  }
 
   // get info
   j_tmp = get_user_permissions_all();
@@ -1006,13 +924,6 @@ void htp_post_user_permissions(evhtp_request_t *req, void *data)
     return;
   }
   slog(LOG_DEBUG, "Fired htp_post_user_permissions.");
-
-  // check authorization
-  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
-    return;
-  }
 
   // get data
   j_data = http_get_json_from_request_data(req);
@@ -1056,13 +967,6 @@ void htp_delete_user_permissions_detail(evhtp_request_t *req, void *data)
     return;
   }
   slog(LOG_DEBUG, "Fired htp_delete_user_permissions_detail.");
-
-  // check authorization
-  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
-    return;
-  }
 
   // detail parse
   detail = http_get_parsed_detail(req);

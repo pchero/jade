@@ -66,20 +66,12 @@ void htp_get_me_info(evhtp_request_t *req, void *data)
   json_t* j_res;
   json_t* j_tmp;
   char* token;
-  int ret;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return;
   }
   slog(LOG_DEBUG, "Fired htp_get_me_info.");
-
-  // check permission
-  ret = http_is_request_has_permission(req, EN_HTTP_PERM_USER);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
-    return;
-  }
 
   // get token
   token = http_get_authtoken(req);
