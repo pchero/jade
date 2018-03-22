@@ -1039,6 +1039,61 @@ void htp_post_user_permissions(evhtp_request_t *req, void *data)
   return;
 }
 
+/**
+ * DELETE ^/user/permissions/(.*) request handler.
+ * @param req
+ * @param data
+ */
+void htp_delete_user_permissions_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  char* detail;
+  char* permission;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired htp_delete_user_permissions_detail.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  // detail parse
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // get parameter
+  permission = http_get_parameter(req, "permission");
+
+  // delete
+  ret = delete_user_permission_info(detail, permission);
+  sfree(detail);
+  sfree(permission);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
 static char* create_authtoken(const char* username, const char* password)
 {
   json_t* j_user;
@@ -1760,6 +1815,40 @@ json_t* get_user_permissions_all(void)
 
   j_res = get_jade_items(DEF_DB_TABLE_USER_PERMISSION, "*");
   return j_res;
+}
+
+/**
+ * Delete user_permission info.
+ * @param key
+ * @return
+ */
+bool delete_user_permission_info(const char* user_uuid, const char* permission)
+{
+  int ret;
+  json_t* j_tmp;
+
+  if(user_uuid == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired delete_user_permission_info. user_uuid[%s], permission[%s]", user_uuid, permission? : "");
+
+  // create condition
+  j_tmp = json_object();
+  json_object_set_new(j_tmp, "user_uuid", json_string(user_uuid));
+  if(permission != NULL) {
+    json_object_set_new(j_tmp, "permission", json_string(permission));
+  }
+
+  // delete
+  ret = delete_jade_items_by_obj(DEF_DB_TABLE_USER_PERMISSION, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not delete permission info. user_uuid[%s], permission[%s]", user_uuid, permission? : "");
+    return false;
+  }
+
+  return true;
 }
 
 /**

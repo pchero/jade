@@ -34,6 +34,7 @@ void htp_get_user_users(evhtp_request_t *req, void *data);
 
 void htp_get_user_permissions(evhtp_request_t *req, void *data);
 void htp_post_user_permissions(evhtp_request_t *req, void *data);
+void htp_delete_user_permissions_detail(evhtp_request_t *req, void *data);
 
 void htp_get_user_users_detail(evhtp_request_t *req, void *data);
 void htp_put_user_users_detail(evhtp_request_t *req, void *data);
@@ -58,6 +59,7 @@ bool delete_user_authtoken_info(const char* key);
 bool create_user_permission_info(const json_t* j_data);
 json_t* get_user_permissions_all(void);
 json_t* get_user_permission_info_by_useruuid_perm(const char* useruuid, const char* perm);
+bool delete_user_permission_info(const char* user_uuid, const char* permission);
 
 json_t* get_user_contacts_all(void);
 json_t* get_user_contacts_by_user_uuid(const char* user_uuid);
