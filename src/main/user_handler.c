@@ -190,6 +190,7 @@ static bool init_user_database_permission(void)
   create_table =
     "create table if not exists " DEF_DB_TABLE_USER_PERMISSION " ("
 
+    "   uuid        varchar(255),"
     "   user_uuid   varchar(255),"
     "   permission  varchar(255),"
 
@@ -959,7 +960,6 @@ void htp_delete_user_permissions_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   char* detail;
-  char* permission;
   int ret;
 
   if(req == NULL) {
@@ -976,13 +976,9 @@ void htp_delete_user_permissions_detail(evhtp_request_t *req, void *data)
     return;
   }
 
-  // get parameter
-  permission = http_get_parameter(req, "permission");
-
   // delete
-  ret = delete_user_permission_info(detail, permission);
+  ret = delete_user_permission_info(detail);
   sfree(detail);
-  sfree(permission);
   if(ret == false) {
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
@@ -1064,6 +1060,7 @@ static bool create_permission_by_json(json_t* j_data)
 static bool create_permission(const char* user_uuid, const char* permission)
 {
   json_t* j_tmp;
+  char* uuid;
   int ret;
 
   if((user_uuid == NULL) || (permission == NULL)) {
@@ -1071,10 +1068,13 @@ static bool create_permission(const char* user_uuid, const char* permission)
     return false;
   }
 
-  j_tmp = json_pack("{s:s, s:s}",
+  uuid = gen_uuid();
+  j_tmp = json_pack("{s:s, s:s, s:s}",
+      "uuid",       uuid,
       "user_uuid",  user_uuid,
       "permission", permission
       );
+  sfree(uuid);
 
   ret = create_user_permission_info(j_tmp);
   json_decref(j_tmp);
@@ -1726,29 +1726,20 @@ json_t* get_user_permissions_all(void)
  * @param key
  * @return
  */
-bool delete_user_permission_info(const char* user_uuid, const char* permission)
+bool delete_user_permission_info(const char* key)
 {
   int ret;
-  json_t* j_tmp;
 
-  if(user_uuid == NULL) {
+  if(key == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
-  slog(LOG_DEBUG, "Fired delete_user_permission_info. user_uuid[%s], permission[%s]", user_uuid, permission? : "");
-
-  // create condition
-  j_tmp = json_object();
-  json_object_set_new(j_tmp, "user_uuid", json_string(user_uuid));
-  if(permission != NULL) {
-    json_object_set_new(j_tmp, "permission", json_string(permission));
-  }
+  slog(LOG_DEBUG, "Fired delete_user_permission_info. uuid[%s]", key);
 
   // delete
-  ret = delete_jade_items_by_obj(DEF_DB_TABLE_USER_PERMISSION, j_tmp);
-  json_decref(j_tmp);
+  ret = delete_jade_items_string(DEF_DB_TABLE_USER_PERMISSION, "uuid", key);
   if(ret == false) {
-    slog(LOG_ERR, "Could not delete permission info. user_uuid[%s], permission[%s]", user_uuid, permission? : "");
+    slog(LOG_ERR, "Could not delete permission info. uuid[%s]", key);
     return false;
   }
 
