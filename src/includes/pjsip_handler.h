@@ -81,8 +81,6 @@ void htp_get_pjsip_settings(evhtp_request_t *req, void *data);
 void htp_post_pjsip_settings(evhtp_request_t *req, void *data);
 
 
-bool clear_pjsip(void);
-
 // endpoint
 bool create_pjsip_endpoint_info(const json_t* j_data);
 bool update_pjsip_endpoint_info(const json_t* j_data);
