@@ -61,6 +61,7 @@ static bool init_pjsip_database_endpoint(void);
 static bool init_pjsip_config(void);
 static bool init_pjsip_config_file(const char* filename);
 
+static bool term_pjsip_databases(void);
 
 static bool create_config_pjsip_type(enum EN_OBJ_TYPES type, const json_t* j_data);
 static bool create_config_pjsip_aor(const json_t* j_data);
@@ -129,7 +130,7 @@ bool term_pjsip_handler(void)
 {
   int ret;
 
-  ret = clear_pjsip();
+  ret = term_pjsip_databases();
   if(ret == false) {
     slog(LOG_ERR, "Could not clear pjsip info.");
     return false;
@@ -285,24 +286,28 @@ static bool init_pjsip_databases(void)
 {
   int ret;
 
+  // aor
   ret = init_pjsip_database_aor();
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate aor database.");
     return false;
   }
 
+  // auth
   ret = init_pjsip_database_auth();
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate auth database.");
     return false;
   }
 
+  // contact
   ret = init_pjsip_database_contact();
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate contact database.");
     return false;
   }
 
+  // endpoint
   ret = init_pjsip_database_endpoint();
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate endpoint database.");
@@ -2960,15 +2965,9 @@ bool delete_pjsip_contact_info(const char* key)
  * Clear all pjsip resources.
  * @return
  */
-bool clear_pjsip(void)
+static bool term_pjsip_databases(void)
 {
   int ret;
-
-  ret = clear_ast_table(DEF_DB_TABLE_PJSIP_ENDPOINT);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not clear pjsip_endpoint");
-    return false;
-  }
 
   ret = clear_ast_table(DEF_DB_TABLE_PJSIP_AOR);
   if(ret == false) {
@@ -2987,6 +2986,14 @@ bool clear_pjsip(void)
     slog(LOG_ERR, "Could not clear pjsip_contact");
     return false;
   }
+
+  ret = clear_ast_table(DEF_DB_TABLE_PJSIP_ENDPOINT);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not clear pjsip_endpoint");
+    return false;
+  }
+
+
 
   return true;
 
