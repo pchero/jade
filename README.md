@@ -72,6 +72,12 @@ Or may be used by either companies who wish to make calls on their own behalf, o
   * ![Screen Preview](https://raw.githubusercontent.com/pchero/jade-agent/master/jade-agent.png)
 
 ## Library issue
+* libevent
+  * libevent-2.0.x has memory curruption problem. It's fixed in libevent-2.1.x.
+    * It causes core crash the jade.
+    * Need to use the libevnet-2.1.x or higher.
+    * libevent/libevent#335
+ 
 * libwebsocket
   * Required libevent option. 
     * $ cd build  
