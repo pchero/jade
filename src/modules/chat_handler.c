@@ -7,6 +7,8 @@
 
 #define _GNU_SOURCE
 
+#include <string.h>
+
 #include "common.h"
 #include "slog.h"
 #include "utils.h"
@@ -16,23 +18,33 @@
 
 
 #define DEF_DB_TABLE_CHAT_ROOM  "chat_room"
+#define DEF_DB_TABLE_CHAT_USERROOM  "chat_userroom"
 
 
 static bool init_chat_databases(void);
 static bool init_chat_database_room(void);
+static bool init_chat_database_userroom(void);
 
 static bool db_create_table_chat_message(const char* table_name);
 static bool db_delete_table_chat_message(const char* table_name);
 
+static json_t* db_get_chat_rooms_info_by_useruuid(const char* user_uuid);
 static json_t* db_get_chat_room_info(const char* uuid);
 static bool db_create_chat_room_info(const json_t* j_data);
 static bool db_delete_chat_room_info(const char* uuid);
 static char* db_create_tablename_chat_message(const char* uuid);
 
+static json_t* db_get_chat_userroom_info(const char* uuid);
+static json_t* db_get_chat_userrooms_info_by_useruuid(const char* user_uuid);
+static bool db_create_chat_userroom_info(const json_t* j_data);
+static bool db_delete_chat_userroom_info(const char* uuid);
+
+
 static bool db_create_chat_message_info(const char* table_name, json_t* j_data);
 static json_t* db_get_chat_messages_info_newest(const char* table_name, const char* timestamp, const unsigned int count);
 
 static bool is_exist_chat_room(const char* uuid);
+static bool is_user_owned_userroom(const char* uuid_user, const char* uuid_userroom);
 
 
 bool init_chat_handler(void)
@@ -74,6 +86,12 @@ static bool init_chat_databases(void)
     return false;
   }
 
+  // init userroom
+  ret = init_chat_database_userroom();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate database userroom.");
+    return false;
+  }
 
   return true;
 }
@@ -107,6 +125,39 @@ static bool init_chat_database_room(void)
   ret = exec_jade_sql(create_table);
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate database. database[%s]", DEF_DB_TABLE_CHAT_ROOM);
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Initiate chat database. userroom.
+ * @return
+ */
+static bool init_chat_database_userroom(void)
+{
+  int ret;
+  const char* create_table;
+
+  create_table =
+    "create table if not exists " DEF_DB_TABLE_CHAT_USERROOM " ("
+
+    // basic info
+    "   uuid          varchar(255),"
+    "   uuid_user     varchar(255),"    // uuid(user)
+    "   uuid_room     varchar(255),"    // uuid(chat_room)
+
+    "   name      varchar(255),"    // room name
+    "   detail    varchar(1023),"   // room detail
+
+    "   primary key(uuid_user, uuid_room)"
+    ");";
+
+  // execute
+  ret = exec_jade_sql(create_table);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate database. database[%s]", DEF_DB_TABLE_CHAT_USERROOM);
     return false;
   }
 
@@ -182,6 +233,80 @@ static bool db_delete_table_chat_message(const char* table_name)
   return true;
 }
 
+/**
+ * Get chat_userroom info of given uuid.
+ * @param uuid
+ * @return
+ */
+static json_t* db_get_chat_userroom_info(const char* uuid)
+{
+  json_t* j_res;
+
+  j_res = get_jade_detail_item_key_string(DEF_DB_TABLE_CHAT_USERROOM, "uuid", uuid);
+  if(j_res == NULL) {
+    slog(LOG_ERR, "Could not get chat_userroom info. uuid[%s]", uuid);
+    return NULL;
+  }
+
+  return j_res;
+}
+
+/**
+ * Get list of chat_userrooms info which related given user_uuid.
+ * @param uuid
+ * @return
+ */
+static json_t* db_get_chat_userrooms_info_by_useruuid(const char* user_uuid)
+{
+  json_t* j_res;
+
+  j_res = get_jade_detail_item_key_string(DEF_DB_TABLE_CHAT_USERROOM, "uuid_user", user_uuid);
+  if(j_res == NULL) {
+    slog(LOG_ERR, "Could not get list of chat_userrooms info. user_uuid[%s]", user_uuid);
+    return NULL;
+  }
+
+  return j_res;
+}
+
+
+static bool db_create_chat_userroom_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  // insert info
+  ret = insert_jade_item(DEF_DB_TABLE_CHAT_USERROOM, j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert chat_userroom.");
+    return false;
+  }
+
+  return true;
+}
+
+static bool db_delete_chat_userroom_info(const char* uuid)
+{
+  int ret;
+
+  if(uuid == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  ret = delete_jade_items_string(DEF_DB_TABLE_CHAT_USERROOM, "uuid", uuid);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not delete chat userroom info. uuid[%s]", uuid);
+    return false;
+  }
+
+  return true;
+}
+
 static bool db_create_chat_room_info(const json_t* j_data)
 {
   int ret;
@@ -219,6 +344,35 @@ static json_t* db_get_chat_room_info(const char* uuid)
   return j_res;
 }
 
+/**
+ * Get all chat_rooms info which related given user_uuid.
+ * @param uuid
+ * @return
+ */
+static json_t* db_get_chat_rooms_info_by_useruuid(const char* user_uuid)
+{
+  char* condition;
+  json_t* j_res;
+
+  if(user_uuid == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired db_get_chat_rooms_by_useruuid. user_uuid[%s]", user_uuid);
+
+  asprintf(&condition, "where member like '%%%s%%'", user_uuid);
+
+  j_res = get_jade_detail_items_by_condtion(DEF_DB_TABLE_CHAT_ROOM, condition);
+  sfree(condition);
+  if(j_res == NULL) {
+    slog(LOG_ERR, "Could not get chat rooms info. user_uuid[%s]", user_uuid);
+    return NULL;
+  }
+
+  return j_res;
+}
+
+
 static bool db_delete_chat_room_info(const char* uuid)
 {
   int ret;
@@ -231,6 +385,114 @@ static bool db_delete_chat_room_info(const char* uuid)
   ret = delete_jade_items_string(DEF_DB_TABLE_CHAT_ROOM, "uuid", uuid);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete chat room info. uuid[%s]", uuid);
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Get all chat rooms info of given useruuid.
+ * @param user_uuid
+ * @return
+ */
+json_t* get_chat_rooms_by_useruuid(const char* user_uuid)
+{
+  json_t* j_res;
+
+  if(user_uuid == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_chat_rooms_by_useruuid. user_uuid[%s]", user_uuid);
+
+  j_res = db_get_chat_rooms_info_by_useruuid(user_uuid);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
+json_t* get_chat_userrooms_by_useruuid(const char* user_uuid)
+{
+  json_t* j_res;
+
+  j_res = db_get_chat_userrooms_info_by_useruuid(user_uuid);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
+bool create_chat_userroom(
+    const char* uuid_user,
+    const char* uuid_room,
+    const char* name,
+    const char* detail
+    )
+{
+  int ret;
+  json_t* j_data;
+  char* uuid;
+
+  if((uuid_user == NULL) || (uuid_room == NULL) || (name == NULL) || (detail == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired create_chat_userroom. uuid_user[%s], uuid_room[%s], name[%s], detail[%s]",
+      uuid_user, uuid_room, name, detail
+      );
+
+  uuid = gen_uuid();
+  j_data = json_pack("{"
+      "s:s,"
+      "s:s, s:s,"
+      "s:s, s:s"
+      "}",
+
+      "uuid",       uuid,
+
+      "uuid_user",  uuid_user,
+      "uuid_room",  uuid_room,
+
+      "name",     name,
+      "detail",   detail
+      );
+  sfree(uuid);
+
+  ret = db_create_chat_userroom_info(j_data);
+  json_decref(j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create userroom info.");
+    return false;
+  }
+
+  return true;
+}
+
+bool delete_chat_userroom(const char* userroom_uuid, const char* user_uuid)
+{
+  int ret;
+
+  if(userroom_uuid == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired delete_chat_userroom. uuid[%s]", userroom_uuid);
+
+  // is owned
+  ret = is_user_owned_userroom(user_uuid, userroom_uuid);
+  if(ret == false) {
+    slog(LOG_ERR, "User does not owned given userroom. user_uuid[%s], userroom_uuid[%s]", user_uuid, userroom_uuid);
+    return false;
+  }
+
+  // delete
+  ret = db_delete_chat_userroom_info(userroom_uuid);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not delete userroom. userroom_uuid[%s]", userroom_uuid);
     return false;
   }
 
@@ -544,6 +806,44 @@ static bool is_exist_chat_room(const char* uuid)
     return false;
   }
   json_decref(j_tmp);
+
+  return true;
+}
+
+/**
+ * Return true if given user owned given userroom.
+ * @param uuid_user
+ * @param uuid_room
+ * @return
+ */
+static bool is_user_owned_userroom(const char* uuid_user, const char* uuid_userroom)
+{
+  int ret;
+  const char* tmp_const;
+  json_t* j_tmp;
+
+  if((uuid_user == NULL) || (uuid_userroom == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  j_tmp = db_get_chat_userroom_info(uuid_userroom);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get userroom info. uuid_user[%s], uuid_room[%s]", uuid_user, uuid_userroom);
+    return false;
+  }
+
+  tmp_const = json_string_value(json_object_get(j_tmp, "uuid_user"));
+  if(tmp_const == NULL) {
+    json_decref(j_tmp);
+    return false;
+  }
+
+  ret = strcmp(tmp_const, uuid_user);
+  json_decref(j_tmp);
+  if(ret != 0) {
+    return false;
+  }
 
   return true;
 }
