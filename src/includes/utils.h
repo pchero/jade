@@ -36,4 +36,6 @@ bool is_exist_string_in_file(const char* filename, const char* str);
 bool append_string_to_file_end(const char* filename, const char* str);
 bool create_empty_file(const char* filename);
 
+char* string_replace_char(const char* str, const char org, const char target);
+
 #endif /* BACKEND_SRC_UTILS_H_ */

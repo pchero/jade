@@ -517,3 +517,35 @@ bool create_empty_file(const char* filename)
   return true;
 }
 
+/**
+ * Copy the given str and replace given org character to target character from str.
+ * Return string should be freed after use it.
+ * @param uuid
+ * @return
+ */
+char* string_replace_char(const char* str, const char org, const char target)
+{
+  char* tmp;
+  int len;
+  int i;
+  int j;
+
+  if(str == NULL) {
+    return NULL;
+  }
+
+  len = strlen(str);
+  tmp = calloc(len + 1, sizeof(char));
+  j = 0;
+  for(i = 0; i < len; i++) {
+    if(str[i] == org) {
+      tmp[j] = target;
+    }
+    else {
+      tmp[j] = str[i];
+    }
+    j++;
+  }
+  tmp[j] = '\0';
+  return tmp;
+}

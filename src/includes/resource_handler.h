@@ -35,6 +35,7 @@ json_t* get_jade_detail_item_key_string(const char* table, const char* key, cons
 json_t* get_jade_detail_item_by_obj(const char* table, json_t* j_obj);
 json_t* get_jade_detail_items_by_obj(const char* table, json_t* j_obj);
 json_t* get_jade_detail_items_by_obj_order(const char* table, json_t* j_obj, const char* order);
+json_t* get_jade_detail_items_by_condtion(const char* table, const char* condition);
 
 
 
