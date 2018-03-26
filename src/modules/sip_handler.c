@@ -7,6 +7,7 @@
 
 #include <stdio.h>
 #include <jansson.h>
+#include <string.h>
 
 #include "slog.h"
 #include "ami_handler.h"
