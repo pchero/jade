@@ -23,7 +23,7 @@ json_t* get_chat_userrooms_by_useruuid(const char* user_uuid);
 bool create_chat_userroom(const char* uuid_user, const char* uuid_room, const char* name, const char* detail);
 bool delete_chat_userroom(const char* userroom_uuid, const char* user_uuid);
 
-bool create_chat_message(const char* uuid, const char* message);
+bool create_chat_message_to_userroom(const char* uuid_userroom, const char* uuid_user, const char* message);
 json_t* get_chat_messages_newest(const char* uuid, const char* timestamp, const unsigned int count);
 
 #endif /* SRC_INCLUDES_CHAT_HANDLER_H_ */
