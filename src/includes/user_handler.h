@@ -68,4 +68,7 @@ bool create_user_contact_info(const json_t* j_data);
 bool update_user_contact_info(const json_t* j_data);
 bool delete_user_contact_info(const char* key);
 
+
+bool is_user_user_exist(const char* user_uuid);
+
 #endif /* SRC_MAIN_USER_HANDLER_H_ */

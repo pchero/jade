@@ -424,29 +424,20 @@ json_t* get_ob_dlmas_all_uuid(void)
  */
 static char* create_view_name(const char* uuid)
 {
-  char* tmp;
-  int len;
-  int i;
-  int j;
+  char* res;
 
   if(uuid == NULL) {
     return NULL;
   }
 
-  len = strlen(uuid);
-  tmp = calloc(len + 1, sizeof(char));
-  j = 0;
-  for(i = 0; i < len; i++) {
-    if(uuid[i] == '-') {
-      tmp[j] = '_';
-    }
-    else {
-      tmp[j] = uuid[i];
-    }
-    j++;
+  // create view name using uuid
+  res = string_replace_char(uuid, '-', '_');
+  if(res == NULL) {
+    slog(LOG_ERR, "Could not create view name.");
+    return NULL;
   }
-  tmp[j] = '\0';
-  return tmp;
+
+  return res;
 }
 
 char* get_ob_dlma_table_name(const char* dlma_uuid)

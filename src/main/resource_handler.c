@@ -36,7 +36,7 @@ static bool delete_items_by_obj(db_ctx_t* ctx, const char* table, json_t* j_obj)
 static json_t* get_detail_item_by_obj(db_ctx_t* ctx, const char* table, json_t* j_obj);
 static json_t* get_detail_items_by_obj(db_ctx_t* ctx, const char* table, json_t* j_obj);
 static json_t* get_detail_items_by_obj_order(db_ctx_t* ctx, const char* table, json_t* j_obj, const char* order);
-
+static json_t* get_detail_items_by_condition(db_ctx_t* ctx, const char* table, const char* condition);
 
 // db_ast
 
@@ -422,7 +422,7 @@ static json_t* get_items(db_ctx_t* ctx, const char* table, const char* item)
 
     json_array_append_new(j_res, j_tmp);
   }
-  db_ctx_free(g_db_ast);
+  db_ctx_free(ctx);
 
   return j_res;
 }
@@ -687,6 +687,45 @@ static json_t* get_detail_items_by_obj_order(db_ctx_t* ctx, const char* table, j
 
   asprintf(&sql, "select * from %s where %s order by %s;", table, sql_cond, order);
   sfree(sql_cond);
+  ret = db_ctx_query(ctx, sql);
+  sfree(sql);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not get detail info.");
+    return NULL;
+  }
+
+  j_res = json_array();
+  while(true) {
+    j_tmp = db_ctx_get_record(ctx);
+    if(j_tmp == NULL) {
+      break;
+    }
+    json_array_append_new(j_res, j_tmp);
+  }
+  db_ctx_free(ctx);
+
+  return j_res;
+}
+
+/**
+ * @param table
+ * @param item
+ * @return
+ */
+static json_t* get_detail_items_by_condition(db_ctx_t* ctx, const char* table, const char* condition)
+{
+  int ret;
+  json_t* j_res;
+  json_t* j_tmp;
+  char* sql;
+
+  if((ctx == NULL) || (table == NULL) || (condition == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_detail_items_by_condition. table[%s], condition[%s]", table, condition);
+
+  asprintf(&sql, "select * from %s %s;", table, condition);
   ret = db_ctx_query(ctx, sql);
   sfree(sql);
   if(ret == false) {
@@ -1095,6 +1134,23 @@ json_t* get_jade_detail_items_by_obj_order(const char* table, json_t* j_obj, con
 
   return j_res;
 
+}
+
+json_t* get_jade_detail_items_by_condtion(const char* table, const char* condition)
+{
+  json_t* j_res;
+
+  if((table == NULL) || (condition == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  j_res = get_detail_items_by_condition(g_db_jade, table, condition);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
 }
 
 

@@ -1305,6 +1305,27 @@ static bool update_userinfo(const char* uuid, json_t* j_data)
   return true;
 }
 
+/**
+ * Return true if given user_uuid is exist in user_user
+ * @param user_uuid
+ * @return
+ */
+bool is_user_user_exist(const char* user_uuid)
+{
+  int ret;
+
+  if(user_uuid == NULL) {
+    return false;
+  }
+
+  ret = is_user_exist(user_uuid);
+  if(ret == false) {
+    return false;
+  }
+
+  return true;
+}
+
 static bool is_user_exist(const char* user_uuid)
 {
   json_t* j_tmp;
