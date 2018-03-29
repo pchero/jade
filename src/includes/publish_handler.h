@@ -15,6 +15,15 @@
 #define DEF_PUB_TYPE_UPDATE   "update"
 #define DEF_PUB_TYPE_DELETE   "delete"
 
+enum EN_PUBLISH_TYPES {
+  EN_PUBLISH_CREATE   = 1,
+  EN_PUBLISH_UPDATE   = 2,
+  EN_PUBLISH_DELETE   = 3,
+};
+
+
+bool publish_event_me_chat_message(enum EN_PUBLISH_TYPES type, const char* uuid_user, json_t* j_data);
+bool publish_event_me_chat_room(enum EN_PUBLISH_TYPES type, const char* uuid_user, json_t* j_data);
 
 bool publish_event_core_channel(const char* type, json_t* j_data);
 bool publish_event_core_agi(const char* type, json_t* j_data);

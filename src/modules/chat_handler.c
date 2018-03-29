@@ -14,6 +14,7 @@
 #include "utils.h"
 #include "resource_handler.h"
 #include "user_handler.h"
+#include "publish_handler.h"
 
 #include "chat_handler.h"
 
@@ -49,13 +50,16 @@ static json_t* db_get_chat_messages_info_newest(const char* table_name, const ch
 
 static bool create_message(const char* uuid_room, const char* uuid_user, const char* message);
 
-static bool create_userroom(const char* uuid_user, const char* uuid_room, const char* name, const char* detail);
-static bool create_userroom_and_room(const char* uuid_user, const json_t* j_data);
-static bool create_userroom_by_room(const char* uuid_user, const json_t* j_data, const json_t* j_room);
+static bool create_userroom(const json_t* j_data);
+static bool update_userroom(const json_t* j_data);
+static bool delete_userroom(const char* uuid);
 
 
 static bool create_room(const char* uuid, const char* uuid_user, enum EN_CHAT_ROOM_TYPE type, const json_t* j_members);
+static json_t* get_room_by_type_members(enum EN_CHAT_ROOM_TYPE type, json_t* j_members);
 static bool delete_room_member(const char* uuid_room, const char* uuid_user);
+
+static char* get_room_uuid_by_type_members(enum EN_CHAT_ROOM_TYPE type, json_t* j_members);
 
 static bool is_room_exist(const char* uuid);
 static bool is_userroom_exist(const char* uuid);
@@ -174,6 +178,10 @@ static bool init_chat_database_userroom(void)
 
     "   name      varchar(255),"    // room name
     "   detail    varchar(1023),"   // room detail
+
+    // timestamp. UTC."
+    "   tm_create     datetime(6),"  // create time
+    "   tm_update     datetime(6),"  // latest updated time
 
     "   primary key(uuid_user, uuid_room)"
     ");";
@@ -605,18 +613,22 @@ json_t* get_chat_userroom(const char* uuid)
 
 /**
  * Interface for create new chat_userroom
+ * j_data : {"name":"<string>", "detail":"<string>", "type": <integer>, "members": ["<string>",]}
  * @param uuid_user
  * @param j_data
  * @return
  */
-bool create_chat_userroom(const char* uuid_user, const json_t* j_data)
+bool create_chat_userroom(const char* uuid_user, const char* uuid_userroom, const json_t* j_data)
 {
   int ret;
+  int ret_room;
   int type;
   json_t* j_members;
-  json_t* j_room;
+  json_t* j_tmp;
+  char* uuid_room;
+  char* tmp;
 
-  if((uuid_user == NULL) || (j_data == NULL)) {
+  if((uuid_user == NULL) || (uuid_userroom == NULL) || (j_data == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
@@ -643,30 +655,57 @@ bool create_chat_userroom(const char* uuid_user, const json_t* j_data)
   }
 
   // check room existence
-  j_room = db_get_chat_room_info_by_type_members(type, j_members);
-  if(j_room == NULL) {
-    // create
-    ret = create_userroom_and_room(uuid_user, j_data);
-    if(ret == false) {
+  ret = is_room_exist_by_type_members(type, j_members);
+  if(ret == false) {
+    // if not exist, create new
+    tmp = gen_uuid();
+    ret_room = create_room(tmp, uuid_user, type, j_members);
+    sfree(tmp);
+    if(ret_room == false) {
+      slog(LOG_ERR, "Could not create room.");
       return false;
     }
-    return true;
-  }
-  else {
-    // create
-    ret = create_userroom_by_room(uuid_user, j_data, j_room);
-    json_decref(j_room);
-    if(ret == false) {
-      return false;
-    }
-
-    return true;
   }
 
-  // should not get to here.
-  slog(LOG_ERR, "Something was wrong. Should not get to here.");
+  // get room uuid.
+  uuid_room = get_room_uuid_by_type_members(type, j_members);
+  if(uuid_room == NULL) {
+    slog(LOG_ERR, "Could not get room uuid.");
+    return false;
+  }
 
-  return false;
+  // check existence
+  ret = is_userroom_exist_by_user_room(uuid_user, uuid_room);
+  if(ret == true) {
+    slog(LOG_NOTICE, "The same userroom is already exist.");
+    return false;
+  }
+
+  // create userroom request
+  j_tmp = json_pack("{"
+      "s:s, s:s, s:s,"
+      "s:s, s:s"
+      "}",
+
+      "uuid",         uuid_userroom,
+      "uuid_room",    uuid_room,
+      "uuid_user",    uuid_user,
+
+      "name",   json_string_value(json_object_get(j_data, "name"))? : "",
+      "detail", json_string_value(json_object_get(j_data, "detail"))? : ""
+      );
+  sfree(uuid_room);
+
+  // create userroom
+  ret = create_userroom(j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create userroom info.");
+    delete_chat_room(uuid_room);
+    return false;
+  }
+
+  return true;
 }
 
 /**
@@ -701,7 +740,7 @@ bool update_chat_userroom(const char* uuid_user, const char* uuid_userroom, cons
   json_object_set(j_tmp, "name", json_object_get(j_data, "name"));
   json_object_set(j_tmp, "detail", json_object_get(j_data, "detail"));
 
-  ret = db_update_chat_userroom_info(j_tmp);
+  ret = update_userroom(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     return false;
@@ -710,153 +749,156 @@ bool update_chat_userroom(const char* uuid_user, const char* uuid_userroom, cons
   return true;
 }
 
-/**
- * Create userroom info and room.
- * @param uuid_user
- * @param j_userroom
- * @return
- */
-static bool create_userroom_and_room(const char* uuid_user, const json_t* j_data)
-{
-  int ret;
-  int type;
-  json_t* j_members;
-  char* uuid_room;
-  const char* name;
-  const char* detail;
-
-  if((uuid_user == NULL) || (j_data == NULL)) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return false;
-  }
-  slog(LOG_DEBUG, "Fired create_userroom_and_room.");
-
-  // get type
-  type = json_integer_value(json_object_get(j_data, "type"));
-  if(type == 0) {
-    slog(LOG_ERR, "Could not get type info.");
-    return false;
-  }
-
-  // get member
-  j_members = json_object_get(j_data, "members");
-  if(j_members == NULL) {
-    slog(LOG_ERR, "Could not get member info.");
-    return false;
-  }
-
-  // create uuid for room.
-  uuid_room = gen_uuid();
-
-  // create room
-  ret = create_room(uuid_room, uuid_user, type, j_members);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create chat room info.");
-    sfree(uuid_room);
-    return false;
-  }
-
-  // get info
-  name = json_string_value(json_object_get(j_data, "name"));
-  detail = json_string_value(json_object_get(j_data, "detail"));
-
-  // create userroom
-  ret = create_userroom(uuid_user, uuid_room, name, detail);
-  sfree(uuid_room);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create userroom info.");
-    return false;
-  }
-
-  return true;
-}
-
-static bool create_userroom_by_room(const char* uuid_user, const json_t* j_data, const json_t* j_room)
-{
-  int ret;
-  const char* uuid_room;
-  const char* name;
-  const char* detail;
-
-  if((uuid_user == NULL) || (j_data == NULL) || (j_room == NULL)) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return false;
-  }
-  slog(LOG_DEBUG, "Fired create_userroom_by_room.");
-
-  uuid_room = json_string_value(json_object_get(j_room, "uuid"));
-  if(uuid_room == NULL) {
-    slog(LOG_ERR, "Could not get room uuid.");
-    return false;
-  }
-
-  // check existence
-  ret = is_userroom_exist_by_user_room(uuid_user, uuid_room);
-  if(ret == true) {
-    slog(LOG_ERR, "The userroom is already exist.");
-    return false;
-  }
-
-  name = json_string_value(json_object_get(j_data, "name"));
-  detail = json_string_value(json_object_get(j_data, "detail"));
-
-  ret = create_userroom(uuid_user, uuid_room, name, detail);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create userroom.");
-    return false;
-  }
-
-  return true;
-}
+///**
+// * Create userroom info and room.
+// * @param uuid_user
+// * @param j_userroom
+// * @return
+// */
+//static bool create_userroom_and_room(const char* uuid_user, const char* uuid_userroom, const json_t* j_data)
+//{
+//  int ret;
+//  int type;
+//  json_t* j_members;
+//  char* uuid_room;
+//  const char* name;
+//  const char* detail;
+//
+//  if((uuid_user == NULL) || (uuid_userroom == NULL) || (j_data == NULL)) {
+//    slog(LOG_WARNING, "Wrong input parameter.");
+//    return false;
+//  }
+//  slog(LOG_DEBUG, "Fired create_userroom_and_room.");
+//
+//  // get type
+//  type = json_integer_value(json_object_get(j_data, "type"));
+//  if(type == 0) {
+//    slog(LOG_ERR, "Could not get type info.");
+//    return false;
+//  }
+//
+//  // get member
+//  j_members = json_object_get(j_data, "members");
+//  if(j_members == NULL) {
+//    slog(LOG_ERR, "Could not get member info.");
+//    return false;
+//  }
+//
+//  // create uuid for room.
+//  uuid_room = gen_uuid();
+//
+//  // create room
+//  ret = create_room(uuid_room, uuid_user, type, j_members);
+//  if(ret == false) {
+//    slog(LOG_ERR, "Could not create chat room info.");
+//    sfree(uuid_room);
+//    return false;
+//  }
+//
+//  // get info
+//  name = json_string_value(json_object_get(j_data, "name"));
+//  detail = json_string_value(json_object_get(j_data, "detail"));
+//
+//  // create userroom
+//  ret = create_userroom(uuid_user, uuid_room, name, detail);
+//  sfree(uuid_room);
+//  if(ret == false) {
+//    slog(LOG_ERR, "Could not create userroom info.");
+//    return false;
+//  }
+//
+//  return true;
+//}
+//
+//static bool create_userroom_by_room(const char* uuid_user, const json_t* j_data, const json_t* j_room)
+//{
+//  int ret;
+//  const char* uuid_room;
+//  const char* name;
+//  const char* detail;
+//
+//  if((uuid_user == NULL) || (j_data == NULL) || (j_room == NULL)) {
+//    slog(LOG_WARNING, "Wrong input parameter.");
+//    return false;
+//  }
+//  slog(LOG_DEBUG, "Fired create_userroom_by_room.");
+//
+//  uuid_room = json_string_value(json_object_get(j_room, "uuid"));
+//  if(uuid_room == NULL) {
+//    slog(LOG_ERR, "Could not get room uuid.");
+//    return false;
+//  }
+//
+//  // check existence
+//  ret = is_userroom_exist_by_user_room(uuid_user, uuid_room);
+//  if(ret == true) {
+//    slog(LOG_ERR, "The userroom is already exist.");
+//    return false;
+//  }
+//
+//  name = json_string_value(json_object_get(j_data, "name"));
+//  detail = json_string_value(json_object_get(j_data, "detail"));
+//
+//  ret = create_userroom(uuid_user, uuid_room, name, detail);
+//  if(ret == false) {
+//    slog(LOG_ERR, "Could not create userroom.");
+//    return false;
+//  }
+//
+//  return true;
+//}
 
 /**
  * Create userroom info.
- * @param uuid_user
- * @param uuid_room
- * @param name
- * @param detail
  * @return
  */
-static bool create_userroom(
-    const char* uuid_user,
-    const char* uuid_room,
-    const char* name,
-    const char* detail
-    )
+static bool create_userroom(const json_t* j_data)
 {
   int ret;
-  json_t* j_data;
-  char* uuid;
+  json_t* j_tmp;
+  char* timestamp;
 
-  if((uuid_user == NULL) || (uuid_room == NULL)) {
+  if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
-  slog(LOG_DEBUG, "Fired create_chat_userroom. uuid_user[%s], uuid_room[%s], name[%s], detail[%s]",
-      uuid_user, uuid_room, name, detail
-      );
+  slog(LOG_DEBUG, "Fired create_chat_userroom.");
 
-  uuid = gen_uuid();
-  j_data = json_pack("{"
-      "s:s,"
-      "s:s, s:s,"
-      "s:s, s:s"
-      "}",
+  j_tmp = json_deep_copy(j_data);
 
-      "uuid",       uuid,
+  timestamp = get_utc_timestamp();
+  json_object_set_new(j_tmp, "tm_create", json_string(timestamp));
+  sfree(timestamp);
 
-      "uuid_user",  uuid_user,
-      "uuid_room",  uuid_room,
-
-      "name",     name? : "",
-      "detail",   detail? : ""
-      );
-  sfree(uuid);
-
-  ret = db_create_chat_userroom_info(j_data);
-  json_decref(j_data);
+  ret = db_create_chat_userroom_info(j_tmp);
+  json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not create userroom info.");
+    return false;
+  }
+
+  return true;
+}
+
+static bool update_userroom(const json_t* j_data)
+{
+  int ret;
+  json_t* j_tmp;
+  char* timestamp;
+
+  if(j_data == NULL) {
+    return false;
+  }
+
+  j_tmp = json_deep_copy(j_data);
+
+  timestamp = get_utc_timestamp();
+  json_object_set_new(j_tmp, "tm_update", json_string(timestamp));
+  sfree(timestamp);
+
+  ret = db_update_chat_userroom_info(j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
     return false;
   }
 
@@ -878,7 +920,6 @@ static bool delete_userroom(const char* uuid)
   }
 
   return true;
-
 }
 
 /**
@@ -1008,7 +1049,7 @@ static bool create_room(
   timestamp = get_utc_timestamp();
   j_tmp = json_pack("{"
       "s:s, s:s, s:s, "
-      "s:s, s:o, "
+      "s:s, s:i, s:o, "
 
       "s:s "
       "}",
@@ -1018,6 +1059,7 @@ static bool create_room(
       "uuid_owner",     uuid_user,
 
       "message_table",  table_name,
+      "type",           type,
       "members",        j_tmp_members,
 
       "tm_create",  timestamp
@@ -1036,6 +1078,23 @@ static bool create_room(
   sfree(table_name);
 
   return true;
+}
+
+static json_t* get_room_by_type_members(enum EN_CHAT_ROOM_TYPE type, json_t* j_members)
+{
+  json_t* j_res;
+
+  if(j_members == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  j_res = db_get_chat_room_info_by_type_members(type, j_members);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
 }
 
 /**
@@ -1522,4 +1581,42 @@ static bool delete_room_member(const char* uuid_room, const char* uuid_user)
   }
 
   return true;
+}
+
+/**
+ * Return the string of room_uuid of gvien type and members
+ * @param type
+ * @param j_members
+ * @return
+ */
+static char* get_room_uuid_by_type_members(enum EN_CHAT_ROOM_TYPE type, json_t* j_members)
+{
+  char* res;
+  const char* tmp_const;
+  json_t* j_tmp;
+
+  if(j_members == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  // get room info
+  j_tmp = get_room_by_type_members(type, j_members);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get room info.");
+    return NULL;
+  }
+
+  // get room_uuid
+  tmp_const = json_string_value(json_object_get(j_tmp, "uuid"));
+  if(tmp_const == NULL) {
+    json_decref(j_tmp);
+    slog(LOG_ERR, "Could not get room uuid.");
+    return NULL;
+  }
+
+  res = strdup(tmp_const);
+  json_decref(j_tmp);
+
+  return res;
 }

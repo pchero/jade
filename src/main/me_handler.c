@@ -22,6 +22,7 @@
 #include "sip_handler.h"
 #include "pjsip_handler.h"
 #include "chat_handler.h"
+#include "publish_handler.h"
 
 #include "me_handler.h"
 
@@ -762,22 +763,45 @@ static json_t* get_chatroom_info(json_t* j_user, const char* uuid_userroom)
 static bool create_chatroom_info(json_t* j_user, json_t* j_data)
 {
   int ret;
-  const char* uuid;
+  char* uuid_userroom;
+  const char* uuid_user;
+  json_t* j_tmp;
 
   if(j_user == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return NULL;
   }
 
-  uuid = json_string_value(json_object_get(j_user, "uuid"));
-  if(uuid == NULL) {
+  uuid_user = json_string_value(json_object_get(j_user, "uuid"));
+  if(uuid_user == NULL) {
     slog(LOG_ERR, "Could not get uuid info.");
     return NULL;
   }
 
-  ret = create_chat_userroom(uuid, j_data);
+  // create uuid_userroom
+  uuid_userroom = gen_uuid();
+  if(uuid_userroom == NULL) {
+    slog(LOG_ERR, "Could not create uuid for userroom.");
+    return false;
+  }
+
+  ret = create_chat_userroom(uuid_user, uuid_userroom, j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not create chat userroom.");
+    return false;
+  }
+
+  // get created userroom info
+  j_tmp = get_chatroom_info(j_user, uuid_userroom);
+  if(j_tmp == NULL) {
+    slog(LOG_WARNING, "Could not get created userroom info.");
+    return false;
+  }
+
+  // publish event
+  ret = publish_event_me_chat_room(EN_PUBLISH_CREATE, uuid_user, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
     return false;
   }
 
@@ -788,6 +812,7 @@ static bool update_chatroom_info(json_t* j_user, const char* uuid_userroom, json
 {
   int ret;
   const char* uuid_user;
+  json_t* j_tmp;
 
   if((j_user == NULL) || (uuid_userroom == NULL) || (j_data == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -806,6 +831,20 @@ static bool update_chatroom_info(json_t* j_user, const char* uuid_userroom, json
     return false;
   }
 
+  // get updated userroom info
+  j_tmp = get_chatroom_info(j_user, uuid_userroom);
+  if(j_tmp == NULL) {
+    slog(LOG_WARNING, "Could not get updated userroom info.");
+    return false;
+  }
+
+  // publish event
+  ret = publish_event_me_chat_room(EN_PUBLISH_UPDATE, uuid_user, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    return false;
+  }
+
   return true;
 }
 
@@ -813,21 +852,37 @@ static bool delete_chatroom_info(json_t* j_user, const char* uuid_userroom)
 {
   int ret;
   const char* uuid_user;
+  json_t* j_tmp;
 
   if((j_user == NULL) || (uuid_userroom == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
 
+  j_tmp = get_chatroom_info(j_user, uuid_userroom);
+  if(j_tmp == NULL) {
+    slog(LOG_WARNING, "Could not get delete userroom info.");
+    return false;
+  }
+
   uuid_user = json_string_value(json_object_get(j_user, "uuid"));
   if(uuid_user == NULL) {
     slog(LOG_ERR, "Could not get user uuid.");
+    json_decref(j_tmp);
     return false;
   }
 
   ret = delete_chat_userroom(uuid_user, uuid_userroom);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete chatroom.");
+    json_decref(j_tmp);
+    return false;
+  }
+
+  // publish event
+  ret = publish_event_me_chat_room(EN_PUBLISH_DELETE, uuid_user, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
     return false;
   }
 

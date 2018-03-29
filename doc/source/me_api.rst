@@ -1,6 +1,155 @@
 .. _me_api:
 
 
+.. _me_chats:
+
+/me/chats
+=========
+
+Methods
+-------
+GET : Get the all chat info
+
+POST : Create chat info.
+
+Method: GET
+-----------
+Get the all chat info
+
+Example
++++++++
+::
+
+  $ curl -k https://localhost:8081/me/chats\?authtoken=32644555-58e5-4d03-9608-a66ed1651f12
+  
+  {
+    "api_ver": "0.1",
+    "result": [
+        {
+            "chat_info": {
+                "members": [
+                    "59e3a7d5-b05f-43cd-abdf-db7009eed6cf",
+                    "980404a2-f509-4140-9c92-96a018d1b61c"
+                ],
+                "tm_create": "2018-03-26T16:10:54.396798550Z",
+                "tm_update": null,
+                "type": 1,
+                "uuid_creator": "59e3a7d5-b05f-43cd-abdf-db7009eed6cf",
+                "uuid_owner": "59e3a7d5-b05f-43cd-abdf-db7009eed6cf"
+            },
+            "detail": "test chat detail",
+            "name": "test chat name",
+            "tm_create": null,
+            "tm_update": null,
+            "uuid": "01c2f287-2e0a-4ae7-b8a8-1bc57f6fadb3"
+        },
+        {
+            "detail": "test chat detail",
+            "name": "test chat name",
+            "tm_create": null,
+            "tm_update": null,
+            "uuid": "ba807369-b5ec-4ecf-8d18-64292fd3dcbc"
+        }
+    ],
+    "statuscode": 200,
+    "timestamp": "2018-03-26T16:12:06.425946246Z"
+  }
+
+
+Method: POST
+------------
+Create chat info
+
+Example
++++++++
+::
+
+  $ curl -k -X POST https://localhost:8081/me/chats\?authtoken=32644555-58e5-4d03-9608-a66ed1651f12 -d \
+  '{"name": "test chat name", "detail": "test chat detail", "type": 1, \
+  "members": ["980404a2-f509-4140-9c92-96a018d1b61c", "59e3a7d5-b05f-43cd-abdf-db7009eed6cf"]}'
+  
+  {"api_ver": "0.1", "timestamp": "2018-03-26T16:10:54.451912673Z", "statuscode": 200}
+
+.. _me_chats_detail:
+
+/me/chats/<detail>
+==================
+
+Methods
+-------
+GET : Get the given detail chat info.
+
+PUT : Update the given detail chat info.
+
+DELETE : Delete the given detail chat info.
+
+.. _get_me_chats_detail:
+
+Method: GET
+-----------
+Get the given detail chat info.
+
+Example
++++++++
+::
+  
+  $ curl -k -X GET https://localhost:8081/me/chats\?authtoken=d2718890-043f-43c8-9bf9-79c2602d2c81
+  
+  {
+    "api_ver": "0.1",
+    "result": [
+        {
+            "chat_info": {
+                "members": [
+                    "59e3a7d5-b05f-43cd-abdf-db7009eed6cf",
+                    "980404a2-f509-4140-9c92-96a018d1b61c"
+                ],
+                "tm_create": "2018-03-25T20:05:44.116027505Z",
+                "tm_update": null,
+                "type": null,
+                "uuid_creator": "59e3a7d5-b05f-43cd-abdf-db7009eed6cf",
+                "uuid_owner": "59e3a7d5-b05f-43cd-abdf-db7009eed6cf"
+            },
+            "detail": "test chat detail",
+            "name": "test chat name",
+            "uuid": "7c817566-3c4a-4d97-b4f0-e29b2d2e1564"
+        }
+    ],
+    "statuscode": 200,
+    "timestamp": "2018-03-26T07:25:45.241009467Z"
+  }
+  
+Method: PUT
+-----------
+Update the given detail chat info.
+
+Example
++++++++
+::
+
+  $ curl -k -X PUT https://localhost:8081/me/chats/7c817566-3c4a-4d97-b4f0-e29b2d2e1564\?authtoken=d2718890-043f-43c8-9bf9-79c2602d2c81 -d '{"name": "update test chat name"}'
+  
+  {
+    "api_ver": "0.1",
+    "statuscode": 200,
+    "timestamp": "2018-03-26T07:27:03.713679335Z"
+  }
+  
+Method: DELETE
+--------------
+Delete the given detail chat info.
+
+Example
++++++++
+::
+  $ curl -k -X DELETE https://localhost:8081/me/chats/7c817566-3c4a-4d97-b4f0-e29b2d2e1564\?authtoken=d2718890-043f-43c8-9bf9-79c2602d2c81
+  
+  {
+    "api_ver": "0.1",
+    "statuscode": 200,
+    "timestamp": "2018-03-26T07:28:19.397554581Z"
+  }
+
 .. _me_info:
 
 /me/info
@@ -165,3 +314,6 @@ Example
     "statuscode": 200,
     "timestamp": "2018-02-04T02:01:18.551806140Z"
   }
+
+  
+  
