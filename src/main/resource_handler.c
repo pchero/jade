@@ -38,11 +38,6 @@ static json_t* get_detail_items_by_obj(db_ctx_t* ctx, const char* table, json_t*
 static json_t* get_detail_items_by_obj_order(db_ctx_t* ctx, const char* table, json_t* j_obj, const char* order);
 static json_t* get_detail_items_by_condition(db_ctx_t* ctx, const char* table, const char* condition);
 
-// db_ast
-
-// db_jade
-
-
 static bool init_db(void);
 static bool init_ast_database(void);
 static bool init_jade_database(void);
@@ -853,6 +848,23 @@ json_t* get_ast_items(const char* table, const char* item)
   return j_res;
 }
 
+json_t* get_ast_detail_items_by_condtion(const char* table, const char* condition)
+{
+  json_t* j_res;
+
+  if((table == NULL) || (condition == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  j_res = get_detail_items_by_condition(g_db_ast, table, condition);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
 /**
  * delete all selected items with string value.
  * @return
@@ -1101,6 +1113,31 @@ json_t* get_jade_detail_item_by_obj(const char* table, json_t* j_obj)
   return j_res;
 }
 
+/**
+ * Get list detail info of key="val" from table. returns array.
+ * "select * from <table> where <key>=<val>;"
+ * @param table
+ * @param item
+ * @return
+ */
+json_t* get_jade_detail_items_key_string(const char* table, const char* key, const char* val)
+{
+  json_t* j_res;
+
+  if((table == NULL) || (key == NULL) || (val == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_jade_detail_items_key_string. table[%s], key[%s], val[%s]", table, key, val);
+
+  j_res = get_detail_items_key_string(g_db_jade, table, key, val);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
 json_t* get_jade_detail_items_by_obj(const char* table, json_t* j_obj)
 {
   json_t* j_res;
@@ -1153,6 +1190,99 @@ json_t* get_jade_detail_items_by_condtion(const char* table, const char* conditi
   return j_res;
 }
 
+/**
+ * Return the sorted json array of given data.
+ * @param j_data
+ * @param sort
+ * @return
+ */
+json_t* sort_resource_json_array_string(const json_t* j_data, enum EN_SORT_TYPES type)
+{
+  int ret;
+  int idx;
+  json_t* j_res;
+  json_t* j_tmp;
+  json_t* j_tmp_res;
+  json_t* j_tmp_insert;
+  char* sql;
+  char* table_name;
+  char* uuid;
+  char* tmp;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  ret = json_is_array(j_data);
+  if(ret == false) {
+    return NULL;
+  }
+
+  uuid = gen_uuid();
+  tmp = string_replace_char(uuid, '-', '_');
+  sfree(uuid);
+
+  // create tmp table anem
+  asprintf(&table_name, "tmp_sort_%s", tmp);
+  sfree(tmp);
+
+  // create sql
+  asprintf(&sql, "create table %s (item varchar(255));", table_name);
+
+  // create table
+  ret = exec_ast_sql(sql);
+  sfree(sql);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create tmp sort table.");
+    sfree(table_name);
+    return NULL;
+  }
+
+  // insert items
+  json_array_foreach(j_data, idx, j_tmp) {
+    ret = json_is_string(j_tmp);
+    if(ret == false) {
+      continue;
+    }
+
+    j_tmp_insert = json_pack("{s:O}",
+        "item", j_tmp
+        );
+
+    insert_ast_item(table_name, j_tmp_insert);
+    json_decref(j_tmp_insert);
+  }
+
+  // sort
+  if(type == EN_SORT_ASC) {
+    asprintf(&sql, "order by item asc");
+  }
+  else {
+    asprintf(&sql, "order by item desc");
+  }
+
+  // get sorted items
+  j_tmp_res = get_ast_detail_items_by_condtion(table_name, sql);
+  sfree(sql);
+
+  // delete table
+  asprintf(&sql, "drop table %s", table_name);
+  exec_ast_sql(sql);
+  sfree(sql);
+  sfree(table_name);
+
+  // create result
+  j_res = json_array();
+  json_array_foreach(j_tmp_res, idx, j_tmp) {
+
+    j_tmp_insert = json_object_get(j_tmp, "item");
+    json_array_append(j_res, j_tmp_insert);
+  }
+  json_decref(j_tmp_res);
+
+  return j_res;
+}
 
 
 

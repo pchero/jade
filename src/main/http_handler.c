@@ -69,6 +69,7 @@ static void cb_htp_dp_dpmas_detail(evhtp_request_t *req, void *data);
 static void cb_htp_dp_config(evhtp_request_t *req, void *data);
 
 // me
+static void cb_htp_me_chats(evhtp_request_t *req, void *data);
 static void cb_htp_me_info(evhtp_request_t *req, void *data);
 
 // park
@@ -218,6 +219,9 @@ bool init_http_handler(void)
 
 
   //// ^/me/
+  // chats
+  evhtp_set_regex_cb(g_htps, "^/me/chats$", cb_htp_me_chats, NULL);
+
   // info
   evhtp_set_regex_cb(g_htps, "^/me/info$", cb_htp_me_info, NULL);
 
@@ -5209,6 +5213,58 @@ static void cb_htp_me_info(evhtp_request_t *req, void *data)
   // fire handlers
   if(method == htp_method_GET) {
     htp_get_me_info(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+
+  return;
+}
+
+/**
+ * http request handler
+ * ^/me/chats
+ * @param req
+ * @param data
+ */
+static void cb_htp_me_chats(evhtp_request_t *req, void *data)
+{
+  int method;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_me_chats.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_USER);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if((method != htp_method_GET) && (method != htp_method_POST)) {
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // fire handlers
+  if(method == htp_method_GET) {
+    htp_get_me_chats(req, data);
+    return;
+  }
+  else if(method == htp_method_POST) {
+    htp_post_me_chats(req, data);
     return;
   }
   else {

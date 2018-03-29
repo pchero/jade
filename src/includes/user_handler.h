@@ -9,6 +9,7 @@
 #define SRC_MAIN_USER_HANDLER_H_
 
 #include <stdbool.h>
+#include <evhtp.h>
 
 
 #define DEF_USER_CONTACT_TYPE_PEER       "sip_peer"

@@ -21,17 +21,24 @@
 #include "resource_handler.h"
 #include "sip_handler.h"
 #include "pjsip_handler.h"
+#include "chat_handler.h"
 
 #include "me_handler.h"
 
 static char* create_public_url(const char* target);
 static json_t* create_contact_info(const char* id, const char* password);
 
-static json_t* get_me_info(const char* authtoken);
+static json_t* get_userinfo(evhtp_request_t *req);
 
 static json_t* get_contact_info(const char* type, const char* target);
 static json_t* get_contact_info_pjsip(const char* target);
 static json_t* get_contact_info_sip(const char* target);
+
+static json_t* get_me_info(const json_t* j_user);
+
+static json_t* get_chatrooms_info(json_t* j_user);
+static bool create_chatrooms_info(json_t* j_user, json_t* j_data);
+
 
 bool init_me_handler(void)
 {
@@ -63,9 +70,9 @@ void term_me_handler(void)
  */
 void htp_get_me_info(evhtp_request_t *req, void *data)
 {
+  json_t* j_user;
   json_t* j_res;
   json_t* j_tmp;
-  char* token;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -73,16 +80,16 @@ void htp_get_me_info(evhtp_request_t *req, void *data)
   }
   slog(LOG_DEBUG, "Fired htp_get_me_info.");
 
-  // get token
-  token = http_get_authtoken(req);
-  if(token == NULL) {
+  // get userinfo
+  j_user = get_userinfo(req);
+  if(j_user == NULL) {
     http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
     return;
   }
 
   // get info
-  j_tmp = get_me_info(token);
-  sfree(token);
+  j_tmp = get_me_info(j_user);
+  json_decref(j_user);
   if(j_tmp == NULL) {
     slog(LOG_NOTICE, "Could not get me info.");
     http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
@@ -101,11 +108,107 @@ void htp_get_me_info(evhtp_request_t *req, void *data)
 }
 
 /**
+ * GET ^/me/chats request handler.
+ * @param req
+ * @param data
+ */
+void htp_get_me_chats(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+  json_t* j_user;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired htp_get_me_chats.");
+
+  // get userinfo
+  j_user = get_userinfo(req);
+  if(j_user == NULL) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  // get chat rooms info
+  j_tmp = get_chatrooms_info(j_user);
+  json_decref(j_user);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get me info.");
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", j_tmp);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * POST ^/me/chats request handler.
+ * @param req
+ * @param data
+ */
+void htp_post_me_chats(evhtp_request_t *req, void *data)
+{
+  int ret;
+  json_t* j_res;
+  json_t* j_user;
+  json_t* j_data;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired htp_post_me_chats.");
+
+  // get user info
+  j_user = get_userinfo(req);
+  if(j_user == NULL) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  // get data
+  j_data = http_get_json_from_request_data(req);
+  if(j_data == NULL) {
+    json_decref(j_user);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // create chatroom
+  ret = create_chatrooms_info(j_user, j_data);
+  json_decref(j_user);
+  json_decref(j_data);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
  * Get given authtoken's me info.
  * @param authtoken
  * @return
  */
-static json_t* get_me_info(const char* authtoken)
+static json_t* get_me_info(const json_t* j_user)
 {
   json_t* j_res;
   json_t* j_contacts;
@@ -116,18 +219,13 @@ static json_t* get_me_info(const char* authtoken)
   const char* contact_type;
   const char* contact_target;
 
-  if(authtoken == NULL) {
+  if(j_user == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return NULL;
   }
-  slog(LOG_DEBUG, "Fired get_me_info. authtoken[%s]", authtoken);
+  slog(LOG_DEBUG, "Fired get_me_info.");
 
-  // get user info
-  j_res = get_user_userinfo_by_authtoken(authtoken);
-  if(j_res == NULL) {
-    slog(LOG_ERR, "Could not get user info. authtoken[%s]", authtoken);
-    return NULL;
-  }
+  j_res = json_deep_copy(j_user);
 
   user_uuid = json_string_value(json_object_get(j_res, "uuid"));
   if(user_uuid == NULL) {
@@ -322,4 +420,95 @@ static json_t* create_contact_info(const char* id, const char* password)
 
   return j_res;
 
+}
+
+/**
+ * Get userinfo of given request
+ * @param req
+ * @return
+ */
+static json_t* get_userinfo(evhtp_request_t *req)
+{
+  char* token;
+  json_t* j_res;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  // get token
+  token = http_get_authtoken(req);
+  if(token == NULL) {
+    return NULL;
+  }
+
+  // get user info
+  j_res = get_user_userinfo_by_authtoken(token);
+  sfree(token);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
+/**
+ * Get list of given user's chatroom(userroom)
+ * @param j_user
+ * @return
+ */
+static json_t* get_chatrooms_info(json_t* j_user)
+{
+  json_t* j_res;
+  const char* uuid;
+
+  if(j_user == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  uuid = json_string_value(json_object_get(j_user, "uuid"));
+  if(uuid == NULL) {
+    slog(LOG_ERR, "Could not get uuid info.");
+    return NULL;
+  }
+
+  j_res = get_chat_userrooms_by_useruuid(uuid);
+  if(j_res == NULL) {
+    slog(LOG_ERR, "Could not get chatrooms info.");
+    return NULL;
+  }
+
+  return j_res;
+}
+
+/**
+ * Create given user's chatroom(userroom)
+ * @param j_user
+ * @return
+ */
+static bool create_chatrooms_info(json_t* j_user, json_t* j_data)
+{
+  int ret;
+  const char* uuid;
+
+  if(j_user == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  uuid = json_string_value(json_object_get(j_user, "uuid"));
+  if(uuid == NULL) {
+    slog(LOG_ERR, "Could not get uuid info.");
+    return NULL;
+  }
+
+  ret = create_chat_userroom(uuid, j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create chat userroom.");
+    return false;
+  }
+
+  return true;
 }

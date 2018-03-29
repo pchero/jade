@@ -12,15 +12,20 @@
 #include <stdbool.h>
 #include <jansson.h>
 
+enum EN_CHAT_ROOM_TYPE {
+  EN_CHAT_ROOM_SINGLE   = 1,
+  EN_CHAT_ROOM_GROUP    = 2,
+};
+
 bool init_chat_handler(void);
 bool term_chat_handler(void);
 
 json_t* get_chat_rooms_by_useruuid(const char* user_uuid);
-bool create_chat_room(json_t* j_member);
 bool delete_chat_room(const char* uuid);
 
 json_t* get_chat_userrooms_by_useruuid(const char* user_uuid);
-bool create_chat_userroom(const char* uuid_user, const char* uuid_room, const char* name, const char* detail);
+
+bool create_chat_userroom(const char* uuid_user, const json_t* j_data);
 bool delete_chat_userroom(const char* userroom_uuid, const char* user_uuid);
 
 bool create_chat_message_to_userroom(const char* uuid_userroom, const char* uuid_user, const char* message);
