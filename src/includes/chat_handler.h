@@ -20,13 +20,16 @@ enum EN_CHAT_ROOM_TYPE {
 bool init_chat_handler(void);
 bool term_chat_handler(void);
 
+json_t* get_chat_room(const char* uuid);
 json_t* get_chat_rooms_by_useruuid(const char* user_uuid);
 bool delete_chat_room(const char* uuid);
 
 json_t* get_chat_userrooms_by_useruuid(const char* user_uuid);
 
+json_t* get_chat_userroom(const char* uuid);
 bool create_chat_userroom(const char* uuid_user, const json_t* j_data);
-bool delete_chat_userroom(const char* userroom_uuid, const char* user_uuid);
+bool update_chat_userroom(const char* uuid_user, const char* uuid_userroom, const json_t* j_data);
+bool delete_chat_userroom(const char* uuid_user, const char* uuid_userroom);
 
 bool create_chat_message_to_userroom(const char* uuid_userroom, const char* uuid_user, const char* message);
 json_t* get_chat_messages_newest(const char* uuid, const char* timestamp, const unsigned int count);
