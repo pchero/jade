@@ -101,12 +101,12 @@ bool init(void)
   }
   slog(LOG_DEBUG, "Finished init_websocket_handler.");
 
-  ret = ob_init_handler();
-  if(ret == false) {
-    slog(LOG_ERR, "Could not initiate ob_handler.");
-    return false;
-  }
-  slog(LOG_DEBUG, "Finished init_outbound.");
+//  ret = ob_init_handler();
+//  if(ret == false) {
+//    slog(LOG_ERR, "Could not initiate ob_handler.");
+//    return false;
+//  }
+//  slog(LOG_DEBUG, "Finished init_outbound.");
 
   ret = conf_init_handler();
   if(ret == false) {
