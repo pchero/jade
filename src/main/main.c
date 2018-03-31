@@ -21,6 +21,7 @@
 #include "websocket_handler.h"
 #include "conf_handler.h"
 #include "user_handler.h"
+#include "chat_handler.h"
 
 #include "park_handler.h"
 #include "queue_handler.h"
@@ -148,6 +149,12 @@ bool init(void)
   ret = init_sip_handler();
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate sip_handler.");
+    return false;
+  }
+
+  ret = init_chat_handler();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate chat_handler.");
     return false;
   }
 

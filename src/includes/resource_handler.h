@@ -11,6 +11,12 @@
 #include <stdbool.h>
 #include <jansson.h>
 
+enum EN_SORT_TYPES {
+  EN_SORT_ASC,
+  EN_SORT_DESC,
+};
+
+
 bool init_resource_handler(void);
 void term_resource_handler(void);
 
@@ -20,6 +26,7 @@ bool clear_ast_table(const char* table);
 bool insert_ast_item(const char* table, const json_t* j_data);
 bool update_ast_item(const char* table, const char* key_column, const json_t* j_data);
 json_t* get_ast_items(const char* table, const char* item);
+json_t* get_ast_detail_items_by_condtion(const char* table, const char* condition);
 json_t* get_ast_detail_item_key_string(const char* table, const char* key, const char* val);
 json_t* get_ast_detail_items_key_string(const char* table, const char* key, const char* val);
 bool delete_ast_items_string(const char* table, const char* key, const char* val);
@@ -33,9 +40,13 @@ bool delete_jade_items_by_obj(const char* table, json_t* j_obj);
 json_t* get_jade_items(const char* table, const char* item);
 json_t* get_jade_detail_item_key_string(const char* table, const char* key, const char* val);
 json_t* get_jade_detail_item_by_obj(const char* table, json_t* j_obj);
+json_t* get_jade_detail_items_key_string(const char* table, const char* key, const char* val);
 json_t* get_jade_detail_items_by_obj(const char* table, json_t* j_obj);
 json_t* get_jade_detail_items_by_obj_order(const char* table, json_t* j_obj, const char* order);
 json_t* get_jade_detail_items_by_condtion(const char* table, const char* condition);
+
+// etc
+json_t* sort_resource_json_array_string(const json_t* j_data, enum EN_SORT_TYPES type);
 
 
 
