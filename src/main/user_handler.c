@@ -1814,6 +1814,11 @@ json_t* user_get_contacts_by_user_uuid(const char* user_uuid)
   json_t* j_res;
   json_t* j_obj;
 
+  if(user_uuid == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
   j_obj = json_pack("{s:s}",
       "user_uuid",  user_uuid
       );
