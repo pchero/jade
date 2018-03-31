@@ -29,18 +29,20 @@
 #define DEF_ME_CHAT_MESSAGE_COUNT   30
 
 static char* create_public_url(const char* target);
+
+static json_t* get_contacts_info(const json_t* j_user);
+
 static json_t* create_contact_info(const char* id, const char* password);
 
 static json_t* get_userinfo(evhtp_request_t *req);
 
-static json_t* get_contact_info(const char* type, const char* target);
+static json_t* get_contact_info(const json_t* j_user_contact);
 static json_t* get_contact_info_pjsip(const char* target);
-static json_t* get_contact_info_sip(const char* target);
 
 static json_t* get_me_info(const json_t* j_user);
 
-static json_t* get_chatrooms_info(json_t* j_user);
-static json_t* get_chatroom_info(json_t* j_user, const char* uuid_userroom);
+static json_t* get_chats_info(const json_t* j_user);
+static json_t* get_chatroom_info(const json_t* j_user, const char* uuid_userroom);
 static bool create_chatroom_info(json_t* j_user, json_t* j_data);
 static bool update_chatroom_info(json_t* j_user, const char* uuid_userroom, json_t* j_data);
 static bool delete_chatroom_info(json_t* j_user, const char* uuid_userroom);
@@ -141,7 +143,7 @@ void me_htp_get_me_chats(evhtp_request_t *req, void *data)
   }
 
   // get chat rooms info
-  j_tmp = get_chatrooms_info(j_user);
+  j_tmp = get_chats_info(j_user);
   json_decref(j_user);
   if(j_tmp == NULL) {
     slog(LOG_NOTICE, "Could not get me info.");
@@ -531,12 +533,7 @@ static json_t* get_me_info(const json_t* j_user)
 {
   json_t* j_res;
   json_t* j_contacts;
-  json_t* j_contact;
-  json_t* j_tmp;
-  int idx;
-  const char* user_uuid;
-  const char* contact_type;
-  const char* contact_target;
+  json_t* j_chats;
 
   if(j_user == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -544,41 +541,28 @@ static json_t* get_me_info(const json_t* j_user)
   }
   slog(LOG_DEBUG, "Fired get_me_info.");
 
-  j_res = json_deep_copy(j_user);
-
-  user_uuid = json_string_value(json_object_get(j_res, "uuid"));
-  if(user_uuid == NULL) {
-    slog(LOG_ERR, "Could not get user_uuid info.");
-    json_decref(j_res);
+  // get contacts
+  j_contacts = get_contacts_info(j_user);
+  if(j_contacts == NULL) {
+    slog(LOG_WARNING, "Could not get contacts info.");
     return NULL;
   }
 
-  // get and update contacts info
-  j_contacts = user_get_contacts_by_user_uuid(user_uuid);
-  json_array_foreach(j_contacts, idx, j_contact) {
-    contact_type = json_string_value(json_object_get(j_contact, "type"));
-    if(contact_type == NULL) {
-      slog(LOG_NOTICE, "Could not get contact type.");
-      continue;
-    }
-
-    contact_target = json_string_value(json_object_get(j_contact, "target"));
-    if(contact_target == NULL) {
-      slog(LOG_NOTICE, "Could not get contact target.");
-      continue;
-    }
-
-    // get contact info
-    j_tmp = get_contact_info(contact_type, contact_target);
-    if(j_tmp == NULL) {
-      slog(LOG_NOTICE, "Could not get contact info. contact_type[%s], contact_target[%s]", contact_type, contact_target);
-      continue;
-    }
-
-    json_object_set_new(j_contact, "info", j_tmp);
+  // get chats info
+  j_chats = get_chats_info(j_user);
+  if(j_chats == NULL) {
+    slog(LOG_WARNING, "Could not get chats info.");
+    json_decref(j_contacts);
+    return NULL;
   }
 
+  // create result
+  j_res = json_deep_copy(j_user);
   json_object_set_new(j_res, "contacts", j_contacts);
+  json_object_set_new(j_res, "chats", j_chats);
+
+  // remove password object
+  json_object_del(j_res, "password");
 
   return j_res;
 }
@@ -589,28 +573,34 @@ static json_t* get_me_info(const json_t* j_user)
  * @param target
  * @return
  */
-static json_t* get_contact_info(const char* type, const char* target)
+static json_t* get_contact_info(const json_t* j_user_contact)
 {
   json_t* j_tmp;
+  json_t* j_res;
+  const char* target;
 
-  if((type == NULL) || (target == NULL)) {
+  if(j_user_contact == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return NULL;
   }
-  slog(LOG_DEBUG, "Fired get_contact_info. type[%s], target[%s]", type, target);
+  slog(LOG_DEBUG, "Fired get_contact_info.");
 
-  if(strcmp(type, DEF_USER_CONTACT_TYPE_ENDPOINT) == 0) {
-    j_tmp = get_contact_info_pjsip(target);
-  }
-  else if(strcmp(type, DEF_USER_CONTACT_TYPE_PEER) == 0) {
-    j_tmp = get_contact_info_sip(target);
-  }
-  else {
-    slog(LOG_WARNING, "Wrong contact type. type[%s], target[%s]", type, target);
-    j_tmp = NULL;
+  target = json_string_value(json_object_get(j_user_contact, "target"));
+  if(target == NULL) {
+    return NULL;
   }
 
-  return j_tmp;
+  // we support only pjsip
+  j_tmp = get_contact_info_pjsip(target);
+  if(j_tmp == NULL) {
+    slog(LOG_WARNING, "Could not get contact info from pjsip.");
+    return NULL;
+  }
+
+  j_res = json_deep_copy(j_user_contact);
+  json_object_set_new(j_res, "info", j_tmp);
+
+  return j_res;
 }
 
 /**
@@ -650,43 +640,6 @@ static json_t* get_contact_info_pjsip(const char* target)
       );
   json_decref(j_endpoint);
   json_decref(j_auth);
-
-  return j_res;
-}
-
-/**
- * Get contact info for sip type.
- * @param target
- * @return
- */
-static json_t* get_contact_info_sip(const char* target)
-{
-  json_t* j_account;
-  json_t* j_res;
-
-  if(target == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return NULL;
-  }
-  slog(LOG_DEBUG, "Fired get_contact_info_sip. target[%s]", target);
-
-  // get peeraccount info
-  j_account = sip_get_peeraccount_info(target);
-  if(j_account == NULL) {
-    slog(LOG_ERR, "Could not get peeraccount info. target[%s]", target);
-    return NULL;
-  }
-
-  // create contact info
-  j_res = create_contact_info(
-      json_string_value(json_object_get(j_account, "peer")),
-      json_string_value(json_object_get(j_account, "secret"))
-      );
-  json_decref(j_account);
-  if(j_res == NULL) {
-    slog(LOG_ERR, "Could not create contact info.");
-    return NULL;
-  }
 
   return j_res;
 }
@@ -772,12 +725,55 @@ static json_t* get_userinfo(evhtp_request_t *req)
   return j_res;
 }
 
+static json_t* get_contacts_info(const json_t* j_user)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+  json_t* j_user_contacts;
+  json_t* j_user_contact;
+  int idx;
+  const char* uuid_user;
+
+  if(j_user == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  // get user uuid
+  uuid_user = json_string_value(json_object_get(j_user, "uuid"));
+  if(uuid_user == NULL) {
+    slog(LOG_WARNING, "Could not get user uuid info.");
+    return NULL;
+  }
+
+  // get contacts info
+  j_user_contacts = user_get_contacts_by_user_uuid(uuid_user);
+  if(j_user_contacts == NULL) {
+    slog(LOG_WARNING, "Could not get contacts info. uuid_user[%s]", uuid_user);
+    return NULL;
+  }
+
+  j_res = json_array();
+  json_array_foreach(j_user_contacts, idx, j_user_contact) {
+
+    j_tmp = get_contact_info(j_user_contact);
+    if(j_tmp == NULL) {
+      continue;
+    }
+
+    json_array_append_new(j_res, j_tmp);
+  }
+  json_decref(j_user_contacts);
+
+  return j_res;
+}
+
 /**
  * Get list of given user's chatroom(userroom)
  * @param j_user
  * @return
  */
-static json_t* get_chatrooms_info(json_t* j_user)
+static json_t* get_chats_info(const json_t* j_user)
 {
   json_t* j_res;
   json_t* j_userrooms;
@@ -829,7 +825,7 @@ static json_t* get_chatrooms_info(json_t* j_user)
  * @param j_user
  * @return
  */
-static json_t* get_chatroom_info(json_t* j_user, const char* uuid_userroom)
+static json_t* get_chatroom_info(const json_t* j_user, const char* uuid_userroom)
 {
   int ret;
   json_t* j_res;

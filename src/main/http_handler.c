@@ -73,6 +73,7 @@ static void cb_htp_me_chats(evhtp_request_t *req, void *data);
 static void cb_htp_me_chats_detail(evhtp_request_t *req, void *data);
 static void cb_htp_me_chats_detail_messages(evhtp_request_t *req, void *data);
 static void cb_htp_me_info(evhtp_request_t *req, void *data);
+static void cb_htp_me_login(evhtp_request_t *req, void *data);
 
 // park
 static void cb_htp_park_config(evhtp_request_t *req, void *data);
@@ -229,6 +230,8 @@ bool htpp_init_handler(void)
   // info
   evhtp_set_regex_cb(g_htps, "^/me/info$", cb_htp_me_info, NULL);
 
+  // login
+  evhtp_set_regex_cb(g_htps, "^/me/login$", cb_htp_me_login, NULL);
 
 
 
@@ -5421,4 +5424,50 @@ static void cb_htp_me_chats_detail_messages(evhtp_request_t *req, void *data)
   http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
 
   return;
+}
+
+/**
+ * http request handler.
+ * ^/me/login
+ * @param req
+ * @param data
+ */
+static void cb_htp_me_login(evhtp_request_t *req, void *data)
+{
+  int method;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_me_login.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if((method != htp_method_POST) && (method != htp_method_DELETE)) {
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  if(method == htp_method_POST) {
+    // synonym of post /user/login
+    user_htp_post_user_login(req, data);
+    return;
+  }
+  else if(method == htp_method_DELETE) {
+    // synonym of delete /user/login
+    user_htp_delete_user_login(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+
+  return;
+
 }

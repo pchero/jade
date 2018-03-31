@@ -234,11 +234,32 @@ Example
 +++++++
 ::
 
-  $ curl -k https://localhost:8081/me/info\?authtoken=17cd592d-2706-44b6-b6e2-1c244b946cf0
-   
+  $ curl -k https://localhost:8081/me/info\?authtoken=88fa51b6-e980-4e57-93cb-7cdefd21b2a1
+  
   {
     "api_ver": "0.1",
     "result": {
+        "chats": [
+            {
+                "detail": "test chat detail",
+                "name": "test chat name",
+                "room": {
+                    "members": [
+                        "59e3a7d5-b05f-43cd-abdf-db7009eed6cf",
+                        "980404a2-f509-4140-9c92-96a018d1b61c"
+                    ],
+                    "tm_create": "2018-03-27T06:53:37.432474880Z",
+                    "tm_update": null,
+                    "type": 1,
+                    "uuid": "57b8706a-67e7-4c3a-a070-b164a08562ab",
+                    "uuid_creator": "59e3a7d5-b05f-43cd-abdf-db7009eed6cf",
+                    "uuid_owner": "59e3a7d5-b05f-43cd-abdf-db7009eed6cf"
+                },
+                "tm_create": "2018-03-27T06:53:37.496918935Z",
+                "tm_update": null,
+                "uuid": "15130428-6f27-456d-b744-6156e3a4b7a8"
+            }
+        ],
         "contacts": [
             {
                 "detail": "test target detail 4",
@@ -251,21 +272,20 @@ Example
                 "name": "test target",
                 "target": "199",
                 "tm_create": "2018-02-13T17:54:12.399972783Z",
-                "tm_update": "2018-03-27T10:25:57.777450503Z",
+                "tm_update": "2018-03-27T20:24:51.355343689Z",
                 "type": "pjsip_endpoint",
                 "user_uuid": "59e3a7d5-b05f-43cd-abdf-db7009eed6cf",
                 "uuid": "62a78a12-34ba-4b4f-b9ea-e52e4bac6459"
             }
         ],
         "name": "teset admin",
-        "password": "admin",
         "tm_create": "2018-02-13T17:42:16.453145450Z",
         "tm_update": "2018-03-27T08:30:03.254978318Z",
         "username": "admin",
         "uuid": "59e3a7d5-b05f-43cd-abdf-db7009eed6cf"
     },
     "statuscode": 200,
-    "timestamp": "2018-03-27T10:46:02.189107213Z"
+    "timestamp": "2018-03-27T20:25:32.526413444Z"
   }
 
   
