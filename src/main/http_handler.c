@@ -164,7 +164,7 @@ extern app* g_app;
 evhtp_t* g_htps = NULL;
 
 
-bool init_http_handler(void)
+bool htpp_init_handler(void)
 {
   int ret;
 
@@ -235,28 +235,28 @@ bool init_http_handler(void)
   ////// ^/ob/
   ////// outbound modules
   // destinations
-  evhtp_set_regex_cb(g_htps, "^/ob/destinations/("DEF_REG_UUID")", cb_htp_ob_destinations_uuid, NULL);
-  evhtp_set_regex_cb(g_htps, "^/ob/destinations$", cb_htp_ob_destinations, NULL);
+  evhtp_set_regex_cb(g_htps, "^/ob/destinations/("DEF_REG_UUID")", ob_cb_htp_ob_destinations_detail, NULL);
+  evhtp_set_regex_cb(g_htps, "^/ob/destinations$", ob_cb_htp_ob_destinations, NULL);
 
   // plans
-  evhtp_set_regex_cb(g_htps, "^/ob/plans/("DEF_REG_UUID")", cb_htp_ob_plans_uuid, NULL);
-  evhtp_set_regex_cb(g_htps, "^/ob/plans$", cb_htp_ob_plans, NULL);
+  evhtp_set_regex_cb(g_htps, "^/ob/plans/("DEF_REG_UUID")", ob_cb_htp_ob_plans_detail, NULL);
+  evhtp_set_regex_cb(g_htps, "^/ob/plans$", ob_cb_htp_ob_plans, NULL);
 
   // campaigns
-  evhtp_set_regex_cb(g_htps, "^/ob/campaigns/("DEF_REG_UUID")", cb_htp_ob_campaigns_uuid, NULL);
-  evhtp_set_regex_cb(g_htps, "^/ob/campaigns$", cb_htp_ob_campaigns, NULL);
+  evhtp_set_regex_cb(g_htps, "^/ob/campaigns/("DEF_REG_UUID")", ob_cb_htp_ob_campaigns_detail, NULL);
+  evhtp_set_regex_cb(g_htps, "^/ob/campaigns$", ob_cb_htp_ob_campaigns, NULL);
 
   // dlmas
-  evhtp_set_regex_cb(g_htps, "^/ob/dlmas/("DEF_REG_UUID")", cb_htp_ob_dlmas_uuid, NULL);
-  evhtp_set_regex_cb(g_htps, "^/ob/dlmas$", cb_htp_ob_dlmas, NULL);
+  evhtp_set_regex_cb(g_htps, "^/ob/dlmas/("DEF_REG_UUID")", ob_cb_htp_ob_dlmas_detail, NULL);
+  evhtp_set_regex_cb(g_htps, "^/ob/dlmas$", ob_cb_htp_ob_dlmas, NULL);
 
   // dls
-  evhtp_set_regex_cb(g_htps, "^/ob/dls/("DEF_REG_UUID")", cb_htp_ob_dls_uuid, NULL);
-  evhtp_set_regex_cb(g_htps, "^/ob/dls$", cb_htp_ob_dls, NULL);
+  evhtp_set_regex_cb(g_htps, "^/ob/dls/("DEF_REG_UUID")", ob_cb_htp_ob_dls_detail, NULL);
+  evhtp_set_regex_cb(g_htps, "^/ob/dls$", ob_cb_htp_ob_dls, NULL);
 
   // dialings
-  evhtp_set_regex_cb(g_htps, "^/ob/dialings/("DEF_REG_UUID")", cb_htp_ob_dialings_uuid, NULL);
-  evhtp_set_regex_cb(g_htps, "^/ob/dialings$", cb_htp_ob_dialings, NULL);
+  evhtp_set_regex_cb(g_htps, "^/ob/dialings/("DEF_REG_UUID")", ob_cb_htp_ob_dialings_detail, NULL);
+  evhtp_set_regex_cb(g_htps, "^/ob/dialings$", ob_cb_htp_ob_dialings, NULL);
 
 
 
@@ -470,7 +470,7 @@ bool init_http_handler(void)
   return true;
 }
 
-void term_http_handler(void)
+void http_term_handler(void)
 {
   slog(LOG_INFO, "Terminate http handler.");
   if(g_htps != NULL) {
@@ -599,7 +599,7 @@ json_t* http_create_default_result(int code)
   json_t* j_res;
   char* timestamp;
 
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
 
   j_res = json_pack("{s:s, s:s, s:i}",
       "api_ver",    API_VER,
@@ -768,7 +768,7 @@ char* http_get_parsed_detail(evhtp_request_t* req)
 
   // detail parse
   tmp_const = req->uri->path->file;
-  detail = uri_decode(tmp_const);
+  detail = utils_uri_decode(tmp_const);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not decode detail info.");
     return NULL;
@@ -800,7 +800,7 @@ char* http_get_parsed_detail_start(evhtp_request_t* req)
   }
   slog(LOG_DEBUG, "Check value. detail[%s]", tmp_const);
 
-  detail = uri_decode(tmp_const);
+  detail = utils_uri_decode(tmp_const);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not decode match start info.");
     return NULL;
@@ -859,7 +859,7 @@ char* http_get_parameter(evhtp_request_t* req, const char* key)
     return NULL;
   }
 
-  res = uri_decode(tmp_const);
+  res = utils_uri_decode(tmp_const);
   return res;
 }
 
@@ -914,14 +914,14 @@ bool http_is_request_has_permission(evhtp_request_t *req, enum EN_HTTP_PERMS per
   }
 
   // update tm_update
-  ret = update_user_authtoken_tm_update(token);
+  ret = user_update_authtoken_tm_update(token);
   if(ret == false) {
     slog(LOG_ERR, "Could not update tm_update.");
     sfree(token);
     return false;
   }
 
-  j_user = get_user_userinfo_by_authtoken(token);
+  j_user = user_get_userinfo_by_authtoken(token);
   sfree(token);
   if(j_user == NULL) {
     slog(LOG_ERR, "Could not get userinfo.");
@@ -929,7 +929,7 @@ bool http_is_request_has_permission(evhtp_request_t *req, enum EN_HTTP_PERMS per
   }
 
   user_uuid = json_string_value(json_object_get(j_user, "uuid"));
-  j_perm = get_user_permission_info_by_useruuid_perm(user_uuid, permission);
+  j_perm = user_get_permission_info_by_useruuid_perm(user_uuid, permission);
   json_decref(j_user);
   if(j_perm == NULL) {
     return false;
@@ -1003,11 +1003,11 @@ static void cb_htp_sip_config(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    htp_get_sip_config(req, data);
+    sip_htp_get_sip_config(req, data);
     return;
   }
   else if(method == htp_method_PUT) {
-    htp_put_sip_config(req, data);
+    sip_htp_put_sip_config(req, data);
     return;
   }
   else {
@@ -1054,7 +1054,7 @@ static void cb_htp_sip_configs(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    htp_get_sip_configs(req, data);
+    sip_htp_get_sip_configs(req, data);
     return;
   }
   else {
@@ -1102,11 +1102,11 @@ static void cb_htp_sip_configs_detail(evhtp_request_t *req, void *data)
 
   // fire handlers
   if(method == htp_method_GET) {
-    htp_get_sip_configs_detail(req, data);
+    sip_htp_get_sip_configs_detail(req, data);
     return;
   }
   else if (method == htp_method_DELETE) {
-    htp_delete_sip_configs_detail(req, data);
+    sip_htp_delete_sip_configs_detail(req, data);
     return;
   }
   else {
@@ -1153,7 +1153,7 @@ static void cb_htp_sip_peers(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    htp_get_sip_peers(req, data);
+    sip_htp_get_sip_peers(req, data);
     return;
   }
   else {
@@ -1200,7 +1200,7 @@ static void cb_htp_sip_peers_detail(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    htp_get_sip_peers_detail(req, data);
+    sip_htp_get_sip_peers_detail(req, data);
     return;
   }
   else {
@@ -1370,7 +1370,7 @@ static void cb_htp_sip_registries(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    htp_get_sip_registries(req, data);
+    sip_htp_get_sip_registries(req, data);
     return;
   }
   else {
@@ -1416,7 +1416,7 @@ static void cb_htp_sip_registries_detail(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    htp_get_sip_registries_detail(req, data);
+    sip_htp_get_sip_registries_detail(req, data);
     return;
   }
   else {
@@ -1463,11 +1463,11 @@ static void cb_htp_sip_settings(evhtp_request_t *req, void *data)
 
   // fire handlers
   if(method == htp_method_GET) {
-    htp_get_sip_settings(req, data);
+    sip_htp_get_sip_settings(req, data);
     return;
   }
   else if(method == htp_method_POST) {
-    htp_post_sip_settings(req, data);
+    sip_htp_post_sip_settings(req, data);
     return;
   }
   else {
@@ -1513,15 +1513,15 @@ static void cb_htp_sip_settings_detail(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    htp_get_sip_settings_detail(req, data);
+    sip_htp_get_sip_settings_detail(req, data);
     return;
   }
   else if(method == htp_method_PUT) {
-    htp_put_sip_settings_detail(req, data);
+    sip_htp_put_sip_settings_detail(req, data);
     return;
   }
   else if(method == htp_method_DELETE) {
-    htp_delete_queue_settings_detail(req,data);
+    queue_htp_delete_queue_settings_detail(req,data);
     return;
   }
   else {
@@ -1570,11 +1570,11 @@ static void cb_htp_queue_queues(evhtp_request_t *req, void *data)
 
   // fire handlers
   if(method == htp_method_GET) {
-    htp_get_queue_queues(req, data);
+    queue_htp_get_queue_queues(req, data);
     return;
   }
   else if(method == htp_method_POST) {
-    htp_post_queue_queues(req, data);
+    queue_htp_post_queue_queues(req, data);
     return;
   }
   else {
@@ -1621,15 +1621,15 @@ static void cb_htp_queue_queues_detail(evhtp_request_t *req, void *data)
 
   // fire handlers
   if(method == htp_method_GET) {
-    htp_get_queue_queues_detail(req, data);
+    queue_htp_get_queue_queues_detail(req, data);
     return;
   }
   else if(method == htp_method_PUT) {
-    htp_put_queue_queues_detail(req, data);
+    queue_htp_put_queue_queues_detail(req, data);
     return;
   }
   else if(method == htp_method_DELETE) {
-    htp_delete_queue_queues_detail(req, data);
+    queue_htp_delete_queue_queues_detail(req, data);
     return;
   }
   else {
@@ -1676,11 +1676,11 @@ static void cb_htp_queue_config(evhtp_request_t *req, void *data)
 
   // fire handlers
   if(method == htp_method_GET) {
-    htp_get_queue_config(req, data);
+    queue_htp_get_queue_config(req, data);
     return;
   }
   else if(method == htp_method_PUT) {
-    htp_put_queue_config(req, data);
+    queue_htp_put_queue_config(req, data);
     return;
   }
   else {
@@ -1728,11 +1728,11 @@ static void cb_htp_queue_configs_detail(evhtp_request_t *req, void *data)
 
   // fire handlers
   if(method == htp_method_GET) {
-    htp_get_queue_configs_detail(req, data);
+    queue_htp_get_queue_configs_detail(req, data);
     return;
   }
   else if (method == htp_method_DELETE) {
-    htp_delete_queue_configs_detail(req, data);
+    queue_htp_delete_queue_configs_detail(req, data);
     return;
   }
   else {
@@ -1779,7 +1779,7 @@ static void cb_htp_queue_configs(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    htp_get_queue_configs(req, data);
+    queue_htp_get_queue_configs(req, data);
     return;
   }
   else {
@@ -1827,7 +1827,7 @@ static void cb_htp_queue_statuses(evhtp_request_t *req, void *data)
 
   // fire handlers
   if(method == htp_method_GET) {
-    htp_get_queue_statuses(req, data);
+    queue_htp_get_queue_statuses(req, data);
     return;
   }
   else {
@@ -1874,7 +1874,7 @@ static void cb_htp_queue_statuses_detail(evhtp_request_t *req, void *data)
 
   // fire handlers
   if(method == htp_method_GET) {
-    htp_get_queue_statuses_detail(req, data);
+    queue_htp_get_queue_statuses_detail(req, data);
     return;
   }
   else {
@@ -1922,7 +1922,7 @@ static void cb_htp_queue_members(evhtp_request_t *req, void *data)
 
   // fire handlers
   if(method == htp_method_GET) {
-    htp_get_queue_members(req, data);
+    queue_htp_get_queue_members(req, data);
     return;
   }
   else {
@@ -1969,7 +1969,7 @@ static void cb_htp_queue_members_detail(evhtp_request_t *req, void *data)
 
   // fire handlers
   if(method == htp_method_GET) {
-    htp_get_queue_members_detail(req, data);
+    queue_htp_get_queue_members_detail(req, data);
     return;
   }
   else {
@@ -2016,7 +2016,7 @@ static void cb_htp_queue_entries(evhtp_request_t *req, void *data)
 
   // fire handlers
   if(method == htp_method_GET) {
-    htp_get_queue_entries(req, data);
+    queue_htp_get_queue_entries(req, data);
     return;
   }
   else {
@@ -2064,12 +2064,12 @@ static void cb_htp_queue_entries_detail(evhtp_request_t *req, void *data)
 
   // fire handlers
   if(method == htp_method_GET) {
-    htp_get_queue_entries_detail(req, data);
+    queue_htp_get_queue_entries_detail(req, data);
     return;
   }
   else if(method == htp_method_DELETE) {
     // synonym of delete /core/channels/<detail>
-    htp_delete_core_channels_detail(req, data);
+    core_htp_delete_core_channels_detail(req, data);
     return;
   }
   else {
@@ -2116,11 +2116,11 @@ static void cb_htp_queue_settings(evhtp_request_t *req, void *data)
 
   // fire handlers
   if(method == htp_method_GET) {
-    htp_get_queue_settings(req, data);
+    queue_htp_get_queue_settings(req, data);
     return;
   }
   else if(method == htp_method_POST) {
-  	htp_post_queue_settings(req, data);
+  	queue_htp_post_queue_settings(req, data);
     return;
   }
   else {
@@ -2166,15 +2166,15 @@ static void cb_htp_queue_settings_detail(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-  	htp_get_queue_settings_detail(req, data);
+  	queue_htp_get_queue_settings_detail(req, data);
     return;
   }
   else if(method == htp_method_PUT) {
-  	htp_put_queue_settings_detail(req, data);
+  	queue_htp_put_queue_settings_detail(req, data);
   	return;
   }
   else if(method == htp_method_DELETE) {
-  	htp_delete_queue_settings_detail(req,data);
+  	queue_htp_delete_queue_settings_detail(req,data);
     return;
   }
   else {
@@ -2221,7 +2221,7 @@ static void cb_htp_core_agis(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    htp_get_core_agis(req, data);
+    core_htp_get_core_agis(req, data);
     return;
   }
   else {
@@ -2268,12 +2268,12 @@ static void cb_htp_core_agis_detail(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    htp_get_core_agis_detail(req, data);
+    core_htp_get_core_agis_detail(req, data);
     return;
   }
   else if(method == htp_method_DELETE) {
     // synonym of delete /core/channels/<detail>
-    htp_delete_core_channels_detail(req, data);
+    core_htp_delete_core_channels_detail(req, data);
     return;
   }
   else {
@@ -2320,7 +2320,7 @@ static void cb_htp_core_channels(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    htp_get_core_channels(req, data);
+    core_htp_get_core_channels(req, data);
     return;
   }
   else {
@@ -2367,11 +2367,11 @@ static void cb_htp_core_channels_detail(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    htp_get_core_channels_detail(req, data);
+    core_htp_get_core_channels_detail(req, data);
     return;
   }
   else if(method == htp_method_DELETE) {
-    htp_delete_core_channels_detail(req, data);
+    core_htp_delete_core_channels_detail(req, data);
     return;
   }
   else {
@@ -2418,7 +2418,7 @@ static void cb_htp_core_modules(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    htp_get_core_modules(req, data);
+    core_htp_get_core_modules(req, data);
     return;
   }
   else {
@@ -2466,19 +2466,19 @@ static void cb_htp_core_modules_detail(evhtp_request_t *req, void *data)
 
   // fire handlers
   if(method == htp_method_GET) {
-    htp_get_core_modules_detail(req, data);
+    core_htp_get_core_modules_detail(req, data);
     return;
   }
   else if(method == htp_method_POST) {
-    htp_post_core_modules_detail(req, data);
+    core_htp_post_core_modules_detail(req, data);
     return;
   }
   else if(method == htp_method_PUT) {
-    htp_put_core_modules_detail(req, data);
+    core_htp_put_core_modules_detail(req, data);
     return;
   }
   else if(method == htp_method_DELETE) {
-    htp_delete_core_modules_detail(req, data);
+    core_htp_delete_core_modules_detail(req, data);
     return;
   }
   else {
@@ -2525,7 +2525,7 @@ static void cb_htp_agent_agents(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    htp_get_agent_agents(req, data);
+    agent_htp_get_agent_agents(req, data);
     return;
   }
   else {
@@ -2572,7 +2572,7 @@ static void cb_htp_agent_agents_detail(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    htp_get_agent_agents_detail(req, data);
+    agent_htp_get_agent_agents_detail(req, data);
     return;
   }
   else {
@@ -2618,7 +2618,7 @@ static void cb_htp_core_systems(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    htp_get_core_systems(req, data);
+    core_htp_get_core_systems(req, data);
     return;
   }
   else {
@@ -2665,7 +2665,7 @@ static void cb_htp_core_systems_detail(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    htp_get_core_systems_detail(req, data);
+    core_htp_get_core_systems_detail(req, data);
     return;
   }
   else {
@@ -2835,11 +2835,11 @@ static void cb_htp_park_parkinglots(evhtp_request_t *req, void *data)
 
   // fire handlers
   if(method == htp_method_GET) {
-    htp_get_park_parkinglots(req, data);
+    park_htp_get_park_parkinglots(req, data);
     return;
   }
   else if(method == htp_method_POST) {
-    htp_post_park_parkinglots(req, data);
+    park_htp_post_park_parkinglots(req, data);
     return;
   }
   else {
@@ -2886,15 +2886,15 @@ static void cb_htp_park_parkinglots_detail(evhtp_request_t *req, void *data)
 
   // fire handlers
   if(method == htp_method_GET) {
-    htp_get_park_parkinglots_detail(req, data);
+    park_htp_get_park_parkinglots_detail(req, data);
     return;
   }
   else if(method == htp_method_PUT) {
-    htp_put_park_parkinglots_detail(req, data);
+    park_htp_put_park_parkinglots_detail(req, data);
     return;
   }
   else if(method == htp_method_DELETE) {
-    htp_delete_park_parkinglots_detail(req, data);
+    park_htp_delete_park_parkinglots_detail(req, data);
     return;
   }
   else {
@@ -2941,7 +2941,7 @@ static void cb_htp_park_parkedcalls(evhtp_request_t *req, void *data)
 
   // fire handlers
   if(method == htp_method_GET) {
-    htp_get_park_parkedcalls(req, data);
+    park_htp_get_park_parkedcalls(req, data);
     return;
   }
   else {
@@ -2988,12 +2988,12 @@ static void cb_htp_park_parkedcalls_detail(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    htp_get_park_parkedcalls_detail(req, data);
+    park_htp_get_park_parkedcalls_detail(req, data);
     return;
   }
   else if(method == htp_method_DELETE) {
     // synonym of delete /core/channels/<detail>
-    htp_delete_core_channels_detail(req, data);
+    core_htp_delete_core_channels_detail(req, data);
     return;
   }
   else {
@@ -3040,11 +3040,11 @@ static void cb_htp_park_config(evhtp_request_t *req, void *data)
 
   // fire handlers
   if(method == htp_method_GET) {
-    htp_get_park_config(req, data);
+    park_htp_get_park_config(req, data);
     return;
   }
   else if(method == htp_method_PUT) {
-    htp_put_park_config(req, data);
+    park_htp_put_park_config(req, data);
     return;
   }
   else {
@@ -3092,11 +3092,11 @@ static void cb_htp_park_configs_detail(evhtp_request_t *req, void *data)
 
   // fire handlers
   if(method == htp_method_GET) {
-    htp_get_park_configs_detail(req, data);
+    park_htp_get_park_configs_detail(req, data);
     return;
   }
   else if (method == htp_method_DELETE) {
-    htp_delete_park_configs_detail(req, data);
+    park_htp_delete_park_configs_detail(req, data);
     return;
   }
   else {
@@ -3143,7 +3143,7 @@ static void cb_htp_park_configs(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    htp_get_park_configs(req, data);
+    park_htp_get_park_configs(req, data);
     return;
   }
   else {
@@ -3191,11 +3191,11 @@ static void cb_htp_park_settings(evhtp_request_t *req, void *data)
 
   // fire handlers
   if(method == htp_method_GET) {
-    htp_get_park_settings(req, data);
+    park_htp_get_park_settings(req, data);
     return;
   }
   else if(method == htp_method_POST) {
-  	htp_post_park_settings(req, data);
+  	park_htp_post_park_settings(req, data);
     return;
   }
   else {
@@ -3241,15 +3241,15 @@ static void cb_htp_park_settings_detail(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-  	htp_get_park_settings_detail(req, data);
+  	park_htp_get_park_settings_detail(req, data);
     return;
   }
   else if(method == htp_method_PUT) {
-  	htp_put_park_settings_detail(req, data);
+  	park_htp_put_park_settings_detail(req, data);
   	return;
   }
   else if(method == htp_method_DELETE) {
-  	htp_delete_park_settings_detail(req,data);
+  	park_htp_delete_park_settings_detail(req,data);
     return;
   }
   else {
@@ -3297,11 +3297,11 @@ static void cb_htp_voicemail_users(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    htp_get_voicemail_users(req, data);
+    voicemail_htp_get_voicemail_users(req, data);
     return;
   }
   else if(method == htp_method_POST) {
-    htp_post_voicemail_users(req, data);
+    voicemail_htp_post_voicemail_users(req, data);
     return;
   }
   else {
@@ -3348,11 +3348,11 @@ static void cb_htp_voicemail_config(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    htp_get_voicemail_config(req, data);
+    voicemail_htp_get_voicemail_config(req, data);
     return;
   }
   else if(method == htp_method_PUT) {
-    htp_put_voicemail_config(req, data);
+    voicemail_htp_put_voicemail_config(req, data);
     return;
   }
   else {
@@ -3399,7 +3399,7 @@ static void cb_htp_voicemail_configs(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    htp_get_voicemail_configs(req, data);
+    voicemail_htp_get_voicemail_configs(req, data);
     return;
   }
   else {
@@ -3447,11 +3447,11 @@ static void cb_htp_voicemail_configs_detail(evhtp_request_t *req, void *data)
 
   // fire handlers
   if(method == htp_method_GET) {
-    htp_get_voicemail_configs_detail(req, data);
+    voicemail_htp_get_voicemail_configs_detail(req, data);
     return;
   }
   else if (method == htp_method_DELETE) {
-    htp_delete_voicemail_configs_detail(req, data);
+    voicemail_htp_delete_voicemail_configs_detail(req, data);
     return;
   }
   else {
@@ -3498,15 +3498,15 @@ static void cb_htp_voicemail_users_detail(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    htp_get_voicemail_users_detail(req, data);
+    voicemail_htp_get_voicemail_users_detail(req, data);
     return;
   }
   else if(method == htp_method_PUT) {
-    htp_put_voicemail_users_detail(req, data);
+    voicemail_htp_put_voicemail_users_detail(req, data);
     return;
   }
   else if(method == htp_method_DELETE) {
-    htp_delete_voicemail_users_detail(req, data);
+    voicemail_htp_delete_voicemail_users_detail(req, data);
     return;
   }
   else {
@@ -3554,7 +3554,7 @@ static void cb_htp_voicemail_vms(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    htp_get_voicemail_vms(req, NULL);
+    voicemail_htp_get_voicemail_vms(req, NULL);
     return;
   }
   else {
@@ -3600,11 +3600,11 @@ static void cb_htp_voicemail_vms_msgname(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    htp_get_voicemail_vms_msgname(req, NULL);
+    voicemail_htp_get_voicemail_vms_msgname(req, NULL);
     return;
   }
   else if(method == htp_method_DELETE) {
-    htp_delete_voicemail_vms_msgname(req, NULL);
+    voicemail_htp_delete_voicemail_vms_msgname(req, NULL);
     return;
   }
   else {
@@ -3650,11 +3650,11 @@ static void cb_htp_pjsip_endpoints(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    htp_get_pjsip_endpoints(req, data);
+    pjsip_htp_get_pjsip_endpoints(req, data);
     return;
   }
   else if(method == htp_method_POST) {
-    htp_post_pjsip_endpoints(req, data);
+    pjsip_htp_post_pjsip_endpoints(req, data);
     return;
   }
   else {
@@ -3701,15 +3701,15 @@ static void cb_htp_pjsip_endpoints_detail(evhtp_request_t *req, void *data)
 
   // fire handlers
   if(method == htp_method_GET) {
-    htp_get_pjsip_endpoints_detail(req, data);
+    pjsip_htp_get_pjsip_endpoints_detail(req, data);
     return;
   }
   else if(method == htp_method_PUT) {
-    htp_put_pjsip_endpoints_detail(req, data);
+    pjsip_htp_put_pjsip_endpoints_detail(req, data);
     return;
   }
   else if(method == htp_method_DELETE) {
-    htp_delete_pjsip_endpoints_detail(req, data);
+    pjsip_htp_delete_pjsip_endpoints_detail(req, data);
     return;
   }
   else {
@@ -3759,7 +3759,7 @@ static void cb_htp_pjsip_identifies(evhtp_request_t *req, void *data)
     return;
   }
   else if(method == htp_method_POST) {
-    htp_post_pjsip_identifies(req, data);
+    pjsip_htp_post_pjsip_identifies(req, data);
     return;
   }
   else {
@@ -3810,11 +3810,11 @@ static void cb_htp_pjsip_identifies_detail(evhtp_request_t *req, void *data)
     return;
   }
   else if(method == htp_method_PUT) {
-    htp_put_pjsip_identifies_detail(req, data);
+    pjsip_htp_put_pjsip_identifies_detail(req, data);
     return;
   }
   else if(method == htp_method_DELETE) {
-    htp_delete_pjsip_identifies_detail(req, data);
+    pjsip_htp_delete_pjsip_identifies_detail(req, data);
     return;
   }
   else {
@@ -3864,7 +3864,7 @@ static void cb_htp_pjsip_registrations(evhtp_request_t *req, void *data)
     return;
   }
   else if(method == htp_method_POST) {
-    htp_post_pjsip_registrations(req, data);
+    pjsip_htp_post_pjsip_registrations(req, data);
     return;
   }
   else {
@@ -3915,11 +3915,11 @@ static void cb_htp_pjsip_registrations_detail(evhtp_request_t *req, void *data)
     return;
   }
   else if(method == htp_method_PUT) {
-    htp_put_pjsip_registrations_detail(req, data);
+    pjsip_htp_put_pjsip_registrations_detail(req, data);
     return;
   }
   else if(method == htp_method_DELETE) {
-    htp_delete_pjsip_registrations_detail(req, data);
+    pjsip_htp_delete_pjsip_registrations_detail(req, data);
     return;
   }
   else {
@@ -3969,7 +3969,7 @@ static void cb_htp_pjsip_transports(evhtp_request_t *req, void *data)
     return;
   }
   else if(method == htp_method_POST) {
-    htp_post_pjsip_transports(req, data);
+    pjsip_htp_post_pjsip_transports(req, data);
     return;
   }
   else {
@@ -4020,11 +4020,11 @@ static void cb_htp_pjsip_transports_detail(evhtp_request_t *req, void *data)
     return;
   }
   else if(method == htp_method_PUT) {
-    htp_put_pjsip_transports_detail(req, data);
+    pjsip_htp_put_pjsip_transports_detail(req, data);
     return;
   }
   else if(method == htp_method_DELETE) {
-    htp_delete_pjsip_transports_detail(req, data);
+    pjsip_htp_delete_pjsip_transports_detail(req, data);
     return;
   }
   else {
@@ -4071,11 +4071,11 @@ static void cb_htp_pjsip_aors(evhtp_request_t *req, void *data)
 
   // fire handlers
   if(method == htp_method_GET) {
-    htp_get_pjsip_aors(req, data);
+    pjsip_htp_get_pjsip_aors(req, data);
     return;
   }
   else if(method == htp_method_POST) {
-    htp_post_pjsip_aors(req, data);
+    pjsip_htp_post_pjsip_aors(req, data);
     return;
   }
   else {
@@ -4122,15 +4122,15 @@ static void cb_htp_pjsip_aors_detail(evhtp_request_t *req, void *data)
 
   // fire handlers
   if(method == htp_method_GET) {
-    htp_get_pjsip_aors_detail(req, data);
+    pjsip_htp_get_pjsip_aors_detail(req, data);
     return;
   }
   else if(method == htp_method_PUT) {
-    htp_put_pjsip_aors_detail(req, data);
+    pjsip_htp_put_pjsip_aors_detail(req, data);
     return;
   }
   else if(method == htp_method_DELETE) {
-    htp_delete_pjsip_aors_detail(req, data);
+    pjsip_htp_delete_pjsip_aors_detail(req, data);
     return;
   }
   else {
@@ -4177,11 +4177,11 @@ static void cb_htp_pjsip_auths(evhtp_request_t *req, void *data)
 
   // fire handlers
   if(method == htp_method_GET) {
-    htp_get_pjsip_auths(req, data);
+    pjsip_htp_get_pjsip_auths(req, data);
     return;
   }
   else if(method == htp_method_POST) {
-    htp_post_pjsip_auths(req, data);
+    pjsip_htp_post_pjsip_auths(req, data);
     return;
   }
   else {
@@ -4228,15 +4228,15 @@ static void cb_htp_pjsip_auths_detail(evhtp_request_t *req, void *data)
 
   // fire handlers
   if(method == htp_method_GET) {
-    htp_get_pjsip_auths_detail(req, data);
+    pjsip_htp_get_pjsip_auths_detail(req, data);
     return;
   }
   else if(method == htp_method_PUT) {
-    htp_put_pjsip_auths_detail(req, data);
+    pjsip_htp_put_pjsip_auths_detail(req, data);
     return;
   }
   else if(method == htp_method_DELETE) {
-    htp_delete_pjsip_auths_detail(req, data);
+    pjsip_htp_delete_pjsip_auths_detail(req, data);
     return;
   }
   else {
@@ -4283,11 +4283,11 @@ static void cb_htp_pjsip_config(evhtp_request_t *req, void *data)
 
   // fire handlers
   if(method == htp_method_GET) {
-    htp_get_pjsip_config(req, data);
+    pjsip_htp_get_pjsip_config(req, data);
     return;
   }
   else if(method == htp_method_PUT) {
-    htp_put_pjsip_config(req, data);
+    pjsip_htp_put_pjsip_config(req, data);
     return;
   }
   else {
@@ -4334,7 +4334,7 @@ static void cb_htp_pjsip_configs(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    htp_get_pjsip_configs(req, data);
+    pjsip_htp_get_pjsip_configs(req, data);
     return;
   }
   else {
@@ -4382,11 +4382,11 @@ static void cb_htp_pjsip_configs_detail(evhtp_request_t *req, void *data)
 
   // fire handlers
   if(method == htp_method_GET) {
-    htp_get_pjsip_configs_detail(req, data);
+    pjsip_htp_get_pjsip_configs_detail(req, data);
     return;
   }
   else if (method == htp_method_DELETE) {
-    htp_delete_pjsip_configs_detail(req, data);
+    pjsip_htp_delete_pjsip_configs_detail(req, data);
     return;
   }
   else {
@@ -4425,15 +4425,15 @@ static void cb_htp_pjsip_settings_detail(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    htp_get_pjsip_settings_detail(req, data);
+    pjsip_htp_get_pjsip_settings_detail(req, data);
     return;
   }
   else if(method == htp_method_PUT) {
-    htp_put_pjsip_settings_detail(req, data);
+    pjsip_htp_put_pjsip_settings_detail(req, data);
     return;
   }
   else if(method == htp_method_DELETE) {
-    htp_delete_pjsip_settings_detail(req,data);
+    pjsip_htp_delete_pjsip_settings_detail(req,data);
     return;
   }
   else {
@@ -4473,11 +4473,11 @@ static void cb_htp_pjsip_settings(evhtp_request_t *req, void *data)
 
   // fire handlers
   if(method == htp_method_GET) {
-    htp_get_pjsip_settings(req, data);
+    pjsip_htp_get_pjsip_settings(req, data);
     return;
   }
   else if(method == htp_method_POST) {
-    htp_post_pjsip_settings(req, data);
+    pjsip_htp_post_pjsip_settings(req, data);
     return;
   }
   else {
@@ -4524,11 +4524,11 @@ static void cb_htp_pjsip_contacts(evhtp_request_t *req, void *data)
 
   // fire handlers
   if(method == htp_method_GET) {
-    htp_get_pjsip_contacts(req, data);
+    pjsip_htp_get_pjsip_contacts(req, data);
     return;
   }
   else if(method == htp_method_POST) {
-    htp_post_pjsip_contacts(req, data);
+    pjsip_htp_post_pjsip_contacts(req, data);
   }
   else {
     // should not reach to here.
@@ -4574,15 +4574,15 @@ static void cb_htp_pjsip_contacts_detail(evhtp_request_t *req, void *data)
 
   // fire handlers
   if(method == htp_method_GET) {
-    htp_get_pjsip_contacts_detail(req, data);
+    pjsip_htp_get_pjsip_contacts_detail(req, data);
     return;
   }
   else if(method == htp_method_PUT) {
-    htp_put_pjsip_contacts_detail(req, data);
+    pjsip_htp_put_pjsip_contacts_detail(req, data);
     return;
   }
   else if(method == htp_method_DELETE) {
-    htp_delete_pjsip_contacts_detail(req, data);
+    pjsip_htp_delete_pjsip_contacts_detail(req, data);
     return;
   }
   else {
@@ -4630,11 +4630,11 @@ static void cb_htp_dp_config(evhtp_request_t *req, void *data)
 
   // fire handlers
   if(method == htp_method_GET) {
-    htp_get_dp_config(req, data);
+    dialplan_htp_get_dp_config(req, data);
     return;
   }
   else if(method == htp_method_PUT) {
-    htp_put_dp_config(req, data);
+    dialplan_htp_put_dp_config(req, data);
     return;
   }
   else {
@@ -4681,11 +4681,11 @@ static void cb_htp_dp_dpmas(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    htp_get_dp_dpmas(req, data);
+    dialplan_htp_get_dp_dpmas(req, data);
     return;
   }
   else if(method == htp_method_POST) {
-    htp_post_dp_dpmas(req, data);
+    dialplan_htp_post_dp_dpmas(req, data);
     return;
   }
   else {
@@ -4733,15 +4733,15 @@ static void cb_htp_dp_dpmas_detail(evhtp_request_t *req, void *data)
 
   // fire handlers
   if(method == htp_method_GET) {
-    htp_get_dp_dpmas_detail(req, data);
+    dialplan_htp_get_dp_dpmas_detail(req, data);
     return;
   }
   else if(method == htp_method_PUT) {
-    htp_put_dp_dpmas_detail(req, data);
+    dialplan_htp_put_dp_dpmas_detail(req, data);
     return;
   }
   else if(method == htp_method_DELETE) {
-    htp_delete_dp_dpmas_detail(req, data);
+    dialplan_htp_delete_dp_dpmas_detail(req, data);
     return;
   }
   else {
@@ -4787,11 +4787,11 @@ static void cb_htp_dp_dialplans(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    htp_get_dp_dialplans(req, data);
+    dialplan_htp_get_dp_dialplans(req, data);
     return;
   }
   else if(method == htp_method_POST) {
-    htp_post_dp_dialplans(req, data);
+    dialplan_htp_post_dp_dialplans(req, data);
     return;
   }
   else {
@@ -4839,15 +4839,15 @@ static void cb_htp_dp_dialplans_detail(evhtp_request_t *req, void *data)
 
   // fire handlers
   if(method == htp_method_GET) {
-    htp_get_dp_dialplans_detail(req, data);
+    dialplan_htp_get_dp_dialplans_detail(req, data);
     return;
   }
   else if(method == htp_method_PUT) {
-    htp_put_dp_dialplans_detail(req, data);
+    dialplan_htp_put_dp_dialplans_detail(req, data);
     return;
   }
   else if(method == htp_method_DELETE) {
-    htp_delete_dp_dialplans_detail(req, data);
+    dialplan_htp_delete_dp_dialplans_detail(req, data);
     return;
   }
   else {
@@ -4885,11 +4885,11 @@ static void cb_htp_user_login(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_POST) {
-    htp_post_user_login(req, data);
+    user_htp_post_user_login(req, data);
     return;
   }
   else if(method == htp_method_DELETE) {
-    htp_delete_user_login(req, data);
+    user_htp_delete_user_login(req, data);
     return;
   }
   else {
@@ -4936,11 +4936,11 @@ static void cb_htp_user_permissions(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_POST) {
-    htp_post_user_permissions(req, data);
+    user_htp_post_user_permissions(req, data);
     return;
   }
   else if(method == htp_method_GET) {
-    htp_get_user_permissions(req, data);
+    user_htp_get_user_permissions(req, data);
     return;
   }
   else {
@@ -4988,7 +4988,7 @@ static void cb_htp_user_permissions_detail(evhtp_request_t *req, void *data)
 
   // fire handlers
   if (method == htp_method_DELETE) {
-    htp_delete_user_permissions_detail(req, data);
+    user_htp_delete_user_permissions_detail(req, data);
     return;
   }
   else {
@@ -5035,11 +5035,11 @@ static void cb_htp_user_users(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_POST) {
-    htp_post_user_users(req, data);
+    user_htp_post_user_users(req, data);
     return;
   }
   else if(method == htp_method_GET) {
-    htp_get_user_users(req, data);
+    user_htp_get_user_users(req, data);
     return;
   }
   else {
@@ -5087,15 +5087,15 @@ static void cb_htp_user_users_detail(evhtp_request_t *req, void *data)
 
   // fire handlers
   if(method == htp_method_GET) {
-    htp_get_user_users_detail(req, data);
+    user_htp_get_user_users_detail(req, data);
     return;
   }
   else if(method == htp_method_PUT) {
-    htp_put_user_users_detail(req, data);
+    user_htp_put_user_users_detail(req, data);
     return;
   }
   else if(method == htp_method_DELETE) {
-    htp_delete_user_users_detail(req, data);
+    user_htp_delete_user_users_detail(req, data);
     return;
   }
   else {
@@ -5141,11 +5141,11 @@ static void cb_htp_user_contacts(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_GET) {
-    htp_get_user_contacts(req, data);
+    user_htp_get_user_contacts(req, data);
     return;
   }
   else if(method == htp_method_POST) {
-    htp_post_user_contacts(req, data);
+    user_htp_post_user_contacts(req, data);
     return;
   }
   else {
@@ -5193,14 +5193,14 @@ static void cb_htp_user_contacts_detail(evhtp_request_t *req, void *data)
 
   // fire handlers
   if(method == htp_method_GET) {
-    htp_get_user_contacts_detail(req, data);
+    user_htp_get_user_contacts_detail(req, data);
     return;
   }
   else if (method == htp_method_PUT) {
-    htp_put_user_contacts_detail(req, data);
+    user_htp_put_user_contacts_detail(req, data);
   }
   else if (method == htp_method_DELETE) {
-    htp_delete_user_contacts_detail(req, data);
+    user_htp_delete_user_contacts_detail(req, data);
     return;
   }
   else {
@@ -5248,7 +5248,7 @@ static void cb_htp_me_info(evhtp_request_t *req, void *data)
 
   // fire handlers
   if(method == htp_method_GET) {
-    htp_get_me_info(req, data);
+    me_htp_get_me_info(req, data);
     return;
   }
   else {
@@ -5296,11 +5296,11 @@ static void cb_htp_me_chats(evhtp_request_t *req, void *data)
 
   // fire handlers
   if(method == htp_method_GET) {
-    htp_get_me_chats(req, data);
+    me_htp_get_me_chats(req, data);
     return;
   }
   else if(method == htp_method_POST) {
-    htp_post_me_chats(req, data);
+    me_htp_post_me_chats(req, data);
     return;
   }
   else {
@@ -5348,15 +5348,15 @@ static void cb_htp_me_chats_detail(evhtp_request_t *req, void *data)
 
   // fire handlers
   if(method == htp_method_GET) {
-    htp_get_me_chats_detail(req, data);
+    me_htp_get_me_chats_detail(req, data);
     return;
   }
   else if(method == htp_method_PUT) {
-    htp_put_me_chats_detail(req, data);
+    me_htp_put_me_chats_detail(req, data);
     return;
   }
   else if(method == htp_method_DELETE) {
-    htp_delete_me_chats_detail(req, data);
+    me_htp_delete_me_chats_detail(req, data);
     return;
   }
   else {
@@ -5404,11 +5404,11 @@ static void cb_htp_me_chats_detail_messages(evhtp_request_t *req, void *data)
 
   // fire handlers
   if(method == htp_method_GET) {
-    htp_get_me_chats_detail_messages(req, data);
+    me_htp_get_me_chats_detail_messages(req, data);
     return;
   }
   else if(method == htp_method_POST) {
-    htp_post_me_chats_detail_messages(req, data);
+    me_htp_post_me_chats_detail_messages(req, data);
     return;
   }
   else {

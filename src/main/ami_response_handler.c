@@ -53,7 +53,7 @@ ACTION_RES ami_response_handler_corestatus(json_t* j_action, json_t* j_msg)
     return ACTION_RES_ERROR;
   }
 
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
   j_tmp = json_pack("{"
       "s:s, s:s, s:s, s:s, s:i, "
       "s:s"
@@ -123,7 +123,7 @@ ACTION_RES ami_response_handler_coresettings(json_t* j_action, json_t* j_msg)
     return ACTION_RES_ERROR;
   }
 
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
   j_tmp = json_pack("{"
       "s:s, s:s, s:s, "
       "s:i, s:f, s:i"
@@ -221,7 +221,7 @@ ACTION_RES ami_response_handler_modulecheck(json_t* j_action, json_t* j_msg)
   }
 
   // create update
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
   j_tmp = json_pack("{"
       "s:s, s:s, s:s, s:s "
       "}",
@@ -313,7 +313,7 @@ ACTION_RES ami_response_handler_moduleload(json_t* j_action, json_t* j_msg)
   }
 
   // create update
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
   j_tmp = json_pack("{"
       "s:s, s:s, s:s "
       "}",

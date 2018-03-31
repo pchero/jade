@@ -17,36 +17,36 @@ enum EN_SORT_TYPES {
 };
 
 
-bool init_resource_handler(void);
-void term_resource_handler(void);
+bool resource_init_handler(void);
+void resource_term_handler(void);
 
 // ast
-bool exec_ast_sql(const char* sql);
-bool clear_ast_table(const char* table);
-bool insert_ast_item(const char* table, const json_t* j_data);
-bool update_ast_item(const char* table, const char* key_column, const json_t* j_data);
-json_t* get_ast_items(const char* table, const char* item);
-json_t* get_ast_detail_items_by_condtion(const char* table, const char* condition);
-json_t* get_ast_detail_item_key_string(const char* table, const char* key, const char* val);
-json_t* get_ast_detail_items_key_string(const char* table, const char* key, const char* val);
-bool delete_ast_items_string(const char* table, const char* key, const char* val);
+bool resource_exec_ast_sql(const char* sql);
+bool resource_clear_ast_table(const char* table);
+bool resource_insert_ast_item(const char* table, const json_t* j_data);
+bool resource_update_ast_item(const char* table, const char* key_column, const json_t* j_data);
+json_t* resource_get_ast_items(const char* table, const char* item);
+json_t* resource_get_ast_detail_items_by_condtion(const char* table, const char* condition);
+json_t* resource_get_ast_detail_item_key_string(const char* table, const char* key, const char* val);
+json_t* resource_get_ast_detail_items_key_string(const char* table, const char* key, const char* val);
+bool resource_delete_ast_items_string(const char* table, const char* key, const char* val);
 
 // jade
-bool exec_jade_sql(const char* sql);
-bool insert_jade_item(const char* table, const json_t* j_data);
-bool update_jade_item(const char* table, const char* key_column, const json_t* j_data);
-bool delete_jade_items_string(const char* table, const char* key, const char* val);
-bool delete_jade_items_by_obj(const char* table, json_t* j_obj);
-json_t* get_jade_items(const char* table, const char* item);
-json_t* get_jade_detail_item_key_string(const char* table, const char* key, const char* val);
-json_t* get_jade_detail_item_by_obj(const char* table, json_t* j_obj);
-json_t* get_jade_detail_items_key_string(const char* table, const char* key, const char* val);
-json_t* get_jade_detail_items_by_obj(const char* table, json_t* j_obj);
-json_t* get_jade_detail_items_by_obj_order(const char* table, json_t* j_obj, const char* order);
-json_t* get_jade_detail_items_by_condtion(const char* table, const char* condition);
+bool resource_exec_jade_sql(const char* sql);
+bool resource_insert_jade_item(const char* table, const json_t* j_data);
+bool resource_update_jade_item(const char* table, const char* key_column, const json_t* j_data);
+bool resource_delete_jade_items_string(const char* table, const char* key, const char* val);
+bool resource_delete_jade_items_by_obj(const char* table, json_t* j_obj);
+json_t* resource_get_jade_items(const char* table, const char* item);
+json_t* resource_get_jade_detail_item_key_string(const char* table, const char* key, const char* val);
+json_t* resource_get_jade_detail_item_by_obj(const char* table, json_t* j_obj);
+json_t* resource_get_jade_detail_items_key_string(const char* table, const char* key, const char* val);
+json_t* resource_get_jade_detail_items_by_obj(const char* table, json_t* j_obj);
+json_t* resource_get_jade_detail_items_by_obj_order(const char* table, json_t* j_obj, const char* order);
+json_t* resource_get_jade_detail_items_by_condtion(const char* table, const char* condition);
 
 // etc
-json_t* sort_resource_json_array_string(const json_t* j_data, enum EN_SORT_TYPES type);
+json_t* resource_sort_json_array_string(const json_t* j_data, enum EN_SORT_TYPES type);
 
 
 

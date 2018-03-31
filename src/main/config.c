@@ -59,7 +59,7 @@ static bool write_config(void);
  * Initiate configuration
  * @return
  */
-bool init_config(void)
+bool config_init(void)
 {
   int ret;
 
@@ -80,7 +80,7 @@ bool init_config(void)
  * @param filename
  * @return
  */
-bool update_config_filename(const char* filename)
+bool config_update_filename(const char* filename)
 {
   if(filename == NULL) {
     printf("Wrong input parameter.");
@@ -177,7 +177,7 @@ static bool load_config(void)
   // update log level
   tmp_const = json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "loglevel"));
   ret = atoi(tmp_const);
-  update_log_level(ret);
+  slog_update_log_level(ret);
 
   slog(LOG_DEBUG, "load_config end.");
   return true;

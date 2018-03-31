@@ -37,7 +37,7 @@ static void cb_pid_update(int sock, short which, void* arg);
 static bool pid_update(void);
 
 
-bool init_event_handler(void)
+bool event_init_handler(void)
 {
   struct event* ev;
   struct timeval tv;
@@ -62,7 +62,7 @@ bool init_event_handler(void)
     slog(LOG_ERR, "Could not add the signal handler. signal[%s]", "SIGTERM");
     return false;
   }
-  add_event_handler(ev);
+  event_add_handler(ev);
 
   // sigint
   ev = evsignal_new(g_app->evt_base, SIGINT, cb_signal_int, NULL);
@@ -75,7 +75,7 @@ bool init_event_handler(void)
     slog(LOG_ERR, "Could not add the signal handler. signal[%s]", "SIGINT");
     return false;
   }
-  add_event_handler(ev);
+  event_add_handler(ev);
 
   // sigpipe
   ev = evsignal_new(g_app->evt_base, SIGPIPE, cb_signal_pipe, NULL);
@@ -88,7 +88,7 @@ bool init_event_handler(void)
     slog(LOG_ERR, "Could not add the signal handler. signal[%s]", "SIGPIPE");
     return false;
   }
-  add_event_handler(ev);
+  event_add_handler(ev);
 
   // sighup
   ev = evsignal_new(g_app->evt_base, SIGHUP, cb_signal_hup, NULL);
@@ -101,19 +101,19 @@ bool init_event_handler(void)
     slog(LOG_ERR, "Could not add the signal handler. signal[%s]", "SIGHUP");
     return false;
   }
-  add_event_handler(ev);
+  event_add_handler(ev);
 
   // add pid update
   tv.tv_sec = DEF_PID_TIMEOUT_SEC;
   tv.tv_usec = 0;
   ev = event_new(g_app->evt_base, -1, EV_TIMEOUT | EV_PERSIST, cb_pid_update, NULL);
   event_add(ev, &tv);
-  add_event_handler(ev);
+  event_add_handler(ev);
 
   return true;
 }
 
-void term_event_handler(void)
+void event_term_handler(void)
 {
   int idx;
 
@@ -171,7 +171,7 @@ static void cb_signal_pipe(evutil_socket_t sig, short events, void *user_data)
   slog(LOG_INFO, "Fired cb_signal_pipe.");
 
   // terminate ami handler.
-  term_ami_handler();
+  data_term_handler();
 
   return;
 }
@@ -189,7 +189,7 @@ static void cb_signal_hup(evutil_socket_t sig, short events, void *user_data)
 
   slog(LOG_INFO, "Fired cb_signal_hup.");
 
-  ret = init_config();
+  ret = config_init();
   if(ret == false) {
     slog(LOG_DEBUG, "Could not update configration file.");
   }
@@ -236,7 +236,7 @@ static bool pid_update(void)
   return true;
 }
 
-void add_event_handler(struct event* ev)
+void event_add_handler(struct event* ev)
 {
   int idx;
 

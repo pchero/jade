@@ -52,7 +52,7 @@ static int g_ami_socket = -1;
  * send_ami_cmd
  * @param data
  */
-bool send_ami_cmd(json_t* j_cmd)
+bool ami_send_cmd(json_t* j_cmd)
 {
   int ret;
   json_t* j_val;
@@ -85,7 +85,7 @@ bool send_ami_cmd(json_t* j_cmd)
 
     ret = strcmp(key, "Variables");
     if(ret == 0) {
-      cmd_sub = get_variables_ami_str_from_object(j_val);
+      cmd_sub = utils_get_variables_ami_str_from_object(j_val);
       asprintf(&tmp, "%s%s", cmd, cmd_sub);
       sfree(cmd);
       sfree(cmd_sub);
@@ -128,7 +128,7 @@ bool send_ami_cmd(json_t* j_cmd)
   sfree(cmd);
 
   cmd = tmp;
-  ret = send_ami_cmd_raw(cmd);
+  ret = ami_send_cmd_raw(cmd);
   sfree(cmd);
   if(ret < 0) {
     return false;
@@ -143,7 +143,7 @@ bool send_ami_cmd(json_t* j_cmd)
  * @return Success: Size of sent message.\n
  * Fail: -1
  */
-int send_ami_cmd_raw(const char* cmd)
+int ami_send_cmd_raw(const char* cmd)
 {
   int ret;
   
@@ -166,7 +166,7 @@ int send_ami_cmd_raw(const char* cmd)
  * @param msg
  * @return
  */
-json_t* parse_ami_msg(const char* msg)
+json_t* ami_parse_msg(const char* msg)
 {
 	json_t* j_tmp;
 	char tmp[MAX_AMI_ITEM_LEN];
@@ -208,8 +208,8 @@ json_t* parse_ami_msg(const char* msg)
 			sfree(dump);
 			continue;
 		}
-		trim(key);
-		trim(value);
+		utils_trim(key);
+		utils_trim(value);
 
 		// check Variable
 		ret = strcasecmp(key, "Variable");
@@ -246,7 +246,7 @@ json_t* parse_ami_msg(const char* msg)
   return j_tmp;
 }
 
-json_t* parse_ami_agi_env(const char* msg)
+json_t* ami_parse_agi_env(const char* msg)
 {
   char tmp[40960];
   int i;
@@ -282,8 +282,8 @@ json_t* parse_ami_agi_env(const char* msg)
       sfree(dump);
       continue;
     }
-    trim(key);
-    trim(value);
+    utils_trim(key);
+    utils_trim(value);
 
     json_object_set_new(j_res, key, json_string(value));
     free(dump);
@@ -298,7 +298,7 @@ json_t* parse_ami_agi_env(const char* msg)
  * Set ami socket.
  * @param sock
  */
-void set_ami_socket(int sock)
+void ami_set_socket(int sock)
 {
   g_ami_socket = sock;
 }

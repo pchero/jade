@@ -125,7 +125,7 @@ enum ast_control_frame_type {
  * \param j_plan
  * \return
  */
-json_t* get_dl_available_for_dial(json_t* j_dlma, json_t* j_plan)
+json_t* ob_get_dl_available_for_dial(json_t* j_dlma, json_t* j_plan)
 {
   json_t* j_dl;
   int ret;
@@ -202,7 +202,7 @@ static bool check_more_dl_list(json_t* j_dlma, json_t* j_plan)
  *
  * @param uuid
  */
-void clear_dl_list_dialing(const char* uuid)
+void ob_clear_dl_list_dialing(const char* uuid)
 {
   json_t* j_tmp;
   json_t* j_res;
@@ -220,7 +220,7 @@ void clear_dl_list_dialing(const char* uuid)
       "dialing_camp_uuid",  json_null(),
       "dialing_plan_uuid",  json_null()
       );
-  j_res = update_ob_dl(j_tmp);
+  j_res = ob_update_dl(j_tmp);
   json_decref(j_tmp);
   json_decref(j_res);
 
@@ -232,7 +232,7 @@ void clear_dl_list_dialing(const char* uuid)
  * @param j_dlinfo
  * @return
  */
-json_t* update_ob_dl(json_t* j_dl)
+json_t* ob_update_dl(json_t* j_dl)
 {
   char* sql;
   int ret;
@@ -281,7 +281,7 @@ json_t* update_ob_dl(json_t* j_dl)
   }
 
   slog(LOG_DEBUG, "Getting updated ob_dl info. uuid[%s]", uuid);
-  j_tmp = get_ob_dl(uuid);
+  j_tmp = ob_get_dl(uuid);
   sfree(uuid);
   if(j_tmp == NULL) {
     slog(LOG_WARNING, "Could not get updated ob_dl info.");
@@ -297,7 +297,7 @@ json_t* update_ob_dl(json_t* j_dl)
  * @param dl_table
  * @return
  */
-int get_current_dialing_dl_cnt(const char* camp_uuid, const char* dl_table)
+int ob_get_current_dialing_dl_cnt(const char* camp_uuid, const char* dl_table)
 {
   int ret;
   char* sql;
@@ -339,7 +339,7 @@ int get_current_dialing_dl_cnt(const char* camp_uuid, const char* dl_table)
  * @param j_plan
  * @return
  */
-int get_dial_num_point(json_t* j_dl_list, json_t* j_plan)
+int ob_get_dial_num_point(json_t* j_dl_list, json_t* j_plan)
 {
   int i;
   int dial_num_point;
@@ -382,7 +382,7 @@ int get_dial_num_point(json_t* j_dl_list, json_t* j_plan)
  * @param dial_num_point
  * @return
  */
-int get_dial_try_cnt(json_t* j_dl_list, int dial_num_point)
+int ob_get_dial_try_cnt(json_t* j_dl_list, int dial_num_point)
 {
   int cur_trycnt;
   char* tmp;
@@ -399,7 +399,7 @@ int get_dial_try_cnt(json_t* j_dl_list, int dial_num_point)
   return cur_trycnt;
 }
 
-json_t* get_ob_dls_uuid_by_dlma_count(const char* dlma_uuid, int count)
+json_t* ob_get_dls_uuid_by_dlma_count(const char* dlma_uuid, int count)
 {
   char* sql;
   int ret;
@@ -414,7 +414,7 @@ json_t* get_ob_dls_uuid_by_dlma_count(const char* dlma_uuid, int count)
   }
 
   // get dl_table
-  dl_table = get_ob_dlma_table_name(dlma_uuid);
+  dl_table = ob_get_dlma_table_name(dlma_uuid);
   if(dl_table == NULL) {
     slog(LOG_NOTICE, "Could not get correct dl_table name. dlma_uuid[%s]", dlma_uuid);
     return NULL;
@@ -462,7 +462,7 @@ json_t* get_ob_dls_uuid_by_dlma_count(const char* dlma_uuid, int count)
  * @param j_plan
  * @return
  */
-json_t* get_ob_dls_by_dlma_count(const char* dlma_uuid, int count)
+json_t* ob_get_dls_by_dlma_count(const char* dlma_uuid, int count)
 {
   json_t* j_res;
   json_t* j_tmp;
@@ -475,7 +475,7 @@ json_t* get_ob_dls_by_dlma_count(const char* dlma_uuid, int count)
     return NULL;
   }
 
-  j_uuids = get_ob_dls_uuid_by_dlma_count(dlma_uuid, count);
+  j_uuids = ob_get_dls_uuid_by_dlma_count(dlma_uuid, count);
 
   j_res = json_array();
   json_array_foreach(j_uuids, idx, j_val) {
@@ -484,7 +484,7 @@ json_t* get_ob_dls_by_dlma_count(const char* dlma_uuid, int count)
       continue;
     }
 
-    j_tmp = get_ob_dl(uuid);
+    j_tmp = ob_get_dl(uuid);
     if(j_tmp == NULL) {
       continue;
     }
@@ -548,7 +548,7 @@ static json_t* get_ob_dls_uuid_count(int count)
  * @param j_plan
  * @return
  */
-json_t* get_ob_dls_by_count(int count)
+json_t* ob_get_dls_by_count(int count)
 {
   json_t* j_uuids;
   json_t* j_val;
@@ -566,7 +566,7 @@ json_t* get_ob_dls_by_count(int count)
       continue;
     }
 
-    j_tmp = get_ob_dl(uuid);
+    j_tmp = ob_get_dl(uuid);
     if(j_tmp == NULL) {
       continue;
     }
@@ -583,7 +583,7 @@ json_t* get_ob_dls_by_count(int count)
  * @param status
  * @return
  */
-json_t* get_ob_dls_by_status(E_DL_STATUS_T status)
+json_t* ob_get_dls_by_status(E_DL_STATUS_T status)
 {
   json_t* j_res;
   json_t* j_tmp;
@@ -620,7 +620,7 @@ json_t* get_ob_dls_by_status(E_DL_STATUS_T status)
  *
  * @return
  */
-json_t* get_ob_dls_error(void)
+json_t* ob_get_dls_error(void)
 {
   int ret;
   json_t* j_res;
@@ -681,7 +681,7 @@ static json_t* get_ob_dl_use(const char* uuid, E_USE use)
   return j_res;
 }
 
-json_t* get_ob_dl(const char* uuid)
+json_t* ob_get_dl(const char* uuid)
 {
   json_t* j_res;
 
@@ -699,7 +699,7 @@ json_t* get_ob_dl(const char* uuid)
   return j_res;
 }
 
-int get_ob_dl_count_by_dlma_uuid(const char* dlma_uuid)
+int ob_get_dl_count_by_dlma_uuid(const char* dlma_uuid)
 {
   int ret;
   char* sql;
@@ -712,7 +712,7 @@ int get_ob_dl_count_by_dlma_uuid(const char* dlma_uuid)
   }
   slog(LOG_DEBUG, "Fired get_ob_dl_count_by_dlma_uuid. dlma_uuid[%s]", dlma_uuid);
 
-  dl_table = get_ob_dlma_table_name(dlma_uuid);
+  dl_table = ob_get_dlma_table_name(dlma_uuid);
   if(dl_table == NULL) {
     slog(LOG_ERR, "Could not get correct dlma table name. dlma_uuid[%s]", dlma_uuid);
     return 0;
@@ -733,7 +733,7 @@ int get_ob_dl_count_by_dlma_uuid(const char* dlma_uuid)
   return ret;
 }
 
-int get_ob_dl_list_cnt_total(json_t* j_dlma)
+int ob_get_dl_list_cnt_total(json_t* j_dlma)
 {
   int ret;
 
@@ -743,7 +743,7 @@ int get_ob_dl_list_cnt_total(json_t* j_dlma)
   }
   slog(LOG_DEBUG, "Fired get_ob_dl_list_cnt_total.");
 
-  ret = get_ob_dl_count_by_dlma_uuid(json_string_value(json_object_get(j_dlma, "uuid")));
+  ret = ob_get_dl_count_by_dlma_uuid(json_string_value(json_object_get(j_dlma, "uuid")));
 
   return ret;
 }
@@ -754,7 +754,7 @@ int get_ob_dl_list_cnt_total(json_t* j_dlma)
  * \param j_plan
  * \return
  */
-int get_ob_dl_list_cnt_finshed(json_t* j_dlma, json_t* j_plan)
+int ob_get_dl_list_cnt_finshed(json_t* j_dlma, json_t* j_plan)
 {
   int ret;
   char* sql;
@@ -814,7 +814,7 @@ int get_ob_dl_list_cnt_finshed(json_t* j_dlma, json_t* j_plan)
  * \param j_plan
  * \return
  */
-int get_ob_dl_list_cnt_available(json_t* j_dlma, json_t* j_plan)
+int ob_get_dl_list_cnt_available(json_t* j_dlma, json_t* j_plan)
 {
   char* sql;
   int ret;
@@ -875,7 +875,7 @@ int get_ob_dl_list_cnt_available(json_t* j_dlma, json_t* j_plan)
  * \param j_plan
  * \return
  */
-int get_ob_dl_list_cnt_dialing(json_t* j_dlma)
+int ob_get_dl_list_cnt_dialing(json_t* j_dlma)
 {
   char* sql;
   int ret;
@@ -909,7 +909,7 @@ int get_ob_dl_list_cnt_dialing(json_t* j_dlma)
  * \param j_plan
  * \return
  */
-int get_ob_dl_list_cnt_tried(json_t* j_dlma)
+int ob_get_dl_list_cnt_tried(json_t* j_dlma)
 {
   char* sql;
   int ret;
@@ -951,7 +951,7 @@ int get_ob_dl_list_cnt_tried(json_t* j_dlma)
  * @param j_dl_list
  * @return
  */
-json_t* create_dial_info(
+json_t* ob_create_dial_info(
     json_t* j_plan,
     json_t* j_dl_list,
     json_t* j_dest
@@ -972,7 +972,7 @@ json_t* create_dial_info(
   }
 
   // get dial destination
-  j_dial_dest = create_ob_dial_destination_info(j_dest);
+  j_dial_dest = ob_create_dial_destination_info(j_dest);
   if(j_dial_dest == NULL) {
     slog(LOG_ERR, "Could not create correct dial destination.");
     return NULL;
@@ -986,7 +986,7 @@ json_t* create_dial_info(
     return NULL;
   }
 
-  j_dial_plan = create_ob_dial_plan_info(j_plan);
+  j_dial_plan = ob_create_dial_plan_info(j_plan);
   if(j_dial_plan == NULL) {
     slog(LOG_ERR, "Could not create correct dial plan info.");
     json_decref(j_dial_dest);
@@ -1114,7 +1114,7 @@ static char* get_dial_number(json_t* j_dlist, const int cnt)
  * @param dialing
  * @return
  */
-json_t* create_json_for_dl_result(json_t* j_dialing)
+json_t* ob_create_json_for_dl_result(json_t* j_dialing)
 {
   json_t* j_res;
   const char* tmp_const;
@@ -1159,7 +1159,7 @@ json_t* create_json_for_dl_result(json_t* j_dialing)
  * @param j_dl
  * @return
  */
-bool validate_ob_dl(json_t* j_data)
+bool ob_validate_dl(json_t* j_data)
 {
   int ret;
   const char* tmp_const;
@@ -1185,7 +1185,7 @@ bool validate_ob_dl(json_t* j_data)
     slog(LOG_DEBUG, "The dlma_uuid is set.");
     return false;
   }
-  ret = is_exist_ob_dlma(tmp_const);
+  ret = ob_is_dlma_exist(tmp_const);
   if(ret == false) {
     slog(LOG_DEBUG, "The dlma_uuid is not valid.");
     return false;
@@ -1199,7 +1199,7 @@ bool validate_ob_dl(json_t* j_data)
  * @param j_dl
  * @return
  */
-json_t* create_ob_dl(json_t* j_dl)
+json_t* ob_create_dl(json_t* j_dl)
 {
   int ret;
   char* uuid;
@@ -1217,11 +1217,11 @@ json_t* create_ob_dl(json_t* j_dl)
   json_object_update_existing(j_tmp, j_dl);
 
   // uuid
-  uuid = gen_uuid();
+  uuid = utils_gen_uuid();
   json_object_set_new(j_tmp, "uuid", json_string(uuid));
 
   // create timestamp
-  tmp = get_utc_timestamp();
+  tmp = utils_get_utc_timestamp();
   json_object_set_new(j_tmp, "tm_create", json_string(tmp));
   sfree(tmp);
 
@@ -1239,7 +1239,7 @@ json_t* create_ob_dl(json_t* j_dl)
   }
 
   slog(LOG_DEBUG, "Getting created ob_dl info. uuid[%s]", uuid);
-  j_tmp = get_ob_dl(uuid);
+  j_tmp = ob_get_dl(uuid);
   sfree(uuid);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get created ob_dl info.");
@@ -1254,7 +1254,7 @@ json_t* create_ob_dl(json_t* j_dl)
  * @param uuid
  * @return
  */
-bool delete_dl_list(const char* uuid)
+bool ob_delete_dl_list(const char* uuid)
 {
   json_t* j_tmp;
   char* tmp;
@@ -1267,7 +1267,7 @@ bool delete_dl_list(const char* uuid)
   }
 
   j_tmp = json_object();
-  tmp = get_utc_timestamp();
+  tmp = utils_get_utc_timestamp();
   json_object_set_new(j_tmp, "tm_delete", json_string(tmp));
   json_object_set_new(j_tmp, "in_use", json_integer(E_USE_NO));
   sfree(tmp);
@@ -1321,14 +1321,14 @@ static json_t* create_dial_dl_info(json_t* j_dl_list, json_t* j_plan)
   sfree(tmp);
 
   // get dial number point(index)
-  index = get_dial_num_point(j_dl_list, j_plan);
+  index = ob_get_dial_num_point(j_dl_list, j_plan);
   if(index < 0) {
     slog(LOG_ERR, "Could not find correct number count.");
     return NULL;
   }
 
   // get dial count
-  count = get_dial_try_cnt(j_dl_list, index);
+  count = ob_get_dial_try_cnt(j_dl_list, index);
   if(count == -1) {
     slog(LOG_ERR, "Could not get correct dial count number.");
     return NULL;
@@ -1349,8 +1349,8 @@ static json_t* create_dial_dl_info(json_t* j_dl_list, json_t* j_plan)
     return NULL;
   }
 
-  channel_id = gen_uuid();
-  other_channel_id = gen_uuid();
+  channel_id = utils_gen_uuid();
+  other_channel_id = utils_gen_uuid();
 
   j_res = json_pack(
       "{"
@@ -1384,7 +1384,7 @@ static json_t* create_dial_dl_info(json_t* j_dl_list, json_t* j_plan)
  * \param j_plan
  * \return
  */
-bool is_endable_dl_list(json_t* j_dlma, json_t* j_plan)
+bool ob_is_endable_dl_list(json_t* j_dlma, json_t* j_plan)
 {
   int ret;
 
@@ -1552,7 +1552,7 @@ static json_t* get_ob_dl_available(json_t* j_dlma, json_t* j_plan)
     return NULL;
   }
 
-  j_res = get_ob_dl(uuid);
+  j_res = ob_get_dl(uuid);
   json_decref(j_uuids);
 
   return j_res;
@@ -1612,7 +1612,7 @@ static json_t* get_ob_dl_available(json_t* j_dlma, json_t* j_plan)
 //  return true;
 //}
 
-bool update_ob_dl_after_originate(json_t* j_dialing)
+bool ob_update_dl_after_originate(json_t* j_dialing)
 {
   char* timestamp;
   const char* tmp_const;
@@ -1633,7 +1633,7 @@ bool update_ob_dl_after_originate(json_t* j_dialing)
   }
 
   // get timestamp
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
 
   // create trycnt string
   asprintf(&try_count_field, "trycnt_%lld", json_integer_value(json_object_get(j_dialing, "dial_index")));
@@ -1656,10 +1656,10 @@ bool update_ob_dl_after_originate(json_t* j_dialing)
   }
 
   // dl update
-  j_tmp = update_ob_dl(j_dl_update);
+  j_tmp = ob_update_dl(j_dl_update);
   json_decref(j_dl_update);
   if(j_tmp == NULL) {
-    clear_dl_list_dialing(json_string_value(json_object_get(j_dialing, "uuid_dl_list")));
+    ob_clear_dl_list_dialing(json_string_value(json_object_get(j_dialing, "uuid_dl_list")));
     slog(LOG_ERR, "Could not update dial list info.");
     return false;
   }
@@ -1676,7 +1676,7 @@ bool update_dl_list_after_create_dialing_info_(rb_dialing* dialing)
   json_t* j_tmp;
 
   // get timestamp
-  tmp = get_utc_timestamp();
+  tmp = utils_get_utc_timestamp();
 
   // get
   asprintf(&try_count_field, "trycnt_%lld",
@@ -1697,11 +1697,11 @@ bool update_dl_list_after_create_dialing_info_(rb_dialing* dialing)
   sfree(try_count_field);
 
   // dl update
-  j_tmp = update_ob_dl(j_dl_update);
+  j_tmp = ob_update_dl(j_dl_update);
   json_decref(j_dl_update);
   if(j_tmp == NULL) {
-    rb_dialing_destory(dialing);
-    clear_dl_list_dialing(json_string_value(json_object_get(dialing->j_dialing, "dl_list_uuid")));
+    ob_destroy_rb_dialing(dialing);
+    ob_clear_dl_list_dialing(json_string_value(json_object_get(dialing->j_dialing, "dl_list_uuid")));
     slog(LOG_ERR, "Could not update dial list info.");
     return false;
   }
@@ -1715,7 +1715,7 @@ bool update_dl_list_after_create_dialing_info_(rb_dialing* dialing)
  * @param uuid
  * @return
  */
-bool is_exist_ob_dlma(const char* uuid)
+bool ob_is_dlma_exist(const char* uuid)
 {
   char* sql;
   int ret;
@@ -1757,7 +1757,7 @@ bool is_exist_ob_dlma(const char* uuid)
  * @param uuid
  * @return
  */
-bool is_exist_ob_dl(const char* uuid)
+bool ob_is_dl_exsit(const char* uuid)
 {
   char* sql;
   int ret;
@@ -1803,7 +1803,7 @@ bool is_exist_ob_dl(const char* uuid)
  * @param dlma_uuid
  * @return
  */
-bool delete_ob_dls_by_dlma_uuid(const char* dlma_uuid)
+bool ob_delete_dls_by_dlma_uuid(const char* dlma_uuid)
 {
   char* sql;
   char* timestamp;
@@ -1818,7 +1818,7 @@ bool delete_ob_dls_by_dlma_uuid(const char* dlma_uuid)
   slog(LOG_DEBUG, "Fired delete_ob_dls_by_dlma_uuid. dlma_uuid[%s]", dlma_uuid);
 
   j_tmp = json_object();
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
   json_object_set_new(j_tmp, "tm_delete", json_string(timestamp));
   json_object_set_new(j_tmp, "in_use", json_integer(E_USE_NO));
   sfree(timestamp);
@@ -1842,7 +1842,7 @@ bool delete_ob_dls_by_dlma_uuid(const char* dlma_uuid)
  * @param uuid
  * @return
  */
-json_t* delete_ob_dl(const char* uuid)
+json_t* ob_delete_dl(const char* uuid)
 {
   json_t* j_tmp;
   char* tmp;
@@ -1857,7 +1857,7 @@ json_t* delete_ob_dl(const char* uuid)
   slog(LOG_DEBUG, "Fired delete_ob_dl. uuid[%s]", uuid);
 
   j_tmp = json_object();
-  tmp = get_utc_timestamp();
+  tmp = utils_get_utc_timestamp();
   json_object_set_new(j_tmp, "tm_delete", json_string(tmp));
   json_object_set_new(j_tmp, "in_use", json_integer(E_USE_NO));
   sfree(tmp);
@@ -1906,7 +1906,7 @@ static json_t* get_deleted_ob_dl(const char* uuid)
   return j_res;
 }
 
-bool update_ob_dl_hangup(
+bool ob_update_dl_hangup(
     const char* uuid,
     int res_dial,
     const char* res_dial_detail,
@@ -1927,7 +1927,7 @@ bool update_ob_dl_hangup(
       );
 
   // create dl_list for update
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
   j_update = json_pack("{"
       "s:s, s:i, "
       "s:o, s:o, s:o, "
@@ -1954,7 +1954,7 @@ bool update_ob_dl_hangup(
     return false;
   }
 
-  j_res = update_ob_dl(j_update);
+  j_res = ob_update_dl(j_update);
   json_decref(j_update);
   json_decref(j_res);
 
@@ -1967,7 +1967,7 @@ bool update_ob_dl_hangup(
  * @param status
  * @return
  */
-bool update_ob_dl_status(const char* uuid, E_DL_STATUS_T status)
+bool ob_update_dl_status(const char* uuid, E_DL_STATUS_T status)
 {
   json_t* j_update;
   json_t* j_res;
@@ -1989,7 +1989,7 @@ bool update_ob_dl_status(const char* uuid, E_DL_STATUS_T status)
   }
 
   // update dial list
-  j_res = update_ob_dl(j_update);
+  j_res = ob_update_dl(j_update);
   json_decref(j_update);
   json_decref(j_res);
 

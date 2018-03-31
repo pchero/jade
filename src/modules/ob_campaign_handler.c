@@ -80,7 +80,7 @@ static json_t* create_ob_campaign_default(void)
  * @param j_camp
  * @return
  */
-json_t* create_ob_campaign(json_t* j_camp)
+json_t* ob_create_campaign(json_t* j_camp)
 {
   int ret;
   char* uuid;
@@ -96,10 +96,10 @@ json_t* create_ob_campaign(json_t* j_camp)
   j_tmp = create_ob_campaign_default();
   json_object_update_existing(j_tmp, j_camp);
 
-  uuid = gen_uuid();
+  uuid = utils_gen_uuid();
   json_object_set_new(j_tmp, "uuid", json_string(uuid));
 
-  tmp = get_utc_timestamp();
+  tmp = utils_get_utc_timestamp();
   json_object_set_new(j_tmp, "tm_create", json_string(tmp));
   sfree(tmp);
 
@@ -114,7 +114,7 @@ json_t* create_ob_campaign(json_t* j_camp)
     return NULL;
   }
 
-  j_tmp = get_ob_campaign(uuid);
+  j_tmp = ob_get_campaign(uuid);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not create campaign info correctly. uuid[%s]", uuid);
     sfree(uuid);
@@ -130,7 +130,7 @@ json_t* create_ob_campaign(json_t* j_camp)
  * @param uuid
  * @return
  */
-json_t* delete_ob_campaign(const char* uuid)
+json_t* ob_delete_campaign(const char* uuid)
 {
   json_t* j_tmp;
   json_t* j_res;
@@ -146,7 +146,7 @@ json_t* delete_ob_campaign(const char* uuid)
   slog(LOG_DEBUG, "Fired delete_ob_campaign. uuid[%s]", uuid);
 
   j_tmp = json_object();
-  tmp = get_utc_timestamp();
+  tmp = utils_get_utc_timestamp();
   json_object_set_new(j_tmp, "status", json_integer(E_CAMP_STOP));
   json_object_set_new(j_tmp, "tm_delete", json_string(tmp));
   json_object_set_new(j_tmp, "in_use", json_integer(E_USE_NO));
@@ -205,7 +205,7 @@ static json_t* get_ob_campaign_use(const char* uuid, E_USE use)
  * Get specified campaign
  * @return
  */
-json_t* get_ob_campaign(const char* uuid)
+json_t* ob_get_campaign(const char* uuid)
 {
   json_t* j_res;
 
@@ -249,7 +249,7 @@ static json_t* get_deleted_ob_campaign(const char* uuid)
  * Get all campaigns
  * @return
  */
-json_t* get_ob_campaigns_all(void)
+json_t* ob_get_campaigns_all(void)
 {
   int ret;
   char* sql;
@@ -283,7 +283,7 @@ json_t* get_ob_campaigns_all(void)
  * Return the json array of all campaign uuid.
  * @return
  */
-json_t* get_ob_campaigns_all_uuid(void)
+json_t* ob_get_campaigns_all_uuid(void)
 {
   int ret;
   char* sql;
@@ -366,7 +366,7 @@ static json_t* get_campaigns_uuid_by_status_schedule(E_CAMP_STATUS_T status, E_C
  * Get all start-able campaigns by schedule.
  * \return
  */
-json_t* get_campaigns_schedule_start(void)
+json_t* ob_get_campaigns_schedule_start(void)
 {
   json_t* j_res;
   json_t* j_tmp;
@@ -387,7 +387,7 @@ json_t* get_campaigns_schedule_start(void)
       continue;
     }
 
-    j_tmp = get_ob_campaign(uuid);
+    j_tmp = ob_get_campaign(uuid);
     if(j_tmp == NULL) {
       continue;
     }
@@ -409,7 +409,7 @@ json_t* get_campaigns_schedule_start(void)
  * Get all stop-able campaigns by schedule.
  * \return
  */
-json_t* get_campaigns_schedule_end(void)
+json_t* ob_get_campaigns_schedule_end(void)
 {
   json_t* j_res;
   json_t* j_tmp;
@@ -430,7 +430,7 @@ json_t* get_campaigns_schedule_end(void)
       continue;
     }
 
-    j_tmp = get_ob_campaign(uuid);
+    j_tmp = ob_get_campaign(uuid);
     if(j_tmp == NULL) {
       continue;
     }
@@ -453,7 +453,7 @@ json_t* get_campaigns_schedule_end(void)
  * @param j_camp
  * @return
  */
-json_t* update_ob_campaign(const json_t* j_camp)
+json_t* ob_update_campaign(const json_t* j_camp)
 {
   char* tmp;
   const char* tmp_const;
@@ -478,7 +478,7 @@ json_t* update_ob_campaign(const json_t* j_camp)
   }
   uuid = strdup(tmp_const);
 
-  tmp = get_utc_timestamp();
+  tmp = utils_get_utc_timestamp();
   json_object_set_new(j_tmp, "tm_update", json_string(tmp));
   sfree(tmp);
 
@@ -498,7 +498,7 @@ json_t* update_ob_campaign(const json_t* j_camp)
   sfree(sql);
 
   slog(LOG_DEBUG, "Getting updated campaign info. uuid[%s]", uuid);
-  j_tmp = get_ob_campaign(uuid);
+  j_tmp = ob_get_campaign(uuid);
   sfree(uuid);
   if(j_tmp == NULL) {
     slog(LOG_WARNING, "Could not get updated campaign info.");
@@ -514,7 +514,7 @@ json_t* update_ob_campaign(const json_t* j_camp)
  * @param status
  * @return
  */
-bool update_ob_campaign_status(const char* uuid, E_CAMP_STATUS_T status)
+bool ob_update_campaign_status(const char* uuid, E_CAMP_STATUS_T status)
 {
   char* tmp_status;
   json_t* j_camp;
@@ -540,7 +540,7 @@ bool update_ob_campaign_status(const char* uuid, E_CAMP_STATUS_T status)
   slog(LOG_NOTICE, "update ob_campaign status. uuid[%s], status[%d], status_string[%s]", uuid, status, tmp_status);
 
   // get campaign
-  j_camp = get_ob_campaign(uuid);
+  j_camp = ob_get_campaign(uuid);
   if(j_camp == NULL) {
     slog(LOG_WARNING, "Could not find campaign. camp_uuid[%s]", uuid);
     return false;
@@ -550,7 +550,7 @@ bool update_ob_campaign_status(const char* uuid, E_CAMP_STATUS_T status)
   json_object_set_new(j_camp, "status", json_integer(status));
 
   // update
-  j_tmp = update_ob_campaign(j_camp);
+  j_tmp = ob_update_campaign(j_camp);
   json_decref(j_camp);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not update campaign status. camp_uuid[%s], status[%d]", uuid, status);
@@ -605,7 +605,7 @@ static json_t* get_ob_campaigns_uuid_by_status(E_CAMP_STATUS_T status)
  * Get campaign for dialing.
  * @return
  */
-json_t* get_ob_campaigns_by_status(E_CAMP_STATUS_T status)
+json_t* ob_get_campaigns_by_status(E_CAMP_STATUS_T status)
 {
   json_t* j_uuids;
   json_t* j_res;
@@ -623,7 +623,7 @@ json_t* get_ob_campaigns_by_status(E_CAMP_STATUS_T status)
       continue;
     }
 
-    j_tmp = get_ob_campaign(uuid);
+    j_tmp = ob_get_campaign(uuid);
     json_array_append_new(j_res, j_tmp);
   }
   json_decref(j_uuids);
@@ -635,7 +635,7 @@ json_t* get_ob_campaigns_by_status(E_CAMP_STATUS_T status)
  * Get campaign for dialing.
  * @return
  */
-json_t* get_ob_campaign_for_dialing(void)
+json_t* ob_get_campaign_for_dialing(void)
 {
   int ret;
   const char* uuid;
@@ -664,7 +664,7 @@ json_t* get_ob_campaign_for_dialing(void)
   }
 
   uuid = json_string_value(json_object_get(j_tmp, "uuid"));
-  j_res = get_ob_campaign(uuid);
+  j_res = ob_get_campaign(uuid);
   json_decref(j_tmp);
 
   return j_res;
@@ -675,7 +675,7 @@ json_t* get_ob_campaign_for_dialing(void)
  * \param uuid
  * \return
  */
-json_t* get_ob_campaign_stat(const char* uuid)
+json_t* ob_get_campaign_stat(const char* uuid)
 {
   json_t* j_camp;
   json_t* j_plan;
@@ -688,15 +688,15 @@ json_t* get_ob_campaign_stat(const char* uuid)
   }
 
   // get campaign
-  j_camp = get_ob_campaign(uuid);
+  j_camp = ob_get_campaign(uuid);
   if(j_camp == NULL) {
     slog(LOG_DEBUG, "Could not get ob_campaign info. camp_uuid[%s]", uuid);
     return NULL;
   }
 
   // get plan
-  j_plan = get_ob_plan(json_string_value(json_object_get(j_camp, "plan")));
-  j_dlma = get_ob_dlma(json_string_value(json_object_get(j_camp, "dlma")));
+  j_plan = ob_get_plan(json_string_value(json_object_get(j_camp, "plan")));
+  j_dlma = ob_get_dlma(json_string_value(json_object_get(j_camp, "dlma")));
   if((j_plan == NULL) || (j_dlma == NULL)) {
     slog(LOG_DEBUG, "Could not basic info. camp_uuid[%s], plan_uuid[%s], dlma_uuid[%s]",
         uuid,
@@ -715,11 +715,11 @@ json_t* get_ob_campaign_stat(const char* uuid)
 
       "uuid",                  json_string_value(json_object_get(j_camp, "uuid"))? : "",
 
-      "dial_total_count",     get_ob_dl_list_cnt_total(j_dlma),
-      "dial_finished_count",  get_ob_dl_list_cnt_finshed(j_dlma, j_plan),
-      "dial_available_count", get_ob_dl_list_cnt_available(j_dlma, j_plan),
-      "dial_dialing_count",   get_ob_dl_list_cnt_dialing(j_dlma),
-      "dial_called_count",    get_ob_dl_list_cnt_tried(j_dlma)
+      "dial_total_count",     ob_get_dl_list_cnt_total(j_dlma),
+      "dial_finished_count",  ob_get_dl_list_cnt_finshed(j_dlma, j_plan),
+      "dial_available_count", ob_get_dl_list_cnt_available(j_dlma, j_plan),
+      "dial_dialing_count",   ob_get_dl_list_cnt_dialing(j_dlma),
+      "dial_called_count",    ob_get_dl_list_cnt_tried(j_dlma)
       );
 
   json_decref(j_camp);
@@ -729,7 +729,7 @@ json_t* get_ob_campaign_stat(const char* uuid)
   return j_res;
 }
 
-json_t* get_campaigns_stat_all(void)
+json_t* ob_get_campaigns_stat_all(void)
 {
   json_t* j_stats;
   json_t* j_stat;
@@ -738,7 +738,7 @@ json_t* get_campaigns_stat_all(void)
   int i;
   int size;
 
-  j_camps = get_ob_campaigns_all();
+  j_camps = ob_get_campaigns_all();
   size = json_array_size(j_camps);
   j_stats = json_array();
   for(i = 0; i < size; i++) {
@@ -747,7 +747,7 @@ json_t* get_campaigns_stat_all(void)
       continue;
     }
 
-    j_stat = get_ob_campaign_stat(json_string_value(json_object_get(j_camp, "uuid")));
+    j_stat = ob_get_campaign_stat(json_string_value(json_object_get(j_camp, "uuid")));
     if(j_stat == NULL) {
       continue;
     }
@@ -764,7 +764,7 @@ json_t* get_campaigns_stat_all(void)
 /**
  * return the possibility of status change to start
  */
-bool is_startable_campgain(json_t* j_camp)
+bool ob_is_startable_campgain(json_t* j_camp)
 {
   if(j_camp == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -777,7 +777,7 @@ bool is_startable_campgain(json_t* j_camp)
 /**
  * return the possibility of status change to stop
  */
-bool is_stoppable_campgain(json_t* j_camp)
+bool ob_is_stoppable_campgain(json_t* j_camp)
 {
   int ret;
   char* sql;
@@ -830,9 +830,9 @@ static bool is_startable_campaign_schedule(json_t* j_camp)
     return false;
   }
 
-  cur_date = get_utc_timestamp_date();
-  cur_time = get_utc_timestamp_time();
-  cur_day = get_utc_timestamp_day();
+  cur_date = utils_get_utc_timestamp_date();
+  cur_time = utils_get_utc_timestamp_time();
+  cur_day = utils_get_utc_timestamp_day();
 
   // check startable date
   ret = is_startable_campaign_schedule_check(j_camp, cur_date, cur_time, cur_day);
@@ -967,9 +967,9 @@ static bool is_stopable_campaign_schedule_day_date_list(json_t* j_camp)
     return false;
   }
 
-  cur_date = get_utc_timestamp_date();
-  cur_time = get_utc_timestamp_time();
-  cur_day = get_utc_timestamp_day();
+  cur_date = utils_get_utc_timestamp_date();
+  cur_time = utils_get_utc_timestamp_time();
+  cur_day = utils_get_utc_timestamp_day();
 
   // check startable date
   ret = is_stoppable_campaign_schedule_check(j_camp, cur_date, cur_time, cur_day);
@@ -999,7 +999,7 @@ static bool is_stoppable_campaign_schedule_check(json_t* j_camp, const char* cur
  * @param uuid
  * @return
  */
-bool is_exist_ob_campaign(const char* uuid)
+bool ob_is_exist_campaign(const char* uuid)
 {
   int ret;
   char* sql;
@@ -1041,7 +1041,7 @@ bool is_exist_ob_campaign(const char* uuid)
  * @param j_data
  * @return
  */
-bool validate_ob_campaign(json_t* j_data)
+bool ob_validate_campaign(json_t* j_data)
 {
   json_t* j_tmp;
 
@@ -1068,7 +1068,7 @@ bool validate_ob_campaign(json_t* j_data)
  * @param uuid_dest
  * @return
  */
-bool is_referenced_destination_by_campaign(const char* uuid_dest)
+bool ob_is_referenced_destination_by_campaign(const char* uuid_dest)
 {
   int ret;
   char* sql;
@@ -1109,7 +1109,7 @@ bool is_referenced_destination_by_campaign(const char* uuid_dest)
  * @param uuid_dest
  * @return
  */
-bool is_referenced_dlma_by_campaign(const char* uuid_dlma)
+bool ob_is_referenced_dlma_by_campaign(const char* uuid_dlma)
 {
   int ret;
   char* sql;
@@ -1150,7 +1150,7 @@ bool is_referenced_dlma_by_campaign(const char* uuid_dlma)
  * @param uuid_dest
  * @return
  */
-bool is_referenced_plan_by_campaign(const char* uuid_plan)
+bool ob_is_referenced_plan_by_campaign(const char* uuid_plan)
 {
   char* sql;
   int ret;
@@ -1192,7 +1192,7 @@ bool is_referenced_plan_by_campaign(const char* uuid_plan)
  * @param uuid_dest
  * @return
  */
-bool clear_campaign_destination(const char* uuid_dest)
+bool ob_clear_campaign_destination(const char* uuid_dest)
 {
   char* sql;
   int ret;
@@ -1219,7 +1219,7 @@ bool clear_campaign_destination(const char* uuid_dest)
  * @param uuid_dest
  * @return
  */
-bool clear_campaign_dlma(const char* uuid_dlma)
+bool ob_clear_campaign_dlma(const char* uuid_dlma)
 {
   char* sql;
   int ret;
@@ -1246,7 +1246,7 @@ bool clear_campaign_dlma(const char* uuid_dlma)
  * @param uuid_dest
  * @return
  */
-bool clear_campaign_plan(const char* uuid_plan)
+bool ob_clear_campaign_plan(const char* uuid_plan)
 {
   char* sql;
   int ret;

@@ -22,7 +22,7 @@
 #include "sip_handler.h"
 #include "pjsip_handler.h"
 #include "chat_handler.h"
-#include "publish_handler.h"
+#include <publication_handler.h>
 
 #include "me_handler.h"
 
@@ -49,23 +49,23 @@ static json_t* get_chatmessages_info(json_t* j_user, const char* uuid_userroom, 
 static bool create_chatmessage_info(json_t* j_user, const char* uuid_userroom, json_t* j_data);
 
 
-bool init_me_handler(void)
+bool me_init_handler(void)
 {
   slog(LOG_DEBUG, "Fired init_me_handler.");
   return true;
 }
 
-bool reload_me_handler(void)
+bool me_reload_handler(void)
 {
   slog(LOG_DEBUG, "Fired reload_me_handler.");
 
-  term_me_handler();
-  init_me_handler();
+  me_term_handler();
+  me_init_handler();
 
   return true;
 }
 
-void term_me_handler(void)
+void me_term_handler(void)
 {
   slog(LOG_DEBUG, "Fired term_handler.");
   return;
@@ -77,7 +77,7 @@ void term_me_handler(void)
  * @param req
  * @param data
  */
-void htp_get_me_info(evhtp_request_t *req, void *data)
+void me_htp_get_me_info(evhtp_request_t *req, void *data)
 {
   json_t* j_user;
   json_t* j_res;
@@ -121,7 +121,7 @@ void htp_get_me_info(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_me_chats(evhtp_request_t *req, void *data)
+void me_htp_get_me_chats(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_tmp;
@@ -165,7 +165,7 @@ void htp_get_me_chats(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_post_me_chats(evhtp_request_t *req, void *data)
+void me_htp_post_me_chats(evhtp_request_t *req, void *data)
 {
   int ret;
   json_t* j_res;
@@ -217,7 +217,7 @@ void htp_post_me_chats(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_me_chats_detail(evhtp_request_t *req, void *data)
+void me_htp_get_me_chats_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_tmp;
@@ -272,7 +272,7 @@ void htp_get_me_chats_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_put_me_chats_detail(evhtp_request_t *req, void *data)
+void me_htp_put_me_chats_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_user;
   json_t* j_res;
@@ -337,7 +337,7 @@ void htp_put_me_chats_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_delete_me_chats_detail(evhtp_request_t *req, void *data)
+void me_htp_delete_me_chats_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_user;
   json_t* j_res;
@@ -389,7 +389,7 @@ void htp_delete_me_chats_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_me_chats_detail_messages(evhtp_request_t *req, void *data)
+void me_htp_get_me_chats_detail_messages(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_user;
@@ -422,7 +422,7 @@ void htp_get_me_chats_detail_messages(evhtp_request_t *req, void *data)
   // get timestamp
   tmp = http_get_parameter(req, "timestamp");
   if(tmp == NULL) {
-    timestamp = get_utc_timestamp();
+    timestamp = utils_get_utc_timestamp();
   }
   else {
     timestamp = strdup(tmp);
@@ -465,7 +465,7 @@ void htp_get_me_chats_detail_messages(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_post_me_chats_detail_messages(evhtp_request_t *req, void *data)
+void me_htp_post_me_chats_detail_messages(evhtp_request_t *req, void *data)
 {
   int ret;
   json_t* j_res;
@@ -554,7 +554,7 @@ static json_t* get_me_info(const json_t* j_user)
   }
 
   // get and update contacts info
-  j_contacts = get_user_contacts_by_user_uuid(user_uuid);
+  j_contacts = user_get_contacts_by_user_uuid(user_uuid);
   json_array_foreach(j_contacts, idx, j_contact) {
     contact_type = json_string_value(json_object_get(j_contact, "type"));
     if(contact_type == NULL) {
@@ -630,13 +630,13 @@ static json_t* get_contact_info_pjsip(const char* target)
   }
   slog(LOG_DEBUG, "Fired get_contact_info_pjsip. target[%s]", target);
 
-  j_endpoint = get_pjsip_endpoint_info(target);
+  j_endpoint = pjsip_get_endpoint_info(target);
   if(j_endpoint == NULL) {
     slog(LOG_NOTICE, "Could not get pjsip endpoint info.");
     return NULL;
   }
 
-  j_auth = get_pjsip_auth_info(json_string_value(json_object_get(j_endpoint, "auth")));
+  j_auth = pjsip_get_auth_info(json_string_value(json_object_get(j_endpoint, "auth")));
   if(j_auth == NULL) {
     slog(LOG_NOTICE, "Could not get pjsip auth info.");
     json_decref(j_endpoint);
@@ -671,7 +671,7 @@ static json_t* get_contact_info_sip(const char* target)
   slog(LOG_DEBUG, "Fired get_contact_info_sip. target[%s]", target);
 
   // get peeraccount info
-  j_account = get_sip_peeraccount_info(target);
+  j_account = sip_get_peeraccount_info(target);
   if(j_account == NULL) {
     slog(LOG_ERR, "Could not get peeraccount info. target[%s]", target);
     return NULL;
@@ -763,7 +763,7 @@ static json_t* get_userinfo(evhtp_request_t *req)
   }
 
   // get user info
-  j_res = get_user_userinfo_by_authtoken(token);
+  j_res = user_get_userinfo_by_authtoken(token);
   sfree(token);
   if(j_res == NULL) {
     return NULL;
@@ -798,7 +798,7 @@ static json_t* get_chatrooms_info(json_t* j_user)
   }
 
   // get all userrooms of user.
-  j_userrooms = get_chat_userrooms_by_useruuid(tmp_const);
+  j_userrooms = chat_get_userrooms_by_useruuid(tmp_const);
   if(j_userrooms == NULL) {
     slog(LOG_ERR, "Could not get chat userrooms info.");
     return NULL;
@@ -850,7 +850,7 @@ static json_t* get_chatroom_info(json_t* j_user, const char* uuid_userroom)
   }
 
   // get chat userroom info
-  j_res = get_chat_userroom(uuid_userroom);
+  j_res = chat_get_userroom(uuid_userroom);
   if(j_res == NULL) {
     slog(LOG_NOTICE, "Could not get userroom info.");
     return NULL;
@@ -880,7 +880,7 @@ static json_t* get_chatroom_info(json_t* j_user, const char* uuid_userroom)
     return NULL;
   }
 
-  j_room = get_chat_room(uuid_room);
+  j_room = chat_get_room(uuid_room);
   json_object_del(j_res, "uuid_room");
   json_object_del(j_res, "uuid_user");
   if(j_room == NULL) {
@@ -919,13 +919,13 @@ static bool create_chatroom_info(json_t* j_user, json_t* j_data)
   }
 
   // create uuid_userroom
-  uuid_userroom = gen_uuid();
+  uuid_userroom = utils_gen_uuid();
   if(uuid_userroom == NULL) {
     slog(LOG_ERR, "Could not create uuid for userroom.");
     return false;
   }
 
-  ret = create_chat_userroom(uuid_user, uuid_userroom, j_data);
+  ret = chat_create_userroom(uuid_user, uuid_userroom, j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not create chat userroom.");
     sfree(uuid_userroom);
@@ -941,7 +941,7 @@ static bool create_chatroom_info(json_t* j_user, json_t* j_data)
   }
 
   // publish event
-  ret = publish_event_me_chat_room(EN_PUBLISH_CREATE, uuid_user, j_tmp);
+  ret = publication_publish_event_me_chat_room(EN_PUBLISH_CREATE, uuid_user, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     return false;
@@ -968,14 +968,14 @@ static bool update_chatroom_info(json_t* j_user, const char* uuid_userroom, json
   }
 
   // check permission
-  ret = is_chat_user_userroom_owned(uuid_user, uuid_userroom);
+  ret = chat_is_user_userroom_owned(uuid_user, uuid_userroom);
   if(ret == false) {
     slog(LOG_WARNING, "Could not pass the permission check. uuid_user[%s], uuid_userroom[%s]", uuid_user, uuid_userroom);
     return NULL;
   }
 
   // update userroom
-  ret = update_chat_userroom(uuid_userroom, j_data);
+  ret = chat_update_userroom(uuid_userroom, j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update chatroom info.");
     return false;
@@ -989,7 +989,7 @@ static bool update_chatroom_info(json_t* j_user, const char* uuid_userroom, json
   }
 
   // publish event
-  ret = publish_event_me_chat_room(EN_PUBLISH_UPDATE, uuid_user, j_tmp);
+  ret = publication_publish_event_me_chat_room(EN_PUBLISH_UPDATE, uuid_user, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     return false;
@@ -1016,7 +1016,7 @@ static bool delete_chatroom_info(json_t* j_user, const char* uuid_userroom)
   }
 
   // check permission
-  ret = is_chat_user_userroom_owned(uuid_user, uuid_userroom);
+  ret = chat_is_user_userroom_owned(uuid_user, uuid_userroom);
   if(ret == false) {
     slog(LOG_WARNING, "Could not pass the permission check. uuid_user[%s], uuid_userroom[%s]", uuid_user, uuid_userroom);
     return NULL;
@@ -1029,7 +1029,7 @@ static bool delete_chatroom_info(json_t* j_user, const char* uuid_userroom)
     return false;
   }
 
-  ret = delete_chat_userroom(uuid_userroom);
+  ret = chat_delete_userroom(uuid_userroom);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete chatroom.");
     json_decref(j_userroom);
@@ -1037,7 +1037,7 @@ static bool delete_chatroom_info(json_t* j_user, const char* uuid_userroom)
   }
 
   // publish event
-  ret = publish_event_me_chat_room(EN_PUBLISH_DELETE, uuid_user, j_userroom);
+  ret = publication_publish_event_me_chat_room(EN_PUBLISH_DELETE, uuid_user, j_userroom);
   json_decref(j_userroom);
   if(ret == false) {
     return false;
@@ -1065,14 +1065,14 @@ static json_t* get_chatmessages_info(json_t* j_user, const char* uuid_userroom, 
   }
 
   // check permission
-  ret = is_chat_user_userroom_owned(uuid_user, uuid_userroom);
+  ret = chat_is_user_userroom_owned(uuid_user, uuid_userroom);
   if(ret == false) {
     slog(LOG_WARNING, "Could not pass the permission check. uuid_user[%s], uuid_userroom[%s]", uuid_user, uuid_userroom);
     return NULL;
   }
 
   // get messages
-  j_res = get_chat_userroom_messages_newest(uuid_userroom, timestamp, count);
+  j_res = chat_get_userroom_messages_newest(uuid_userroom, timestamp, count);
   if(j_res == NULL) {
     slog(LOG_WARNING, "Could not get userroom messages info.");
     return NULL;
@@ -1102,21 +1102,21 @@ static bool create_chatmessage_info(json_t* j_user, const char* uuid_userroom, j
   }
 
   // permission check
-  ret = is_chat_user_userroom_owned(uuid_user, uuid_userroom);
+  ret = chat_is_user_userroom_owned(uuid_user, uuid_userroom);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not pass the permissino check.");
     return false;
   }
 
   // create uuid_message
-  uuid_message = gen_uuid();
+  uuid_message = utils_gen_uuid();
   if(uuid_message == NULL) {
     slog(LOG_ERR, "Could not create message uuid.");
     return false;
   }
 
   // create message
-  ret = create_chat_message_to_userroom(uuid_message, uuid_userroom, uuid_user, j_data);
+  ret = chat_create_message_to_userroom(uuid_message, uuid_userroom, uuid_user, j_data);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not create chat message.");
     sfree(uuid_message);
@@ -1124,7 +1124,7 @@ static bool create_chatmessage_info(json_t* j_user, const char* uuid_userroom, j
   }
 
   // get created message
-  j_message = get_chat_userroom_message(uuid_message, uuid_userroom);
+  j_message = chat_get_userroom_message(uuid_message, uuid_userroom);
   sfree(uuid_message);
   if(j_message == NULL) {
     slog(LOG_ERR, "Could not get created message. uuid_userroom[%s]", uuid_userroom);
@@ -1132,7 +1132,7 @@ static bool create_chatmessage_info(json_t* j_user, const char* uuid_userroom, j
   }
 
   // get room uuid
-  uuid_room = get_chat_uuidroom_by_uuiduserroom(uuid_userroom);
+  uuid_room = chat_get_uuidroom_by_uuiduserroom(uuid_userroom);
   if(uuid_room == NULL) {
     slog(LOG_ERR, "Could not get room uuid info.");
     json_decref(j_message);
@@ -1143,7 +1143,7 @@ static bool create_chatmessage_info(json_t* j_user, const char* uuid_userroom, j
   json_object_set_new(j_message, "uuid_room", json_string(uuid_room));
 
   // publish event
-  ret = publish_event_me_chat_message(EN_PUBLISH_CREATE, uuid_room, j_message);
+  ret = publication_publish_event_me_chat_message(EN_PUBLISH_CREATE, uuid_room, j_message);
   sfree(uuid_room);
   if(ret == false) {
     slog(LOG_WARNING, "Could not publish chat message notification. ");

@@ -11,18 +11,18 @@
 #include <stdbool.h>
 #include <jansson.h>
 
-bool validate_ob_dlma(json_t* j_data);
-json_t* create_ob_dlma(json_t* j_dlma);
-json_t* update_ob_dlma(const json_t* j_dlma);
-json_t* delete_ob_dlma(const char* uuid);
+bool ob_validate_dlma(json_t* j_data);
+json_t* ob_create_dlma(json_t* j_dlma);
+json_t* ob_update_dlma(const json_t* j_dlma);
+json_t* ob_delete_dlma(const char* uuid);
+json_t* ob_get_dlma(const char* uuid);
+json_t* ob_get_deleted_dlma(const char* uuid);
 
-json_t* get_ob_dlmas_all(void);
-json_t* get_ob_dlmas_all_uuid(void);
-json_t* get_ob_dlma(const char* uuid);
-json_t* get_deleted_ob_dlma(const char* uuid);
-char* get_ob_dlma_table_name(const char* dlma_uuid);
+json_t* ob_get_dlmas_all(void);
+json_t* ob_get_dlmas_all_uuid(void);
+char* ob_get_dlma_table_name(const char* dlma_uuid);
 
-bool is_deletable_ob_dlma(const char* uuid);
+bool ob_is_dlma_deletable(const char* uuid);
 
 
 #endif /* BACKEND_SRC_OB_DLMA_HANDLER_H_ */

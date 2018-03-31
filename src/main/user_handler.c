@@ -59,7 +59,7 @@ static bool is_valid_type_target(const char* type, const char* target);
 static void cb_user_validate_authtoken(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg);
 
 
-bool init_user_handler(void)
+bool user_init_handler(void)
 {
   int ret;
   json_t* j_tmp;
@@ -103,7 +103,7 @@ bool init_user_handler(void)
 
 
 	// create default permission admin
-	j_tmp = get_user_userinfo_info_by_username_pass("admin", "admin");
+	j_tmp = user_get_userinfo_info_by_username_password("admin", "admin");
 	if(j_tmp != NULL) {
 	  create_permission(json_string_value(json_object_get(j_tmp, "uuid")), DEF_USER_PERM_ADMIN);
 	  create_permission(json_string_value(json_object_get(j_tmp, "uuid")), DEF_USER_PERM_USER);
@@ -120,7 +120,7 @@ bool init_user_handler(void)
 	return true;
 }
 
-void term_user_handler(void)
+void user_term_handler(void)
 {
 	slog(LOG_INFO, "Fired term_user_handler.");
 
@@ -130,12 +130,12 @@ void term_user_handler(void)
 	return;
 }
 
-bool reload_user_handler(void)
+bool user_reload_handler(void)
 {
 	slog(LOG_INFO, "Fired reload_user");
 
-	term_user_handler();
-	init_user_handler();
+	user_term_handler();
+	user_init_handler();
 
 	return true;
 }
@@ -169,7 +169,7 @@ static bool init_user_database_contact(void)
     ");";
 
   // execute
-  ret = exec_jade_sql(create_table);
+  ret = resource_exec_jade_sql(create_table);
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate database. database[%s]", DEF_DB_TABLE_USER_CONTACT);
     return false;
@@ -199,7 +199,7 @@ static bool init_user_database_permission(void)
     ");";
 
   // execute
-  ret = exec_jade_sql(create_table);
+  ret = resource_exec_jade_sql(create_table);
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate database. database[%s]", DEF_DB_TABLE_USER_PERMISSION);
     return false;
@@ -233,7 +233,7 @@ static bool init_user_database_authtoken(void)
     ");";
 
   // execute
-  ret = exec_jade_sql(create_table);
+  ret = resource_exec_jade_sql(create_table);
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate database. database[%s]", DEF_DB_TABLE_USER_AUTHTOKEN);
     return false;
@@ -270,7 +270,7 @@ static bool init_user_database_userinfo(void)
       ");";
 
   // execute
-  ret = exec_jade_sql(create_table);
+  ret = resource_exec_jade_sql(create_table);
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate database. database[%s]", DEF_DB_TABLE_USER_USERINFO);
     return false;
@@ -296,15 +296,15 @@ static void cb_user_validate_authtoken(__attribute__((unused)) int fd, __attribu
   time_t time_update;
 
   // get all authtoken info
-  j_auths = get_user_authtokens_all();
+  j_auths = user_get_authtokens_all();
   if(j_auths == NULL) {
     slog(LOG_ERR, "Could not get authtoken info.");
     return;
   }
 
   // get curtime
-  timestamp = get_utc_timestamp();
-  time_over = get_unixtime_from_utc_timestamp(timestamp);
+  timestamp = utils_get_utc_timestamp();
+  time_over = utils_get_unixtime_from_utc_timestamp(timestamp);
   sfree(timestamp);
   time_over -= DEF_AUTHTOKEN_TIMEOUT;
 
@@ -316,22 +316,22 @@ static void cb_user_validate_authtoken(__attribute__((unused)) int fd, __attribu
     last_update = json_string_value(json_object_get(j_auth, "tm_update"));
     if(last_update == NULL) {
       slog(LOG_ERR, "Could not get tm_update info. Remove authtoken. uuid[%s]", uuid);
-      delete_user_authtoken_info(uuid);
+      user_delete_authtoken_info(uuid);
       continue;
     }
 
     // convert
-    time_update = get_unixtime_from_utc_timestamp(last_update);
+    time_update = utils_get_unixtime_from_utc_timestamp(last_update);
     if(time_update == 0) {
       slog(LOG_ERR, "Could not convert tm_update info. Remove authtoken. uuid[%s]", uuid);
-      delete_user_authtoken_info(uuid);
+      user_delete_authtoken_info(uuid);
       continue;
     }
 
     // check timeout
     if(time_update < time_over) {
       slog(LOG_NOTICE, "The authtoken is timed out. Remove authtoken. uuid[%s]", uuid);
-      delete_user_authtoken_info(uuid);
+      user_delete_authtoken_info(uuid);
       continue;
     }
   }
@@ -346,7 +346,7 @@ static void cb_user_validate_authtoken(__attribute__((unused)) int fd, __attribu
  * @param req
  * @param data
  */
-void htp_post_user_login(evhtp_request_t *req, void *data)
+void user_htp_post_user_login(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
@@ -401,7 +401,7 @@ void htp_post_user_login(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_delete_user_login(evhtp_request_t *req, void *data)
+void user_htp_delete_user_login(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   const char* authtoken;
@@ -421,7 +421,7 @@ void htp_delete_user_login(evhtp_request_t *req, void *data)
   }
 
   // delete authtoken
-  ret = delete_user_authtoken_info(authtoken);
+  ret = user_delete_authtoken_info(authtoken);
   if(ret == false) {
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
@@ -439,7 +439,7 @@ void htp_delete_user_login(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_user_contacts(evhtp_request_t *req, void *data)
+void user_htp_get_user_contacts(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
@@ -451,7 +451,7 @@ void htp_get_user_contacts(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_user_contacts.");
 
   // get info
-  j_tmp = get_user_contacts_all();
+  j_tmp = user_get_contacts_all();
   if(j_tmp == NULL) {
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
@@ -475,7 +475,7 @@ void htp_get_user_contacts(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_post_user_contacts(evhtp_request_t *req, void *data)
+void user_htp_post_user_contacts(evhtp_request_t *req, void *data)
 {
   json_t* j_data;
   json_t* j_res;
@@ -517,7 +517,7 @@ void htp_post_user_contacts(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_user_contacts_detail(evhtp_request_t *req, void *data)
+void user_htp_get_user_contacts_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_tmp;
@@ -538,7 +538,7 @@ void htp_get_user_contacts_detail(evhtp_request_t *req, void *data)
   }
 
   // get detail info
-  j_tmp = get_user_contact_info(detail);
+  j_tmp = user_get_contact_info(detail);
   sfree(detail);
   if(j_tmp == NULL) {
     slog(LOG_NOTICE, "Could not find contact info.");
@@ -562,7 +562,7 @@ void htp_get_user_contacts_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_put_user_contacts_detail(evhtp_request_t *req, void *data)
+void user_htp_put_user_contacts_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_data;
@@ -615,7 +615,7 @@ void htp_put_user_contacts_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_delete_user_contacts_detail(evhtp_request_t *req, void *data)
+void user_htp_delete_user_contacts_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   char* detail;
@@ -636,7 +636,7 @@ void htp_delete_user_contacts_detail(evhtp_request_t *req, void *data)
   }
 
   // delete
-  ret = delete_user_contact_info(detail);
+  ret = user_delete_contact_info(detail);
   sfree(detail);
   if(ret == false) {
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
@@ -659,7 +659,7 @@ void htp_delete_user_contacts_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_post_user_users(evhtp_request_t *req, void *data)
+void user_htp_post_user_users(evhtp_request_t *req, void *data)
 {
   json_t* j_data;
   json_t* j_res;
@@ -702,7 +702,7 @@ void htp_post_user_users(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_user_users(evhtp_request_t *req, void *data)
+void user_htp_get_user_users(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
@@ -714,7 +714,7 @@ void htp_get_user_users(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_user_users.");
 
   // get info
-  j_tmp = get_user_userinfos_all();
+  j_tmp = user_get_userinfos_all();
   if(j_tmp == NULL) {
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
@@ -737,7 +737,7 @@ void htp_get_user_users(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_user_users_detail(evhtp_request_t *req, void *data)
+void user_htp_get_user_users_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_tmp;
@@ -758,7 +758,7 @@ void htp_get_user_users_detail(evhtp_request_t *req, void *data)
   }
 
   // get detail info
-  j_tmp = get_user_userinfo_info(detail);
+  j_tmp = user_get_userinfo_info(detail);
   sfree(detail);
   if(j_tmp == NULL) {
     slog(LOG_NOTICE, "Could not find userinfo info.");
@@ -782,7 +782,7 @@ void htp_get_user_users_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_put_user_users_detail(evhtp_request_t *req, void *data)
+void user_htp_put_user_users_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_data;
@@ -835,7 +835,7 @@ void htp_put_user_users_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_delete_user_users_detail(evhtp_request_t *req, void *data)
+void user_htp_delete_user_users_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   char* detail;
@@ -856,7 +856,7 @@ void htp_delete_user_users_detail(evhtp_request_t *req, void *data)
   }
 
   // delete
-  ret = delete_user_userinfo_info(detail);
+  ret = user_delete_userinfo_info(detail);
   sfree(detail);
   if(ret == false) {
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
@@ -878,7 +878,7 @@ void htp_delete_user_users_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_user_permissions(evhtp_request_t *req, void *data)
+void user_htp_get_user_permissions(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
@@ -890,7 +890,7 @@ void htp_get_user_permissions(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_user_permissions.");
 
   // get info
-  j_tmp = get_user_permissions_all();
+  j_tmp = user_get_permissions_all();
   if(j_tmp == NULL) {
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
@@ -914,7 +914,7 @@ void htp_get_user_permissions(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_post_user_permissions(evhtp_request_t *req, void *data)
+void user_htp_post_user_permissions(evhtp_request_t *req, void *data)
 {
   json_t* j_data;
   json_t* j_res;
@@ -956,7 +956,7 @@ void htp_post_user_permissions(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_delete_user_permissions_detail(evhtp_request_t *req, void *data)
+void user_htp_delete_user_permissions_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   char* detail;
@@ -977,7 +977,7 @@ void htp_delete_user_permissions_detail(evhtp_request_t *req, void *data)
   }
 
   // delete
-  ret = delete_user_permission_info(detail);
+  ret = user_delete_permission_info(detail);
   sfree(detail);
   if(ret == false) {
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
@@ -1008,15 +1008,15 @@ static char* create_authtoken(const char* username, const char* password)
   slog(LOG_DEBUG, "Fired create_authtoken. username[%s], password[%s]", username, "*");
 
   // get user info
-  j_user = get_user_userinfo_info_by_username_pass(username, password);
+  j_user = user_get_userinfo_info_by_username_password(username, password);
   if(j_user == NULL) {
     slog(LOG_INFO, "Could not find correct userinfo of given data. username[%s], password[%s]", username, "*");
     return NULL;
   }
 
   // create
-  token = gen_uuid();
-  timestamp = get_utc_timestamp();
+  token = utils_gen_uuid();
+  timestamp = utils_get_utc_timestamp();
   j_auth = json_pack("{s:s, s:s, s:s, s:s}",
       "uuid",       token,
       "user_uuid",  json_string_value(json_object_get(j_user, "uuid")),
@@ -1028,7 +1028,7 @@ static char* create_authtoken(const char* username, const char* password)
   json_decref(j_user);
 
   // create auth info
-  create_user_authtoken_info(j_auth);
+  user_create_authtoken_info(j_auth);
   json_decref(j_auth);
 
   return token;
@@ -1068,7 +1068,7 @@ static bool create_permission(const char* user_uuid, const char* permission)
     return false;
   }
 
-  uuid = gen_uuid();
+  uuid = utils_gen_uuid();
   j_tmp = json_pack("{s:s, s:s, s:s}",
       "uuid",       uuid,
       "user_uuid",  user_uuid,
@@ -1076,7 +1076,7 @@ static bool create_permission(const char* user_uuid, const char* permission)
       );
   sfree(uuid);
 
-  ret = create_user_permission_info(j_tmp);
+  ret = user_create_permission_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     return false;
@@ -1119,8 +1119,8 @@ static bool create_contact(json_t* j_data)
   }
 
   // create contact info
-  timestamp = get_utc_timestamp();
-  uuid = gen_uuid();
+  timestamp = utils_get_utc_timestamp();
+  uuid = utils_gen_uuid();
   j_tmp = json_pack("{"
       "s:s, s:s, "
       "s:s, s:s, s:s, s:s, "
@@ -1141,7 +1141,7 @@ static bool create_contact(json_t* j_data)
   sfree(uuid);
 
   // create resource
-  ret = create_user_contact_info(j_tmp);
+  ret = user_create_contact_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not create user contact info.");
@@ -1163,7 +1163,7 @@ static bool update_contact(const char* uuid, json_t* j_data)
   }
   slog(LOG_DEBUG, "Fired update_contact. uuid[%s]", uuid);
 
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
   j_tmp = json_pack("{"
       "s:s, s:s, "
       "s:s, s:s, "
@@ -1184,7 +1184,7 @@ static bool update_contact(const char* uuid, json_t* j_data)
       );
   sfree(timestamp);
 
-  ret = update_user_contact_info(j_tmp);
+  ret = user_update_contact_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not update contact info.");
@@ -1228,8 +1228,8 @@ static bool create_userinfo(json_t* j_data)
   }
 
   // create contact info
-  timestamp = get_utc_timestamp();
-  uuid = gen_uuid();
+  timestamp = utils_get_utc_timestamp();
+  uuid = utils_gen_uuid();
   j_tmp = json_pack("{"
       "s:s, "
       "s:s, s:s, "
@@ -1278,7 +1278,7 @@ static bool update_userinfo(const char* uuid, json_t* j_data)
   }
   slog(LOG_DEBUG, "Fired update_contact. uuid[%s]", uuid);
 
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
   j_tmp = json_pack("{"
       "s:s, "
       "s:s, s:s, s:s, "
@@ -1295,7 +1295,7 @@ static bool update_userinfo(const char* uuid, json_t* j_data)
       );
   sfree(timestamp);
 
-  ret = update_user_userinfo_info(j_tmp);
+  ret = user_update_userinfo_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not update contact info.");
@@ -1310,7 +1310,7 @@ static bool update_userinfo(const char* uuid, json_t* j_data)
  * @param user_uuid
  * @return
  */
-bool is_user_user_exist(const char* user_uuid)
+bool user_is_user_exist(const char* user_uuid)
 {
   int ret;
 
@@ -1335,7 +1335,7 @@ static bool is_user_exist(const char* user_uuid)
     return false;
   }
 
-  j_tmp = get_user_userinfo_info(user_uuid);
+  j_tmp = user_get_userinfo_info(user_uuid);
   if(j_tmp == NULL) {
     return false;
   }
@@ -1354,7 +1354,7 @@ static bool is_user_exsit_by_username(const char* username)
   }
   slog(LOG_DEBUG, "Fired is_user_exsit_by_username. username[%s]", username);
 
-  j_tmp = get_user_userinfo_info_by_username(username);
+  j_tmp = user_get_userinfo_info_by_username(username);
   if(j_tmp == NULL) {
     return false;
   }
@@ -1376,7 +1376,7 @@ static bool is_valid_type_target(const char* type, const char* target)
   if(strcmp(type, DEF_USER_CONTACT_TYPE_PEER) == 0) {
     // peer type
 
-    j_tmp = get_sip_peer_info(target);
+    j_tmp = sip_get_peer_info(target);
     if(j_tmp == NULL) {
       return false;
     }
@@ -1387,7 +1387,7 @@ static bool is_valid_type_target(const char* type, const char* target)
   else if(strcmp(type, DEF_USER_CONTACT_TYPE_ENDPOINT) == 0) {
     // pjsip type
 
-    j_tmp = get_pjsip_endpoint_info(target);
+    j_tmp = pjsip_get_endpoint_info(target);
     if(j_tmp == NULL) {
       return false;
     }
@@ -1410,7 +1410,7 @@ static bool is_valid_type_target(const char* type, const char* target)
  * Get corresponding user_userinfo detail info.
  * @return
  */
-json_t* get_user_userinfo_info(const char* key)
+json_t* user_get_userinfo_info(const char* key)
 {
   json_t* j_res;
 
@@ -1420,7 +1420,7 @@ json_t* get_user_userinfo_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired get_user_userinfo_info. key[%s]", key);
 
-  j_res = get_jade_detail_item_key_string(DEF_DB_TABLE_USER_USERINFO, "uuid", key);
+  j_res = resource_get_jade_detail_item_key_string(DEF_DB_TABLE_USER_USERINFO, "uuid", key);
 
   return j_res;
 }
@@ -1429,13 +1429,13 @@ json_t* get_user_userinfo_info(const char* key)
  * Get all user_userinfo detail info.
  * @return
  */
-json_t* get_user_userinfos_all(void)
+json_t* user_get_userinfos_all(void)
 {
   json_t* j_res;
 
   slog(LOG_DEBUG, "Fired get_user_userinfos_all.");
 
-  j_res = get_jade_items(DEF_DB_TABLE_USER_USERINFO, "*");
+  j_res = resource_get_jade_items(DEF_DB_TABLE_USER_USERINFO, "*");
 
   return j_res;
 }
@@ -1445,7 +1445,7 @@ json_t* get_user_userinfos_all(void)
  * Get corresponding user_userinfo detail info.
  * @return
  */
-json_t* get_user_userinfo_info_by_username(const char* key)
+json_t* user_get_userinfo_info_by_username(const char* key)
 {
   json_t* j_res;
 
@@ -1455,7 +1455,7 @@ json_t* get_user_userinfo_info_by_username(const char* key)
   }
   slog(LOG_DEBUG, "Fired get_user_userinfo_info_by_username. key[%s]", key);
 
-  j_res = get_jade_detail_item_key_string(DEF_DB_TABLE_USER_USERINFO, "username", key);
+  j_res = resource_get_jade_detail_item_key_string(DEF_DB_TABLE_USER_USERINFO, "username", key);
 
   return j_res;
 }
@@ -1464,7 +1464,7 @@ json_t* get_user_userinfo_info_by_username(const char* key)
  * Get corresponding user_userinfo detail info.
  * @return
  */
-json_t* get_user_userinfo_info_by_username_pass(const char* username, const char* pass)
+json_t* user_get_userinfo_info_by_username_password(const char* username, const char* pass)
 {
   json_t* j_res;
   json_t* j_obj;
@@ -1480,7 +1480,7 @@ json_t* get_user_userinfo_info_by_username_pass(const char* username, const char
       "password",   pass
       );
 
-  j_res = get_jade_detail_item_by_obj(DEF_DB_TABLE_USER_USERINFO, j_obj);
+  j_res = resource_get_jade_detail_item_by_obj(DEF_DB_TABLE_USER_USERINFO, j_obj);
   json_decref(j_obj);
   if(j_res == NULL) {
     return NULL;
@@ -1489,7 +1489,7 @@ json_t* get_user_userinfo_info_by_username_pass(const char* username, const char
   return j_res;
 }
 
-json_t* get_user_userinfo_by_authtoken(const char* authtoken)
+json_t* user_get_userinfo_by_authtoken(const char* authtoken)
 {
   json_t* j_auth;
   json_t* j_user;
@@ -1501,7 +1501,7 @@ json_t* get_user_userinfo_by_authtoken(const char* authtoken)
   }
   slog(LOG_DEBUG, "Fired get_user_userinfo_by_authtoken. authtoken[%s]", authtoken);
 
-  j_auth = get_user_authtoken_info(authtoken);
+  j_auth = user_get_authtoken_info(authtoken);
   if(j_auth == NULL) {
     slog(LOG_ERR, "Could not get authtoken info.");
     return NULL;
@@ -1514,7 +1514,7 @@ json_t* get_user_userinfo_by_authtoken(const char* authtoken)
     return NULL;
   }
 
-  j_user = get_user_userinfo_info(user_uuid);
+  j_user = user_get_userinfo_info(user_uuid);
   json_decref(j_auth);
   if(j_user == NULL) {
     slog(LOG_ERR, "Could not get user info.");
@@ -1535,7 +1535,7 @@ static bool create_user_userinfo_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired create_user_userinfo_info.");
 
   // insert userinfo info
-  ret = insert_jade_item(DEF_DB_TABLE_USER_USERINFO, j_data);
+  ret = resource_insert_jade_item(DEF_DB_TABLE_USER_USERINFO, j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert user_userinfo.");
     return false;
@@ -1544,7 +1544,7 @@ static bool create_user_userinfo_info(const json_t* j_data)
   return true;
 }
 
-bool update_user_userinfo_info(const json_t* j_data)
+bool user_update_userinfo_info(const json_t* j_data)
 {
   int ret;
 
@@ -1555,7 +1555,7 @@ bool update_user_userinfo_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired create_user_userinfo_info.");
 
   // update info
-  ret = update_jade_item(DEF_DB_TABLE_USER_USERINFO, "uuid", j_data);
+  ret = resource_update_jade_item(DEF_DB_TABLE_USER_USERINFO, "uuid", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update user_userinfo info.");
     return false;
@@ -1568,7 +1568,7 @@ bool update_user_userinfo_info(const json_t* j_data)
  * Delete user_userinfo info.
  * @return
  */
-bool delete_user_userinfo_info(const char* key)
+bool user_delete_userinfo_info(const char* key)
 {
   int ret;
 
@@ -1578,7 +1578,7 @@ bool delete_user_userinfo_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired delete_user_userinfo_info. key[%s]", key);
 
-  ret = delete_jade_items_string(DEF_DB_TABLE_USER_USERINFO, "uuid", key);
+  ret = resource_delete_jade_items_string(DEF_DB_TABLE_USER_USERINFO, "uuid", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete dp_dialplan info. key[%s]", key);
     return false;
@@ -1591,11 +1591,11 @@ bool delete_user_userinfo_info(const char* key)
  * Get corresponding user_authtoken all detail info.
  * @return
  */
-json_t* get_user_authtokens_all(void)
+json_t* user_get_authtokens_all(void)
 {
   json_t* j_res;
 
-  j_res = get_jade_items(DEF_DB_TABLE_USER_AUTHTOKEN, "*");
+  j_res = resource_get_jade_items(DEF_DB_TABLE_USER_AUTHTOKEN, "*");
   return j_res;
 }
 
@@ -1603,7 +1603,7 @@ json_t* get_user_authtokens_all(void)
  * Get corresponding user_authtoken detail info.
  * @return
  */
-json_t* get_user_authtoken_info(const char* key)
+json_t* user_get_authtoken_info(const char* key)
 {
   json_t* j_res;
 
@@ -1613,12 +1613,12 @@ json_t* get_user_authtoken_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired get_user_authtoken_info. key[%s]", key);
 
-  j_res = get_jade_detail_item_key_string(DEF_DB_TABLE_USER_AUTHTOKEN, "uuid", key);
+  j_res = resource_get_jade_detail_item_key_string(DEF_DB_TABLE_USER_AUTHTOKEN, "uuid", key);
 
   return j_res;
 }
 
-bool create_user_authtoken_info(const json_t* j_data)
+bool user_create_authtoken_info(const json_t* j_data)
 {
   int ret;
 
@@ -1629,7 +1629,7 @@ bool create_user_authtoken_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired create_user_authtoken_info.");
 
   // insert authtoken info
-  ret = insert_jade_item(DEF_DB_TABLE_USER_AUTHTOKEN, j_data);
+  ret = resource_insert_jade_item(DEF_DB_TABLE_USER_AUTHTOKEN, j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert user_authtoken.");
     return false;
@@ -1638,7 +1638,7 @@ bool create_user_authtoken_info(const json_t* j_data)
   return true;
 }
 
-bool update_user_authtoken_info(const json_t* j_data)
+bool user_update_authtoken_info(const json_t* j_data)
 {
   int ret;
 
@@ -1649,7 +1649,7 @@ bool update_user_authtoken_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired update_user_authtoken_info.");
 
   // update info
-  ret = update_jade_item(DEF_DB_TABLE_USER_AUTHTOKEN, "uuid", j_data);
+  ret = resource_update_jade_item(DEF_DB_TABLE_USER_AUTHTOKEN, "uuid", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update user_authtoken info.");
     return false;
@@ -1658,7 +1658,7 @@ bool update_user_authtoken_info(const json_t* j_data)
   return true;
 }
 
-bool update_user_authtoken_tm_update(const char* uuid)
+bool user_update_authtoken_tm_update(const char* uuid)
 {
   json_t* j_token;
   char* timestamp;
@@ -1669,17 +1669,17 @@ bool update_user_authtoken_tm_update(const char* uuid)
     return false;
   }
 
-  j_token = get_user_authtoken_info(uuid);
+  j_token = user_get_authtoken_info(uuid);
   if(j_token == NULL) {
     slog(LOG_NOTICE, "Could not get authtoken info. uuid[%s]", uuid);
     return false;
   }
 
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
   json_object_set_new(j_token, "tm_update", json_string(timestamp));
   sfree(timestamp);
 
-  ret = update_user_authtoken_info(j_token);
+  ret = user_update_authtoken_info(j_token);
   json_decref(j_token);
   if(ret == false) {
     slog(LOG_ERR, "Could not update authtoken info. uuid[%s]", uuid);
@@ -1695,7 +1695,7 @@ bool update_user_authtoken_tm_update(const char* uuid)
  * @param key
  * @return
  */
-bool delete_user_authtoken_info(const char* key)
+bool user_delete_authtoken_info(const char* key)
 {
   int ret;
 
@@ -1705,7 +1705,7 @@ bool delete_user_authtoken_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired delete_user_authtoken_info. key[%s]", key);
 
-  ret = delete_jade_items_string(DEF_DB_TABLE_USER_AUTHTOKEN, "uuid", key);
+  ret = resource_delete_jade_items_string(DEF_DB_TABLE_USER_AUTHTOKEN, "uuid", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete user_authtoken info. key[%s]", key);
     return false;
@@ -1714,7 +1714,7 @@ bool delete_user_authtoken_info(const char* key)
   return true;
 }
 
-bool create_user_permission_info(const json_t* j_data)
+bool user_create_permission_info(const json_t* j_data)
 {
   int ret;
 
@@ -1725,7 +1725,7 @@ bool create_user_permission_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired create_user_permission_info.");
 
   // insert permission info
-  ret = insert_jade_item(DEF_DB_TABLE_USER_PERMISSION, j_data);
+  ret = resource_insert_jade_item(DEF_DB_TABLE_USER_PERMISSION, j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert user_authtoken.");
     return false;
@@ -1734,11 +1734,11 @@ bool create_user_permission_info(const json_t* j_data)
   return true;
 }
 
-json_t* get_user_permissions_all(void)
+json_t* user_get_permissions_all(void)
 {
   json_t* j_res;
 
-  j_res = get_jade_items(DEF_DB_TABLE_USER_PERMISSION, "*");
+  j_res = resource_get_jade_items(DEF_DB_TABLE_USER_PERMISSION, "*");
   return j_res;
 }
 
@@ -1747,7 +1747,7 @@ json_t* get_user_permissions_all(void)
  * @param key
  * @return
  */
-bool delete_user_permission_info(const char* key)
+bool user_delete_permission_info(const char* key)
 {
   int ret;
 
@@ -1758,7 +1758,7 @@ bool delete_user_permission_info(const char* key)
   slog(LOG_DEBUG, "Fired delete_user_permission_info. uuid[%s]", key);
 
   // delete
-  ret = delete_jade_items_string(DEF_DB_TABLE_USER_PERMISSION, "uuid", key);
+  ret = resource_delete_jade_items_string(DEF_DB_TABLE_USER_PERMISSION, "uuid", key);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete permission info. uuid[%s]", key);
     return false;
@@ -1771,7 +1771,7 @@ bool delete_user_permission_info(const char* key)
  * Get corresponding user_userinfo detail info.
  * @return
  */
-json_t* get_user_permission_info_by_useruuid_perm(const char* useruuid, const char* perm)
+json_t* user_get_permission_info_by_useruuid_perm(const char* useruuid, const char* perm)
 {
   json_t* j_res;
   json_t* j_obj;
@@ -1787,7 +1787,7 @@ json_t* get_user_permission_info_by_useruuid_perm(const char* useruuid, const ch
       "permission",   perm
       );
 
-  j_res = get_jade_detail_item_by_obj(DEF_DB_TABLE_USER_PERMISSION, j_obj);
+  j_res = resource_get_jade_detail_item_by_obj(DEF_DB_TABLE_USER_PERMISSION, j_obj);
   json_decref(j_obj);
   if(j_res == NULL) {
     return NULL;
@@ -1796,11 +1796,11 @@ json_t* get_user_permission_info_by_useruuid_perm(const char* useruuid, const ch
   return j_res;
 }
 
-json_t* get_user_contacts_all(void)
+json_t* user_get_contacts_all(void)
 {
   json_t* j_res;
 
-  j_res = get_jade_items(DEF_DB_TABLE_USER_CONTACT, "*");
+  j_res = resource_get_jade_items(DEF_DB_TABLE_USER_CONTACT, "*");
   return j_res;
 }
 
@@ -1809,7 +1809,7 @@ json_t* get_user_contacts_all(void)
  * @param user_uuid
  * @return
  */
-json_t* get_user_contacts_by_user_uuid(const char* user_uuid)
+json_t* user_get_contacts_by_user_uuid(const char* user_uuid)
 {
   json_t* j_res;
   json_t* j_obj;
@@ -1818,7 +1818,7 @@ json_t* get_user_contacts_by_user_uuid(const char* user_uuid)
       "user_uuid",  user_uuid
       );
 
-  j_res = get_jade_detail_items_by_obj(DEF_DB_TABLE_USER_CONTACT, j_obj);
+  j_res = resource_get_jade_detail_items_by_obj(DEF_DB_TABLE_USER_CONTACT, j_obj);
   json_decref(j_obj);
 
   return j_res;
@@ -1828,7 +1828,7 @@ json_t* get_user_contacts_by_user_uuid(const char* user_uuid)
  * Get corresponding user_contact detail info.
  * @return
  */
-json_t* get_user_contact_info(const char* key)
+json_t* user_get_contact_info(const char* key)
 {
   json_t* j_res;
 
@@ -1838,12 +1838,12 @@ json_t* get_user_contact_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired get_user_contact_info. key[%s]", key);
 
-  j_res = get_jade_detail_item_key_string(DEF_DB_TABLE_USER_CONTACT, "uuid", key);
+  j_res = resource_get_jade_detail_item_key_string(DEF_DB_TABLE_USER_CONTACT, "uuid", key);
 
   return j_res;
 }
 
-bool create_user_contact_info(const json_t* j_data)
+bool user_create_contact_info(const json_t* j_data)
 {
   int ret;
 
@@ -1854,7 +1854,7 @@ bool create_user_contact_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired create_user_contact_info.");
 
   // insert info
-  ret = insert_jade_item(DEF_DB_TABLE_USER_CONTACT, j_data);
+  ret = resource_insert_jade_item(DEF_DB_TABLE_USER_CONTACT, j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert user_contact.");
     return false;
@@ -1863,7 +1863,7 @@ bool create_user_contact_info(const json_t* j_data)
   return true;
 }
 
-bool update_user_contact_info(const json_t* j_data)
+bool user_update_contact_info(const json_t* j_data)
 {
   int ret;
 
@@ -1874,7 +1874,7 @@ bool update_user_contact_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired update_user_contact_info.");
 
   // update info
-  ret = update_jade_item(DEF_DB_TABLE_USER_CONTACT, "uuid", j_data);
+  ret = resource_update_jade_item(DEF_DB_TABLE_USER_CONTACT, "uuid", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update user_contact info.");
     return false;
@@ -1888,7 +1888,7 @@ bool update_user_contact_info(const json_t* j_data)
  * @param key
  * @return
  */
-bool delete_user_contact_info(const char* key)
+bool user_delete_contact_info(const char* key)
 {
   int ret;
 
@@ -1898,7 +1898,7 @@ bool delete_user_contact_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired delete_user_contact_info. key[%s]", key);
 
-  ret = delete_jade_items_string(DEF_DB_TABLE_USER_CONTACT, "uuid", key);
+  ret = resource_delete_jade_items_string(DEF_DB_TABLE_USER_CONTACT, "uuid", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete user_contact info. key[%s]", key);
     return false;

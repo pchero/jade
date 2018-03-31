@@ -43,7 +43,7 @@ bool ami_action_agi(const char* channel, const char* cmd, const char* cmd_id)
       );
 
   // send action request
-  ret = send_ami_cmd(j_tmp);
+  ret = ami_send_cmd(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not send ami action");
@@ -76,7 +76,7 @@ bool ami_action_hangup(const char* channel)
       );
 
   // send hangup request
-  ret = send_ami_cmd(j_tmp);
+  ret = ami_send_cmd(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not send ami action");
@@ -135,7 +135,7 @@ bool ami_action_modulecheck(const char* name)
   }
   slog(LOG_DEBUG, "Fired ami_action_modulecheck. name[%s]", name);
 
-  action_id = gen_uuid();
+  action_id = utils_gen_uuid();
 
   // create request
   j_data = json_pack("{s:s, s:s, s:s}",
@@ -150,7 +150,7 @@ bool ami_action_modulecheck(const char* name)
   }
 
   // send action request
-  ret = send_ami_cmd(j_data);
+  ret = ami_send_cmd(j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not send ami action");
     json_decref(j_data);
@@ -158,7 +158,7 @@ bool ami_action_modulecheck(const char* name)
   }
 
   // insert action
-  ret = insert_action(json_string_value(json_object_get(j_data, "ActionID")), "modulecheck", j_data);
+  ret = action_insert(json_string_value(json_object_get(j_data, "ActionID")), "modulecheck", j_data);
   json_decref(j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert action.");
@@ -184,7 +184,7 @@ bool ami_action_moduleload(const char* name, const char* type)
   }
   slog(LOG_DEBUG, "Fired ami_action_moduleload. name[%s], type[%s]", name, type);
 
-  action_id = gen_uuid();
+  action_id = utils_gen_uuid();
 
   // create request
   j_data = json_pack("{s:s, s:s, s:s, s:s}",
@@ -196,7 +196,7 @@ bool ami_action_moduleload(const char* name, const char* type)
   sfree(action_id);
 
   // send action request
-  ret = send_ami_cmd(j_data);
+  ret = ami_send_cmd(j_data);
   if(ret == false) {
     json_decref(j_data);
     slog(LOG_ERR, "Could not send ami action");
@@ -204,7 +204,7 @@ bool ami_action_moduleload(const char* name, const char* type)
   }
 
   // insert action
-  ret = insert_action(json_string_value(json_object_get(j_data, "ActionID")), "moduleload", j_data);
+  ret = action_insert(json_string_value(json_object_get(j_data, "ActionID")), "moduleload", j_data);
   json_decref(j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert action.");

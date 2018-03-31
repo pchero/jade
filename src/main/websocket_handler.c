@@ -192,8 +192,8 @@ static bool init_client_session(struct lws* wsi, struct client_session* session)
   session->addr = strdup(buf);
 
   // create new zmq sock
-  zmq_context = get_zmq_context();
-  zmq_addr_pub = get_zmq_pub_addr();
+  zmq_context = zmq_get_context();
+  zmq_addr_pub = zmq_get_pub_addr();
   slog(LOG_DEBUG, "Connecting to the local pub socket. addr[%s]", zmq_addr_pub);
 
   // connect zmq
@@ -403,7 +403,7 @@ static json_t* recv_zmq_msg(void* socket)
   }
 
   // get topic
-  topic = s_recv(socket);
+  topic = zmq_recv_string(socket);
   if(topic == NULL) {
     // no more message.
     return NULL;
@@ -419,7 +419,7 @@ static json_t* recv_zmq_msg(void* socket)
   }
 
   // get message
-  msg = s_recv(socket);
+  msg = zmq_recv_string(socket);
 
   // parse
   j_tmp = json_loads(msg, JSON_DECODE_ANY, NULL);
@@ -767,7 +767,7 @@ static bool websocket_handler_receive(struct client_session* session, char* data
  * Initiate websocket handler
  * @return
  */
-bool init_websocket_handler(void)
+bool websocket_init_handler(void)
 {
   struct lws_context_creation_info info;
   const char* addr;
@@ -827,7 +827,7 @@ bool init_websocket_handler(void)
 /**
  * Terminate websocket handler
  */
-void term_websocket_handler(void)
+void websocket_term_handler(void)
 {
   lws_context_destroy(g_websocket_context);
 }

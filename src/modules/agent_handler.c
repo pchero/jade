@@ -20,7 +20,7 @@
  * @param req
  * @param data
  */
-void htp_get_agent_agents(evhtp_request_t *req, void *data)
+void agent_htp_get_agent_agents(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_tmp;
@@ -54,7 +54,7 @@ void htp_get_agent_agents(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_agent_agents_detail(evhtp_request_t *req, void *data)
+void agent_htp_get_agent_agents_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_tmp;

@@ -18,7 +18,7 @@
 #include "http_handler.h"
 #include "ami_handler.h"
 #include "conf_handler.h"
-#include "publish_handler.h"
+#include <publication_handler.h>
 
 #include "pjsip_handler.h"
 
@@ -92,7 +92,7 @@ static bool delete_config_pjsip_registration(const char* name);
 static bool delete_config_pjsip_transport(const char* name);
 
 
-bool init_pjsip_handler(void)
+bool pjsip_init_handler(void)
 {
   int ret;
   json_t* j_tmp;
@@ -117,7 +117,7 @@ bool init_pjsip_handler(void)
   j_tmp = json_pack("{s:s}",
       "Action", "PJSIPShowEndpoints"
       );
-  ret = send_ami_cmd(j_tmp);
+  ret = ami_send_cmd(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not send ami action. action[%s]", "PJSIPShowEndpoints");
@@ -127,7 +127,7 @@ bool init_pjsip_handler(void)
   return true;
 }
 
-bool term_pjsip_handler(void)
+bool pjsip_term_handler(void)
 {
   int ret;
 
@@ -140,16 +140,16 @@ bool term_pjsip_handler(void)
   return true;
 }
 
-bool reload_pjsip_handler(void)
+bool pjsip_reload_handler(void)
 {
   int ret;
 
-  ret = term_pjsip_handler();
+  ret = pjsip_term_handler();
   if(ret == false) {
     return false;
   }
 
-  ret = init_pjsip_handler();
+  ret = pjsip_init_handler();
   if(ret == false) {
     return false;
   }
@@ -186,7 +186,7 @@ static bool init_pjsip_config_file(const char* filename)
 
   // check include exist
   asprintf(&str_include, "#include \"%s\"", filename);
-  ret = is_exist_string_in_file(conf, str_include);
+  ret = utils_is_string_exist_in_file(conf, str_include);
   if(ret == true) {
     sfree(conf);
     sfree(str_include);
@@ -194,7 +194,7 @@ static bool init_pjsip_config_file(const char* filename)
   }
 
   // if not exist, append it at the EOF
-  ret = append_string_to_file_end(conf, str_include);
+  ret = utils_append_string_to_file_end(conf, str_include);
   sfree(conf);
   sfree(str_include);
   if(ret == false) {
@@ -209,7 +209,7 @@ static bool init_pjsip_config_file(const char* filename)
       );
 
   // create empty file
-  ret = create_empty_file(tmp);
+  ret = utils_create_empty_file(tmp);
   sfree(tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not create init empty file. filename[%s]", filename);
@@ -369,8 +369,8 @@ static bool init_pjsip_database_aor(void)
     ");";
 
   // execute
-  exec_ast_sql(drop_table);
-  ret = exec_ast_sql(create_table);
+  resource_exec_ast_sql(drop_table);
+  ret = resource_exec_ast_sql(create_table);
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate database. database[%s]", DEF_DB_TABLE_PJSIP_AOR);
     return false;
@@ -417,8 +417,8 @@ static bool init_pjsip_database_auth(void)
     ");";
 
   // execute
-  exec_ast_sql(drop_table);
-  ret = exec_ast_sql(create_table);
+  resource_exec_ast_sql(drop_table);
+  ret = resource_exec_ast_sql(create_table);
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate database. database[%s]", DEF_DB_TABLE_PJSIP_AUTH);
     return false;
@@ -470,8 +470,8 @@ static bool init_pjsip_database_contact(void)
     ");";
 
   // execute
-  exec_ast_sql(drop_table);
-  ret = exec_ast_sql(create_table);
+  resource_exec_ast_sql(drop_table);
+  ret = resource_exec_ast_sql(create_table);
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate database. database[%s]", DEF_DB_TABLE_PJSIP_CONTACT);
     return false;
@@ -687,8 +687,8 @@ static bool init_pjsip_database_endpoint(void)
     ");";
 
   // execute
-  exec_ast_sql(drop_table);
-  ret = exec_ast_sql(create_table);
+  resource_exec_ast_sql(drop_table);
+  ret = resource_exec_ast_sql(create_table);
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate database. database[%s]", DEF_DB_TABLE_PJSIP_ENDPOINT);
     return false;
@@ -704,7 +704,7 @@ static bool init_pjsip_database_endpoint(void)
  * @param req
  * @param data
  */
-void htp_get_pjsip_endpoints(evhtp_request_t *req, void *data)
+void pjsip_htp_get_pjsip_endpoints(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
@@ -715,7 +715,7 @@ void htp_get_pjsip_endpoints(evhtp_request_t *req, void *data)
   }
   slog(LOG_DEBUG, "Fired htp_get_pjsip_endpoints.");
 
-  j_tmp = get_pjsip_endpoints_all();
+  j_tmp = pjsip_get_endpoints_all();
 
   // create result
   j_res = http_create_default_result(EVHTP_RES_OK);
@@ -735,7 +735,7 @@ void htp_get_pjsip_endpoints(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_post_pjsip_endpoints(evhtp_request_t *req, void *data)
+void pjsip_htp_post_pjsip_endpoints(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_data;
@@ -779,7 +779,7 @@ void htp_post_pjsip_endpoints(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_pjsip_endpoints_detail(evhtp_request_t *req, void *data)
+void pjsip_htp_get_pjsip_endpoints_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
@@ -800,7 +800,7 @@ void htp_get_pjsip_endpoints_detail(evhtp_request_t *req, void *data)
   }
 
   // get info
-  j_tmp = get_pjsip_endpoint_info(detail);
+  j_tmp = pjsip_get_endpoint_info(detail);
   sfree(detail);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get name info.");
@@ -824,7 +824,7 @@ void htp_get_pjsip_endpoints_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_put_pjsip_endpoints_detail(evhtp_request_t *req, void *data)
+void pjsip_htp_put_pjsip_endpoints_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_data;
@@ -878,7 +878,7 @@ void htp_put_pjsip_endpoints_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_delete_pjsip_endpoints_detail(evhtp_request_t *req, void *data)
+void pjsip_htp_delete_pjsip_endpoints_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   char* detail;
@@ -923,7 +923,7 @@ void htp_delete_pjsip_endpoints_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_pjsip_aors(evhtp_request_t *req, void *data)
+void pjsip_htp_get_pjsip_aors(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
@@ -934,7 +934,7 @@ void htp_get_pjsip_aors(evhtp_request_t *req, void *data)
   }
   slog(LOG_DEBUG, "Fired htp_get_pjsip_aors.");
 
-  j_tmp = get_pjsip_aors_all();
+  j_tmp = pjsip_get_aors_all();
 
   // create result
   j_res = http_create_default_result(EVHTP_RES_OK);
@@ -954,7 +954,7 @@ void htp_get_pjsip_aors(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_post_pjsip_aors(evhtp_request_t *req, void *data)
+void pjsip_htp_post_pjsip_aors(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_data;
@@ -997,7 +997,7 @@ void htp_post_pjsip_aors(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_pjsip_aors_detail(evhtp_request_t *req, void *data)
+void pjsip_htp_get_pjsip_aors_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
@@ -1017,7 +1017,7 @@ void htp_get_pjsip_aors_detail(evhtp_request_t *req, void *data)
   }
 
   // get info
-  j_tmp = get_pjsip_aor_info(detail);
+  j_tmp = pjsip_get_aor_info(detail);
   sfree(detail);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get name info.");
@@ -1041,7 +1041,7 @@ void htp_get_pjsip_aors_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_put_pjsip_aors_detail(evhtp_request_t *req, void *data)
+void pjsip_htp_put_pjsip_aors_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_data;
@@ -1095,7 +1095,7 @@ void htp_put_pjsip_aors_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_delete_pjsip_aors_detail(evhtp_request_t *req, void *data)
+void pjsip_htp_delete_pjsip_aors_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   char* detail;
@@ -1140,7 +1140,7 @@ void htp_delete_pjsip_aors_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_pjsip_auths(evhtp_request_t *req, void *data)
+void pjsip_htp_get_pjsip_auths(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
@@ -1151,7 +1151,7 @@ void htp_get_pjsip_auths(evhtp_request_t *req, void *data)
   }
   slog(LOG_DEBUG, "Fired htp_get_pjsip_auths.");
 
-  j_tmp = get_pjsip_auths_all();
+  j_tmp = pjsip_get_auths_all();
 
   // create result
   j_res = http_create_default_result(EVHTP_RES_OK);
@@ -1171,7 +1171,7 @@ void htp_get_pjsip_auths(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_post_pjsip_auths(evhtp_request_t *req, void *data)
+void pjsip_htp_post_pjsip_auths(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_data;
@@ -1214,7 +1214,7 @@ void htp_post_pjsip_auths(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_pjsip_auths_detail(evhtp_request_t *req, void *data)
+void pjsip_htp_get_pjsip_auths_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
@@ -1234,7 +1234,7 @@ void htp_get_pjsip_auths_detail(evhtp_request_t *req, void *data)
   }
 
   // get info
-  j_tmp = get_pjsip_auth_info(detail);
+  j_tmp = pjsip_get_auth_info(detail);
   sfree(detail);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get name info.");
@@ -1258,7 +1258,7 @@ void htp_get_pjsip_auths_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_put_pjsip_auths_detail(evhtp_request_t *req, void *data)
+void pjsip_htp_put_pjsip_auths_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_data;
@@ -1312,7 +1312,7 @@ void htp_put_pjsip_auths_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_delete_pjsip_auths_detail(evhtp_request_t *req, void *data)
+void pjsip_htp_delete_pjsip_auths_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   char* detail;
@@ -1357,7 +1357,7 @@ void htp_delete_pjsip_auths_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_pjsip_contacts(evhtp_request_t *req, void *data)
+void pjsip_htp_get_pjsip_contacts(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
@@ -1368,7 +1368,7 @@ void htp_get_pjsip_contacts(evhtp_request_t *req, void *data)
   }
   slog(LOG_DEBUG, "Fired htp_get_pjsip_contacts.");
 
-  j_tmp = get_pjsip_contacts_all();
+  j_tmp = pjsip_get_contacts_all();
 
   // create result
   j_res = http_create_default_result(EVHTP_RES_OK);
@@ -1388,7 +1388,7 @@ void htp_get_pjsip_contacts(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_post_pjsip_contacts(evhtp_request_t *req, void *data)
+void pjsip_htp_post_pjsip_contacts(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_data;
@@ -1431,7 +1431,7 @@ void htp_post_pjsip_contacts(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_pjsip_contacts_detail(evhtp_request_t *req, void *data)
+void pjsip_htp_get_pjsip_contacts_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
@@ -1452,7 +1452,7 @@ void htp_get_pjsip_contacts_detail(evhtp_request_t *req, void *data)
   }
 
   // get info
-  j_tmp = get_pjsip_contact_info(detail);
+  j_tmp = pjsip_get_contact_info(detail);
   sfree(detail);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get name info.");
@@ -1476,7 +1476,7 @@ void htp_get_pjsip_contacts_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_put_pjsip_contacts_detail(evhtp_request_t *req, void *data)
+void pjsip_htp_put_pjsip_contacts_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_data;
@@ -1530,7 +1530,7 @@ void htp_put_pjsip_contacts_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_delete_pjsip_contacts_detail(evhtp_request_t *req, void *data)
+void pjsip_htp_delete_pjsip_contacts_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   char* detail;
@@ -1575,7 +1575,7 @@ void htp_delete_pjsip_contacts_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_post_pjsip_identifies(evhtp_request_t *req, void *data)
+void pjsip_htp_post_pjsip_identifies(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_data;
@@ -1618,7 +1618,7 @@ void htp_post_pjsip_identifies(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_put_pjsip_identifies_detail(evhtp_request_t *req, void *data)
+void pjsip_htp_put_pjsip_identifies_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_data;
@@ -1672,7 +1672,7 @@ void htp_put_pjsip_identifies_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_delete_pjsip_identifies_detail(evhtp_request_t *req, void *data)
+void pjsip_htp_delete_pjsip_identifies_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   char* detail;
@@ -1717,7 +1717,7 @@ void htp_delete_pjsip_identifies_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_post_pjsip_registrations(evhtp_request_t *req, void *data)
+void pjsip_htp_post_pjsip_registrations(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_data;
@@ -1760,7 +1760,7 @@ void htp_post_pjsip_registrations(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_put_pjsip_registrations_detail(evhtp_request_t *req, void *data)
+void pjsip_htp_put_pjsip_registrations_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_data;
@@ -1814,7 +1814,7 @@ void htp_put_pjsip_registrations_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_delete_pjsip_registrations_detail(evhtp_request_t *req, void *data)
+void pjsip_htp_delete_pjsip_registrations_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   char* detail;
@@ -1860,7 +1860,7 @@ void htp_delete_pjsip_registrations_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_post_pjsip_transports(evhtp_request_t *req, void *data)
+void pjsip_htp_post_pjsip_transports(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_data;
@@ -1903,7 +1903,7 @@ void htp_post_pjsip_transports(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_put_pjsip_transports_detail(evhtp_request_t *req, void *data)
+void pjsip_htp_put_pjsip_transports_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_data;
@@ -1957,7 +1957,7 @@ void htp_put_pjsip_transports_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_delete_pjsip_transports_detail(evhtp_request_t *req, void *data)
+void pjsip_htp_delete_pjsip_transports_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   char* detail;
@@ -2001,7 +2001,7 @@ void htp_delete_pjsip_transports_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_pjsip_config(evhtp_request_t *req, void *data)
+void pjsip_htp_get_pjsip_config(evhtp_request_t *req, void *data)
 {
   char* res;
   json_t* j_res;
@@ -2013,7 +2013,7 @@ void htp_get_pjsip_config(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_pjsip_config.");
 
   // get info
-  res = get_ast_current_config_info_text(DEF_PJSIP_CONFNAME);
+  res = conf_get_ast_current_config_info_text(DEF_PJSIP_CONFNAME);
   if(res == NULL) {
     slog(LOG_ERR, "Could not get pjsip conf.");
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
@@ -2037,7 +2037,7 @@ void htp_get_pjsip_config(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_put_pjsip_config(evhtp_request_t *req, void *data)
+void pjsip_htp_put_pjsip_config(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   char* req_data;
@@ -2057,7 +2057,7 @@ void htp_put_pjsip_config(evhtp_request_t *req, void *data)
   }
 
   // update config
-  ret = update_ast_current_config_info_text(DEF_PJSIP_CONFNAME, req_data);
+  ret = conf_update_ast_current_config_info_text(DEF_PJSIP_CONFNAME, req_data);
   sfree(req_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update pjsip config info.");
@@ -2080,7 +2080,7 @@ void htp_put_pjsip_config(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_pjsip_configs(evhtp_request_t *req, void *data)
+void pjsip_htp_get_pjsip_configs(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
@@ -2092,7 +2092,7 @@ void htp_get_pjsip_configs(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_pjsip_configs.");
 
   // get info
-  j_tmp = get_ast_backup_configs_info_all(DEF_PJSIP_CONFNAME);
+  j_tmp = conf_get_ast_backup_configs_info_all(DEF_PJSIP_CONFNAME);
   if(j_tmp == NULL) {
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
@@ -2115,7 +2115,7 @@ void htp_get_pjsip_configs(evhtp_request_t *req, void *data)
 * @param req
 * @param data
 */
-void htp_get_pjsip_configs_detail(evhtp_request_t *req, void *data)
+void pjsip_htp_get_pjsip_configs_detail(evhtp_request_t *req, void *data)
 {
  json_t* j_res;
  char* res;
@@ -2136,7 +2136,7 @@ void htp_get_pjsip_configs_detail(evhtp_request_t *req, void *data)
  }
 
  // get info
- res = get_ast_backup_config_info_text_valid(detail, DEF_PJSIP_CONFNAME);
+ res = conf_get_ast_backup_config_info_text_valid(detail, DEF_PJSIP_CONFNAME);
  sfree(detail);
  if(res == NULL) {
    slog(LOG_NOTICE, "Could not find config info.");
@@ -2161,7 +2161,7 @@ void htp_get_pjsip_configs_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_delete_pjsip_configs_detail(evhtp_request_t *req, void *data)
+void pjsip_htp_delete_pjsip_configs_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   char* detail;
@@ -2182,7 +2182,7 @@ void htp_delete_pjsip_configs_detail(evhtp_request_t *req, void *data)
   }
 
   // remove it
-  ret = remove_ast_backup_config_info_valid(detail, DEF_PJSIP_CONFNAME);
+  ret = conf_remove_ast_backup_config_info_valid(detail, DEF_PJSIP_CONFNAME);
   sfree(detail);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not delete backup config file.");
@@ -2206,7 +2206,7 @@ void htp_delete_pjsip_configs_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_pjsip_settings_detail(evhtp_request_t *req, void *data)
+void pjsip_htp_get_pjsip_settings_detail(evhtp_request_t *req, void *data)
 {
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -2226,7 +2226,7 @@ void htp_get_pjsip_settings_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_put_pjsip_settings_detail(evhtp_request_t *req, void *data)
+void pjsip_htp_put_pjsip_settings_detail(evhtp_request_t *req, void *data)
 {
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -2246,7 +2246,7 @@ void htp_put_pjsip_settings_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_delete_pjsip_settings_detail(evhtp_request_t *req, void *data)
+void pjsip_htp_delete_pjsip_settings_detail(evhtp_request_t *req, void *data)
 {
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -2266,7 +2266,7 @@ void htp_delete_pjsip_settings_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_pjsip_settings(evhtp_request_t *req, void *data)
+void pjsip_htp_get_pjsip_settings(evhtp_request_t *req, void *data)
 {
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -2286,7 +2286,7 @@ void htp_get_pjsip_settings(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_post_pjsip_settings(evhtp_request_t *req, void *data)
+void pjsip_htp_post_pjsip_settings(evhtp_request_t *req, void *data)
 {
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -2305,7 +2305,7 @@ void htp_post_pjsip_settings(evhtp_request_t *req, void *data)
  * @param name
  * @return
  */
-json_t* get_pjsip_endpoint_info(const char* name)
+json_t* pjsip_get_endpoint_info(const char* name)
 {
   json_t* j_res;
 
@@ -2315,7 +2315,7 @@ json_t* get_pjsip_endpoint_info(const char* name)
   }
   slog(LOG_DEBUG, "Fired get_pjsip_endpoint_info. object_name[%s]", name);
 
-  j_res = get_ast_detail_item_key_string(DEF_DB_TABLE_PJSIP_ENDPOINT, "object_name", name);
+  j_res = resource_get_ast_detail_item_key_string(DEF_DB_TABLE_PJSIP_ENDPOINT, "object_name", name);
 
   return j_res;
 }
@@ -2325,13 +2325,13 @@ json_t* get_pjsip_endpoint_info(const char* name)
  * @param name
  * @return
  */
-json_t* get_pjsip_endpoints_all(void)
+json_t* pjsip_get_endpoints_all(void)
 {
   json_t* j_res;
 
   slog(LOG_DEBUG, "Fired get_pjsip_endpoints_all.");
 
-  j_res = get_ast_items(DEF_DB_TABLE_PJSIP_ENDPOINT, "*");
+  j_res = resource_get_ast_items(DEF_DB_TABLE_PJSIP_ENDPOINT, "*");
 
   return j_res;
 }
@@ -2341,13 +2341,13 @@ json_t* get_pjsip_endpoints_all(void)
  * @param name
  * @return
  */
-json_t* get_pjsip_aors_all(void)
+json_t* pjsip_get_aors_all(void)
 {
   json_t* j_res;
 
   slog(LOG_DEBUG, "Fired pjsip_aor.");
 
-  j_res = get_ast_items(DEF_DB_TABLE_PJSIP_AOR, "*");
+  j_res = resource_get_ast_items(DEF_DB_TABLE_PJSIP_AOR, "*");
 
   return j_res;
 }
@@ -2357,7 +2357,7 @@ json_t* get_pjsip_aors_all(void)
  * @param name
  * @return
  */
-json_t* get_pjsip_aor_info(const char* key)
+json_t* pjsip_get_aor_info(const char* key)
 {
   json_t* j_res;
 
@@ -2367,7 +2367,7 @@ json_t* get_pjsip_aor_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired get_pjsip_aors_info.");
 
-  j_res = get_ast_detail_item_key_string(DEF_DB_TABLE_PJSIP_AOR, "object_name", key);
+  j_res = resource_get_ast_detail_item_key_string(DEF_DB_TABLE_PJSIP_AOR, "object_name", key);
 
   return j_res;
 }
@@ -2377,13 +2377,13 @@ json_t* get_pjsip_aor_info(const char* key)
  * @param name
  * @return
  */
-json_t* get_pjsip_auths_all(void)
+json_t* pjsip_get_auths_all(void)
 {
   json_t* j_res;
 
   slog(LOG_DEBUG, "Fired get_pjsip_auths_all.");
 
-  j_res = get_ast_items(DEF_DB_TABLE_PJSIP_AUTH, "*");
+  j_res = resource_get_ast_items(DEF_DB_TABLE_PJSIP_AUTH, "*");
 
   return j_res;
 }
@@ -2393,7 +2393,7 @@ json_t* get_pjsip_auths_all(void)
  * @param name
  * @return
  */
-json_t* get_pjsip_auth_info(const char* key)
+json_t* pjsip_get_auth_info(const char* key)
 {
   json_t* j_res;
 
@@ -2403,7 +2403,7 @@ json_t* get_pjsip_auth_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired get_pjsip_auth_info.");
 
-  j_res = get_ast_detail_item_key_string(DEF_DB_TABLE_PJSIP_AUTH, "object_name", key);
+  j_res = resource_get_ast_detail_item_key_string(DEF_DB_TABLE_PJSIP_AUTH, "object_name", key);
 
   return j_res;
 }
@@ -2413,13 +2413,13 @@ json_t* get_pjsip_auth_info(const char* key)
  * @param name
  * @return
  */
-json_t* get_pjsip_contacts_all(void)
+json_t* pjsip_get_contacts_all(void)
 {
   json_t* j_res;
 
   slog(LOG_DEBUG, "Fired get_pjsip_contacts_all.");
 
-  j_res = get_ast_items(DEF_DB_TABLE_PJSIP_CONTACT, "*");
+  j_res = resource_get_ast_items(DEF_DB_TABLE_PJSIP_CONTACT, "*");
 
   return j_res;
 }
@@ -2429,7 +2429,7 @@ json_t* get_pjsip_contacts_all(void)
  * @param name
  * @return
  */
-json_t* get_pjsip_contact_info(const char* key)
+json_t* pjsip_get_contact_info(const char* key)
 {
   json_t* j_res;
 
@@ -2439,7 +2439,7 @@ json_t* get_pjsip_contact_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired get_pjsip_contact_info.");
 
-  j_res = get_ast_detail_item_key_string(DEF_DB_TABLE_PJSIP_CONTACT, "uri", key);
+  j_res = resource_get_ast_detail_item_key_string(DEF_DB_TABLE_PJSIP_CONTACT, "uri", key);
 
   return j_res;
 }
@@ -2450,7 +2450,7 @@ json_t* get_pjsip_contact_info(const char* key)
  * @param j_data
  * @return
  */
-bool create_pjsip_endpoint_info(const json_t* j_data)
+bool pjsip_create_endpoint_info(const json_t* j_data)
 {
   int ret;
   const char* tmp_const;
@@ -2463,7 +2463,7 @@ bool create_pjsip_endpoint_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired create_pjsip_endpoint_info.");
 
   // insert queue info
-  ret = insert_ast_item(DEF_DB_TABLE_PJSIP_ENDPOINT, j_data);
+  ret = resource_insert_ast_item(DEF_DB_TABLE_PJSIP_ENDPOINT, j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert pjsip endpoint.");
     return false;
@@ -2472,14 +2472,14 @@ bool create_pjsip_endpoint_info(const json_t* j_data)
   // publish
   // get info
   tmp_const = json_string_value(json_object_get(j_data, "object_name"));
-  j_tmp = get_pjsip_endpoint_info(tmp_const);
+  j_tmp = pjsip_get_endpoint_info(tmp_const);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get pjsip_endpoint info. id[%s]", tmp_const);
     return false;
   }
 
   // publish event
-  ret = publish_event_pjsip_endpoint(DEF_PUB_TYPE_CREATE, j_tmp);
+  ret = publication_publish_event_pjsip_endpoint(DEF_PUB_TYPE_CREATE, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not publish event.");
@@ -2494,7 +2494,7 @@ bool create_pjsip_endpoint_info(const json_t* j_data)
  * @param j_data
  * @return
  */
-bool update_pjsip_endpoint_info(const json_t* j_data)
+bool pjsip_update_endpoint_info(const json_t* j_data)
 {
   int ret;
   const char* tmp_const;
@@ -2506,7 +2506,7 @@ bool update_pjsip_endpoint_info(const json_t* j_data)
   }
   slog(LOG_DEBUG, "Fired update_pjsip_endpoint_info.");
 
-  ret = update_ast_item(DEF_DB_TABLE_PJSIP_ENDPOINT, "object_name", j_data);
+  ret = resource_update_ast_item(DEF_DB_TABLE_PJSIP_ENDPOINT, "object_name", j_data);
   if(ret == false) {
     slog(LOG_WARNING, "Could not update pjsip endpoint info.");
     return false;
@@ -2515,14 +2515,14 @@ bool update_pjsip_endpoint_info(const json_t* j_data)
   // publish
   // get info
   tmp_const = json_string_value(json_object_get(j_data, "object_name"));
-  j_tmp = get_pjsip_endpoint_info(tmp_const);
+  j_tmp = pjsip_get_endpoint_info(tmp_const);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get pjsip_endpoint info. id[%s]", tmp_const);
     return false;
   }
 
   // publish event
-  ret = publish_event_pjsip_endpoint(DEF_PUB_TYPE_UPDATE, j_tmp);
+  ret = publication_publish_event_pjsip_endpoint(DEF_PUB_TYPE_UPDATE, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not publish event.");
@@ -2536,7 +2536,7 @@ bool update_pjsip_endpoint_info(const json_t* j_data)
  * delete pjsip endpoint info.
  * @return
  */
-bool delete_pjsip_endpoint_info(const char* key)
+bool pjsip_pjsip_endpoint_info(const char* key)
 {
   int ret;
   json_t* j_tmp;
@@ -2548,14 +2548,14 @@ bool delete_pjsip_endpoint_info(const char* key)
   slog(LOG_DEBUG, "Fired delete_pjsip_endpoint_info. key[%s]", key);
 
   // get info
-  j_tmp = get_pjsip_endpoint_info(key);
+  j_tmp = pjsip_get_endpoint_info(key);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get pjsip_endpoint info. id[%s]", key);
     return false;
   }
 
   // delete info
-  ret = delete_ast_items_string(DEF_DB_TABLE_PJSIP_ENDPOINT, "object_name", key);
+  ret = resource_delete_ast_items_string(DEF_DB_TABLE_PJSIP_ENDPOINT, "object_name", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete pjsip_endpoint info. key[%s]", key);
     json_decref(j_tmp);
@@ -2564,7 +2564,7 @@ bool delete_pjsip_endpoint_info(const char* key)
 
   // publish
   // publish event
-  ret = publish_event_pjsip_endpoint(DEF_PUB_TYPE_DELETE, j_tmp);
+  ret = publication_publish_event_pjsip_endpoint(DEF_PUB_TYPE_DELETE, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not publish event.");
@@ -2579,7 +2579,7 @@ bool delete_pjsip_endpoint_info(const char* key)
  * @param j_data
  * @return
  */
-bool create_pjsip_auth_info(const json_t* j_data)
+bool pjsip_create_auth_info(const json_t* j_data)
 {
   int ret;
   const char* tmp_const;
@@ -2592,7 +2592,7 @@ bool create_pjsip_auth_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired create_pjsip_auth_info.");
 
   // insert queue info
-  ret = insert_ast_item(DEF_DB_TABLE_PJSIP_AUTH, j_data);
+  ret = resource_insert_ast_item(DEF_DB_TABLE_PJSIP_AUTH, j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert pjsip auth.");
     return false;
@@ -2601,14 +2601,14 @@ bool create_pjsip_auth_info(const json_t* j_data)
   // publish
   // get info
   tmp_const = json_string_value(json_object_get(j_data, "object_name"));
-  j_tmp = get_pjsip_auth_info(tmp_const);
+  j_tmp = pjsip_get_auth_info(tmp_const);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get pjsip_auth info. object_name[%s]", tmp_const);
     return false;
   }
 
   // publish event
-  ret = publish_event_pjsip_auth(DEF_PUB_TYPE_CREATE, j_tmp);
+  ret = publication_publish_event_pjsip_auth(DEF_PUB_TYPE_CREATE, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not publish event.");
@@ -2623,7 +2623,7 @@ bool create_pjsip_auth_info(const json_t* j_data)
  * @param j_data
  * @return
  */
-bool update_pjsip_auth_info(const json_t* j_data)
+bool pjsip_update_auth_info(const json_t* j_data)
 {
   int ret;
   json_t* j_tmp;
@@ -2636,7 +2636,7 @@ bool update_pjsip_auth_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired update_pjsip_auth_info.");
 
   // update
-  ret = update_ast_item(DEF_DB_TABLE_PJSIP_AUTH, "object_name", j_data);
+  ret = resource_update_ast_item(DEF_DB_TABLE_PJSIP_AUTH, "object_name", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update pjsip_auth info.");
     return false;
@@ -2645,14 +2645,14 @@ bool update_pjsip_auth_info(const json_t* j_data)
   // publish
   // get info
   tmp_const = json_string_value(json_object_get(j_data, "object_name"));
-  j_tmp = get_pjsip_auth_info(tmp_const);
+  j_tmp = pjsip_get_auth_info(tmp_const);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get pjsip_auth info. object_name[%s]", tmp_const);
     return false;
   }
 
   // publish event
-  ret = publish_event_pjsip_auth(DEF_PUB_TYPE_UPDATE, j_tmp);
+  ret = publication_publish_event_pjsip_auth(DEF_PUB_TYPE_UPDATE, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not publish event.");
@@ -2666,7 +2666,7 @@ bool update_pjsip_auth_info(const json_t* j_data)
  * delete pjsip auth info.
  * @return
  */
-bool delete_pjsip_auth_info(const char* key)
+bool pjsip_delete_auth_info(const char* key)
 {
   int ret;
   json_t* j_tmp;
@@ -2678,13 +2678,13 @@ bool delete_pjsip_auth_info(const char* key)
   slog(LOG_DEBUG, "Fired delete_pjsip_auth_info. key[%s]", key);
 
   // get info
-  j_tmp = get_pjsip_auth_info(key);
+  j_tmp = pjsip_get_auth_info(key);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get pjsip_auth info. object_name[%s]", key);
     return false;
   }
 
-  ret = delete_ast_items_string(DEF_DB_TABLE_PJSIP_AUTH, "object_name", key);
+  ret = resource_delete_ast_items_string(DEF_DB_TABLE_PJSIP_AUTH, "object_name", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete pjsip_auth info. key[%s]", key);
     json_decref(j_tmp);
@@ -2693,7 +2693,7 @@ bool delete_pjsip_auth_info(const char* key)
 
   // publish
   // publish event
-  ret = publish_event_pjsip_auth(DEF_PUB_TYPE_DELETE, j_tmp);
+  ret = publication_publish_event_pjsip_auth(DEF_PUB_TYPE_DELETE, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not publish event.");
@@ -2708,7 +2708,7 @@ bool delete_pjsip_auth_info(const char* key)
  * @param j_data
  * @return
  */
-bool create_pjsip_aor_info(const json_t* j_data)
+bool pjsip_create_aor_info(const json_t* j_data)
 {
   int ret;
   const char* tmp_const;
@@ -2721,7 +2721,7 @@ bool create_pjsip_aor_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired create_pjsip_aor_info.");
 
   // insert queue info
-  ret = insert_ast_item(DEF_DB_TABLE_PJSIP_AOR, j_data);
+  ret = resource_insert_ast_item(DEF_DB_TABLE_PJSIP_AOR, j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert pjsip aor.");
     return false;
@@ -2730,14 +2730,14 @@ bool create_pjsip_aor_info(const json_t* j_data)
   // publish
   // get info
   tmp_const = json_string_value(json_object_get(j_data, "object_name"));
-  j_tmp = get_pjsip_aor_info(tmp_const);
+  j_tmp = pjsip_get_aor_info(tmp_const);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get pjsip_aor info. object_name[%s]", tmp_const);
     return false;
   }
 
   // publish event
-  ret = publish_event_pjsip_aor(DEF_PUB_TYPE_CREATE, j_tmp);
+  ret = publication_publish_event_pjsip_aor(DEF_PUB_TYPE_CREATE, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not publish event.");
@@ -2752,7 +2752,7 @@ bool create_pjsip_aor_info(const json_t* j_data)
  * @param j_data
  * @return
  */
-bool update_pjsip_aor_info(const json_t* j_data)
+bool pjsip_update_aor_info(const json_t* j_data)
 {
   int ret;
   const char* tmp_const;
@@ -2765,7 +2765,7 @@ bool update_pjsip_aor_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired update_pjsip_aor_info.");
 
   // update
-  ret = update_ast_item(DEF_DB_TABLE_PJSIP_AOR, "object_name", j_data);
+  ret = resource_update_ast_item(DEF_DB_TABLE_PJSIP_AOR, "object_name", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update pjsip_aor info.");
     return false;
@@ -2774,14 +2774,14 @@ bool update_pjsip_aor_info(const json_t* j_data)
   // publish
   // get info
   tmp_const = json_string_value(json_object_get(j_data, "object_name"));
-  j_tmp = get_pjsip_aor_info(tmp_const);
+  j_tmp = pjsip_get_aor_info(tmp_const);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get pjsip_aor info. object_name[%s]", tmp_const);
     return false;
   }
 
   // publish event
-  ret = publish_event_pjsip_aor(DEF_PUB_TYPE_UPDATE, j_tmp);
+  ret = publication_publish_event_pjsip_aor(DEF_PUB_TYPE_UPDATE, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not publish event.");
@@ -2796,7 +2796,7 @@ bool update_pjsip_aor_info(const json_t* j_data)
  * delete pjsip aor info.
  * @return
  */
-bool delete_pjsip_aor_info(const char* key)
+bool pjsip_delete_aor_info(const char* key)
 {
   int ret;
   json_t* j_tmp;
@@ -2809,20 +2809,20 @@ bool delete_pjsip_aor_info(const char* key)
 
   // publish
   // get info
-  j_tmp = get_pjsip_aor_info(key);
+  j_tmp = pjsip_get_aor_info(key);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get pjsip_aor info. object_name[%s]", key);
     return false;
   }
 
-  ret = delete_ast_items_string(DEF_DB_TABLE_PJSIP_AOR, "object_name", key);
+  ret = resource_delete_ast_items_string(DEF_DB_TABLE_PJSIP_AOR, "object_name", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete pjsip_aor info. key[%s]", key);
     return false;
   }
 
   // publish event
-  ret = publish_event_pjsip_aor(DEF_PUB_TYPE_DELETE, j_tmp);
+  ret = publication_publish_event_pjsip_aor(DEF_PUB_TYPE_DELETE, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not publish event.");
@@ -2837,7 +2837,7 @@ bool delete_pjsip_aor_info(const char* key)
  * @param j_data
  * @return
  */
-bool create_pjsip_contact_info(const json_t* j_data)
+bool pjsip_create_contact_info(const json_t* j_data)
 {
   int ret;
   const char* tmp_const;
@@ -2850,7 +2850,7 @@ bool create_pjsip_contact_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired create_pjsip_contact_info.");
 
   // insert info
-  ret = insert_ast_item(DEF_DB_TABLE_PJSIP_CONTACT, j_data);
+  ret = resource_insert_ast_item(DEF_DB_TABLE_PJSIP_CONTACT, j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert pjsip contact.");
     return false;
@@ -2859,14 +2859,14 @@ bool create_pjsip_contact_info(const json_t* j_data)
   // publish
   // get info
   tmp_const = json_string_value(json_object_get(j_data, "uri"));
-  j_tmp = get_pjsip_contact_info(tmp_const);
+  j_tmp = pjsip_get_contact_info(tmp_const);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get pjsip_contact info. uri[%s]", tmp_const);
     return false;
   }
 
   // publish event
-  ret = publish_event_pjsip_contact(DEF_PUB_TYPE_CREATE, j_tmp);
+  ret = publication_publish_event_pjsip_contact(DEF_PUB_TYPE_CREATE, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not publish event.");
@@ -2881,7 +2881,7 @@ bool create_pjsip_contact_info(const json_t* j_data)
  * @param j_data
  * @return
  */
-bool update_pjsip_contact_info(const json_t* j_data)
+bool pjsip_update_contact_info(const json_t* j_data)
 {
   int ret;
   const char* tmp_const;
@@ -2894,7 +2894,7 @@ bool update_pjsip_contact_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired update_pjsip_contact_info.");
 
   // update
-  ret = update_ast_item(DEF_DB_TABLE_PJSIP_CONTACT, "uri", j_data);
+  ret = resource_update_ast_item(DEF_DB_TABLE_PJSIP_CONTACT, "uri", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update pjsip_contact info.");
     return false;
@@ -2903,14 +2903,14 @@ bool update_pjsip_contact_info(const json_t* j_data)
   // publish
   // get info
   tmp_const = json_string_value(json_object_get(j_data, "uri"));
-  j_tmp = get_pjsip_contact_info(tmp_const);
+  j_tmp = pjsip_get_contact_info(tmp_const);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get pjsip_contact info. uri[%s]", tmp_const);
     return false;
   }
 
   // publish event
-  ret = publish_event_pjsip_contact(DEF_PUB_TYPE_UPDATE, j_tmp);
+  ret = publication_publish_event_pjsip_contact(DEF_PUB_TYPE_UPDATE, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not publish event.");
@@ -2924,7 +2924,7 @@ bool update_pjsip_contact_info(const json_t* j_data)
  * delete pjsip contact info.
  * @return
  */
-bool delete_pjsip_contact_info(const char* key)
+bool pjsip_delete_contact_info(const char* key)
 {
   int ret;
   json_t* j_tmp;
@@ -2936,13 +2936,13 @@ bool delete_pjsip_contact_info(const char* key)
   slog(LOG_DEBUG, "Fired delete_pjsip_contact_info. key[%s]", key);
 
   // get info
-  j_tmp = get_pjsip_contact_info(key);
+  j_tmp = pjsip_get_contact_info(key);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get pjsip_contact info. uri[%s]", key);
     return false;
   }
 
-  ret = delete_ast_items_string(DEF_DB_TABLE_PJSIP_CONTACT, "uri", key);
+  ret = resource_delete_ast_items_string(DEF_DB_TABLE_PJSIP_CONTACT, "uri", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete pjsip_contact info. key[%s]", key);
     json_decref(j_tmp);
@@ -2951,7 +2951,7 @@ bool delete_pjsip_contact_info(const char* key)
 
   // publish
   // publish event
-  ret = publish_event_pjsip_contact(DEF_PUB_TYPE_DELETE, j_tmp);
+  ret = publication_publish_event_pjsip_contact(DEF_PUB_TYPE_DELETE, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not publish event.");
@@ -2970,25 +2970,25 @@ static bool term_pjsip_databases(void)
 {
   int ret;
 
-  ret = clear_ast_table(DEF_DB_TABLE_PJSIP_AOR);
+  ret = resource_clear_ast_table(DEF_DB_TABLE_PJSIP_AOR);
   if(ret == false) {
     slog(LOG_ERR, "Could not clear pjsip_aor");
     return false;
   }
 
-  ret = clear_ast_table(DEF_DB_TABLE_PJSIP_AUTH);
+  ret = resource_clear_ast_table(DEF_DB_TABLE_PJSIP_AUTH);
   if(ret == false) {
     slog(LOG_ERR, "Could not clear pjsip_auth");
     return false;
   }
 
-  ret = clear_ast_table(DEF_DB_TABLE_PJSIP_CONTACT);
+  ret = resource_clear_ast_table(DEF_DB_TABLE_PJSIP_CONTACT);
   if(ret == false) {
     slog(LOG_ERR, "Could not clear pjsip_contact");
     return false;
   }
 
-  ret = clear_ast_table(DEF_DB_TABLE_PJSIP_ENDPOINT);
+  ret = resource_clear_ast_table(DEF_DB_TABLE_PJSIP_ENDPOINT);
   if(ret == false) {
     slog(LOG_ERR, "Could not clear pjsip_endpoint");
     return false;
@@ -3548,43 +3548,43 @@ static bool create_config_pjsip_type(enum EN_OBJ_TYPES type, const json_t* j_dat
   switch(type) {
     case EN_TYPE_AOR: {
       json_object_set_new(j_tmp, "type", json_string("aor"));
-      ret = create_ast_setting(DEF_PJSIP_CONFNAME_AOR, name, j_tmp);
+      ret = conf_create_ast_setting(DEF_PJSIP_CONFNAME_AOR, name, j_tmp);
     }
     break;
 
     case EN_TYPE_AUTH: {
       json_object_set_new(j_tmp, "type", json_string("auth"));
-      ret = create_ast_setting(DEF_PJSIP_CONFNAME_AUTH, name, j_tmp);
+      ret = conf_create_ast_setting(DEF_PJSIP_CONFNAME_AUTH, name, j_tmp);
     }
     break;
 
     case EN_TYPE_CONTACT: {
       json_object_set_new(j_tmp, "type", json_string("contact"));
-      ret = create_ast_setting(DEF_PJSIP_CONFNAME_CONTACT, name, j_tmp);
+      ret = conf_create_ast_setting(DEF_PJSIP_CONFNAME_CONTACT, name, j_tmp);
     }
     break;
 
     case EN_TYPE_ENDPOINT: {
       json_object_set_new(j_tmp, "type", json_string("endpoint"));
-      ret = create_ast_setting(DEF_PJSIP_CONFNAME_ENDPOINT, name, j_tmp);
+      ret = conf_create_ast_setting(DEF_PJSIP_CONFNAME_ENDPOINT, name, j_tmp);
     }
     break;
 
     case EN_TYPE_IDENTIFY: {
       json_object_set_new(j_tmp, "type", json_string("identify"));
-      ret = create_ast_setting(DEF_PJSIP_CONFNAME_IDENTIFY, name, j_tmp);
+      ret = conf_create_ast_setting(DEF_PJSIP_CONFNAME_IDENTIFY, name, j_tmp);
     }
     break;
 
     case EN_TYPE_REGISTRATION: {
       json_object_set_new(j_tmp, "type", json_string("registration"));
-      ret = create_ast_setting(DEF_PJSIP_CONFNAME_REGISTRATION, name, j_tmp);
+      ret = conf_create_ast_setting(DEF_PJSIP_CONFNAME_REGISTRATION, name, j_tmp);
     }
     break;
 
     case EN_TYPE_TRANSPORT: {
       json_object_set_new(j_tmp, "type", json_string("transport"));
-      ret = create_ast_setting(DEF_PJSIP_CONFNAME_TRANSPORT, name, j_tmp);
+      ret = conf_create_ast_setting(DEF_PJSIP_CONFNAME_TRANSPORT, name, j_tmp);
     }
     break;
 
@@ -3629,43 +3629,43 @@ static bool update_config_pjsip_type(enum EN_OBJ_TYPES type, const char* name, c
   switch(type) {
     case EN_TYPE_AOR: {
       json_object_set_new(j_tmp, "type", json_string("aor"));
-      ret = update_ast_setting(DEF_PJSIP_CONFNAME_AOR, name, j_tmp);
+      ret = conf_update_ast_setting(DEF_PJSIP_CONFNAME_AOR, name, j_tmp);
     }
     break;
 
     case EN_TYPE_AUTH: {
       json_object_set_new(j_tmp, "type", json_string("auth"));
-      ret = update_ast_setting(DEF_PJSIP_CONFNAME_AUTH, name, j_tmp);
+      ret = conf_update_ast_setting(DEF_PJSIP_CONFNAME_AUTH, name, j_tmp);
     }
     break;
 
     case EN_TYPE_CONTACT: {
       json_object_set_new(j_tmp, "type", json_string("contact"));
-      ret = update_ast_setting(DEF_PJSIP_CONFNAME_CONTACT, name, j_tmp);
+      ret = conf_update_ast_setting(DEF_PJSIP_CONFNAME_CONTACT, name, j_tmp);
     }
     break;
 
     case EN_TYPE_ENDPOINT: {
       json_object_set_new(j_tmp, "type", json_string("endpoint"));
-      ret = update_ast_setting(DEF_PJSIP_CONFNAME_ENDPOINT, name, j_tmp);
+      ret = conf_update_ast_setting(DEF_PJSIP_CONFNAME_ENDPOINT, name, j_tmp);
     }
     break;
 
     case EN_TYPE_IDENTIFY: {
       json_object_set_new(j_tmp, "type", json_string("identify"));
-      ret = update_ast_setting(DEF_PJSIP_CONFNAME_IDENTIFY, name, j_tmp);
+      ret = conf_update_ast_setting(DEF_PJSIP_CONFNAME_IDENTIFY, name, j_tmp);
     }
     break;
 
     case EN_TYPE_REGISTRATION: {
       json_object_set_new(j_tmp, "type", json_string("registration"));
-      ret = update_ast_setting(DEF_PJSIP_CONFNAME_REGISTRATION, name, j_tmp);
+      ret = conf_update_ast_setting(DEF_PJSIP_CONFNAME_REGISTRATION, name, j_tmp);
     }
     break;
 
     case EN_TYPE_TRANSPORT: {
       json_object_set_new(j_tmp, "type", json_string("transport"));
-      ret = update_ast_setting(DEF_PJSIP_CONFNAME_TRANSPORT, name, j_tmp);
+      ret = conf_update_ast_setting(DEF_PJSIP_CONFNAME_TRANSPORT, name, j_tmp);
     }
     break;
 
@@ -3702,37 +3702,37 @@ static bool delete_config_pjsip_type(enum EN_OBJ_TYPES type, const char* name)
 
   switch(type) {
     case EN_TYPE_AOR: {
-      ret = remove_ast_setting(DEF_PJSIP_CONFNAME_AOR, name);
+      ret = conf_remove_ast_setting(DEF_PJSIP_CONFNAME_AOR, name);
     }
     break;
 
     case EN_TYPE_AUTH: {
-      ret = remove_ast_setting(DEF_PJSIP_CONFNAME_AUTH, name);
+      ret = conf_remove_ast_setting(DEF_PJSIP_CONFNAME_AUTH, name);
     }
     break;
 
     case EN_TYPE_CONTACT: {
-      ret = remove_ast_setting(DEF_PJSIP_CONFNAME_CONTACT, name);
+      ret = conf_remove_ast_setting(DEF_PJSIP_CONFNAME_CONTACT, name);
     }
     break;
 
     case EN_TYPE_ENDPOINT: {
-      ret = remove_ast_setting(DEF_PJSIP_CONFNAME_ENDPOINT, name);
+      ret = conf_remove_ast_setting(DEF_PJSIP_CONFNAME_ENDPOINT, name);
     }
     break;
 
     case EN_TYPE_IDENTIFY: {
-      ret = remove_ast_setting(DEF_PJSIP_CONFNAME_IDENTIFY, name);
+      ret = conf_remove_ast_setting(DEF_PJSIP_CONFNAME_IDENTIFY, name);
     }
     break;
 
     case EN_TYPE_REGISTRATION: {
-      ret = remove_ast_setting(DEF_PJSIP_CONFNAME_REGISTRATION, name);
+      ret = conf_remove_ast_setting(DEF_PJSIP_CONFNAME_REGISTRATION, name);
     }
     break;
 
     case EN_TYPE_TRANSPORT: {
-      ret = remove_ast_setting(DEF_PJSIP_CONFNAME_TRANSPORT, name);
+      ret = conf_remove_ast_setting(DEF_PJSIP_CONFNAME_TRANSPORT, name);
     }
     break;
 

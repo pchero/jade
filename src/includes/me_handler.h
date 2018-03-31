@@ -10,21 +10,20 @@
 
 #include <stdbool.h>
 
-bool init_me_handler(void);
-bool reload_me_handler(void);
-void term_me_handler(void);
+bool me_init_handler(void);
+bool me_reload_handler(void);
+void me_term_handler(void);
 
+void me_htp_get_me_info(evhtp_request_t *req, void *data);
 
-void htp_get_me_info(evhtp_request_t *req, void *data);
+void me_htp_get_me_chats(evhtp_request_t *req, void *data);
+void me_htp_post_me_chats(evhtp_request_t *req, void *data);
 
-void htp_get_me_chats(evhtp_request_t *req, void *data);
-void htp_post_me_chats(evhtp_request_t *req, void *data);
+void me_htp_get_me_chats_detail(evhtp_request_t *req, void *data);
+void me_htp_put_me_chats_detail(evhtp_request_t *req, void *data);
+void me_htp_delete_me_chats_detail(evhtp_request_t *req, void *data);
 
-void htp_get_me_chats_detail(evhtp_request_t *req, void *data);
-void htp_put_me_chats_detail(evhtp_request_t *req, void *data);
-void htp_delete_me_chats_detail(evhtp_request_t *req, void *data);
-
-void htp_post_me_chats_detail_messages(evhtp_request_t *req, void *data);
-void htp_get_me_chats_detail_messages(evhtp_request_t *req, void *data);
+void me_htp_post_me_chats_detail_messages(evhtp_request_t *req, void *data);
+void me_htp_get_me_chats_detail_messages(evhtp_request_t *req, void *data);
 
 #endif /* SRC_MAIN_ME_HANDLER_H_ */

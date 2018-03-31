@@ -29,7 +29,7 @@ static bool is_setting_section(const char* section);
 
 static json_t* create_queue_info_json(json_t* j_data);
 
-bool init_queue_handler(void)
+bool queue_init_handler(void)
 {
   int ret;
   json_t* j_tmp;
@@ -40,7 +40,7 @@ bool init_queue_handler(void)
   j_tmp = json_pack("{s:s}",
       "Action", "QueueStatus"
       );
-  ret = send_ami_cmd(j_tmp);
+  ret = ami_send_cmd(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not send ami action. action[%s]", "QueueStatus");
@@ -50,7 +50,7 @@ bool init_queue_handler(void)
   return true;
 }
 
-bool term_queue_handler(void)
+bool queue_term_handler(void)
 {
   int ret;
 
@@ -75,16 +75,16 @@ bool term_queue_handler(void)
   return true;
 }
 
-bool reload_queue_handler(void)
+bool queue_reload_handler(void)
 {
   int ret;
 
-  ret = term_queue_handler();
+  ret = queue_term_handler();
   if(ret == false) {
     return false;
   }
 
-  ret = init_queue_handler();
+  ret = queue_init_handler();
   if(ret == false) {
     return false;
   }
@@ -98,7 +98,7 @@ bool reload_queue_handler(void)
  * @param req
  * @param data
  */
-void htp_get_queue_entries(evhtp_request_t *req, void *data)
+void queue_htp_get_queue_entries(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
@@ -129,7 +129,7 @@ void htp_get_queue_entries(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_queue_entries_detail(evhtp_request_t *req, void *data)
+void queue_htp_get_queue_entries_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
@@ -175,7 +175,7 @@ void htp_get_queue_entries_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_queue_members(evhtp_request_t *req, void *data)
+void queue_htp_get_queue_members(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
@@ -206,7 +206,7 @@ void htp_get_queue_members(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_queue_members_detail(evhtp_request_t *req, void *data)
+void queue_htp_get_queue_members_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
@@ -252,7 +252,7 @@ void htp_get_queue_members_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_queue_queues(evhtp_request_t *req, void *data)
+void queue_htp_get_queue_queues(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
@@ -284,7 +284,7 @@ void htp_get_queue_queues(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_post_queue_queues(evhtp_request_t *req, void *data)
+void queue_htp_post_queue_queues(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_data;
@@ -328,7 +328,7 @@ void htp_post_queue_queues(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_queue_queues_detail(evhtp_request_t *req, void *data)
+void queue_htp_get_queue_queues_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
@@ -374,7 +374,7 @@ void htp_get_queue_queues_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_put_queue_queues_detail(evhtp_request_t *req, void *data)
+void queue_htp_put_queue_queues_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_data;
@@ -430,7 +430,7 @@ void htp_put_queue_queues_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_delete_queue_queues_detail(evhtp_request_t *req, void *data)
+void queue_htp_delete_queue_queues_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   char* detail;
@@ -475,7 +475,7 @@ void htp_delete_queue_queues_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_queue_statuses(evhtp_request_t *req, void *data)
+void queue_htp_get_queue_statuses(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
@@ -507,7 +507,7 @@ void htp_get_queue_statuses(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_queue_statuses_detail(evhtp_request_t *req, void *data)
+void queue_htp_get_queue_statuses_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
@@ -547,7 +547,7 @@ void htp_get_queue_statuses_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_queue_config(evhtp_request_t *req, void *data)
+void queue_htp_get_queue_config(evhtp_request_t *req, void *data)
 {
   char* res;
   json_t* j_res;
@@ -559,7 +559,7 @@ void htp_get_queue_config(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_queue_config.");
 
   // get info
-  res = get_ast_current_config_info_text(DEF_QUEUE_CONFNAME);
+  res = conf_get_ast_current_config_info_text(DEF_QUEUE_CONFNAME);
   if(res == NULL) {
     slog(LOG_ERR, "Could not get queue conf.");
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
@@ -583,7 +583,7 @@ void htp_get_queue_config(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_put_queue_config(evhtp_request_t *req, void *data)
+void queue_htp_put_queue_config(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   char* req_data;
@@ -603,7 +603,7 @@ void htp_put_queue_config(evhtp_request_t *req, void *data)
   }
 
   // update config
-  ret = update_ast_current_config_info_text(DEF_QUEUE_CONFNAME, req_data);
+  ret = conf_update_ast_current_config_info_text(DEF_QUEUE_CONFNAME, req_data);
   sfree(req_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update queue config info.");
@@ -626,7 +626,7 @@ void htp_put_queue_config(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_queue_configs(evhtp_request_t *req, void *data)
+void queue_htp_get_queue_configs(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
@@ -638,7 +638,7 @@ void htp_get_queue_configs(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_queue_configs.");
 
   // get info
-  j_tmp = get_ast_backup_configs_info_all(DEF_QUEUE_CONFNAME);
+  j_tmp = conf_get_ast_backup_configs_info_all(DEF_QUEUE_CONFNAME);
   if(j_tmp == NULL) {
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
@@ -661,7 +661,7 @@ void htp_get_queue_configs(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_queue_configs_detail(evhtp_request_t *req, void *data)
+void queue_htp_get_queue_configs_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   char* res;
@@ -682,7 +682,7 @@ void htp_get_queue_configs_detail(evhtp_request_t *req, void *data)
   }
 
   // get info
-  res = get_ast_backup_config_info_text_valid(detail, DEF_QUEUE_CONFNAME);
+  res = conf_get_ast_backup_config_info_text_valid(detail, DEF_QUEUE_CONFNAME);
   sfree(detail);
   if(res == NULL) {
     slog(LOG_NOTICE, "Could not find config info.");
@@ -707,7 +707,7 @@ void htp_get_queue_configs_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_delete_queue_configs_detail(evhtp_request_t *req, void *data)
+void queue_htp_delete_queue_configs_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   char* detail;
@@ -728,7 +728,7 @@ void htp_delete_queue_configs_detail(evhtp_request_t *req, void *data)
   }
 
   // remove it
-  ret = remove_ast_backup_config_info_valid(detail, DEF_QUEUE_CONFNAME);
+  ret = conf_remove_ast_backup_config_info_valid(detail, DEF_QUEUE_CONFNAME);
   sfree(detail);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not delete config file.");
@@ -752,7 +752,7 @@ void htp_delete_queue_configs_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_queue_settings(evhtp_request_t *req, void *data)
+void queue_htp_get_queue_settings(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
@@ -764,7 +764,7 @@ void htp_get_queue_settings(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_queue_settings.");
 
   // get info
-  j_tmp = get_ast_settings_all(DEF_QUEUE_CONFNAME);
+  j_tmp = conf_get_ast_settings_all(DEF_QUEUE_CONFNAME);
 
   // create result
   j_res = http_create_default_result(EVHTP_RES_OK);
@@ -784,7 +784,7 @@ void htp_get_queue_settings(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_post_queue_settings(evhtp_request_t *req, void *data)
+void queue_htp_post_queue_settings(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_data;
@@ -820,7 +820,7 @@ void htp_post_queue_settings(evhtp_request_t *req, void *data)
     return;
   }
 
-  ret = create_ast_setting(DEF_QUEUE_CONFNAME, name, j_setting);
+  ret = conf_create_ast_setting(DEF_QUEUE_CONFNAME, name, j_setting);
   json_decref(j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not create queue setting.");
@@ -844,7 +844,7 @@ void htp_post_queue_settings(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_queue_settings_detail(evhtp_request_t *req, void *data)
+void queue_htp_get_queue_settings_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_tmp;
@@ -865,7 +865,7 @@ void htp_get_queue_settings_detail(evhtp_request_t *req, void *data)
   }
 
   // get setting
-  j_tmp = get_ast_setting(DEF_QUEUE_CONFNAME, detail);
+  j_tmp = conf_get_ast_setting(DEF_QUEUE_CONFNAME, detail);
   sfree(detail);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get queue setting.");
@@ -890,7 +890,7 @@ void htp_get_queue_settings_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_put_queue_settings_detail(evhtp_request_t *req, void *data)
+void queue_htp_put_queue_settings_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_data;
@@ -921,7 +921,7 @@ void htp_put_queue_settings_detail(evhtp_request_t *req, void *data)
   }
 
   // update setting
-  ret = update_ast_setting(DEF_QUEUE_CONFNAME, detail, j_data);
+  ret = conf_update_ast_setting(DEF_QUEUE_CONFNAME, detail, j_data);
   sfree(detail);
   json_decref(j_data);
   if(ret == false) {
@@ -946,7 +946,7 @@ void htp_put_queue_settings_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_delete_queue_settings_detail(evhtp_request_t *req, void *data)
+void queue_htp_delete_queue_settings_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   char* detail;
@@ -967,7 +967,7 @@ void htp_delete_queue_settings_detail(evhtp_request_t *req, void *data)
   }
 
   // delete setting
-  ret = remove_ast_setting(DEF_QUEUE_CONFNAME, detail);
+  ret = conf_remove_ast_setting(DEF_QUEUE_CONFNAME, detail);
   sfree(detail);
   if(ret == false) {
     slog(LOG_ERR, "Could not remove queue setting.");
@@ -1023,7 +1023,7 @@ static bool create_queue_info(json_t* j_data)
   }
 
   // create queue info
-  ret = create_ast_setting(DEF_QUEUE_CONFNAME, name, j_tmp);
+  ret = conf_create_ast_setting(DEF_QUEUE_CONFNAME, name, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not create queue info.");
@@ -1064,7 +1064,7 @@ static bool update_queue_info(const char* name, json_t* j_data)
   }
 
   // update queue info
-  ret = update_ast_setting(DEF_QUEUE_CONFNAME, name, j_tmp);
+  ret = conf_update_ast_setting(DEF_QUEUE_CONFNAME, name, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not update queue info.");
@@ -1097,7 +1097,7 @@ static bool delete_queue_info(const char* name)
   }
 
   // delete queue info
-  ret = remove_ast_setting(DEF_QUEUE_CONFNAME, name);
+  ret = conf_remove_ast_setting(DEF_QUEUE_CONFNAME, name);
   if(ret == false) {
     slog(LOG_ERR, "Could not update queue info.");
     return false;

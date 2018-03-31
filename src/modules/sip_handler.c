@@ -7,6 +7,7 @@
 
 #include <stdio.h>
 #include <jansson.h>
+#include <publication_handler.h>
 #include <string.h>
 
 #include "slog.h"
@@ -18,7 +19,6 @@
 #include "http_handler.h"
 #include "sip_handler.h"
 #include "resource_handler.h"
-#include "publish_handler.h"
 
 #define DEF_SIP_CONFNAME  "sip.conf"
 
@@ -40,7 +40,7 @@ static bool init_sip_info_peeraccount(void);
 static bool term_sip_database(void);
 
 
-bool init_sip_handler(void)
+bool sip_init_handler(void)
 {
   int ret;
 
@@ -63,7 +63,7 @@ bool init_sip_handler(void)
   return true;
 }
 
-bool term_sip_handler(void)
+bool sip_term_handler(void)
 {
   int ret;
 
@@ -76,16 +76,16 @@ bool term_sip_handler(void)
   return true;
 }
 
-bool reload_sip_handler(void)
+bool sip_reload_handler(void)
 {
   int ret;
 
-  ret = term_sip_handler();
+  ret = sip_term_handler();
   if(ret == false) {
     return false;
   }
 
-  ret = init_sip_handler();
+  ret = sip_init_handler();
   if(ret == false) {
     return false;
   }
@@ -133,8 +133,8 @@ static bool init_sip_database_peer(void)
       ");";
 
   // execute
-  ret = exec_ast_sql(drop_table);
-  ret = exec_ast_sql(create_table);
+  ret = resource_exec_ast_sql(drop_table);
+  ret = resource_exec_ast_sql(create_table);
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate sip_peer database.");
     return false;
@@ -174,8 +174,8 @@ static bool init_sip_database_peeraccount(void)
       ");";
 
   // execute
-  ret = exec_ast_sql(drop_table);
-  ret = exec_ast_sql(create_table);
+  ret = resource_exec_ast_sql(drop_table);
+  ret = resource_exec_ast_sql(create_table);
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate sip_peeraccount database.");
     return false;
@@ -219,8 +219,8 @@ static bool init_sip_database_registry(void)
       ");";
 
   // execute
-  ret = exec_ast_sql(drop_table);
-  ret = exec_ast_sql(create_table);
+  ret = resource_exec_ast_sql(drop_table);
+  ret = resource_exec_ast_sql(create_table);
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate sip_registry database.");
     return false;
@@ -264,7 +264,7 @@ static bool init_sip_database(void)
  * @param req
  * @param data
  */
-void htp_get_sip_peers_detail(evhtp_request_t *req, void *data)
+void sip_htp_get_sip_peers_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_tmp;
@@ -285,7 +285,7 @@ void htp_get_sip_peers_detail(evhtp_request_t *req, void *data)
   }
 
   // get peer info.
-  j_tmp = get_sip_peer_info(detail);
+  j_tmp = sip_get_peer_info(detail);
   sfree(detail);
   if(j_tmp == NULL) {
     slog(LOG_NOTICE, "Could not get peer info.");
@@ -308,7 +308,7 @@ void htp_get_sip_peers_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_sip_peers(evhtp_request_t *req, void *data)
+void sip_htp_get_sip_peers(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_tmp;
@@ -319,7 +319,7 @@ void htp_get_sip_peers(evhtp_request_t *req, void *data)
   }
   slog(LOG_INFO, "Fired htp_get_sip_peers.");
 
-  j_tmp = get_sip_peers_all();
+  j_tmp = sip_get_peers_all();
   if(j_tmp == NULL) {
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
@@ -341,7 +341,7 @@ void htp_get_sip_peers(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_sip_registries_detail(evhtp_request_t *req, void *data)
+void sip_htp_get_sip_registries_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_tmp;
@@ -362,7 +362,7 @@ void htp_get_sip_registries_detail(evhtp_request_t *req, void *data)
   }
 
   // get info.
-  j_tmp = get_sip_registry_info(detail);
+  j_tmp = sip_get_registry_info(detail);
   sfree(detail);
   if(j_tmp == NULL) {
     slog(LOG_NOTICE, "Could not get registry info.");
@@ -385,7 +385,7 @@ void htp_get_sip_registries_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_sip_registries(evhtp_request_t *req, void *data)
+void sip_htp_get_sip_registries(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_tmp;
@@ -396,7 +396,7 @@ void htp_get_sip_registries(evhtp_request_t *req, void *data)
   }
   slog(LOG_INFO, "Fired htp_get_sip_registries.");
 
-  j_tmp = get_sip_registries_all();
+  j_tmp = sip_get_registries_all();
   if(j_tmp == NULL) {
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
@@ -418,7 +418,7 @@ void htp_get_sip_registries(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_sip_config(evhtp_request_t *req, void *data)
+void sip_htp_get_sip_config(evhtp_request_t *req, void *data)
 {
   char* res;
   json_t* j_res;
@@ -430,7 +430,7 @@ void htp_get_sip_config(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_sip_config.");
 
   // get info
-  res = get_ast_current_config_info_text(DEF_SIP_CONFNAME);
+  res = conf_get_ast_current_config_info_text(DEF_SIP_CONFNAME);
   if(res == NULL) {
     slog(LOG_ERR, "Could not get sip conf.");
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
@@ -454,7 +454,7 @@ void htp_get_sip_config(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_put_sip_config(evhtp_request_t *req, void *data)
+void sip_htp_put_sip_config(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   char* req_data;
@@ -475,7 +475,7 @@ void htp_put_sip_config(evhtp_request_t *req, void *data)
   }
 
   // update config
-  ret = update_ast_current_config_info_text(DEF_SIP_CONFNAME, req_data);
+  ret = conf_update_ast_current_config_info_text(DEF_SIP_CONFNAME, req_data);
   sfree(req_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update sip config info.");
@@ -498,7 +498,7 @@ void htp_put_sip_config(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_sip_configs(evhtp_request_t *req, void *data)
+void sip_htp_get_sip_configs(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
@@ -510,7 +510,7 @@ void htp_get_sip_configs(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_sip_configs.");
 
   // get info
-  j_tmp = get_ast_backup_configs_info_all(DEF_SIP_CONFNAME);
+  j_tmp = conf_get_ast_backup_configs_info_all(DEF_SIP_CONFNAME);
   if(j_tmp == NULL) {
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
@@ -533,7 +533,7 @@ void htp_get_sip_configs(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_sip_configs_detail(evhtp_request_t *req, void *data)
+void sip_htp_get_sip_configs_detail(evhtp_request_t *req, void *data)
 {
   char* tmp;
   json_t* j_res;
@@ -554,7 +554,7 @@ void htp_get_sip_configs_detail(evhtp_request_t *req, void *data)
   }
 
   // get config info
-  tmp = get_ast_backup_config_info_text_valid(detail, DEF_SIP_CONFNAME);
+  tmp = conf_get_ast_backup_config_info_text_valid(detail, DEF_SIP_CONFNAME);
   sfree(detail);
   if(tmp == NULL) {
     slog(LOG_NOTICE, "Could not find config info.");
@@ -579,7 +579,7 @@ void htp_get_sip_configs_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_delete_sip_configs_detail(evhtp_request_t *req, void *data)
+void sip_htp_delete_sip_configs_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   char* detail;
@@ -600,7 +600,7 @@ void htp_delete_sip_configs_detail(evhtp_request_t *req, void *data)
   }
 
   // remove it
-  ret = remove_ast_backup_config_info_valid(detail, DEF_SIP_CONFNAME);
+  ret = conf_remove_ast_backup_config_info_valid(detail, DEF_SIP_CONFNAME);
   sfree(detail);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not delete config file.");
@@ -624,7 +624,7 @@ void htp_delete_sip_configs_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_sip_settings(evhtp_request_t *req, void *data)
+void sip_htp_get_sip_settings(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
@@ -636,7 +636,7 @@ void htp_get_sip_settings(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_sip_settings.");
 
   // get info
-  j_tmp = get_ast_settings_all(DEF_SIP_CONFNAME);
+  j_tmp = conf_get_ast_settings_all(DEF_SIP_CONFNAME);
 
   // create result
   j_res = http_create_default_result(EVHTP_RES_OK);
@@ -656,7 +656,7 @@ void htp_get_sip_settings(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_post_sip_settings(evhtp_request_t *req, void *data)
+void sip_htp_post_sip_settings(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_data;
@@ -692,7 +692,7 @@ void htp_post_sip_settings(evhtp_request_t *req, void *data)
     return;
   }
 
-  ret = create_ast_setting(DEF_SIP_CONFNAME, name, j_setting);
+  ret = conf_create_ast_setting(DEF_SIP_CONFNAME, name, j_setting);
   json_decref(j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not create sip setting.");
@@ -716,7 +716,7 @@ void htp_post_sip_settings(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_sip_settings_detail(evhtp_request_t *req, void *data)
+void sip_htp_get_sip_settings_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_tmp;
@@ -737,7 +737,7 @@ void htp_get_sip_settings_detail(evhtp_request_t *req, void *data)
   }
 
   // get setting
-  j_tmp = get_ast_setting(DEF_SIP_CONFNAME, detail);
+  j_tmp = conf_get_ast_setting(DEF_SIP_CONFNAME, detail);
   sfree(detail);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get sip setting.");
@@ -762,7 +762,7 @@ void htp_get_sip_settings_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_put_sip_settings_detail(evhtp_request_t *req, void *data)
+void sip_htp_put_sip_settings_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_data;
@@ -793,7 +793,7 @@ void htp_put_sip_settings_detail(evhtp_request_t *req, void *data)
   }
 
   // update setting
-  ret = update_ast_setting(DEF_SIP_CONFNAME, detail, j_data);
+  ret = conf_update_ast_setting(DEF_SIP_CONFNAME, detail, j_data);
   sfree(detail);
   json_decref(j_data);
   if(ret == false) {
@@ -839,7 +839,7 @@ void htp_delete_sip_settings_detail(evhtp_request_t *req, void *data)
   }
 
   // delete setting
-  ret = remove_ast_setting(DEF_SIP_CONFNAME, detail);
+  ret = conf_remove_ast_setting(DEF_SIP_CONFNAME, detail);
   sfree(detail);
   if(ret == false) {
     slog(LOG_ERR, "Could not remove sip setting.");
@@ -900,7 +900,7 @@ static bool init_sip_info_registry(void)
   j_tmp = json_pack("{s:s}",
       "Action", "SIPshowregistry"
       );
-  ret = send_ami_cmd(j_tmp);
+  ret = ami_send_cmd(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not send ami action. action[%s]", "SIPshowregistry");
@@ -923,7 +923,7 @@ static bool init_sip_info_peer(void)
   j_tmp = json_pack("{s:s}",
       "Action", "SipPeers"
       );
-  ret = send_ami_cmd(j_tmp);
+  ret = ami_send_cmd(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not send ami action. action[%s]", "SipPeers");
@@ -946,13 +946,13 @@ static bool init_sip_info_peeraccount(void)
   char* timestamp;
   const char* key;
 
-  j_conf = get_ast_current_config_info(DEF_SIP_CONFNAME);
+  j_conf = conf_get_ast_current_config_info(DEF_SIP_CONFNAME);
   if(j_conf == NULL) {
     slog(LOG_ERR, "Could not load sip config info.");
     return false;
   }
 
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
   json_object_foreach(j_conf, key, j_tmp) {
     if(key == NULL) {
       continue;
@@ -980,7 +980,7 @@ static bool init_sip_info_peeraccount(void)
         "tm_update", timestamp
         );
 
-    ret = create_sip_peeraccount_info(j_info);
+    ret = sip_create_peeraccount_info(j_info);
     json_decref(j_info);
     if(ret == false) {
       slog(LOG_ERR, "Could not create peeraccount info. peer[%s]", key);
@@ -1000,7 +1000,7 @@ static bool init_sip_info_peeraccount(void)
  * @param j_data
  * @return
  */
-bool create_sip_peeraccount_info(const json_t* j_data)
+bool sip_create_peeraccount_info(const json_t* j_data)
 {
   int ret;
 
@@ -1011,7 +1011,7 @@ bool create_sip_peeraccount_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired create_sip_peeraccount_info.");
 
   // insert peeraccount info
-  ret = insert_ast_item(DEF_DB_TABLE_SIP_PEERACCOUNT, j_data);
+  ret = resource_insert_ast_item(DEF_DB_TABLE_SIP_PEERACCOUNT, j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert sip peeraccount.");
     return false;
@@ -1025,7 +1025,7 @@ bool create_sip_peeraccount_info(const json_t* j_data)
  * @param peer
  * @return
  */
-json_t* get_sip_peeraccount_info(const char* peer)
+json_t* sip_get_peeraccount_info(const char* peer)
 {
   json_t* j_res;
 
@@ -1035,7 +1035,7 @@ json_t* get_sip_peeraccount_info(const char* peer)
   }
   slog(LOG_DEBUG, "Fired get_sip_peeraccount_info.");
 
-  j_res = get_ast_detail_item_key_string(DEF_DB_TABLE_SIP_PEERACCOUNT, "peer", peer);
+  j_res = resource_get_ast_detail_item_key_string(DEF_DB_TABLE_SIP_PEERACCOUNT, "peer", peer);
 
   return j_res;
 }
@@ -1044,7 +1044,7 @@ json_t* get_sip_peeraccount_info(const char* peer)
  * Get given peer's detail info.
  * @return
  */
-json_t* get_sip_peer_info(const char* peer)
+json_t* sip_get_peer_info(const char* peer)
 {
   json_t* j_res;
 
@@ -1054,7 +1054,7 @@ json_t* get_sip_peer_info(const char* peer)
   }
   slog(LOG_DEBUG, "Fired get_sip_peer_info.");
 
-  j_res = get_ast_detail_item_key_string(DEF_DB_TABLE_SIP_PEER, "peer", peer);
+  j_res = resource_get_ast_detail_item_key_string(DEF_DB_TABLE_SIP_PEER, "peer", peer);
 
   return j_res;
 }
@@ -1063,13 +1063,13 @@ json_t* get_sip_peer_info(const char* peer)
  * Get all peers array
  * @return
  */
-json_t* get_sip_peers_all_peer(void)
+json_t* sip_get_peers_all_peer(void)
 {
   json_t* j_res;
 
   slog(LOG_DEBUG, "Fired get_sip_peers_all_peer.");
 
-  j_res = get_ast_items(DEF_DB_TABLE_SIP_PEER, "peer");
+  j_res = resource_get_ast_items(DEF_DB_TABLE_SIP_PEER, "peer");
 
   return j_res;
 }
@@ -1078,13 +1078,13 @@ json_t* get_sip_peers_all_peer(void)
  * Get all peers array
  * @return
  */
-json_t* get_sip_peers_all(void)
+json_t* sip_get_peers_all(void)
 {
   json_t* j_res;
 
   slog(LOG_DEBUG, "Fired get_sip_peers_all.");
 
-  j_res = get_ast_items(DEF_DB_TABLE_SIP_PEER, "*");
+  j_res = resource_get_ast_items(DEF_DB_TABLE_SIP_PEER, "*");
 
   return j_res;
 }
@@ -1093,13 +1093,13 @@ json_t* get_sip_peers_all(void)
  * Get all registry account array
  * @return
  */
-json_t* get_sip_registries_all_account(void)
+json_t* sip_get_registries_all_account(void)
 {
   json_t* j_res;
 
   slog(LOG_DEBUG, "Fired get_sip_registries_all_account.");
 
-  j_res = get_ast_items(DEF_DB_TABLE_SIP_REGISTRY, "account");
+  j_res = resource_get_ast_items(DEF_DB_TABLE_SIP_REGISTRY, "account");
 
   return j_res;
 }
@@ -1108,7 +1108,7 @@ json_t* get_sip_registries_all_account(void)
  * Get corresponding registry info.
  * @return
  */
-json_t* get_sip_registry_info(const char* account)
+json_t* sip_get_registry_info(const char* account)
 {
   json_t* j_res;
 
@@ -1118,7 +1118,7 @@ json_t* get_sip_registry_info(const char* account)
   }
   slog(LOG_DEBUG, "Fired get_sip_registry_info. account[%s]", account);
 
-  j_res = get_ast_detail_item_key_string(DEF_DB_TABLE_SIP_REGISTRY, "account", account);
+  j_res = resource_get_ast_detail_item_key_string(DEF_DB_TABLE_SIP_REGISTRY, "account", account);
 
   return j_res;
 }
@@ -1127,11 +1127,11 @@ json_t* get_sip_registry_info(const char* account)
  * Get all registries array
  * @return
  */
-json_t* get_sip_registries_all(void)
+json_t* sip_get_registries_all(void)
 {
   json_t* j_res;
 
-  j_res = get_ast_items(DEF_DB_TABLE_SIP_REGISTRY, "*");
+  j_res = resource_get_ast_items(DEF_DB_TABLE_SIP_REGISTRY, "*");
   return j_res;
 }
 
@@ -1140,7 +1140,7 @@ json_t* get_sip_registries_all(void)
  * @param j_data
  * @return
  */
-bool create_sip_peer_info(const json_t* j_data)
+bool sip_create_peer_info(const json_t* j_data)
 {
   int ret;
   const char* tmp_const;
@@ -1153,7 +1153,7 @@ bool create_sip_peer_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired create_sip_peer_info.");
 
   // insert peer info
-  ret = insert_ast_item(DEF_DB_TABLE_SIP_PEER, j_data);
+  ret = resource_insert_ast_item(DEF_DB_TABLE_SIP_PEER, j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert sip peer..");
     return false;
@@ -1162,14 +1162,14 @@ bool create_sip_peer_info(const json_t* j_data)
   // publish
   // get info
   tmp_const = json_string_value(json_object_get(j_data, "peer"));
-  j_tmp = get_sip_peer_info(tmp_const);
+  j_tmp = sip_get_peer_info(tmp_const);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get sip_peer info. peer[%s]", tmp_const);
     return false;
   }
 
   // publish event
-  ret = publish_event_sip_peer(DEF_PUB_TYPE_CREATE, j_tmp);
+  ret = publication_publish_event_sip_peer(DEF_PUB_TYPE_CREATE, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not publish event.");
@@ -1184,7 +1184,7 @@ bool create_sip_peer_info(const json_t* j_data)
  * @param j_data
  * @return
  */
-bool update_sip_peer_info(const json_t* j_data)
+bool sip_update_peer_info(const json_t* j_data)
 {
   int ret;
   const char* tmp_const;
@@ -1196,7 +1196,7 @@ bool update_sip_peer_info(const json_t* j_data)
   }
   slog(LOG_DEBUG, "Fired update_sip_peer_info.");
 
-  ret = update_ast_item(DEF_DB_TABLE_SIP_PEER, "peer", j_data);
+  ret = resource_update_ast_item(DEF_DB_TABLE_SIP_PEER, "peer", j_data);
   if(ret == false) {
     slog(LOG_WARNING, "Could not update sip peer info.");
     return false;
@@ -1205,14 +1205,14 @@ bool update_sip_peer_info(const json_t* j_data)
   // publish
   // get info
   tmp_const = json_string_value(json_object_get(j_data, "peer"));
-  j_tmp = get_sip_peer_info(tmp_const);
+  j_tmp = sip_get_peer_info(tmp_const);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get sip_peer info. peer[%s]", tmp_const);
     return false;
   }
 
   // publish event
-  ret = publish_event_sip_peer(DEF_PUB_TYPE_UPDATE, j_tmp);
+  ret = publication_publish_event_sip_peer(DEF_PUB_TYPE_UPDATE, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not publish event.");
@@ -1226,7 +1226,7 @@ bool update_sip_peer_info(const json_t* j_data)
  * delete sip peer info.
  * @return
  */
-bool delete_sip_peer_info(const char* key)
+bool sip_delete_peer_info(const char* key)
 {
   int ret;
   json_t* j_tmp;
@@ -1238,13 +1238,13 @@ bool delete_sip_peer_info(const char* key)
   slog(LOG_DEBUG, "Fired delete_sip_peer_info. peer[%s]", key);
 
   // get info
-  j_tmp = get_sip_peer_info(key);
+  j_tmp = sip_get_peer_info(key);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get sip_peer info. peer[%s]", key);
     return false;
   }
 
-  ret = delete_ast_items_string(DEF_DB_TABLE_SIP_PEER, "peer", key);
+  ret = resource_delete_ast_items_string(DEF_DB_TABLE_SIP_PEER, "peer", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete sip peer info. name[%s]", key);
     json_decref(j_tmp);
@@ -1253,7 +1253,7 @@ bool delete_sip_peer_info(const char* key)
 
   // publish
   // publish event
-  ret = publish_event_sip_peer(DEF_PUB_TYPE_DELETE, j_tmp);
+  ret = publication_publish_event_sip_peer(DEF_PUB_TYPE_DELETE, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not publish event.");
@@ -1268,7 +1268,7 @@ bool delete_sip_peer_info(const char* key)
  * @param j_data
  * @return
  */
-bool create_sip_registry_info(const json_t* j_data)
+bool sip_create_registry_info(const json_t* j_data)
 {
   int ret;
   const char* tmp_const;
@@ -1281,7 +1281,7 @@ bool create_sip_registry_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired create_sip_registry_info.");
 
   // insert queue info
-  ret = insert_ast_item(DEF_DB_TABLE_SIP_REGISTRY, j_data);
+  ret = resource_insert_ast_item(DEF_DB_TABLE_SIP_REGISTRY, j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert sip registry.");
     return false;
@@ -1290,14 +1290,14 @@ bool create_sip_registry_info(const json_t* j_data)
   // publish
   // get info
   tmp_const = json_string_value(json_object_get(j_data, "account"));
-  j_tmp = get_sip_registry_info(tmp_const);
+  j_tmp = sip_get_registry_info(tmp_const);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get sip_registry info. account[%s]", tmp_const);
     return false;
   }
 
   // publish event
-  ret = publish_event_sip_registry(DEF_PUB_TYPE_CREATE, j_tmp);
+  ret = publication_publish_event_sip_registry(DEF_PUB_TYPE_CREATE, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not publish event.");
@@ -1312,7 +1312,7 @@ bool create_sip_registry_info(const json_t* j_data)
  * @param j_data
  * @return
  */
-bool update_sip_registry_info(const json_t* j_data)
+bool sip_update_registry_info(const json_t* j_data)
 {
   int ret;
   const char* tmp_const;
@@ -1324,7 +1324,7 @@ bool update_sip_registry_info(const json_t* j_data)
   }
   slog(LOG_DEBUG, "Fired update_sip_registry_info.");
 
-  ret = update_ast_item(DEF_DB_TABLE_SIP_REGISTRY, "account", j_data);
+  ret = resource_update_ast_item(DEF_DB_TABLE_SIP_REGISTRY, "account", j_data);
   if(ret == false) {
     slog(LOG_WARNING, "Could not update sip registry info.");
     return false;
@@ -1333,14 +1333,14 @@ bool update_sip_registry_info(const json_t* j_data)
   // publish
   // get info
   tmp_const = json_string_value(json_object_get(j_data, "account"));
-  j_tmp = get_sip_registry_info(tmp_const);
+  j_tmp = sip_get_registry_info(tmp_const);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get sip_registry info. account[%s]", tmp_const);
     return false;
   }
 
   // publish event
-  ret = publish_event_sip_registry(DEF_PUB_TYPE_UPDATE, j_tmp);
+  ret = publication_publish_event_sip_registry(DEF_PUB_TYPE_UPDATE, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not publish event.");
@@ -1354,7 +1354,7 @@ bool update_sip_registry_info(const json_t* j_data)
  * delete sip registry info.
  * @return
  */
-bool delete_sip_registry_info(const char* key)
+bool sip_delete_registry_info(const char* key)
 {
   int ret;
   json_t* j_tmp;
@@ -1366,13 +1366,13 @@ bool delete_sip_registry_info(const char* key)
   slog(LOG_DEBUG, "Fired delete_sip_registry_info. account[%s]", key);
 
   // get info
-  j_tmp = get_sip_registry_info(key);
+  j_tmp = sip_get_registry_info(key);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get sip_registry info. account[%s]", key);
     return false;
   }
 
-  ret = delete_ast_items_string(DEF_DB_TABLE_SIP_REGISTRY, "account", key);
+  ret = resource_delete_ast_items_string(DEF_DB_TABLE_SIP_REGISTRY, "account", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete sip registry info. account[%s]", key);
     return false;
@@ -1380,7 +1380,7 @@ bool delete_sip_registry_info(const char* key)
 
   // publish
   // publish event
-  ret = publish_event_sip_registry(DEF_PUB_TYPE_DELETE, j_tmp);
+  ret = publication_publish_event_sip_registry(DEF_PUB_TYPE_DELETE, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not publish event.");
@@ -1399,21 +1399,21 @@ static bool term_sip_database(void)
   int ret;
 
   // peer
-  ret = clear_ast_table(DEF_DB_TABLE_SIP_PEER);
+  ret = resource_clear_ast_table(DEF_DB_TABLE_SIP_PEER);
   if(ret == false) {
     slog(LOG_ERR, "Could not clear sip table. table[%s]", DEF_DB_TABLE_SIP_PEER);
     return false;
   }
 
   // peeraccount
-  ret = clear_ast_table(DEF_DB_TABLE_SIP_PEERACCOUNT);
+  ret = resource_clear_ast_table(DEF_DB_TABLE_SIP_PEERACCOUNT);
   if(ret == false) {
     slog(LOG_ERR, "Could not clear sip table. table[%s]", DEF_DB_TABLE_SIP_PEERACCOUNT);
     return false;
   }
 
   // registry
-  ret = clear_ast_table(DEF_DB_TABLE_SIP_REGISTRY);
+  ret = resource_clear_ast_table(DEF_DB_TABLE_SIP_REGISTRY);
   if(ret == false) {
     slog(LOG_ERR, "Could not clear table. table[%s]", DEF_DB_TABLE_SIP_REGISTRY);
     return false;

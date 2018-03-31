@@ -85,7 +85,7 @@ static void htp_delete_ob_dialings_uuid(evhtp_request_t *req, void *data);
  * @param req
  * @param data
  */
-void cb_htp_ob_destinations(evhtp_request_t *req, void *data)
+void ob_cb_htp_ob_destinations(evhtp_request_t *req, void *data)
 {
   int method;
   int ret;
@@ -135,7 +135,7 @@ void cb_htp_ob_destinations(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void cb_htp_ob_destinations_all(evhtp_request_t *req, void *data)
+void ob_cb_htp_ob_destinations_all(evhtp_request_t *req, void *data)
 {
   int method;
 
@@ -174,7 +174,7 @@ void cb_htp_ob_destinations_all(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void cb_htp_ob_destinations_uuid(evhtp_request_t *req, void *data)
+void ob_cb_htp_ob_destinations_detail(evhtp_request_t *req, void *data)
 {
   int method;
   int ret;
@@ -229,7 +229,7 @@ void cb_htp_ob_destinations_uuid(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void cb_htp_ob_plans(evhtp_request_t *req, void *data)
+void ob_cb_htp_ob_plans(evhtp_request_t *req, void *data)
 {
   int method;
   int ret;
@@ -279,7 +279,7 @@ void cb_htp_ob_plans(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void cb_htp_ob_plans_all(evhtp_request_t *req, void *data)
+void ob_cb_htp_ob_plans_all(evhtp_request_t *req, void *data)
 {
   int method;
 
@@ -319,7 +319,7 @@ void cb_htp_ob_plans_all(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void cb_htp_ob_plans_uuid(evhtp_request_t *req, void *data)
+void ob_cb_htp_ob_plans_detail(evhtp_request_t *req, void *data)
 {
   int method;
   int ret;
@@ -375,7 +375,7 @@ void cb_htp_ob_plans_uuid(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void cb_htp_ob_campaigns(evhtp_request_t *req, void *data)
+void ob_cb_htp_ob_campaigns(evhtp_request_t *req, void *data)
 {
   int method;
   int ret;
@@ -425,7 +425,7 @@ void cb_htp_ob_campaigns(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void cb_htp_ob_campaigns_uuid(evhtp_request_t *req, void *data)
+void ob_cb_htp_ob_campaigns_detail(evhtp_request_t *req, void *data)
 {
   int method;
   const char* uuid;
@@ -488,7 +488,7 @@ void cb_htp_ob_campaigns_uuid(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void cb_htp_ob_campaigns_all(evhtp_request_t *req, void *data)
+void ob_cb_htp_ob_campaigns_all(evhtp_request_t *req, void *data)
 {
   int method;
 
@@ -527,7 +527,7 @@ void cb_htp_ob_campaigns_all(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void cb_htp_ob_dlmas(evhtp_request_t *req, void *data)
+void ob_cb_htp_ob_dlmas(evhtp_request_t *req, void *data)
 {
   int method;
   int ret;
@@ -577,7 +577,7 @@ void cb_htp_ob_dlmas(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void cb_htp_ob_dlmas_all(evhtp_request_t *req, void *data)
+void ob_cb_htp_ob_dlmas_all(evhtp_request_t *req, void *data)
 {
   int method;
 
@@ -615,7 +615,7 @@ void cb_htp_ob_dlmas_all(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void cb_htp_ob_dlmas_uuid(evhtp_request_t *req, void *data)
+void ob_cb_htp_ob_dlmas_detail(evhtp_request_t *req, void *data)
 {
   int method;
   const char* uuid;
@@ -678,7 +678,7 @@ void cb_htp_ob_dlmas_uuid(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void cb_htp_ob_dls_all(evhtp_request_t *req, void *data)
+void ob_cb_htp_ob_dls_all(evhtp_request_t *req, void *data)
 {
   int method;
 
@@ -716,7 +716,7 @@ void cb_htp_ob_dls_all(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void cb_htp_ob_dls(evhtp_request_t *req, void *data)
+void ob_cb_htp_ob_dls(evhtp_request_t *req, void *data)
 {
   int method;
   int ret;
@@ -766,7 +766,7 @@ void cb_htp_ob_dls(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void cb_htp_ob_dls_uuid(evhtp_request_t *req, void *data)
+void ob_cb_htp_ob_dls_detail(evhtp_request_t *req, void *data)
 {
   int method;
   const char* uuid;
@@ -841,7 +841,7 @@ static void htp_get_ob_destinations(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_ob_destinations.");
 
   // get info
-  j_tmp = get_ob_destinations_all();
+  j_tmp = ob_get_destinations_all();
   if(j_tmp == NULL) {
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
@@ -899,14 +899,14 @@ static void htp_post_ob_destinations(evhtp_request_t *req, void *data)
   }
 
   // validate data
-  ret = validate_ob_destination(j_data);
+  ret = ob_validate_destination(j_data);
   if(ret == false) {
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
   }
 
   // create destination
-  j_tmp = create_ob_destination(j_data);
+  j_tmp = ob_create_destination(j_data);
   json_decref(j_data);
   if(j_tmp == NULL) {
     slog(LOG_INFO, "Could not create ob_destination.");
@@ -943,7 +943,7 @@ static void htp_get_ob_destinations_all(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_ob_destinations_all.");
 
   // get info
-  j_tmp = get_ob_destinations_all();
+  j_tmp = ob_get_destinations_all();
   if(j_tmp == NULL) {
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
@@ -987,7 +987,7 @@ static void htp_get_ob_destinations_uuid(evhtp_request_t *req, void *data)
   }
 
   // check existence
-  ret = is_exist_ob_destination(detail);
+  ret = ob_is_exist_destination(detail);
   if(ret == false) {
     sfree(detail);
     http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
@@ -995,7 +995,7 @@ static void htp_get_ob_destinations_uuid(evhtp_request_t *req, void *data)
   }
 
   // get destination info
-  j_tmp = get_ob_destination(detail);
+  j_tmp = ob_get_destination(detail);
   sfree(detail);
   if(j_tmp == NULL) {
     http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
@@ -1048,7 +1048,7 @@ static void htp_put_ob_destinations_uuid(evhtp_request_t *req, void *data)
   }
 
   // check existence
-  ret = is_exist_ob_destination(detail);
+  ret = ob_is_exist_destination(detail);
   if(ret == false) {
     sfree(detail);
     json_decref(j_data);
@@ -1059,7 +1059,7 @@ static void htp_put_ob_destinations_uuid(evhtp_request_t *req, void *data)
   // update info
   json_object_set_new(j_data, "uuid", json_string(detail));
   sfree(detail);
-  j_tmp = update_ob_destination(j_data);
+  j_tmp = ob_update_destination(j_data);
   json_decref(j_data);
   if(j_tmp == NULL) {
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
@@ -1106,7 +1106,7 @@ static void htp_delete_ob_destinations_uuid(evhtp_request_t *req, void *data)
   }
 
   // check existence
-  ret = is_exist_ob_destination(detail);
+  ret = ob_is_exist_destination(detail);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not find correct ob_destination info. uuid[%s]", detail);
     sfree(detail);
@@ -1124,7 +1124,7 @@ static void htp_delete_ob_destinations_uuid(evhtp_request_t *req, void *data)
 
   // check force option
   if(force == 1) {
-    ret = clear_campaign_destination(detail);
+    ret = ob_clear_campaign_destination(detail);
     if(ret == false) {
       slog(LOG_ERR, "Could not clear destination info from campaign. dest_uuid[%s]", detail);
       sfree(detail);
@@ -1134,7 +1134,7 @@ static void htp_delete_ob_destinations_uuid(evhtp_request_t *req, void *data)
   }
 
   // check deletable
-  ret = is_deletable_destination(detail);
+  ret = ob_is_deletable_destination(detail);
   if(ret == false) {
     slog(LOG_NOTICE, "The given destination info is not deletable. uuid[%s]", detail);
     sfree(detail);
@@ -1143,7 +1143,7 @@ static void htp_delete_ob_destinations_uuid(evhtp_request_t *req, void *data)
   }
 
   // delete info
-  j_tmp = delete_ob_destination(detail);
+  j_tmp = ob_delete_destination(detail);
   sfree(detail);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not delete destination info.");
@@ -1180,7 +1180,7 @@ static void htp_get_ob_plans(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_ob_plans.");
 
   // get info
-  j_tmp = get_ob_plans_all();
+  j_tmp = ob_get_plans_all();
   if(j_tmp == NULL) {
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
@@ -1245,7 +1245,7 @@ static void htp_post_ob_plans(evhtp_request_t *req, void *data)
   }
 
   // validate plan
-  ret = validate_ob_plan(j_data);
+  ret = ob_validate_plan(j_data);
   if(ret == false) {
     slog(LOG_DEBUG, "Could not pass the validation.");
     json_decref(j_data);
@@ -1254,7 +1254,7 @@ static void htp_post_ob_plans(evhtp_request_t *req, void *data)
   }
 
   // create plan
-  j_tmp = create_ob_plan(j_data);
+  j_tmp = ob_create_plan(j_data);
   json_decref(j_data);
   if(j_tmp == NULL) {
     slog(LOG_INFO, "Could not create ob_plan.");
@@ -1300,14 +1300,14 @@ static void htp_get_ob_plans_uuid(evhtp_request_t *req, void *data)
   }
 
   // check existence
-  ret = is_exist_ob_plan(uuid);
+  ret = ob_is_plan_exist(uuid);
   if(ret == false) {
     http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
     return;
   }
 
   // get plan info
-  j_tmp = get_ob_plan(uuid);
+  j_tmp = ob_get_plan(uuid);
   if(j_tmp == NULL) {
     http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
     return;
@@ -1342,7 +1342,7 @@ static void htp_get_ob_plans_all(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_ob_plans_all.");
 
   // get plan info
-  j_tmp = get_ob_plans_all();
+  j_tmp = ob_get_plans_all();
   if(j_tmp == NULL) {
     http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
     return;
@@ -1390,7 +1390,7 @@ static void htp_put_ob_plans_uuid(evhtp_request_t *req, void *data)
   }
 
   // check existence
-  ret = is_exist_ob_plan(uuid);
+  ret = ob_is_plan_exist(uuid);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not find correct ob_plan info. uuid[%s]", uuid);
     http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
@@ -1415,7 +1415,7 @@ static void htp_put_ob_plans_uuid(evhtp_request_t *req, void *data)
   }
 
   // validate requested data
-  ret = validate_ob_plan(j_data);
+  ret = ob_validate_plan(j_data);
   if(ret == false) {
     slog(LOG_DEBUG, "Could not pass validation.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
@@ -1424,7 +1424,7 @@ static void htp_put_ob_plans_uuid(evhtp_request_t *req, void *data)
 
   // update info
   json_object_set_new(j_data, "uuid", json_string(uuid));
-  j_tmp = update_ob_plan(j_data);
+  j_tmp = ob_update_plan(j_data);
   json_decref(j_data);
   if(j_tmp == NULL) {
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
@@ -1471,7 +1471,7 @@ static void htp_delete_ob_plans_uuid(evhtp_request_t *req, void *data)
   }
 
   // check existence
-  ret = is_exist_ob_plan(uuid);
+  ret = ob_is_plan_exist(uuid);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not find correct ob_plan info. uuid[%s]", uuid);
     http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
@@ -1488,7 +1488,7 @@ static void htp_delete_ob_plans_uuid(evhtp_request_t *req, void *data)
 
   // check force option
   if(force == 1) {
-    ret = clear_campaign_plan(uuid);
+    ret = ob_clear_campaign_plan(uuid);
     if(ret == false) {
       slog(LOG_ERR, "Could not clear destination info from campaign. dest_uuid[%s]", uuid);
       http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
@@ -1497,7 +1497,7 @@ static void htp_delete_ob_plans_uuid(evhtp_request_t *req, void *data)
   }
 
   // check deletable
-  ret = is_deletable_ob_plan(uuid);
+  ret = ob_is_plan_deletable(uuid);
   if(ret == false) {
     slog(LOG_NOTICE, "The given plan info is deletable. uuid[%s]", uuid);
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
@@ -1505,7 +1505,7 @@ static void htp_delete_ob_plans_uuid(evhtp_request_t *req, void *data)
   }
 
   // delete info
-  j_tmp = delete_ob_plan(uuid);
+  j_tmp = ob_delete_plan(uuid);
   if(j_tmp == NULL) {
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
@@ -1540,7 +1540,7 @@ static void htp_get_ob_campaigns(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_ob_campaigns.");
 
   // get info
-  j_tmp = get_ob_campaigns_all();
+  j_tmp = ob_get_campaigns_all();
   if(j_tmp == NULL) {
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
@@ -1604,7 +1604,7 @@ static void htp_post_ob_campaigns(evhtp_request_t *req, void *data)
     return;
   }
 
-  ret = validate_ob_campaign(j_data);
+  ret = ob_validate_campaign(j_data);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not pass the validation.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
@@ -1612,7 +1612,7 @@ static void htp_post_ob_campaigns(evhtp_request_t *req, void *data)
   }
 
   // create campaigb
-  j_tmp = create_ob_campaign(j_data);
+  j_tmp = ob_create_campaign(j_data);
   json_decref(j_data);
   if(j_tmp == NULL) {
     slog(LOG_INFO, "Could not create ob_plan.");
@@ -1649,7 +1649,7 @@ static void htp_get_ob_campaigns_all(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_ob_campaigns_all.");
 
   // get all campaigns info
-  j_tmp = get_ob_campaigns_all();
+  j_tmp = ob_get_campaigns_all();
   if(j_tmp == NULL) {
     http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
     return;
@@ -1694,14 +1694,14 @@ static void htp_get_ob_campaigns_uuid(evhtp_request_t *req, void *data)
   }
 
   // check existence
-  ret = is_exist_ob_campaign(uuid);
+  ret = ob_is_exist_campaign(uuid);
   if(ret == false) {
     http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
     return;
   }
 
   // get campaign info
-  j_tmp = get_ob_campaign(uuid);
+  j_tmp = ob_get_campaign(uuid);
   if(j_tmp == NULL) {
     http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
     return;
@@ -1748,7 +1748,7 @@ static void htp_put_ob_campaigns_uuid(evhtp_request_t *req, void *data)
   }
 
   // check existence
-  ret = is_exist_ob_campaign(uuid);
+  ret = ob_is_exist_campaign(uuid);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not find correct ob_campaign info. uuid[%s]", uuid);
     http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
@@ -1774,7 +1774,7 @@ static void htp_put_ob_campaigns_uuid(evhtp_request_t *req, void *data)
 
   // update info
   json_object_set_new(j_data, "uuid", json_string(uuid));
-  j_tmp = update_ob_campaign(j_data);
+  j_tmp = ob_update_campaign(j_data);
   json_decref(j_data);
   if(j_tmp == NULL) {
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
@@ -1819,7 +1819,7 @@ static void htp_delete_ob_campaigns_uuid(evhtp_request_t *req, void *data)
   }
 
   // check existence
-  ret = is_exist_ob_campaign(uuid);
+  ret = ob_is_exist_campaign(uuid);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not find correct ob_campaign info. uuid[%s]", uuid);
     http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
@@ -1827,7 +1827,7 @@ static void htp_delete_ob_campaigns_uuid(evhtp_request_t *req, void *data)
   }
 
   // delete info
-  j_tmp = delete_ob_campaign(uuid);
+  j_tmp = ob_delete_campaign(uuid);
   if(j_tmp == NULL) {
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
@@ -1863,7 +1863,7 @@ static void htp_get_ob_dlmas(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_ob_dlmas.");
 
   // get info
-  j_tmp = get_ob_dlmas_all();
+  j_tmp = ob_get_dlmas_all();
   if(j_tmp == NULL) {
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
@@ -1927,7 +1927,7 @@ static void htp_post_ob_dlmas(evhtp_request_t *req, void *data)
     return;
   }
 
-  ret = validate_ob_dlma(j_data);
+  ret = ob_validate_dlma(j_data);
   if(ret == false) {
     slog(LOG_INFO, "Could not pass the validation.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
@@ -1935,7 +1935,7 @@ static void htp_post_ob_dlmas(evhtp_request_t *req, void *data)
   }
 
   // create plan
-  j_tmp = create_ob_dlma(j_data);
+  j_tmp = ob_create_dlma(j_data);
   json_decref(j_data);
   if(j_tmp == NULL) {
     slog(LOG_INFO, "Could not create ob_plan.");
@@ -1972,7 +1972,7 @@ static void htp_get_ob_dlmas_all(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_ob_dlmas_all.");
 
   // get info
-  j_tmp = get_ob_dlmas_all();
+  j_tmp = ob_get_dlmas_all();
   if(j_tmp == NULL) {
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
@@ -2017,14 +2017,14 @@ static void htp_get_ob_dlmas_uuid(evhtp_request_t *req, void *data)
   }
 
   // check existence
-  ret = is_exist_ob_dlma(uuid);
+  ret = ob_is_dlma_exist(uuid);
   if(ret == false) {
     http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
     return;
   }
 
   // get plan info
-  j_tmp = get_ob_dlma(uuid);
+  j_tmp = ob_get_dlma(uuid);
   if(j_tmp == NULL) {
     http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
     return;
@@ -2071,7 +2071,7 @@ static void htp_put_ob_dlmas_uuid(evhtp_request_t *req, void *data)
   }
 
   // check existence
-  ret = is_exist_ob_dlma(uuid);
+  ret = ob_is_dlma_exist(uuid);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not find correct ob_dlma info. uuid[%s]", uuid);
     http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
@@ -2097,7 +2097,7 @@ static void htp_put_ob_dlmas_uuid(evhtp_request_t *req, void *data)
 
   // update info
   json_object_set_new(j_data, "uuid", json_string(uuid));
-  j_tmp = update_ob_dlma(j_data);
+  j_tmp = ob_update_dlma(j_data);
   json_decref(j_data);
   if(j_tmp == NULL) {
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
@@ -2145,7 +2145,7 @@ static void htp_delete_ob_dlmas_uuid(evhtp_request_t *req, void *data)
   }
 
   // check existence
-  ret = is_exist_ob_dlma(uuid);
+  ret = ob_is_dlma_exist(uuid);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not find correct ob_dlma info. uuid[%s]", uuid);
     http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
@@ -2167,7 +2167,7 @@ static void htp_delete_ob_dlmas_uuid(evhtp_request_t *req, void *data)
 
   // check force option
   if(force == 1) {
-    ret = clear_campaign_dlma(uuid);
+    ret = ob_clear_campaign_dlma(uuid);
     if(ret == false) {
       slog(LOG_ERR, "Could not clear destination info from campaign. dest_uuid[%s]", uuid);
       http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
@@ -2177,7 +2177,7 @@ static void htp_delete_ob_dlmas_uuid(evhtp_request_t *req, void *data)
 
   // check delete_dls option
   if(delete_dls == 1) {
-    ret = delete_ob_dls_by_dlma_uuid(uuid);
+    ret = ob_delete_dls_by_dlma_uuid(uuid);
     if(ret == false) {
       slog(LOG_ERR, "Could not delete ob_dls info. dlma_uuid[%s]", uuid);
       http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
@@ -2186,7 +2186,7 @@ static void htp_delete_ob_dlmas_uuid(evhtp_request_t *req, void *data)
   }
 
   // check deletable
-  ret = is_deletable_ob_dlma(uuid);
+  ret = ob_is_dlma_deletable(uuid);
   if(ret == false) {
     slog(LOG_NOTICE, "Given dlma info is not deletable. dlma_uuid[%s]", uuid);
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
@@ -2194,7 +2194,7 @@ static void htp_delete_ob_dlmas_uuid(evhtp_request_t *req, void *data)
   }
 
   // delete info
-  j_tmp = delete_ob_dlma(uuid);
+  j_tmp = ob_delete_dlma(uuid);
   if(j_tmp == NULL) {
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
@@ -2246,7 +2246,7 @@ static void htp_get_ob_dls(evhtp_request_t *req, void *data)
   }
 
   // get info
-  j_tmp = get_ob_dls_by_dlma_count(dlma_uuid, count);
+  j_tmp = ob_get_dls_by_dlma_count(dlma_uuid, count);
   if(j_tmp == NULL) {
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
@@ -2311,7 +2311,7 @@ static void htp_post_ob_dls(evhtp_request_t *req, void *data)
   }
 
   // validate data
-  ret = validate_ob_dl(j_data);
+  ret = ob_validate_dl(j_data);
   if(ret == false) {
     json_decref(j_data);
     slog(LOG_ERR, "Could not pass the ob_dl validate.");
@@ -2320,7 +2320,7 @@ static void htp_post_ob_dls(evhtp_request_t *req, void *data)
   }
 
   // create plan
-  j_tmp = create_ob_dl(j_data);
+  j_tmp = ob_create_dl(j_data);
   json_decref(j_data);
   if(j_tmp == NULL) {
     slog(LOG_INFO, "Could not create ob_plan.");
@@ -2374,7 +2374,7 @@ static void htp_get_ob_dls_all(evhtp_request_t *req, void *data)
   }
 
   // get info
-  j_tmp = get_ob_dls_by_dlma_count(dlma_uuid, count);
+  j_tmp = ob_get_dls_by_dlma_count(dlma_uuid, count);
   if(j_tmp == NULL) {
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
@@ -2419,14 +2419,14 @@ static void htp_get_ob_dls_uuid(evhtp_request_t *req, void *data)
   }
 
   // check existence
-  ret = is_exist_ob_dl(uuid);
+  ret = ob_is_dl_exsit(uuid);
   if(ret == false) {
     http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
     return;
   }
 
   // get plan info
-  j_tmp = get_ob_dl(uuid);
+  j_tmp = ob_get_dl(uuid);
   if(j_tmp == NULL) {
     http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
     return;
@@ -2473,7 +2473,7 @@ static void htp_put_ob_dls_uuid(evhtp_request_t *req, void *data)
   }
 
   // check existence
-  ret = is_exist_ob_dl(uuid);
+  ret = ob_is_dl_exsit(uuid);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not find correct ob_campaign info. uuid[%s]", uuid);
     http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
@@ -2498,7 +2498,7 @@ static void htp_put_ob_dls_uuid(evhtp_request_t *req, void *data)
   }
 
   // validate data
-  ret = validate_ob_dl(j_data);
+  ret = ob_validate_dl(j_data);
   if(ret == false) {
     json_decref(j_data);
     slog(LOG_ERR, "Could not pass the ob_dl validate.");
@@ -2508,7 +2508,7 @@ static void htp_put_ob_dls_uuid(evhtp_request_t *req, void *data)
 
   // update info
   json_object_set_new(j_data, "uuid", json_string(uuid));
-  j_tmp = update_ob_dl(j_data);
+  j_tmp = ob_update_dl(j_data);
   json_decref(j_data);
   if(j_tmp == NULL) {
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
@@ -2553,7 +2553,7 @@ static void htp_delete_ob_dls_uuid(evhtp_request_t *req, void *data)
   }
 
   // check existence
-  ret = is_exist_ob_dl(uuid);
+  ret = ob_is_dl_exsit(uuid);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not find correct ob_dl info. uuid[%s]", uuid);
     http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
@@ -2561,7 +2561,7 @@ static void htp_delete_ob_dls_uuid(evhtp_request_t *req, void *data)
   }
 
   // delete info
-  j_tmp = delete_ob_dl(uuid);
+  j_tmp = ob_delete_dl(uuid);
   if(j_tmp == NULL) {
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
@@ -2584,7 +2584,7 @@ static void htp_delete_ob_dls_uuid(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void cb_htp_ob_dialings(evhtp_request_t *req, void *data)
+void ob_cb_htp_ob_dialings(evhtp_request_t *req, void *data)
 {
   int method;
   int ret;
@@ -2630,7 +2630,7 @@ void cb_htp_ob_dialings(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void cb_htp_ob_dialings_all(evhtp_request_t *req, void *data)
+void ob_cb_htp_ob_dialings_all(evhtp_request_t *req, void *data)
 {
   int method;
 
@@ -2681,7 +2681,7 @@ static void htp_get_ob_dialings(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_ob_dialings.");
 
   // get info
-  j_tmp = get_ob_dialings_all();
+  j_tmp = ob_get_dialings_all();
   if(j_tmp == NULL) {
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
@@ -2721,7 +2721,7 @@ static void htp_get_ob_dialings_all(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_ob_dialings_all.");
 
   // get info
-  j_tmp = get_ob_dialings_all();
+  j_tmp = ob_get_dialings_all();
   if(j_tmp == NULL) {
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
@@ -2749,7 +2749,7 @@ static void htp_get_ob_dialings_all(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void cb_htp_ob_dialings_uuid(evhtp_request_t *req, void *data)
+void ob_cb_htp_ob_dialings_detail(evhtp_request_t *req, void *data)
 {
   int method;
   const char* uuid;
@@ -2828,14 +2828,14 @@ static void htp_get_ob_dialings_uuid(evhtp_request_t *req, void *data)
   }
 
   // check existence
-  ret = is_exist_ob_dialing(uuid);
+  ret = ob_is_exist_dialing(uuid);
   if(ret == false) {
     http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
     return;
   }
 
   // get destination info
-  j_tmp = get_ob_dialing(uuid);
+  j_tmp = ob_get_dialing(uuid);
   if(j_tmp == NULL) {
     http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
     return;
@@ -2878,7 +2878,7 @@ static void htp_delete_ob_dialings_uuid(evhtp_request_t *req, void *data)
   }
 
   // check existence
-  ret = is_exist_ob_dialing(uuid);
+  ret = ob_is_exist_dialing(uuid);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not find correct ob_dlma info. uuid[%s]", uuid);
     http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
@@ -2886,7 +2886,7 @@ static void htp_delete_ob_dialings_uuid(evhtp_request_t *req, void *data)
   }
 
   // send hangup request of ob_dialing
-  ret = send_ob_dialing_hangup_request(uuid);
+  ret = ob_send_dialing_hangup_request(uuid);
   if(ret == false) {
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;

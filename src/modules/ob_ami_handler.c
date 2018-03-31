@@ -63,7 +63,7 @@ ACTION_RES ob_ami_response_handler_originate(json_t* j_action, json_t* j_msg)
   if(event == NULL) {
 
     // get dialing info using action id.
-    j_dialing = get_ob_dialing_by_action_id(action_id);
+    j_dialing = ob_get_dialing_by_action_id(action_id);
     if(j_dialing == NULL) {
       slog(LOG_ERR, "Could not get ob_dialing info. action_id[%s]", action_id);
       return ACTION_RES_ERROR;
@@ -82,13 +82,13 @@ ACTION_RES ob_ami_response_handler_originate(json_t* j_action, json_t* j_msg)
       slog(LOG_INFO, "Could not success ob dialing. message[%s]",
           json_string_value(json_object_get(j_msg, "Message"))
           );
-      update_ob_dialing_status(json_string_value(json_object_get(j_dialing, "uuid")), E_DIALING_ERROR_ORIGINATE_QUEUED_FAILED);
+      ob_update_dialing_status(json_string_value(json_object_get(j_dialing, "uuid")), E_DIALING_ERROR_ORIGINATE_QUEUED_FAILED);
       json_decref(j_dialing);
       return ACTION_RES_COMPLETE;
     }
 
     // update dialing status to dialing ok
-    update_ob_dialing_status(json_string_value(json_object_get(j_dialing, "uuid")), E_DIALING_ORIGINATE_QUEUED);
+    ob_update_dialing_status(json_string_value(json_object_get(j_dialing, "uuid")), E_DIALING_ORIGINATE_QUEUED);
     json_decref(j_dialing);
     return ACTION_RES_CONTINUE;
   }
@@ -122,7 +122,7 @@ ACTION_RES ob_ami_response_handler_originate(json_t* j_action, json_t* j_msg)
     res_dial = atoi(tmp_const);
 
     // update ob_dialing
-    update_ob_dialing_res_dial(uuid, success, res_dial, channel);
+    ob_update_dialing_res_dial(uuid, success, res_dial, channel);
     return ACTION_RES_COMPLETE;
   }
 
@@ -187,7 +187,7 @@ ACTION_RES ob_ami_response_handler_status(json_t* j_action, json_t* j_msg)
   }
 
   // update update time
-  ret = update_ob_dialing_timestamp(unique_id);
+  ret = ob_update_dialing_timestamp(unique_id);
   slog(LOG_DEBUG, "Updated dialing timestamp. uuid[%s], ret[%d]", unique_id, ret);
 
   return ACTION_RES_CONTINUE;
@@ -198,7 +198,7 @@ ACTION_RES ob_ami_response_handler_status(json_t* j_action, json_t* j_msg)
  * @param name
  * @return
  */
-bool originate_to_exten_preview(json_t* j_dialing)
+bool ob_originate_to_exten_preview(json_t* j_dialing)
 {
   json_t* j_cmd;
   int ret;
@@ -291,13 +291,13 @@ bool originate_to_exten_preview(json_t* j_dialing)
   slog(LOG_DEBUG, "Dialing. tmp[%s]\n", tmp);
   sfree(tmp);
 
-  ret = send_ami_cmd(j_cmd);
+  ret = ami_send_cmd(j_cmd);
   json_decref(j_cmd);
   if(ret == false) {
     slog(LOG_ERR, "Could not send originate extension request.");
     return false;
   }
-  insert_action(json_string_value(json_object_get(j_dialing, "action_id")), "ob.originate", NULL);
+  action_insert(json_string_value(json_object_get(j_dialing, "action_id")), "ob.originate", NULL);
 
   return true;
 }
@@ -307,7 +307,7 @@ bool originate_to_exten_preview(json_t* j_dialing)
  * @param name
  * @return
  */
-bool originate_to_exten(json_t* j_dialing)
+bool ob_originate_to_exten(json_t* j_dialing)
 {
   json_t* j_cmd;
   int ret;
@@ -393,13 +393,13 @@ bool originate_to_exten(json_t* j_dialing)
   slog(LOG_DEBUG, "Dialing. tmp[%s]\n", tmp);
   sfree(tmp);
 
-  ret = send_ami_cmd(j_cmd);
+  ret = ami_send_cmd(j_cmd);
   json_decref(j_cmd);
   if(ret == false) {
     slog(LOG_ERR, "Could not send originate extension request.");
     return false;
   }
-  insert_action(json_string_value(json_object_get(j_dialing, "action_id")), "ob.originate", NULL);
+  action_insert(json_string_value(json_object_get(j_dialing, "action_id")), "ob.originate", NULL);
 
   return true;
 }
@@ -409,7 +409,7 @@ bool originate_to_exten(json_t* j_dialing)
  * @param name
  * @return
  */
-bool originate_to_application(json_t* j_dialing)
+bool ob_originate_to_application(json_t* j_dialing)
 {
   json_t* j_cmd;
   int ret;
@@ -496,13 +496,13 @@ bool originate_to_application(json_t* j_dialing)
   slog(LOG_DEBUG, "Dialing. tmp[%s]\n", tmp);
   sfree(tmp);
 
-  ret = send_ami_cmd(j_cmd);
+  ret = ami_send_cmd(j_cmd);
   json_decref(j_cmd);
   if(ret == false) {
     slog(LOG_ERR, "Could not send originate application request.");
     return false;
   }
-  insert_action(json_string_value(json_object_get(j_dialing, "action_id")), "ob.originate", NULL);
+  action_insert(json_string_value(json_object_get(j_dialing, "action_id")), "ob.originate", NULL);
 
   return true;
 }

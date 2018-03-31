@@ -22,8 +22,8 @@ enum EN_HTTP_PERMS {
 #define DEF_USER_PERM_ADMIN    "admin"
 #define DEF_USER_PERM_USER     "user"
 
-bool init_http_handler(void);
-void term_http_handler(void);
+bool htpp_init_handler(void);
+void http_term_handler(void);
 
 json_t* http_create_default_result(int code);
 

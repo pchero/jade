@@ -19,7 +19,7 @@
  * @param req
  * @param data
  */
-void htp_get_core_channels(evhtp_request_t *req, void *data)
+void core_htp_get_core_channels(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_tmp;
@@ -53,7 +53,7 @@ void htp_get_core_channels(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_core_channels_detail(evhtp_request_t *req, void *data)
+void core_htp_get_core_channels_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_tmp;
@@ -66,7 +66,7 @@ void htp_get_core_channels_detail(evhtp_request_t *req, void *data)
   slog(LOG_INFO, "Fired htp_get_core_channels_detail.");
 
   // get channel unique_id
-  unique_id = uri_decode(req->uri->path->file);
+  unique_id = utils_uri_decode(req->uri->path->file);
   if(unique_id == NULL) {
     slog(LOG_NOTICE, "Could not get uuid info.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
@@ -97,7 +97,7 @@ void htp_get_core_channels_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_delete_core_channels_detail(evhtp_request_t *req, void *data)
+void core_htp_delete_core_channels_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   char* detail;
@@ -140,7 +140,7 @@ void htp_delete_core_channels_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_core_agis(evhtp_request_t *req, void *data)
+void core_htp_get_core_agis(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_tmp;
@@ -173,7 +173,7 @@ void htp_get_core_agis(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_core_agis_detail(evhtp_request_t *req, void *data)
+void core_htp_get_core_agis_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_tmp;
@@ -186,7 +186,7 @@ void htp_get_core_agis_detail(evhtp_request_t *req, void *data)
   slog(LOG_INFO, "Fired htp_get_core_agis_detail.");
 
   // get agi unique_id
-  unique_id = uri_decode(req->uri->path->file);
+  unique_id = utils_uri_decode(req->uri->path->file);
   if(unique_id == NULL) {
     slog(LOG_NOTICE, "Could not get uuid info.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
@@ -217,7 +217,7 @@ void htp_get_core_agis_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_core_systems_detail(evhtp_request_t *req, void *data)
+void core_htp_get_core_systems_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_tmp;
@@ -261,7 +261,7 @@ void htp_get_core_systems_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_core_systems(evhtp_request_t *req, void *data)
+void core_htp_get_core_systems(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_tmp;
@@ -294,7 +294,7 @@ void htp_get_core_systems(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_core_modules(evhtp_request_t *req, void *data)
+void core_htp_get_core_modules(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_tmp;
@@ -327,7 +327,7 @@ void htp_get_core_modules(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_core_modules_detail(evhtp_request_t *req, void *data)
+void core_htp_get_core_modules_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_tmp;
@@ -340,7 +340,7 @@ void htp_get_core_modules_detail(evhtp_request_t *req, void *data)
   slog(LOG_INFO, "Fired htp_gett_core_modules_detail.");
 
   // get module name
-  name = uri_decode(req->uri->path->file);
+  name = utils_uri_decode(req->uri->path->file);
   if(name == NULL) {
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
@@ -367,7 +367,7 @@ void htp_get_core_modules_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_post_core_modules_detail(evhtp_request_t *req, void *data)
+void core_htp_post_core_modules_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   char* name;
@@ -380,7 +380,7 @@ void htp_post_core_modules_detail(evhtp_request_t *req, void *data)
   slog(LOG_INFO, "Fired htp_post_core_modules_detail.");
 
   // get module name
-  name = uri_decode(req->uri->path->file);
+  name = utils_uri_decode(req->uri->path->file);
   if(name == NULL) {
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
@@ -408,7 +408,7 @@ void htp_post_core_modules_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_put_core_modules_detail(evhtp_request_t *req, void *data)
+void core_htp_put_core_modules_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   char* name;
@@ -421,7 +421,7 @@ void htp_put_core_modules_detail(evhtp_request_t *req, void *data)
   slog(LOG_INFO, "Fired htp_put_core_modules_detail.");
 
   // get module name
-  name = uri_decode(req->uri->path->file);
+  name = utils_uri_decode(req->uri->path->file);
   if(name == NULL) {
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;
@@ -449,7 +449,7 @@ void htp_put_core_modules_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_delete_core_modules_detail(evhtp_request_t *req, void *data)
+void core_htp_delete_core_modules_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   char* name;
@@ -462,7 +462,7 @@ void htp_delete_core_modules_detail(evhtp_request_t *req, void *data)
   slog(LOG_INFO, "Fired htp_delete_core_modules_detail.");
 
   // get module name
-  name = uri_decode(req->uri->path->file);
+  name = utils_uri_decode(req->uri->path->file);
   if(name == NULL) {
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
     return;

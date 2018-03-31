@@ -248,7 +248,7 @@ static bool init_ob_database_handler(void)
   return true;
 }
 
-bool init_outbound(void)
+bool ob_init_handler(void)
 {
   int ret;
 
@@ -281,7 +281,7 @@ bool init_outbound(void)
 /**
  * Terminate outbound module.
  */
-void term_outbound(void)
+void ob_term_handler(void)
 {
   int idx;
 
@@ -310,7 +310,7 @@ static void cb_campaign_start(__attribute__((unused)) int fd, __attribute__((unu
   json_t* j_dest;
   int dial_mode;
 
-  j_camp = get_ob_campaign_for_dialing();
+  j_camp = ob_get_campaign_for_dialing();
   if(j_camp == NULL) {
     // Nothing.
     return;
@@ -321,39 +321,39 @@ static void cb_campaign_start(__attribute__((unused)) int fd, __attribute__((unu
 //      );
 
   // get plan
-  j_plan = get_ob_plan(json_string_value(json_object_get(j_camp, "plan")));
+  j_plan = ob_get_plan(json_string_value(json_object_get(j_camp, "plan")));
   if(j_plan == NULL) {
     slog(LOG_WARNING, "Could not get plan info. Stopping campaign. camp_uuid[%s], plan_uuid[%s]",
         json_string_value(json_object_get(j_camp, "uuid")),
         json_string_value(json_object_get(j_camp, "plan"))
         );
-    update_ob_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STOPPING);
+    ob_update_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STOPPING);
     json_decref(j_camp);
     return;
   }
 
   // get destination
-  j_dest = get_ob_destination(json_string_value(json_object_get(j_camp, "dest")));
+  j_dest = ob_get_destination(json_string_value(json_object_get(j_camp, "dest")));
   if(j_dest == NULL) {
     slog(LOG_WARNING, "Could not get dest info. Stopping campaign. camp_uuid[%s], dest_uuid[%s]",
             json_string_value(json_object_get(j_camp, "uuid"))? : "",
             json_string_value(json_object_get(j_camp, "dest"))? : ""
             );
-    update_ob_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STOPPING);
+    ob_update_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STOPPING);
     json_decref(j_camp);
     json_decref(j_plan);
     return;
   }
 
   // get dl_master_info
-  j_dlma = get_ob_dlma(json_string_value(json_object_get(j_camp, "dlma")));
+  j_dlma = ob_get_dlma(json_string_value(json_object_get(j_camp, "dlma")));
   if(j_dlma == NULL)
   {
     slog(LOG_ERR, "Could not find dial list master info. Stopping campaign. camp_uuid[%s], dlma_uuid[%s]",
         json_string_value(json_object_get(j_camp, "uuid")),
         json_string_value(json_object_get(j_camp, "dlma"))
         );
-    update_ob_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STOPPING);
+    ob_update_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STOPPING);
     json_decref(j_camp);
     json_decref(j_plan);
     json_decref(j_dest);
@@ -368,7 +368,7 @@ static void cb_campaign_start(__attribute__((unused)) int fd, __attribute__((unu
         json_string_value(json_object_get(j_camp, "plan"))
         );
 
-    update_ob_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STOPPING);
+    ob_update_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STOPPING);
     json_decref(j_camp);
     json_decref(j_plan);
     json_decref(j_dlma);
@@ -428,7 +428,7 @@ static void cb_campaign_starting(__attribute__((unused)) int fd, __attribute__((
   int i;
   int ret;
 
-  j_camps = get_ob_campaigns_by_status(E_CAMP_STARTING);
+  j_camps = ob_get_campaigns_by_status(E_CAMP_STARTING);
   if(j_camps == NULL) {
     // Nothing.
     return;
@@ -439,7 +439,7 @@ static void cb_campaign_starting(__attribute__((unused)) int fd, __attribute__((
     j_camp = json_array_get(j_camps, i);
 
     // check startable
-    ret = is_startable_campgain(j_camp);
+    ret = ob_is_startable_campgain(j_camp);
     if(ret == false) {
       continue;
     }
@@ -449,7 +449,7 @@ static void cb_campaign_starting(__attribute__((unused)) int fd, __attribute__((
         json_string_value(json_object_get(j_camp, "uuid")),
         json_string_value(json_object_get(j_camp, "name"))
         );
-    ret = update_ob_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_START);
+    ret = ob_update_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_START);
     if(ret == false) {
       slog(LOG_ERR, "Could not update ob_campaign status to start. camp_uuid[%s], camp_name[%s]",
           json_string_value(json_object_get(j_camp, "uuid")),
@@ -475,7 +475,7 @@ static void cb_campaign_stopping(__attribute__((unused)) int fd, __attribute__((
   int size;
   int ret;
 
-  j_camps = get_ob_campaigns_by_status(E_CAMP_STOPPING);
+  j_camps = ob_get_campaigns_by_status(E_CAMP_STOPPING);
   if(j_camps == NULL) {
     // Nothing.
     return;
@@ -486,7 +486,7 @@ static void cb_campaign_stopping(__attribute__((unused)) int fd, __attribute__((
     j_camp = json_array_get(j_camps, i);
 
     // check stoppable campaign
-    ret = is_stoppable_campgain(j_camp);
+    ret = ob_is_stoppable_campgain(j_camp);
     if(ret == false) {
       continue;
     }
@@ -496,7 +496,7 @@ static void cb_campaign_stopping(__attribute__((unused)) int fd, __attribute__((
         json_string_value(json_object_get(j_camp, "uuid")),
         json_string_value(json_object_get(j_camp, "name"))
         );
-    ret = update_ob_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STOP);
+    ret = ob_update_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STOP);
     if(ret == false) {
       slog(LOG_ERR, "Could not update ob_campaign status to stop. camp_uuid[%s], camp_name[%s]",
         json_string_value(json_object_get(j_camp, "uuid")),
@@ -630,7 +630,7 @@ static void cb_check_dialing_end(__attribute__((unused)) int fd, __attribute__((
   int idx;
   int ret;
 
-  j_dialings = get_ob_dialings_hangup();
+  j_dialings = ob_get_dialings_hangup();
   if((j_dialings == NULL) || (json_array_size(j_dialings) == 0)) {
     json_decref(j_dialings);
     return;
@@ -641,7 +641,7 @@ static void cb_check_dialing_end(__attribute__((unused)) int fd, __attribute__((
     slog(LOG_INFO, "Handling ended dialing. uuid[%s]", json_string_value(json_object_get(j_dialing, "uuid")));
 
     // update ob_dl
-    ret = update_ob_dl_hangup(
+    ret = ob_update_dl_hangup(
         json_string_value(json_object_get(j_dialing, "uuid_dl_list")),
         json_integer_value(json_object_get(j_dialing, "res_dial")),
         json_string_value(json_object_get(j_dialing, "res_dial_detail")),
@@ -654,7 +654,7 @@ static void cb_check_dialing_end(__attribute__((unused)) int fd, __attribute__((
     }
 
     // create result data
-    j_res = create_json_for_dl_result(j_dialing);
+    j_res = ob_create_json_for_dl_result(j_dialing);
     if(j_res == NULL) {
       slog(LOG_ERR, "Could not create result data.");
       continue;
@@ -669,7 +669,7 @@ static void cb_check_dialing_end(__attribute__((unused)) int fd, __attribute__((
     }
 
     // delete ob_dialing
-    ret = delete_ob_dialing(json_string_value(json_object_get(j_dialing, "uuid")));
+    ret = ob_delete_dialing(json_string_value(json_object_get(j_dialing, "uuid")));
     if(ret == false) {
       slog(LOG_ERR, "Could not delete ob_dialing info. uuid[%s]",
           json_string_value(json_object_get(j_dialing, "uuid"))
@@ -696,7 +696,7 @@ static void cb_check_campaign_end(__attribute__((unused)) int fd, __attribute__(
   int size;
   int ret;
 
-  j_camps = get_ob_campaigns_by_status(E_CAMP_START);
+  j_camps = ob_get_campaigns_by_status(E_CAMP_START);
   size = json_array_size(j_camps);
   for(i = 0; i < size; i++) {
     j_camp = json_array_get(j_camps, i);
@@ -704,28 +704,28 @@ static void cb_check_campaign_end(__attribute__((unused)) int fd, __attribute__(
       continue;
     }
 
-    j_plan = get_ob_plan(json_string_value(json_object_get(j_camp, "plan")));
+    j_plan = ob_get_plan(json_string_value(json_object_get(j_camp, "plan")));
     if(j_plan == NULL) {
-      update_ob_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STOPPING);
+      ob_update_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STOPPING);
       continue;
     }
 
-    j_dlma = get_ob_dlma(json_string_value(json_object_get(j_camp, "dlma")));
+    j_dlma = ob_get_dlma(json_string_value(json_object_get(j_camp, "dlma")));
     if(j_dlma == NULL) {
-      update_ob_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STOPPING);
+      ob_update_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STOPPING);
       json_decref(j_plan);
       continue;
     }
 
     // check end-able.
-    ret = is_endable_ob_plan(j_plan);
-    ret &= is_endable_dl_list(j_dlma, j_plan);
+    ret = ob_is_plan_enable(j_plan);
+    ret &= ob_is_endable_dl_list(j_dlma, j_plan);
     if(ret == true) {
       slog(LOG_NOTICE, "The campaign ended. Stopping campaign. uuid[%s], name[%s]",
           json_string_value(json_object_get(j_camp, "uuid")),
           json_string_value(json_object_get(j_camp, "name"))
           );
-      update_ob_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STOPPING);
+      ob_update_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STOPPING);
     }
     json_decref(j_plan);
     json_decref(j_dlma);
@@ -748,7 +748,7 @@ static void cb_check_campaign_schedule_start(__attribute__((unused)) int fd, __a
   int i;
   int ret;
 
-  j_camps = get_campaigns_schedule_start();
+  j_camps = ob_get_campaigns_schedule_start();
   size = json_array_size(j_camps);
   for(i = 0; i < size; i++) {
     j_camp = json_array_get(j_camps, i);
@@ -760,7 +760,7 @@ static void cb_check_campaign_schedule_start(__attribute__((unused)) int fd, __a
         json_string_value(json_object_get(j_camp, "uuid"))? : "",
         json_string_value(json_object_get(j_camp, "name"))? : ""
         );
-    ret = update_ob_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STARTING);
+    ret = ob_update_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STARTING);
     if(ret == false) {
       slog(LOG_ERR, "Could not update ob_campaign status to starting. camp_uuid[%s], camp_name[%s]",
           json_string_value(json_object_get(j_camp, "uuid"))? : "",
@@ -786,7 +786,7 @@ static void cb_check_campaign_schedule_end(__attribute__((unused)) int fd, __att
   int i;
   int ret;
 
-  j_camps = get_campaigns_schedule_end();
+  j_camps = ob_get_campaigns_schedule_end();
   size = json_array_size(j_camps);
   for(i = 0; i < size; i++) {
     j_camp = json_array_get(j_camps, i);
@@ -798,7 +798,7 @@ static void cb_check_campaign_schedule_end(__attribute__((unused)) int fd, __att
         json_string_value(json_object_get(j_camp, "uuid")),
         json_string_value(json_object_get(j_camp, "name"))
         );
-    ret = update_ob_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STOPPING);
+    ret = ob_update_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STOPPING);
     if(ret == false) {
       slog(LOG_ERR, "Could not update ob_campaign status to schedule_stopping. camp_uuid[%s], camp_name[%s]",
           json_string_value(json_object_get(j_camp, "uuid")),
@@ -826,7 +826,7 @@ static void cb_check_dialing_refresh(__attribute__((unused)) int fd, __attribute
   int ret;
 
   // get all dialings
-  j_dialings = get_ob_dialings_all();
+  j_dialings = ob_get_dialings_all();
   if(j_dialings == NULL) {
     return;
   }
@@ -835,7 +835,7 @@ static void cb_check_dialing_refresh(__attribute__((unused)) int fd, __attribute
   json_array_foreach(j_dialings, idx, j_dialing) {
 
     // create action
-    action_id = gen_uuid();
+    action_id = utils_gen_uuid();
     j_action = json_pack("{s:s, s:s, s:s}",
         "Action",   "Status",
         "Channel",  json_string_value(json_object_get(j_dialing, "channel")),
@@ -846,7 +846,7 @@ static void cb_check_dialing_refresh(__attribute__((unused)) int fd, __attribute
     slog(LOG_DEBUG, "Check value. tmp[%s]", tmp);
     sfree(tmp);
 
-    ret = send_ami_cmd(j_action);
+    ret = ami_send_cmd(j_action);
     json_decref(j_action);
     if(ret == false) {
       sfree(action_id);
@@ -857,7 +857,7 @@ static void cb_check_dialing_refresh(__attribute__((unused)) int fd, __attribute
       continue;
     }
 
-    insert_action(action_id, "ob.status", NULL);
+    action_insert(action_id, "ob.status", NULL);
     sfree(action_id);
   }
 
@@ -880,7 +880,7 @@ static void cb_check_dialing_timeout(__attribute__((unused)) int fd, __attribute
   const char* uuid;
 
   // get all timeout dialings
-  j_dialings = get_ob_dialings_timeout();
+  j_dialings = ob_get_dialings_timeout();
   if(j_dialings == NULL) {
     return;
   }
@@ -889,7 +889,7 @@ static void cb_check_dialing_timeout(__attribute__((unused)) int fd, __attribute
   json_array_foreach(j_dialings, idx, j_dialing) {
     // update dialing status
     uuid = json_string_value(json_object_get(j_dialing, "uuid"));
-    update_ob_dialing_status(uuid, E_DIALING_ERROR_UPDATE_TIMEOUT);
+    ob_update_dialing_status(uuid, E_DIALING_ERROR_UPDATE_TIMEOUT);
   }
   json_decref(j_dialings);
 
@@ -910,7 +910,7 @@ static void cb_check_dialing_error(__attribute__((unused)) int fd, __attribute__
   int idx;
   int ret;
 
-  j_dialings = get_ob_dialings_error();
+  j_dialings = ob_get_dialings_error();
   if(j_dialings == NULL) {
     return;
   }
@@ -920,7 +920,7 @@ static void cb_check_dialing_error(__attribute__((unused)) int fd, __attribute__
     slog(LOG_INFO, "Handling error dialing. uuid[%s]", json_string_value(json_object_get(j_dialing, "uuid")));
 
     // update ob_dl
-    ret = update_ob_dl_hangup(
+    ret = ob_update_dl_hangup(
         json_string_value(json_object_get(j_dialing, "uuid_dl_list")),
         json_integer_value(json_object_get(j_dialing, "res_dial")),
         json_string_value(json_object_get(j_dialing, "res_dial_detail")),
@@ -933,7 +933,7 @@ static void cb_check_dialing_error(__attribute__((unused)) int fd, __attribute__
     }
 
     // create result data
-    j_res = create_json_for_dl_result(j_dialing);
+    j_res = ob_create_json_for_dl_result(j_dialing);
     if(j_res == NULL) {
       slog(LOG_ERR, "Could not create result data.");
       continue;
@@ -948,7 +948,7 @@ static void cb_check_dialing_error(__attribute__((unused)) int fd, __attribute__
     }
 
     // delete ob_dialing
-    ret = delete_ob_dialing(json_string_value(json_object_get(j_dialing, "uuid")));
+    ret = ob_delete_dialing(json_string_value(json_object_get(j_dialing, "uuid")));
     if(ret == false) {
       slog(LOG_ERR, "Could not delete ob_dialing info. uuid[%s]",
           json_string_value(json_object_get(j_dialing, "uuid"))
@@ -975,7 +975,7 @@ static void cb_check_dl_error(__attribute__((unused)) int fd, __attribute__((unu
   int ret;
 
   // get error dls
-  j_dls = get_ob_dls_error();
+  j_dls = ob_get_dls_error();
 
   json_array_foreach(j_dls, idx, j_dl) {
     uuid = json_string_value(json_object_get(j_dl, "uuid"));
@@ -984,7 +984,7 @@ static void cb_check_dl_error(__attribute__((unused)) int fd, __attribute__((unu
     }
 
     slog(LOG_NOTICE, "Update invalid dl info. uuid[%s]", uuid);
-    ret = update_ob_dl_status(uuid, E_DL_STATUS_IDLE);
+    ret = ob_update_dl_status(uuid, E_DL_STATUS_IDLE);
     if(ret == false) {
       slog(LOG_ERR, "Could not update invalid dl info. uuid[%s]", uuid);
     }
@@ -1013,7 +1013,7 @@ static void dial_preview(json_t* j_camp, json_t* j_plan, json_t* j_dlma, json_t*
   }
 
   // get dl list for dial
-  j_dl_list = get_dl_available_for_dial(j_dlma, j_plan);
+  j_dl_list = ob_get_dl_available_for_dial(j_dlma, j_plan);
   if(j_dl_list == NULL) {
     // No available list.
     return;
@@ -1023,7 +1023,7 @@ static void dial_preview(json_t* j_camp, json_t* j_plan, json_t* j_dlma, json_t*
   ret = check_dial_avaiable_predictive(j_camp, j_plan, j_dlma, j_dest);
   if(ret == -1) {
     // something was wrong. stop the campaign.
-    update_ob_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STOPPING);
+    ob_update_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STOPPING);
     json_decref(j_dl_list);
     return;
   }
@@ -1034,7 +1034,7 @@ static void dial_preview(json_t* j_camp, json_t* j_plan, json_t* j_dlma, json_t*
   }
 
   // creating dialing info
-  j_dial = create_dial_info(j_plan, j_dl_list, j_dest);
+  j_dial = ob_create_dial_info(j_plan, j_dl_list, j_dest);
   if(j_dial == NULL) {
     json_decref(j_dl_list);
     slog(LOG_DEBUG, "Could not create dialing info.");
@@ -1052,7 +1052,7 @@ static void dial_preview(json_t* j_camp, json_t* j_plan, json_t* j_dlma, json_t*
       );
 
   // create ob_dialing
-  j_dialing = create_ob_dialing(
+  j_dialing = ob_create_dialing(
       json_string_value(json_object_get(j_dial, "channelid")),
       j_camp,
       j_plan,
@@ -1072,14 +1072,14 @@ static void dial_preview(json_t* j_camp, json_t* j_plan, json_t* j_dlma, json_t*
   dial_type = json_integer_value(json_object_get(j_dialing, "dial_type"));
   switch(dial_type) {
     case DESTINATION_EXTEN: {
-      ret = originate_to_exten_preview(j_dialing);
+      ret = ob_originate_to_exten_preview(j_dialing);
     }
     break;
 
     case DESTINATION_APPLICATION:
     default: {
       slog(LOG_ERR, "Unsupported dialing type. dial_type[%d]", dial_type);
-      update_ob_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STOPPING);
+      ob_update_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STOPPING);
       ret = false;
     }
     break;
@@ -1092,23 +1092,23 @@ static void dial_preview(json_t* j_camp, json_t* j_plan, json_t* j_dlma, json_t*
   }
 
   // update dl list using dialing info
-  ret = update_ob_dl_after_originate(j_dialing);
+  ret = ob_update_dl_after_originate(j_dialing);
   if(ret == false) {
     json_decref(j_dialing);
-    clear_dl_list_dialing(json_string_value(json_object_get(j_dialing, "uuid_dl_list")));
+    ob_clear_dl_list_dialing(json_string_value(json_object_get(j_dialing, "uuid_dl_list")));
     slog(LOG_ERR, "Could not update dial list info.");
     return;
   }
   slog(LOG_DEBUG, "Updated ob_dl after creating dialing info.");
 
-  ret = insert_ob_dialing(j_dialing);
+  ret = ob_insert_dialing(j_dialing);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert dialing info.");
     json_decref(j_dialing);
     return;
   }
 
-  ret = update_ob_dialing_status(
+  ret = ob_update_dialing_status(
       json_string_value(json_object_get(j_dialing, "uuid")),
       E_DIALING_ORIGINATE_REQUESTED
       );
@@ -1144,7 +1144,7 @@ static void dial_predictive(json_t* j_camp, json_t* j_plan, json_t* j_dlma, json
   E_DESTINATION_TYPE dial_type;
 
   // get dl_list info to dial.
-  j_dl_list = get_dl_available_for_dial(j_dlma, j_plan);
+  j_dl_list = ob_get_dl_available_for_dial(j_dlma, j_plan);
   if(j_dl_list == NULL) {
     // No available list
 //    slog(LOG_VERBOSE, "No more dialing list. stopping the campaign.");
@@ -1156,7 +1156,7 @@ static void dial_predictive(json_t* j_camp, json_t* j_plan, json_t* j_dlma, json
   ret = check_dial_avaiable_predictive(j_camp, j_plan, j_dlma, j_dest);
   if(ret == -1) {
     // something was wrong. stop the campaign.
-    update_ob_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STOPPING);
+    ob_update_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STOPPING);
     json_decref(j_dl_list);
     return;
   }
@@ -1167,7 +1167,7 @@ static void dial_predictive(json_t* j_camp, json_t* j_plan, json_t* j_dlma, json
   }
 
   // creating dialing info
-  j_dial = create_dial_info(j_plan, j_dl_list, j_dest);
+  j_dial = ob_create_dial_info(j_plan, j_dl_list, j_dest);
   if(j_dial == NULL) {
     json_decref(j_dl_list);
     slog(LOG_DEBUG, "Could not create dialing info.");
@@ -1185,7 +1185,7 @@ static void dial_predictive(json_t* j_camp, json_t* j_plan, json_t* j_dlma, json
       );
 
   // create ob_dialing
-  j_dialing = create_ob_dialing(
+  j_dialing = ob_create_dialing(
       json_string_value(json_object_get(j_dial, "channelid")),
       j_camp,
       j_plan,
@@ -1205,18 +1205,18 @@ static void dial_predictive(json_t* j_camp, json_t* j_plan, json_t* j_dlma, json
   dial_type = json_integer_value(json_object_get(j_dialing, "dial_type"));
   switch(dial_type) {
     case DESTINATION_EXTEN: {
-      ret = originate_to_exten(j_dialing);
+      ret = ob_originate_to_exten(j_dialing);
     }
     break;
 
     case DESTINATION_APPLICATION: {
-      ret = originate_to_application(j_dialing);
+      ret = ob_originate_to_application(j_dialing);
     }
     break;
 
     default: {
       slog(LOG_ERR, "Unsupported dialing type. dial_type[%d]", dial_type);
-      update_ob_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STOPPING);
+      ob_update_campaign_status(json_string_value(json_object_get(j_camp, "uuid")), E_CAMP_STOPPING);
       ret = false;
     }
     break;
@@ -1229,23 +1229,23 @@ static void dial_predictive(json_t* j_camp, json_t* j_plan, json_t* j_dlma, json
   }
 
   // update dl list using dialing info
-  ret = update_ob_dl_after_originate(j_dialing);
+  ret = ob_update_dl_after_originate(j_dialing);
   if(ret == false) {
     json_decref(j_dialing);
-    clear_dl_list_dialing(json_string_value(json_object_get(j_dialing, "uuid_dl_list")));
+    ob_clear_dl_list_dialing(json_string_value(json_object_get(j_dialing, "uuid_dl_list")));
     slog(LOG_ERR, "Could not update dial list info.");
     return;
   }
   slog(LOG_DEBUG, "Updated ob_dl after creating dialing info.");
 
-  ret = insert_ob_dialing(j_dialing);
+  ret = ob_insert_dialing(j_dialing);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert dialing info.");
     json_decref(j_dialing);
     return;
   }
 
-  ret = update_ob_dialing_status(
+  ret = ob_update_dialing_status(
       json_string_value(json_object_get(j_dialing, "uuid")),
       E_DIALING_ORIGINATE_REQUESTED
       );
@@ -1298,7 +1298,7 @@ static int check_dial_avaiable_predictive(
   int ret;
 
   // get available destination count
-  cnt_avail = get_ob_destination_available_count(j_dest);
+  cnt_avail = ob_get_destination_available_count(j_dest);
   if(cnt_avail == DEF_DESTINATION_AVAIL_CNT_UNLIMITED) {
     slog(LOG_DEBUG, "Available destination count is unlimited. cnt[%d]", cnt_avail);
     return 1;
@@ -1313,7 +1313,7 @@ static int check_dial_avaiable_predictive(
   slog(LOG_DEBUG, "Service level. level[%d]", plan_service_level);
 
   // get current dialing count
-  cnt_current_dialing = get_ob_dialing_count_by_camp_uuid(json_string_value(json_object_get(j_camp, "uuid")));
+  cnt_current_dialing = ob_get_dialing_count_by_camp_uuid(json_string_value(json_object_get(j_camp, "uuid")));
   if(cnt_current_dialing == -1) {
     slog(LOG_ERR, "Could not get current dialing count info. camp_uuid[%s]",
         json_string_value(json_object_get(j_camp, "uuid"))

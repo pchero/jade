@@ -34,7 +34,7 @@ extern db_ctx_t* g_db_ob;
  * @param j_dlma
  * @return
  */
-json_t* create_ob_dlma(json_t* j_dlma)
+json_t* ob_create_dlma(json_t* j_dlma)
 {
   int ret;
   char* uuid;
@@ -51,7 +51,7 @@ json_t* create_ob_dlma(json_t* j_dlma)
   json_object_update_existing(j_tmp, j_dlma);
 
   // uuid
-  uuid = gen_uuid();
+  uuid = utils_gen_uuid();
   json_object_set_new(j_tmp, "uuid", json_string(uuid));
 
   // create view_table
@@ -61,7 +61,7 @@ json_t* create_ob_dlma(json_t* j_dlma)
   sfree(view_name);
 
   // create timestamp
-  tmp = get_utc_timestamp();
+  tmp = utils_get_utc_timestamp();
   json_object_set_new(j_tmp, "tm_create", json_string(tmp));
   sfree(tmp);
 
@@ -78,7 +78,7 @@ json_t* create_ob_dlma(json_t* j_dlma)
     return NULL;
   }
 
-  j_tmp = get_ob_dlma(uuid);
+  j_tmp = ob_get_dlma(uuid);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get created dlma info. uuid[%s]", uuid);
     sfree(uuid);
@@ -133,7 +133,7 @@ static json_t* create_ob_dlma_default(void)
   return j_res;
 }
 
-json_t* delete_ob_dlma(const char* uuid)
+json_t* ob_delete_dlma(const char* uuid)
 {
   json_t* j_tmp;
   char* tmp;
@@ -148,7 +148,7 @@ json_t* delete_ob_dlma(const char* uuid)
   slog(LOG_DEBUG, "Fired delete_ob_dlma. uuid[%s]", uuid);
 
   j_tmp = json_object();
-  tmp = get_utc_timestamp();
+  tmp = utils_get_utc_timestamp();
   json_object_set_new(j_tmp, "tm_delete", json_string(tmp));
   json_object_set_new(j_tmp, "in_use", json_integer(E_USE_NO));
   sfree(tmp);
@@ -166,7 +166,7 @@ json_t* delete_ob_dlma(const char* uuid)
   }
 
   // get deleted dlma info
-  j_tmp = get_deleted_ob_dlma(uuid);
+  j_tmp = ob_get_deleted_dlma(uuid);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get deleted ob_dlma info. uuid[%s]", uuid);
     return NULL;
@@ -207,7 +207,7 @@ static json_t* get_ob_dlma_use(const char* uuid, E_USE use)
  * @param uuid
  * @return
  */
-json_t* get_ob_dlma(const char* uuid)
+json_t* ob_get_dlma(const char* uuid)
 {
   json_t* j_res;
 
@@ -229,7 +229,7 @@ json_t* get_ob_dlma(const char* uuid)
  * @param uuid
  * @return
  */
-json_t* get_deleted_ob_dlma(const char* uuid)
+json_t* ob_get_deleted_dlma(const char* uuid)
 {
   json_t* j_res;
 
@@ -253,7 +253,7 @@ json_t* get_deleted_ob_dlma(const char* uuid)
  * @param j_plan
  * @return
  */
-bool validate_ob_dlma(json_t* j_data)
+bool ob_validate_dlma(json_t* j_data)
 {
   json_t* j_tmp;
 
@@ -281,7 +281,7 @@ bool validate_ob_dlma(json_t* j_data)
  * @param j_dlma
  * @return
  */
-json_t* update_ob_dlma(const json_t* j_dlma)
+json_t* ob_update_dlma(const json_t* j_dlma)
 {
   char* tmp;
   const char* tmp_const;
@@ -307,7 +307,7 @@ json_t* update_ob_dlma(const json_t* j_dlma)
   uuid = strdup(tmp_const);
 
   // update timestamp
-  tmp = get_utc_timestamp();
+  tmp = utils_get_utc_timestamp();
   json_object_set_new(j_tmp, "tm_update", json_string(tmp));
   sfree(tmp);
 
@@ -331,7 +331,7 @@ json_t* update_ob_dlma(const json_t* j_dlma)
   }
 
   slog(LOG_DEBUG, "Getting updated dlma info. uuid[%s]", uuid);
-  j_tmp = get_ob_dlma(uuid);
+  j_tmp = ob_get_dlma(uuid);
   sfree(uuid);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get updated dlma info.");
@@ -346,7 +346,7 @@ json_t* update_ob_dlma(const json_t* j_dlma)
  * @param uuid
  * @return
  */
-json_t* get_ob_dlmas_all(void)
+json_t* ob_get_dlmas_all(void)
 {
   char* sql;
   int ret;
@@ -379,7 +379,7 @@ json_t* get_ob_dlmas_all(void)
  * Get all dlma's uuid array
  * @return
  */
-json_t* get_ob_dlmas_all_uuid(void)
+json_t* ob_get_dlmas_all_uuid(void)
 {
   char* sql;
   int ret;
@@ -431,7 +431,7 @@ static char* create_view_name(const char* uuid)
   }
 
   // create view name using uuid
-  res = string_replace_char(uuid, '-', '_');
+  res = utils_string_replace_char(uuid, '-', '_');
   if(res == NULL) {
     slog(LOG_ERR, "Could not create view name.");
     return NULL;
@@ -440,7 +440,7 @@ static char* create_view_name(const char* uuid)
   return res;
 }
 
-char* get_ob_dlma_table_name(const char* dlma_uuid)
+char* ob_get_dlma_table_name(const char* dlma_uuid)
 {
   json_t* j_dlma;
   const char* tmp_const;
@@ -452,7 +452,7 @@ char* get_ob_dlma_table_name(const char* dlma_uuid)
   }
   slog(LOG_DEBUG, "Fired get_ob_dl_table_name. dlma_uuid[%s]", dlma_uuid);
 
-  j_dlma = get_ob_dlma(dlma_uuid);
+  j_dlma = ob_get_dlma(dlma_uuid);
   if(j_dlma == NULL) {
     slog(LOG_WARNING, "Could not get ob_dlma info. dlma_uuid[%s]", dlma_uuid);
     return NULL;
@@ -475,7 +475,7 @@ char* get_ob_dlma_table_name(const char* dlma_uuid)
  * @param uuid
  * @return
  */
-bool is_deletable_ob_dlma(const char* uuid)
+bool ob_is_dlma_deletable(const char* uuid)
 {
   int ret;
 
@@ -486,14 +486,14 @@ bool is_deletable_ob_dlma(const char* uuid)
   slog(LOG_DEBUG, "Fired is_deletable_ob_dlma. uuid[%s]", uuid);
 
   // check referenced campaign
-  ret = is_referenced_dlma_by_campaign(uuid);
+  ret = ob_is_referenced_dlma_by_campaign(uuid);
   if(ret == false) {
     slog(LOG_NOTICE, "The given dlma info is used in campaign. dlma_uuid[%s]", uuid);
     return false;
   }
 
   // check dl count
-  ret = get_ob_dl_count_by_dlma_uuid(uuid);
+  ret = ob_get_dl_count_by_dlma_uuid(uuid);
   if(ret > 0) {
     slog(LOG_NOTICE, "There are available ob_dl info related with given dlma_uuid. dlma_uuid[%s]", uuid);
     return false;

@@ -38,7 +38,7 @@ static bool is_exist_dialplan_info_uuid(const char* uuid);
  * @param req
  * @param data
  */
-void htp_get_dp_config(evhtp_request_t *req, void *data)
+void dialplan_htp_get_dp_config(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   char* tmp;
@@ -50,7 +50,7 @@ void htp_get_dp_config(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_dp_config.");
 
   // get info
-  tmp = get_ast_current_config_info_text(DEF_DIALPLAN_CONFNAME);
+  tmp = conf_get_ast_current_config_info_text(DEF_DIALPLAN_CONFNAME);
   if(tmp == NULL) {
     slog(LOG_ERR, "Could not get dialplan conf.");
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
@@ -74,7 +74,7 @@ void htp_get_dp_config(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_put_dp_config(evhtp_request_t *req, void *data)
+void dialplan_htp_put_dp_config(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   char* tmp;
@@ -94,7 +94,7 @@ void htp_put_dp_config(evhtp_request_t *req, void *data)
   }
 
   // update config
-  ret = update_ast_current_config_info_text(DEF_DIALPLAN_CONFNAME, tmp);
+  ret = conf_update_ast_current_config_info_text(DEF_DIALPLAN_CONFNAME, tmp);
   sfree(tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not update dialplan config info.");
@@ -117,7 +117,7 @@ void htp_put_dp_config(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_dp_dpmas(evhtp_request_t *req, void *data)
+void dialplan_htp_get_dp_dpmas(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_tmp;
@@ -151,7 +151,7 @@ void htp_get_dp_dpmas(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_post_dp_dpmas(evhtp_request_t *req, void *data)
+void dialplan_htp_post_dp_dpmas(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_data;
@@ -194,7 +194,7 @@ void htp_post_dp_dpmas(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_dp_dpmas_detail(evhtp_request_t *req, void *data)
+void dialplan_htp_get_dp_dpmas_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
@@ -240,7 +240,7 @@ void htp_get_dp_dpmas_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_put_dp_dpmas_detail(evhtp_request_t *req, void *data)
+void dialplan_htp_put_dp_dpmas_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_data;
@@ -295,7 +295,7 @@ void htp_put_dp_dpmas_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_delete_dp_dpmas_detail(evhtp_request_t *req, void *data)
+void dialplan_htp_delete_dp_dpmas_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   char* detail;
@@ -339,7 +339,7 @@ void htp_delete_dp_dpmas_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_dp_dialplans(evhtp_request_t *req, void *data)
+void dialplan_htp_get_dp_dialplans(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_tmp;
@@ -373,7 +373,7 @@ void htp_get_dp_dialplans(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_post_dp_dialplans(evhtp_request_t *req, void *data)
+void dialplan_htp_post_dp_dialplans(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_data;
@@ -417,7 +417,7 @@ void htp_post_dp_dialplans(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_dp_dialplans_detail(evhtp_request_t *req, void *data)
+void dialplan_htp_get_dp_dialplans_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
@@ -463,7 +463,7 @@ void htp_get_dp_dialplans_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_put_dp_dialplans_detail(evhtp_request_t *req, void *data)
+void dialplan_htp_put_dp_dialplans_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_data;
@@ -518,7 +518,7 @@ void htp_put_dp_dialplans_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_delete_dp_dialplans_detail(evhtp_request_t *req, void *data)
+void dialplan_htp_delete_dp_dialplans_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   char* detail;
@@ -586,7 +586,7 @@ static bool update_dpma_info(const char* uuid, const json_t* j_data)
 
   json_object_set_new(j_tmp, "uuid", json_string(uuid));
 
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
   json_object_set_new(j_tmp, "tm_update", json_string(timestamp));
   sfree(timestamp);
 
@@ -645,8 +645,8 @@ static bool create_dpma_info(const json_t* j_data)
   json_object_del(j_tmp, "tm_update");
   json_object_del(j_tmp, "tm_uuid");
 
-  timestamp = get_utc_timestamp();
-  uuid = gen_uuid();
+  timestamp = utils_get_utc_timestamp();
+  uuid = utils_gen_uuid();
 
   json_object_set_new(j_tmp, "uuid", json_string(uuid));
   sfree(uuid);
@@ -710,8 +710,8 @@ static bool create_dialplan_info(const json_t* j_data)
   json_object_del(j_tmp, "tm_update");
   json_object_del(j_tmp, "tm_uuid");
 
-  timestamp = get_utc_timestamp();
-  uuid = gen_uuid();
+  timestamp = utils_get_utc_timestamp();
+  uuid = utils_gen_uuid();
 
   json_object_set_new(j_tmp, "uuid", json_string(uuid));
   sfree(uuid);
@@ -772,7 +772,7 @@ static bool update_dialplan_info(const char* uuid, const json_t* j_data)
 
   json_object_set_new(j_tmp, "uuid", json_string(uuid));
 
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
   json_object_set_new(j_tmp, "tm_update", json_string(timestamp));
   sfree(timestamp);
 
@@ -855,7 +855,7 @@ static bool is_exist_dialplan_info(const char* dpma_uuid, int seq)
  * @param unique_id
  * @return
  */
-bool add_dialplan_cmds(const char* agi_uuid)
+bool dialplan_add_cmds(const char* agi_uuid)
 {
   json_t* j_agi;
   json_t* j_dps;
@@ -921,7 +921,7 @@ bool add_dialplan_cmds(const char* agi_uuid)
 
   // send agi request
   json_array_foreach(j_dps, idx, j_dp) {
-    uuid = gen_uuid();
+    uuid = utils_gen_uuid();
 
     channel = json_string_value(json_object_get(j_agi, "channel"));
     command = json_string_value(json_object_get(j_dp, "command"));

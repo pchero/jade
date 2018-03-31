@@ -27,7 +27,7 @@ extern app* g_app;
 static bool init_modules_info(void);
 
 
-bool init_misc_handler(void)
+bool misc_init_handler(void)
 {
   int ret;
 
@@ -77,7 +77,7 @@ static bool init_modules_info(void)
   }
 
   // get file info
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
   for(i = 0; i < cnt; i++) {
     // get stat
     asprintf(&full_filename, "%s/%s", dir, namelist[i]->d_name);
