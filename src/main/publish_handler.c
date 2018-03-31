@@ -749,7 +749,7 @@ bool publish_event_me_chat_room(enum EN_PUBLISH_TYPES type, const char* uuid_use
   }
 
   // create topic
-  asprintf(&topic, "/me/%s/chat", uuid_user);
+  asprintf(&topic, "/me/info/%s", uuid_user);
 
   // publish event
   ret = publish_event(topic, event, j_data);
@@ -769,13 +769,13 @@ bool publish_event_me_chat_room(enum EN_PUBLISH_TYPES type, const char* uuid_use
  * @param j_data
  * @return
  */
-bool publish_event_me_chat_message(enum EN_PUBLISH_TYPES type, const char* uuid_user, json_t* j_data)
+bool publish_event_me_chat_message(enum EN_PUBLISH_TYPES type, const char* uuid_room, json_t* j_data)
 {
   char* topic;
   char* event;
   int ret;
 
-  if((uuid_user == NULL) || (j_data == NULL)){
+  if((uuid_room == NULL) || (j_data == NULL)){
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
@@ -797,7 +797,7 @@ bool publish_event_me_chat_message(enum EN_PUBLISH_TYPES type, const char* uuid_
   }
 
   // create topic
-  asprintf(&topic, "/me/%s/chat", uuid_user);
+  asprintf(&topic, "/me/chats/%s", uuid_room);
 
   // publish event
   ret = publish_event(topic, event, j_data);

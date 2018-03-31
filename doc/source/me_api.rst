@@ -20,39 +20,33 @@ Example
 +++++++
 ::
 
-  $ curl -k https://localhost:8081/me/chats\?authtoken=32644555-58e5-4d03-9608-a66ed1651f12
-  
+  $ curl -k https://localhost:8081/me/chats\?authtoken=17cd592d-2706-44b6-b6e2-1c244b946cf0
+
   {
     "api_ver": "0.1",
     "result": [
         {
-            "chat_info": {
+            "detail": "test chat detail",
+            "name": "test chat name",
+            "room": {
                 "members": [
                     "59e3a7d5-b05f-43cd-abdf-db7009eed6cf",
                     "980404a2-f509-4140-9c92-96a018d1b61c"
                 ],
-                "tm_create": "2018-03-26T16:10:54.396798550Z",
+                "tm_create": "2018-03-27T06:53:37.432474880Z",
                 "tm_update": null,
                 "type": 1,
+                "uuid": "57b8706a-67e7-4c3a-a070-b164a08562ab",
                 "uuid_creator": "59e3a7d5-b05f-43cd-abdf-db7009eed6cf",
                 "uuid_owner": "59e3a7d5-b05f-43cd-abdf-db7009eed6cf"
             },
-            "detail": "test chat detail",
-            "name": "test chat name",
-            "tm_create": null,
+            "tm_create": "2018-03-27T06:53:37.496918935Z",
             "tm_update": null,
-            "uuid": "01c2f287-2e0a-4ae7-b8a8-1bc57f6fadb3"
-        },
-        {
-            "detail": "test chat detail",
-            "name": "test chat name",
-            "tm_create": null,
-            "tm_update": null,
-            "uuid": "ba807369-b5ec-4ecf-8d18-64292fd3dcbc"
+            "uuid": "15130428-6f27-456d-b744-6156e3a4b7a8"
         }
     ],
     "statuscode": 200,
-    "timestamp": "2018-03-26T16:12:06.425946246Z"
+    "timestamp": "2018-03-27T10:44:06.311937832Z"
   }
 
 
@@ -93,30 +87,31 @@ Example
 +++++++
 ::
   
-  $ curl -k -X GET https://localhost:8081/me/chats\?authtoken=d2718890-043f-43c8-9bf9-79c2602d2c81
+  $ curl -k https://localhost:8081/me/chats/15130428-6f27-456d-b744-6156e3a4b7a8\?authtoken=17cd592d-2706-44b6-b6e2-1c244b946cf0
   
   {
     "api_ver": "0.1",
-    "result": [
-        {
-            "chat_info": {
-                "members": [
-                    "59e3a7d5-b05f-43cd-abdf-db7009eed6cf",
-                    "980404a2-f509-4140-9c92-96a018d1b61c"
-                ],
-                "tm_create": "2018-03-25T20:05:44.116027505Z",
-                "tm_update": null,
-                "type": null,
-                "uuid_creator": "59e3a7d5-b05f-43cd-abdf-db7009eed6cf",
-                "uuid_owner": "59e3a7d5-b05f-43cd-abdf-db7009eed6cf"
-            },
-            "detail": "test chat detail",
-            "name": "test chat name",
-            "uuid": "7c817566-3c4a-4d97-b4f0-e29b2d2e1564"
-        }
-    ],
+    "result": {
+        "detail": "test chat detail",
+        "name": "test chat name",
+        "room": {
+            "members": [
+                "59e3a7d5-b05f-43cd-abdf-db7009eed6cf",
+                "980404a2-f509-4140-9c92-96a018d1b61c"
+            ],
+            "tm_create": "2018-03-27T06:53:37.432474880Z",
+            "tm_update": null,
+            "type": 1,
+            "uuid": "57b8706a-67e7-4c3a-a070-b164a08562ab",
+            "uuid_creator": "59e3a7d5-b05f-43cd-abdf-db7009eed6cf",
+            "uuid_owner": "59e3a7d5-b05f-43cd-abdf-db7009eed6cf"
+        },
+        "tm_create": "2018-03-27T06:53:37.496918935Z",
+        "tm_update": null,
+        "uuid": "15130428-6f27-456d-b744-6156e3a4b7a8"
+    },
     "statuscode": 200,
-    "timestamp": "2018-03-26T07:25:45.241009467Z"
+    "timestamp": "2018-03-27T10:39:34.496808298Z"
   }
   
 Method: PUT
@@ -149,6 +144,76 @@ Example
     "statuscode": 200,
     "timestamp": "2018-03-26T07:28:19.397554581Z"
   }
+  
+.. _me_chats_detail_messages:
+  
+/me/chats/<detail>/messages
+===========================
+
+Methods
+-------
+GET : Get chat messages
+
+POST: Create chat messages
+
+.. _get_me_chats_detail_messages:
+
+Method: GET
+-----------
+Get chat message
+
+Call
+++++
+::
+
+   GET /me/chats/<detail>/messages?authtoken=<string>[&timestamp=<string>&count=<number>]
+  
+   
+Method parameters
+
+* ``detail``: chat uuid.
+* ``timestamp``: Uri encoded UTC timestamp.
+* ``count``: number of message
+
+Example
++++++++
+::
+
+  $ curl -k https://localhost:8081/me/chats/15130428-6f27-456d-b744-6156e3a4b7a8/messages\?authtoken=17cd592d-2706-44b6-b6e2-1c244b946cf0\&timestamp=2018-03-30T08%3A30%3A02.364443446Z\&count=2
+
+  {
+    "api_ver": "0.1",
+    "result": [
+        {
+            "message": {
+                "message": "test message"
+            },
+            "tm_create": "2018-03-27T10:26:14.452323600Z",
+            "uuid": "1800fcee-1077-47f0-9d7c-3c7cde768e93",
+            "uuid_owner": "59e3a7d5-b05f-43cd-abdf-db7009eed6cf"
+        },
+        {
+            "message": {
+                "message": "test message"
+            },
+            "tm_create": "2018-03-27T08:30:50.225964433Z",
+            "uuid": "eb251f63-8ed1-4a00-b757-20a88caa8a20",
+            "uuid_owner": "59e3a7d5-b05f-43cd-abdf-db7009eed6cf"
+        }
+    ],
+    "statuscode": 200,
+    "timestamp": "2018-03-27T10:36:04.543077586Z"
+  }
+
+
+Method: POST
+------------
+
+Example
++++++++
+::
+
+  $ curl -k -X POST https://localhost:8081/me/chats/15130428-6f27-456d-b744-6156e3a4b7a8/messages\?authtoken=b0da6bea-f654-446b-8900-2e52cf4f3cd6 -d '{"test message"}'
 
 .. _me_info:
 
@@ -169,150 +234,38 @@ Example
 +++++++
 ::
 
-  $ curl localhost:8081/me/info\?authtoken=f1b5cd49-3c54-4aad-8585-754e3ab1796c
+  $ curl -k https://localhost:8081/me/info\?authtoken=17cd592d-2706-44b6-b6e2-1c244b946cf0
    
   {
     "api_ver": "0.1",
     "result": {
         "contacts": [
             {
-                "detail": "test target detail",
+                "detail": "test target detail 4",
                 "info": {
-                    "account_code": "",
-                    "acl": "",
-                    "active_channels": "",
-                    "aggregate_mwi": "true",
-                    "allow": "(codec2|g723|ulaw|alaw|gsm|g726|g726aal2|adpcm|slin|slin|slin|slin|slin|slin|slin|slin|slin|lpc10|g729|speex|speex|speex|ilbc|g722|siren7|siren14|testlaw|g719|opus|jpeg|png|h261|h263|h263p|h264|mpeg4|vp8|vp9|red|t140|t38|silk|silk|silk|silk)",
-                    "allow_overlap": "true",
-                    "allow_subscribe": "true",
-                    "allow_transfer": "true",
-                    "aors": "pjagent-01",
-                    "asymmetric_rtp_codec": "false",
-                    "auth": "auth-pjagent-01",
-                    "bind_rtp_to_media_address": "false",
-                    "bundle": "false",
-                    "call_group": "",
-                    "caller_id": "<unknown>",
-                    "caller_id_privacy": "allowed_not_screened",
-                    "caller_id_tag": "",
-                    "connected_line_method": "invite",
-                    "contact_acl": "",
-                    "context": "demo",
-                    "cos_audio": 0,
-                    "cos_video": 0,
-                    "device_state": "Unavailable",
-                    "device_state_busy_at": 0,
-                    "direct_media": "true",
-                    "direct_media_glare_mitigation": "none",
-                    "direct_media_method": "invite",
-                    "disable_direct_media_on_nat": "false",
-                    "disallow": "",
-                    "dtls_ca_file": "",
-                    "dtls_ca_path": "",
-                    "dtls_cert_file": "",
-                    "dtls_cipher": "",
-                    "dtls_fingerprint": "SHA-256",
-                    "dtls_private_key": "",
-                    "dtls_rekey": 0,
-                    "dtls_setup": "active",
-                    "dtls_verify": "No",
-                    "dtmf_mode": "rfc4733",
-                    "fax_detect": "false",
-                    "fax_detect_time": 0,
-                    "force_avp": "false",
-                    "force_rport": "true",
-                    "from_domain": "",
-                    "from_user": "",
-                    "g_726_non_standard": "false",
-                    "ice_support": "false",
-                    "identify_by": "username,ip",
-                    "inband_progress": "false",
-                    "incoming_mwi_mailbox": "pjagent-01@vm-demo",
-                    "language": "",
-                    "mailboxes": "pjagent-01@vm-demo",
-                    "max_audio_streams": 1,
-                    "max_video_streams": 1,
-                    "media_address": "",
-                    "media_encryption": "no",
-                    "media_encryption_optimistic": "false",
-                    "media_use_received_transport": "false",
-                    "message_context": "",
-                    "moh_passthrough": "false",
-                    "moh_suggest": "default",
-                    "mwi_from_user": "",
-                    "mwi_subscribe_replaces_unsolicited": "false",
-                    "named_call_group": "",
-                    "named_pickup_group": "",
-                    "notify_early_inuse_ringing": "false",
-                    "object_name": "pjagent-01",
-                    "object_type": "endpoint",
-                    "one_touch_recording": "false",
-                    "outbound_auth": "",
-                    "outbound_proxy": "",
-                    "pickup_group": "",
-                    "preferred_codec_only": "false",
-                    "record_off_feature": "automixmon",
-                    "record_on_feature": "automixmon",
-                    "redirect_method": "",
-                    "refer_blind_progress": "true",
-                    "rel_100": "yes",
-                    "rewrite_contact": "false",
-                    "rpid_immediate": "false",
-                    "rtcp_mux": "false",
-                    "rtp_engine": "asterisk",
-                    "rtp_ipv6": "false",
-                    "rtp_keepalive": 0,
-                    "rtp_symmetric": "false",
-                    "rtp_timeout": 0,
-                    "rtp_timeout_hold": 0,
-                    "sdp_owner": "-",
-                    "sdp_session": "Asterisk",
-                    "send_diversion": "true",
-                    "send_pai": "false",
-                    "send_rpid": "false",
-                    "set_var": "",
-                    "srtp_tag32": "false",
-                    "sub_min_expiry": "0",
-                    "subscribe_context": "",
-                    "t38_udptl": "false",
-                    "t38_udptl_ec": "none",
-                    "t38_udptl_ipv6": "false",
-                    "t38_udptl_maxdatagram": 0,
-                    "t38_udptl_nat": "false",
-                    "timers": "yes",
-                    "timers_min_se": "90",
-                    "timers_sess_expires": 1800,
-                    "tm_update": "2018-02-04T02:01:04.409151584Z",
-                    "tone_zone": "",
-                    "tos_audio": 0,
-                    "tos_video": 0,
-                    "transport": "transport-udp",
-                    "trust_id_inbound": "false",
-                    "trust_id_outbound": "false",
-                    "use_avpf": "false",
-                    "use_ptime": "false",
-                    "user_eq_phone": "false",
-                    "voicemail_extension": "",
-                    "webrtc": "no"
+                    "id": "199",
+                    "password": "199",
+                    "public_url": "sip:199@192.168.200.10",
+                    "realm": "localhost"
                 },
                 "name": "test target",
-                "target": "pjagent-01",
-                "tm_create": "2018-02-04T01:34:34.972284886Z",
-                "tm_update": null,
+                "target": "199",
+                "tm_create": "2018-02-13T17:54:12.399972783Z",
+                "tm_update": "2018-03-27T10:25:57.777450503Z",
                 "type": "pjsip_endpoint",
-                "user_uuid": "b47977bc-913a-44d9-aaa9-33cc10970c30",
-                "uuid": "a39b43a6-004f-472a-9c7b-80a9fbb91600"
+                "user_uuid": "59e3a7d5-b05f-43cd-abdf-db7009eed6cf",
+                "uuid": "62a78a12-34ba-4b4f-b9ea-e52e4bac6459"
             }
         ],
-        "name": null,
+        "name": "teset admin",
         "password": "admin",
-        "tm_create": "2018-02-03T02:28:55.640553565Z",
-        "tm_update": null,
+        "tm_create": "2018-02-13T17:42:16.453145450Z",
+        "tm_update": "2018-03-27T08:30:03.254978318Z",
         "username": "admin",
-        "uuid": "b47977bc-913a-44d9-aaa9-33cc10970c30"
+        "uuid": "59e3a7d5-b05f-43cd-abdf-db7009eed6cf"
     },
     "statuscode": 200,
-    "timestamp": "2018-02-04T02:01:18.551806140Z"
+    "timestamp": "2018-03-27T10:46:02.189107213Z"
   }
 
   

@@ -24,5 +24,7 @@ void htp_get_me_chats_detail(evhtp_request_t *req, void *data);
 void htp_put_me_chats_detail(evhtp_request_t *req, void *data);
 void htp_delete_me_chats_detail(evhtp_request_t *req, void *data);
 
+void htp_post_me_chats_detail_messages(evhtp_request_t *req, void *data);
+void htp_get_me_chats_detail_messages(evhtp_request_t *req, void *data);
 
 #endif /* SRC_MAIN_ME_HANDLER_H_ */

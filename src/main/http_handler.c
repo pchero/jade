@@ -71,6 +71,7 @@ static void cb_htp_dp_config(evhtp_request_t *req, void *data);
 // me
 static void cb_htp_me_chats(evhtp_request_t *req, void *data);
 static void cb_htp_me_chats_detail(evhtp_request_t *req, void *data);
+static void cb_htp_me_chats_detail_messages(evhtp_request_t *req, void *data);
 static void cb_htp_me_info(evhtp_request_t *req, void *data);
 
 // park
@@ -223,6 +224,7 @@ bool init_http_handler(void)
   // chats
   evhtp_set_regex_cb(g_htps, "^/me/chats$", cb_htp_me_chats, NULL);
   evhtp_set_regex_cb(g_htps, "^/me/chats/("DEF_REG_UUID")$", cb_htp_me_chats_detail, NULL);
+  evhtp_set_regex_cb(g_htps, "^/me/chats/("DEF_REG_UUID")/messages$", cb_htp_me_chats_detail_messages, NULL);
 
   // info
   evhtp_set_regex_cb(g_htps, "^/me/info$", cb_htp_me_info, NULL);
@@ -749,7 +751,7 @@ bool http_get_htp_id_pass(evhtp_request_t* req, char** agent_uuid, char** agent_
 }
 
 /**
- * Get parsed detail info.
+ * Return the parsed detail info.
  * Need to release by the caller.
  * @param req
  * @return
@@ -769,6 +771,38 @@ char* http_get_parsed_detail(evhtp_request_t* req)
   detail = uri_decode(tmp_const);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not decode detail info.");
+    return NULL;
+  }
+
+  return detail;
+}
+
+/**
+ * Return the parsed start detail info.
+ * Need to release by the caller.
+ * @param req
+ * @return
+ */
+char* http_get_parsed_detail_start(evhtp_request_t* req)
+{
+  const char* tmp_const;
+  char* detail;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  tmp_const = req->uri->path->match_start;
+  if(tmp_const == NULL) {
+    slog(LOG_WARNING, "Could not get detail match_start info.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Check value. detail[%s]", tmp_const);
+
+  detail = uri_decode(tmp_const);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not decode match start info.");
     return NULL;
   }
 
@@ -5323,6 +5357,58 @@ static void cb_htp_me_chats_detail(evhtp_request_t *req, void *data)
   }
   else if(method == htp_method_DELETE) {
     htp_delete_me_chats_detail(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+
+  return;
+}
+
+/**
+ * http request handler
+ * ^/me/chats/<detail>/messages
+ * @param req
+ * @param data
+ */
+static void cb_htp_me_chats_detail_messages(evhtp_request_t *req, void *data)
+{
+  int method;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_me_chats_detail_messages.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_USER);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if((method != htp_method_GET) && (method != htp_method_POST)) {
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // fire handlers
+  if(method == htp_method_GET) {
+    htp_get_me_chats_detail_messages(req, data);
+    return;
+  }
+  else if(method == htp_method_POST) {
+    htp_post_me_chats_detail_messages(req, data);
     return;
   }
   else {
