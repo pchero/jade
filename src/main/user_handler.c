@@ -27,17 +27,19 @@ extern app* g_app;
 #define DEF_DB_TABLE_USER_GROUP       "user_group"
 #define DEF_DB_TABLE_USER_PERMISSION  "user_permission"
 #define DEF_DB_TABLE_USER_AUTHTOKEN   "user_authtoken"
+#define DEF_DB_TABLE_USER_BUDDY       "user_buddy"
 
 
 #define DEF_AUTHTOKEN_TIMEOUT   3600
 
 static struct event* g_ev_validate_authtoken = NULL;
 
-static bool init_user_database_contact(void);
-static bool init_user_database_permission(void);
-static bool init_user_database_authtoken(void);
-static bool init_user_database_userinfo(void);
-
+static bool init_databases(void);
+static bool init_database_contact(void);
+static bool init_database_permission(void);
+static bool init_database_authtoken(void);
+static bool init_database_userinfo(void);
+static bool init_database_buddy(void);
 
 static char* create_authtoken(const char* username, const char* password);
 
@@ -55,7 +57,6 @@ static bool is_user_exist(const char* user_uuid);
 static bool is_user_exsit_by_username(const char* username);
 static bool is_valid_type_target(const char* type, const char* target);
 
-
 static void cb_user_validate_authtoken(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg);
 
 
@@ -67,27 +68,9 @@ bool user_init_handler(void)
 
 	slog(LOG_INFO, "Fired init_user_handler.");
 
-	ret = init_user_database_contact();
+	ret = init_databases();
 	if(ret == false) {
-	  slog(LOG_ERR, "Could not initiate database for contact.");
-	  return false;
-	}
-
-	ret = init_user_database_permission();
-	if(ret == false) {
-	  slog(LOG_ERR, "Could not initiate database for permission.");
-	  return false;
-	}
-
-	ret = init_user_database_authtoken();
-	if(ret == false) {
-	  slog(LOG_ERR, "Could not initiate database for authtoken.");
-	  return false;
-	}
-
-	ret = init_user_database_userinfo();
-	if(ret == false) {
-	  slog(LOG_ERR, "Could not initiate database for userinfo.");
+	  slog(LOG_ERR, "Could not initate database.");
 	  return false;
 	}
 
@@ -100,7 +83,6 @@ bool user_init_handler(void)
 	    );
 	create_userinfo(j_tmp);
 	json_decref(j_tmp);
-
 
 	// create default permission admin
 	j_tmp = user_get_userinfo_info_by_username_password("admin", "admin");
@@ -140,11 +122,53 @@ bool user_reload_handler(void)
 	return true;
 }
 
+static bool init_databases(void)
+{
+  int ret;
+
+  // contact
+  ret = init_database_contact();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate database contact.");
+    return false;
+  }
+
+  // permission
+  ret = init_database_permission();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate database permission.");
+    return false;
+  }
+
+  // authtoken
+  ret = init_database_authtoken();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate database authtoken.");
+    return false;
+  }
+
+  // userinfo
+  ret = init_database_userinfo();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate database userinfo.");
+    return false;
+  }
+
+  // buddy
+  ret = init_database_buddy();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate database buddy.");
+    return false;
+  }
+
+  return true;
+}
+
 /**
  * Initiate contact database.
  * @return
  */
-static bool init_user_database_contact(void)
+static bool init_database_contact(void)
 {
   int ret;
   const char* create_table;
@@ -182,7 +206,7 @@ static bool init_user_database_contact(void)
  * Initiate permission database.
  * @return
  */
-static bool init_user_database_permission(void)
+static bool init_database_permission(void)
 {
   int ret;
   const char* create_table;
@@ -212,7 +236,7 @@ static bool init_user_database_permission(void)
  * Initiate authtoken database.
  * @return
  */
-static bool init_user_database_authtoken(void)
+static bool init_database_authtoken(void)
 {
   int ret;
   const char* create_table;
@@ -246,7 +270,7 @@ static bool init_user_database_authtoken(void)
  * Initiate userinfo database.
  * @return
  */
-static bool init_user_database_userinfo(void)
+static bool init_database_userinfo(void)
 {
   int ret;
   const char* create_table;
@@ -279,7 +303,43 @@ static bool init_user_database_userinfo(void)
   return true;
 }
 
+/**
+ * Initiate buddy database.
+ * @return
+ */
+static bool init_database_buddy(void)
+{
+  int ret;
+  const char* create_table;
 
+  create_table =
+      "create table if not exists " DEF_DB_TABLE_USER_BUDDY " ("
+
+      // identity
+      "   uuid          varchar(255),"
+      "   uuid_onwer    varchar(255),"  // owner
+      "   uuid_user     varchar(255),"  // owner's buddy
+
+      // info
+      "   name      varchar(255),"
+      "   detail    varchar(255),"
+
+      // timestamp. UTC."
+      "   tm_create         datetime(6),"   // create time
+      "   tm_update         datetime(6),"   // update time.
+
+      "   primary key(uuid_owner, uuid_user)"
+      ");";
+
+  // execute
+  ret = resource_exec_jade_sql(create_table);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate database. database[%s]", DEF_DB_TABLE_USER_BUDDY);
+    return false;
+  }
+
+  return true;
+}
 
 /**
  *  @brief  Check the user_authtoken and validate
