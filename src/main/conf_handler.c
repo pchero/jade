@@ -43,7 +43,7 @@ static bool create_ast_current_config_section_data(const char* filename, const c
 static bool update_ast_current_config_section_data(const char* filename, const char* section, const json_t* j_data);
 static bool delete_ast_current_config_section(const char* filename, const char* section);
 
-bool init_conf_handler(void)
+bool conf_init_handler(void)
 {
   int ret;
 
@@ -261,7 +261,7 @@ static int backup_ast_config_info(const char* filename)
   }
   slog(LOG_DEBUG, "Fired backup_ast_config_info. filename[%s]", filename);
 
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
   backup_dir = get_ast_backup_conf_dir();
 
   // create full target filename
@@ -377,7 +377,7 @@ static char* get_ast_config_info_text(const char* filename)
  * @param filename
  * @return
  */
-json_t* get_ast_current_config_info(const char* filename)
+json_t* conf_get_ast_current_config_info(const char* filename)
 {
   json_t* j_conf;
   const char* dir;
@@ -406,7 +406,7 @@ json_t* get_ast_current_config_info(const char* filename)
  * @param filename
  * @return
  */
-char* get_ast_current_config_info_text(const char* filename)
+char* conf_get_ast_current_config_info_text(const char* filename)
 {
   const char* dir;
   char* target;
@@ -438,7 +438,7 @@ char* get_ast_current_config_info_text(const char* filename)
  * @param filename
  * @return
  */
-bool update_ast_current_config_info(const char* filename, json_t* j_conf)
+bool conf_update_ast_current_config_info(const char* filename, json_t* j_conf)
 {
   int ret;
   char* target;
@@ -484,7 +484,7 @@ bool update_ast_current_config_info(const char* filename, json_t* j_conf)
  * @param filename
  * @return
  */
-bool update_ast_current_config_info_text(const char* filename, const char* data)
+bool conf_update_ast_current_config_info_text(const char* filename, const char* data)
 {
   const char* conf_dir;
   char* target;
@@ -529,7 +529,7 @@ bool update_ast_current_config_info_text(const char* filename, const char* data)
  * @param filename
  * @return
  */
-json_t* get_ast_backup_config_info_json(const char* filename)
+json_t* conf_get_ast_backup_config_info_json(const char* filename)
 {
   char* tmp;
   char* full_filename;
@@ -561,7 +561,7 @@ json_t* get_ast_backup_config_info_json(const char* filename)
  * @param filename
  * @return
  */
-char* get_ast_backup_config_info_text(const char* filename)
+char* conf_get_ast_backup_config_info_text(const char* filename)
 {
   char* tmp;
   char* full_filename;
@@ -593,7 +593,7 @@ char* get_ast_backup_config_info_text(const char* filename)
  * @param filename
  * @return
  */
-char* get_ast_backup_config_info_text_valid(const char* filename, const char* valid)
+char* conf_get_ast_backup_config_info_text_valid(const char* filename, const char* valid)
 {
   char* res;
   const char* tmp_const;
@@ -611,7 +611,7 @@ char* get_ast_backup_config_info_text_valid(const char* filename, const char* va
     return NULL;
   }
 
-  res = get_ast_backup_config_info_text(filename);
+  res = conf_get_ast_backup_config_info_text(filename);
   if(res == NULL) {
     slog(LOG_ERR, "Could not get backup config info. filename[%s]", filename);
     return NULL;
@@ -626,7 +626,7 @@ char* get_ast_backup_config_info_text_valid(const char* filename, const char* va
  * @param filename
  * @return
  */
-json_t* get_ast_backup_configs_info_all(const char* filename)
+json_t* conf_get_ast_backup_configs_info_all(const char* filename)
 {
   json_t* j_res;
   json_t* j_list;
@@ -653,7 +653,7 @@ json_t* get_ast_backup_configs_info_all(const char* filename)
     // get filename
     backup_filename = json_string_value(j_tmp);
 
-    tmp = get_ast_backup_config_info_text(backup_filename);
+    tmp = conf_get_ast_backup_config_info_text(backup_filename);
     if(tmp == NULL) {
       slog(LOG_ERR, "Could not get config file info.");
       continue;
@@ -714,7 +714,7 @@ static int remove_ast_backup_config_info(const char* filename)
  * @param filename
  * @return
  */
-bool remove_ast_backup_config_info_valid(const char* filename, const char* valid)
+bool conf_remove_ast_backup_config_info_valid(const char* filename, const char* valid)
 {
   const char* tmp_const;
   int ret;
@@ -748,7 +748,7 @@ bool remove_ast_backup_config_info_valid(const char* filename, const char* valid
  * @param filename
  * @return
  */
-bool update_ast_current_config_content(const char* filename, const char* section, const char* key, const char* val)
+bool conf_update_ast_current_config_content(const char* filename, const char* section, const char* key, const char* val)
 {
   int ret;
   json_t* j_conf;
@@ -760,7 +760,7 @@ bool update_ast_current_config_content(const char* filename, const char* section
   }
 
   // get config
-  j_conf = get_ast_current_config_info(filename);
+  j_conf = conf_get_ast_current_config_info(filename);
   if(j_conf == NULL) {
     slog(LOG_ERR, "Could not get config info.");
     return false;
@@ -777,7 +777,7 @@ bool update_ast_current_config_content(const char* filename, const char* section
   json_object_set_new(j_section, key, json_string(val));
 
   // write conf
-  ret = update_ast_current_config_info(filename, j_conf);
+  ret = conf_update_ast_current_config_info(filename, j_conf);
   json_decref(j_conf);
   if(ret == false) {
     slog(LOG_ERR, "Could not update current ast config info.");
@@ -794,7 +794,7 @@ bool update_ast_current_config_content(const char* filename, const char* section
  * @param filename
  * @return
  */
-bool create_ast_current_config_content(const char* filename, const char* section, const char* key, const char* val)
+bool conf_create_ast_current_config_content(const char* filename, const char* section, const char* key, const char* val)
 {
   int ret;
   json_t* j_conf;
@@ -807,7 +807,7 @@ bool create_ast_current_config_content(const char* filename, const char* section
   }
 
   // get config
-  j_conf = get_ast_current_config_info(filename);
+  j_conf = conf_get_ast_current_config_info(filename);
   if(j_conf == NULL) {
     slog(LOG_ERR, "Could not get config info.");
     return false;
@@ -832,7 +832,7 @@ bool create_ast_current_config_content(const char* filename, const char* section
   json_object_set_new(j_section, key, json_string(val));
 
   // update conf
-  ret = update_ast_current_config_info(filename, j_conf);
+  ret = conf_update_ast_current_config_info(filename, j_conf);
   json_decref(j_conf);
   if(ret == false) {
     slog(LOG_ERR, "Could not update current ast config info.");
@@ -849,7 +849,7 @@ bool create_ast_current_config_content(const char* filename, const char* section
  * @param filename
  * @return
  */
-bool delete_ast_current_config_content(const char* filename, const char* section, const char* key)
+bool conf_delete_ast_current_config_content(const char* filename, const char* section, const char* key)
 {
   int ret;
   json_t* j_conf;
@@ -860,7 +860,7 @@ bool delete_ast_current_config_content(const char* filename, const char* section
   }
 
   // get config
-  j_conf = get_ast_current_config_info(filename);
+  j_conf = conf_get_ast_current_config_info(filename);
   if(j_conf == NULL) {
     slog(LOG_ERR, "Could not get config info.");
     return false;
@@ -870,7 +870,7 @@ bool delete_ast_current_config_content(const char* filename, const char* section
   json_object_del(json_object_get(j_conf, section), key);
 
   // update conf
-  ret = update_ast_current_config_info(filename, j_conf);
+  ret = conf_update_ast_current_config_info(filename, j_conf);
   json_decref(j_conf);
   if(ret == false) {
     slog(LOG_ERR, "Could not update current ast config info.");
@@ -900,7 +900,7 @@ static bool create_ast_current_config_section_data(const char* filename, const c
   }
 
   // get config
-  j_conf = get_ast_current_config_info(filename);
+  j_conf = conf_get_ast_current_config_info(filename);
   if(j_conf == NULL) {
     slog(LOG_ERR, "Could not get config info.");
     return false;
@@ -919,7 +919,7 @@ static bool create_ast_current_config_section_data(const char* filename, const c
   json_object_set_new(j_conf, section, j_data_tmp);
 
   // update conf
-  ret = update_ast_current_config_info(filename, j_conf);
+  ret = conf_update_ast_current_config_info(filename, j_conf);
   json_decref(j_conf);
   if(ret == false) {
     slog(LOG_ERR, "Could not update current ast config info.");
@@ -950,7 +950,7 @@ static bool update_ast_current_config_section_data(const char* filename, const c
   slog(LOG_DEBUG, "Fired update_ast_current_config_section_data. filename[%s]", filename);
 
   // get config
-  j_conf = get_ast_current_config_info(filename);
+  j_conf = conf_get_ast_current_config_info(filename);
   if(j_conf == NULL) {
     slog(LOG_ERR, "Could not get config info.");
     return false;
@@ -969,7 +969,7 @@ static bool update_ast_current_config_section_data(const char* filename, const c
   json_object_set_new(j_conf, section, j_data_tmp);
 
   // update conf
-  ret = update_ast_current_config_info(filename, j_conf);
+  ret = conf_update_ast_current_config_info(filename, j_conf);
   json_decref(j_conf);
   if(ret == false) {
     slog(LOG_ERR, "Could not update current ast config info.");
@@ -998,7 +998,7 @@ static bool delete_ast_current_config_section(const char* filename, const char* 
   slog(LOG_DEBUG, "Fired delete_ast_current_config_section. filename[%s], section[%s]", filename, section);
 
   // get config
-  j_conf = get_ast_current_config_info(filename);
+  j_conf = conf_get_ast_current_config_info(filename);
   if(j_conf == NULL) {
     slog(LOG_ERR, "Could not get config info.");
     return false;
@@ -1008,7 +1008,7 @@ static bool delete_ast_current_config_section(const char* filename, const char* 
   json_object_del(j_conf, section);
 
   // update conf
-  ret = update_ast_current_config_info(filename, j_conf);
+  ret = conf_update_ast_current_config_info(filename, j_conf);
   json_decref(j_conf);
   if(ret == false) {
     slog(LOG_ERR, "Could not update current ast config info.");
@@ -1023,7 +1023,7 @@ static bool delete_ast_current_config_section(const char* filename, const char* 
  * @param filename
  * @return
  */
-bool create_ast_setting(const char* filename, const char* name, const json_t* j_data)
+bool conf_create_ast_setting(const char* filename, const char* name, const json_t* j_data)
 {
 	int ret;
 
@@ -1045,7 +1045,7 @@ bool create_ast_setting(const char* filename, const char* name, const json_t* j_
  * @param filename
  * @return
  */
-json_t* get_ast_settings_all(const char* filename)
+json_t* conf_get_ast_settings_all(const char* filename)
 {
 	json_t* j_res;
 	json_t* j_conf;
@@ -1058,7 +1058,7 @@ json_t* get_ast_settings_all(const char* filename)
 		return NULL;
 	}
 
-	j_conf = get_ast_current_config_info(filename);
+	j_conf = conf_get_ast_current_config_info(filename);
 	if(j_conf == NULL) {
 		slog(LOG_ERR, "Could not get setting info.");
 		return NULL;
@@ -1087,7 +1087,7 @@ json_t* get_ast_settings_all(const char* filename)
  * @param filename
  * @return
  */
-json_t* get_ast_setting(const char* filename, const char* name)
+json_t* conf_get_ast_setting(const char* filename, const char* name)
 {
 	json_t* j_res;
 	json_t* j_setting;
@@ -1098,7 +1098,7 @@ json_t* get_ast_setting(const char* filename, const char* name)
 		return NULL;
 	}
 
-	j_conf = get_ast_current_config_info(filename);
+	j_conf = conf_get_ast_current_config_info(filename);
 	j_setting = json_object_get(j_conf, name);
 	j_res = json_deep_copy(j_setting);
 	json_decref(j_conf);
@@ -1111,7 +1111,7 @@ json_t* get_ast_setting(const char* filename, const char* name)
  * @param filename
  * @return
  */
-bool remove_ast_setting(const char* filename, const char* name)
+bool conf_remove_ast_setting(const char* filename, const char* name)
 {
 	int ret;
 
@@ -1133,7 +1133,7 @@ bool remove_ast_setting(const char* filename, const char* name)
  * @param filename
  * @return
  */
-bool update_ast_setting(const char* filename, const char* name, const json_t* j_data)
+bool conf_update_ast_setting(const char* filename, const char* name, const json_t* j_data)
 {
 	int ret;
 

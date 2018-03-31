@@ -49,7 +49,7 @@ static bool parse_voicemail_id(const char* str, char** mailbox, char** context);
  * @param req
  * @param data
  */
-void htp_get_voicemail_users(evhtp_request_t *req, void *data)
+void voicemail_htp_get_voicemail_users(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
@@ -84,7 +84,7 @@ void htp_get_voicemail_users(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_post_voicemail_users(evhtp_request_t *req, void *data)
+void voicemail_htp_post_voicemail_users(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_data;
@@ -127,7 +127,7 @@ void htp_post_voicemail_users(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_voicemail_users_detail(evhtp_request_t *req, void *data)
+void voicemail_htp_get_voicemail_users_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
@@ -141,7 +141,7 @@ void htp_get_voicemail_users_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_voicemail_users_detail.");
 
   tmp_const = req->uri->path->file;
-  key = uri_decode(tmp_const);
+  key = utils_uri_decode(tmp_const);
 
   // get info
   j_tmp = get_voicemail_user_info(key);
@@ -165,7 +165,7 @@ void htp_get_voicemail_users_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_put_voicemail_users_detail(evhtp_request_t *req, void *data)
+void voicemail_htp_put_voicemail_users_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_data;
@@ -183,7 +183,7 @@ void htp_put_voicemail_users_detail(evhtp_request_t *req, void *data)
 
   // get key
   tmp_const = req->uri->path->file;
-  key = uri_decode(tmp_const);
+  key = utils_uri_decode(tmp_const);
 
   // parse
   ret = parse_voicemail_id(key, &mailbox, &context);
@@ -232,7 +232,7 @@ void htp_put_voicemail_users_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_delete_voicemail_users_detail(evhtp_request_t *req, void *data)
+void voicemail_htp_delete_voicemail_users_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   char* context;
@@ -249,7 +249,7 @@ void htp_delete_voicemail_users_detail(evhtp_request_t *req, void *data)
 
   // get key
   tmp_const = req->uri->path->file;
-  key = uri_decode(tmp_const);
+  key = utils_uri_decode(tmp_const);
 
   // parse
   ret = parse_voicemail_id(key, &mailbox, &context);
@@ -282,7 +282,7 @@ void htp_delete_voicemail_users_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_voicemail_vms(evhtp_request_t *req, void *data)
+void voicemail_htp_get_voicemail_vms(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
@@ -335,7 +335,7 @@ void htp_get_voicemail_vms(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_voicemail_vms_msgname(evhtp_request_t *req, void *data)
+void voicemail_htp_get_voicemail_vms_msgname(evhtp_request_t *req, void *data)
 {
   const char* context;
   const char* mailbox;
@@ -449,7 +449,7 @@ void htp_get_voicemail_vms_msgname(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_delete_voicemail_vms_msgname(evhtp_request_t *req, void *data)
+void voicemail_htp_delete_voicemail_vms_msgname(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   const char* context;
@@ -517,7 +517,7 @@ void htp_delete_voicemail_vms_msgname(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_voicemail_config(evhtp_request_t *req, void *data)
+void voicemail_htp_get_voicemail_config(evhtp_request_t *req, void *data)
 {
   char* res;
   json_t* j_res;
@@ -529,7 +529,7 @@ void htp_get_voicemail_config(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_voicemail_config.");
 
   // get info
-  res = get_ast_current_config_info_text(DEF_VOICEMAIL_CONFNAME);
+  res = conf_get_ast_current_config_info_text(DEF_VOICEMAIL_CONFNAME);
   if(res == NULL) {
     slog(LOG_ERR, "Could not get voicemail conf.");
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
@@ -553,7 +553,7 @@ void htp_get_voicemail_config(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_put_voicemail_config(evhtp_request_t *req, void *data)
+void voicemail_htp_put_voicemail_config(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   char* req_data;
@@ -574,7 +574,7 @@ void htp_put_voicemail_config(evhtp_request_t *req, void *data)
   }
 
   // update config
-  ret = update_ast_current_config_info_text(DEF_VOICEMAIL_CONFNAME, req_data);
+  ret = conf_update_ast_current_config_info_text(DEF_VOICEMAIL_CONFNAME, req_data);
   sfree(req_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update voicemail config info.");
@@ -597,7 +597,7 @@ void htp_put_voicemail_config(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_voicemail_configs(evhtp_request_t *req, void *data)
+void voicemail_htp_get_voicemail_configs(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
@@ -609,7 +609,7 @@ void htp_get_voicemail_configs(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_voicemail_configs.");
 
   // get info
-  j_tmp = get_ast_backup_configs_info_all(DEF_VOICEMAIL_CONFNAME);
+  j_tmp = conf_get_ast_backup_configs_info_all(DEF_VOICEMAIL_CONFNAME);
   if(j_tmp == NULL) {
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
@@ -632,7 +632,7 @@ void htp_get_voicemail_configs(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_voicemail_configs_detail(evhtp_request_t *req, void *data)
+void voicemail_htp_get_voicemail_configs_detail(evhtp_request_t *req, void *data)
 {
   char* tmp;
   json_t* j_res;
@@ -647,7 +647,7 @@ void htp_get_voicemail_configs_detail(evhtp_request_t *req, void *data)
 
   // detail parse
   tmp_const = req->uri->path->file;
-  detail = uri_decode(tmp_const);
+  detail = utils_uri_decode(tmp_const);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get detail info.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
@@ -655,7 +655,7 @@ void htp_get_voicemail_configs_detail(evhtp_request_t *req, void *data)
   }
 
   // get config info
-  tmp = get_ast_backup_config_info_text_valid(detail, DEF_VOICEMAIL_CONFNAME);
+  tmp = conf_get_ast_backup_config_info_text_valid(detail, DEF_VOICEMAIL_CONFNAME);
   sfree(detail);
   if(tmp == NULL) {
     slog(LOG_NOTICE, "Could not find config info.");
@@ -680,7 +680,7 @@ void htp_get_voicemail_configs_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_delete_voicemail_configs_detail(evhtp_request_t *req, void *data)
+void voicemail_htp_delete_voicemail_configs_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   const char* tmp_const;
@@ -695,7 +695,7 @@ void htp_delete_voicemail_configs_detail(evhtp_request_t *req, void *data)
 
   // detail parse
   tmp_const = req->uri->path->file;
-  detail = uri_decode(tmp_const);
+  detail = utils_uri_decode(tmp_const);
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get detail info.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
@@ -703,7 +703,7 @@ void htp_delete_voicemail_configs_detail(evhtp_request_t *req, void *data)
   }
 
   // remove it
-  ret = remove_ast_backup_config_info_valid(detail, DEF_VOICEMAIL_CONFNAME);
+  ret = conf_remove_ast_backup_config_info_valid(detail, DEF_VOICEMAIL_CONFNAME);
   sfree(detail);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not delete config file.");
@@ -912,7 +912,7 @@ static bool remove_vm(const char* context, const char* mailbox, const char* dir,
       );
 
   // send refresh request
-  ret = send_ami_cmd(j_tmp);
+  ret = ami_send_cmd(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not send ami action for voicemail refresh. action[%s]", "Hangup");
@@ -984,7 +984,7 @@ static json_t* get_vms_status(const char* directory, const char* status, const c
     json_object_set_new(j_tmp, "dir", json_string(dir));
 
     // set msgname
-    msgname = strip_ext(ent->d_name);
+    msgname = utils_strip_ext(ent->d_name);
     json_object_set_new(j_tmp, "msgname", json_string(msgname));
     sfree(msgname);
 
@@ -1188,7 +1188,7 @@ static int update_voicemail_user(json_t* j_data)
   }
 
   // update mailbox
-  ret = update_ast_current_config_content(DEF_VOICEMAIL_CONFNAME, context, mailbox, user_info);
+  ret = conf_update_ast_current_config_content(DEF_VOICEMAIL_CONFNAME, context, mailbox, user_info);
   sfree(user_info);
   if(ret == false) {
     slog(LOG_ERR, "Could not create new voicemail mailbox.");
@@ -1238,7 +1238,7 @@ static bool create_voicemail_user(json_t* j_data)
   }
 
   // create new mailbox
-  ret = create_ast_current_config_content(DEF_VOICEMAIL_CONFNAME, context, mailbox, user_info);
+  ret = conf_create_ast_current_config_content(DEF_VOICEMAIL_CONFNAME, context, mailbox, user_info);
   sfree(user_info);
   if(ret == false) {
     slog(LOG_ERR, "Could not create new voicemail mailbox.");
@@ -1265,7 +1265,7 @@ static int delete_voicemail_user(const char* context, const char* mailbox)
   slog(LOG_DEBUG, "Delete voicemail user. context[%s], mailbox[%s]", context, mailbox);
 
   // delete voicemail user
-  ret = delete_ast_current_config_content(DEF_VOICEMAIL_CONFNAME, context, mailbox);
+  ret = conf_delete_ast_current_config_content(DEF_VOICEMAIL_CONFNAME, context, mailbox);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete voicemail user.");
     return false;

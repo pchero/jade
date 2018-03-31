@@ -98,7 +98,7 @@ void ami_message_handler(const char* msg)
   slog(LOG_DEBUG, "Fired ami_message_handler.");
 
   // message parse
-  j_msg = parse_ami_msg(msg);
+  j_msg = ami_parse_msg(msg);
   if(j_msg == NULL) {
     slog(LOG_NOTICE, "Could not parse message. msg[%s]", msg);
     return;
@@ -293,7 +293,7 @@ static void ami_response_handler(json_t* j_msg)
   }
 
   // get action
-  j_action = get_action(action_id);
+  j_action = action_get(action_id);
   if(j_action == NULL) {
     slog(LOG_NOTICE, "Could not get action info. id[%s]", action_id);
     return;
@@ -305,7 +305,7 @@ static void ami_response_handler(json_t* j_msg)
     json_decref(j_action);
 
     // wrong action. should be deleted.
-    delete_action(action_id);
+    action_delete(action_id);
     return;
   }
 
@@ -348,7 +348,7 @@ static void ami_response_handler(json_t* j_msg)
   slog(LOG_DEBUG, "The action response finished. action_id[%s], res[%d]", action_id, res_action);
 
   // delete action
-  delete_action(action_id);
+  action_delete(action_id);
   return;
 }
 
@@ -376,7 +376,7 @@ static void ami_event_peerentry(json_t* j_msg)
       json_string_value(json_object_get(j_msg, "IPport"))
       );
 
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
   j_tmp = json_pack("{"
     "s:s, s:s, "
     "s:s, s:s, s:s, "
@@ -414,7 +414,7 @@ static void ami_event_peerentry(json_t* j_msg)
   }
 
   // create info
-  ret = create_sip_peer_info(j_tmp);
+  ret = sip_create_peer_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert destination.");
@@ -459,7 +459,7 @@ static void ami_event_peerstatus(json_t* j_msg)
   sfree(peer);
 
   // update info
-  ret = update_sip_peer_info(j_tmp);
+  ret = sip_update_peer_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not update sip peer info.");
@@ -486,7 +486,7 @@ static void ami_event_queueparams(json_t* j_msg)
   }
   slog(LOG_DEBUG, "Fired ami_event_queueparams.");
 
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
   j_tmp = json_pack("{"
       "s:s, "
       "s:i, s:s, s:i, s:i, s:i, s:i, s:i, "
@@ -545,7 +545,7 @@ static void ami_event_queuemember(json_t* j_msg)
   }
   slog(LOG_DEBUG, "Fired ami_event_queuemember.");
 
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
   j_tmp = json_pack("{"
       "s:s, s:s, "
       "s:s, s:s, s:s, s:i, s:i, "
@@ -615,7 +615,7 @@ static void ami_event_queuememberadded(json_t* j_msg)
   }
   slog(LOG_DEBUG, "Fired ami_event_queuememberadded.");
 
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
   j_tmp = json_pack("{"
       "s:s, s:s, "
       "s:s, s:s, s:s, s:i, s:i, "
@@ -686,7 +686,7 @@ static void ami_event_queuememberpause(json_t* j_msg)
   }
   slog(LOG_DEBUG, "Fired ami_event_queuememberpause.");
 
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
   j_tmp = json_pack("{"
       "s:s, s:s, "
       "s:s, s:s, s:s, s:i, s:i, "
@@ -757,7 +757,7 @@ static void ami_event_queuememberpenalty(json_t* j_msg)
   }
   slog(LOG_DEBUG, "Fired ami_event_queuememberpenalty.");
 
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
   j_tmp = json_pack("{"
       "s:s, s:s, "
       "s:s, s:s, s:s, s:i, s:i, "
@@ -859,7 +859,7 @@ static void ami_event_queuememberringinuse(json_t* j_msg)
   }
   slog(LOG_DEBUG, "Fired ami_event_queuememberringinuse.");
 
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
   j_tmp = json_pack("{"
       "s:s, s:s, "
       "s:s, s:s, s:s, s:i, s:i, "
@@ -930,7 +930,7 @@ static void ami_event_queueentry(json_t* j_msg)
   }
   slog(LOG_DEBUG, "Fired ami_event_queueentry.");
 
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
   j_tmp = json_pack("{"
       "s:s, s:i, "
       "s:s, s:s, s:s, s:s, s:s, s:s, "
@@ -1012,7 +1012,7 @@ static void ami_event_queuecallerjoin(json_t* j_msg)
   }
   slog(LOG_DEBUG, "Fired ami_event_queuecallerjoin.");
 
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
   j_tmp = json_pack("{"
       "s:s, s:s, "
       "s:i, s:s, s:s, s:s, s:s, s:s, "
@@ -1092,7 +1092,7 @@ static void ami_event_queuememberstatus(json_t* j_msg)
   }
   slog(LOG_INFO, "Fired ami_event_queuememberstatus.");
 
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
   j_tmp = json_pack("{"
       "s:s, s:s, s:i, "
       "s:s, s:s, s:s, s:i, s:i, "
@@ -1260,7 +1260,7 @@ static void ami_event_hangup(json_t* j_msg)
   }
 
   // update channel info
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
   j_tmp = json_pack("{"
       "s:s, s:s, "
       "s:s, s:i, s:s, "
@@ -1318,7 +1318,7 @@ static void ami_event_hangup(json_t* j_msg)
   hangup = atoi(tmp_const);
 
   // update ob_dialing channel
-  update_ob_dialing_hangup(unique_id, hangup, hangup_detail);
+  ob_update_dialing_hangup(unique_id, hangup, hangup_detail);
 
   return;
 }
@@ -1340,7 +1340,7 @@ static void ami_event_newchannel(json_t* j_msg)
   }
   slog(LOG_DEBUG, "Fired ami_event_newchannel.");
 
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
   j_tmp = json_pack("{"
       "s:s, s:s, "
       "s:s, s:i, s:s, "
@@ -1413,7 +1413,7 @@ static void ami_event_registryentry(json_t* j_msg)
       json_string_value(json_object_get(j_msg, "Host"))? : "",
       json_string_value(json_object_get(j_msg, "Port"))? atoi(json_string_value(json_object_get(j_msg, "Port"))) : 0
       );
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
   j_tmp = json_pack("{"
       "s:s, s:s, s:i, s:s,"
       "s:s, s:i, s:i, s:s, s:i"
@@ -1440,7 +1440,7 @@ static void ami_event_registryentry(json_t* j_msg)
   }
 
   // create info
-  ret = create_sip_registry_info(j_tmp);
+  ret = sip_create_registry_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to registry.");
@@ -1488,7 +1488,7 @@ static void ami_event_rename(json_t* j_msg)
   }
 
   // update new channel info
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
   json_object_set_new(j_tmp, "channel", json_string(chan_name));
   json_object_set_new(j_tmp, "tm_update", json_string(timestamp));
   sfree(timestamp);
@@ -1521,7 +1521,7 @@ static void ami_event_agents(json_t* j_msg)
   }
   slog(LOG_DEBUG, "Fired ami_event_agents.");
 
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
   j_tmp = json_pack("{"
       "s:s, s:s, s:s, s:i, "
       "s:s, s:i, s:s, "
@@ -1594,7 +1594,7 @@ static void ami_event_agentlogin(json_t* j_msg)
   }
   slog(LOG_DEBUG, "Fired ami_event_agentlogin.");
 
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
   j_tmp = json_pack("{"
       "s:s, s:s, "
       "s:s, s:i, s:s, "
@@ -1665,7 +1665,7 @@ static void ami_event_agentlogoff(json_t* j_msg)
   }
   slog(LOG_DEBUG, "Fired ami_event_agentlogoff.");
 
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
   j_tmp = json_pack("{"
       "s:s, s:s, "
       "s:s, s:i, s:s, "
@@ -1741,7 +1741,7 @@ static void ami_event_parkinglot(json_t* j_msg)
   slog(LOG_DEBUG, "Event message. msg[%s]", tmp);
   sfree(tmp);
 
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
   j_tmp = json_pack("{"
       "s:s, "
       "s:s, s:s, "
@@ -1792,7 +1792,7 @@ static void ami_event_parkedcall(json_t* j_msg)
   }
   slog(LOG_DEBUG, "Fired ami_event_parkedcall.");
 
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
   j_tmp = json_pack("{"
       "s:s, s:s, s:s, "
       "s:s, s:s, "
@@ -1875,7 +1875,7 @@ static void ami_event_parkedcallswap(json_t* j_msg)
   slog(LOG_DEBUG, "Fired ami_event_parkedcallswap.");
 
   // insert new parked call
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
   j_tmp = json_pack("{"
       "s:s, s:s, s:s, "
       "s:s, s:s, "
@@ -2034,7 +2034,7 @@ static void ami_event_devicestatechange(json_t* j_msg)
   }
   slog(LOG_DEBUG, "Fired ami_event_devicestatechange.");
 
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
   j_tmp = json_pack("{"
       "s:s, s:s, "
       "s:s"
@@ -2121,7 +2121,7 @@ static void ami_event_varset(json_t* j_msg)
   json_object_set(j_chan, "exten", json_object_get(j_msg, "Exten"));
   json_object_set(j_chan, "priority", json_object_get(j_msg, "Priority"));
 
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
   json_object_set_new(j_chan, "tm_update", json_string(timestamp));
   sfree(timestamp);
 
@@ -2155,7 +2155,7 @@ static void ami_event_endpointlist(json_t* j_msg)
   }
   slog(LOG_DEBUG, "Fired ami_event_endpointlist.");
 
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
   j_data = json_pack("{"
       "s:s, s:s, "
       "s:s, s:s, s:s, s:s, "
@@ -2175,7 +2175,7 @@ static void ami_event_endpointlist(json_t* j_msg)
   sfree(timestamp);
 
   // create info
-  ret = create_pjsip_endpoint_info(j_data);
+  ret = pjsip_create_endpoint_info(j_data);
   json_decref(j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not create endpoint info.");
@@ -2187,7 +2187,7 @@ static void ami_event_endpointlist(json_t* j_msg)
       "Action", "PJSIPShowEndpoint",
       "Endpoint", name
       );
-  ret = send_ami_cmd(j_tmp);
+  ret = ami_send_cmd(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not send ami action. action[%s]", "PJSIPShowEndpoint");
@@ -2215,7 +2215,7 @@ static void ami_event_endpointdetail(json_t* j_msg)
   }
   slog(LOG_DEBUG, "Fired ami_event_endpointdetail.");
 
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
 
   // create
   j_tmp = json_pack("{"
@@ -2466,7 +2466,7 @@ static void ami_event_endpointdetail(json_t* j_msg)
   }
 
   // update info
-  ret = update_pjsip_endpoint_info(j_tmp);
+  ret = pjsip_update_endpoint_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to pjsip_endpoint.");
@@ -2553,12 +2553,12 @@ static void ami_event_contactstatus(json_t* j_msg)
     json_object_set_new(j_data, "call_id", json_string(tmp_const));
   }
 
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
   json_object_set_new(j_data, "tm_update", json_string(timestamp));
   sfree(timestamp);
 
   // update info
-  ret = update_pjsip_contact_info(j_data);
+  ret = pjsip_update_contact_info(j_data);
   json_decref(j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to pjsip_contact.");
@@ -2592,7 +2592,7 @@ static void ami_event_contactstatusdetail(json_t* j_msg)
     return;
   }
 
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
   j_data = json_pack("{"
       "s:s, s:s, s:s, s:s, "
       "s:s, "
@@ -2627,7 +2627,7 @@ static void ami_event_contactstatusdetail(json_t* j_msg)
   sfree(timestamp);
 
   // create info
-  ret = create_pjsip_contact_info(j_data);
+  ret = pjsip_create_contact_info(j_data);
   json_decref(j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to pjsip_contact.");
@@ -2661,7 +2661,7 @@ static void ami_event_aordetail(json_t* j_msg)
     return;
   }
 
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
   j_data = json_pack("{"
       "s:s, s:s, s:s, "
       "s:i, s:i, s:i, "
@@ -2704,7 +2704,7 @@ static void ami_event_aordetail(json_t* j_msg)
       );
   sfree(timestamp);
 
-  ret = create_pjsip_aor_info(j_data);
+  ret = pjsip_create_aor_info(j_data);
   json_decref(j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to pjsip_aor.");
@@ -2738,7 +2738,7 @@ static void ami_event_authdetail(json_t* j_msg)
     return;
   }
 
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
   j_data = json_pack("{"
       "s:s, s:s, s:s, s:s, "
       "s:s, s:s, s:s, "
@@ -2767,7 +2767,7 @@ static void ami_event_authdetail(json_t* j_msg)
   sfree(timestamp);
 
   // create info
-  ret = create_pjsip_auth_info(j_data);
+  ret = pjsip_create_auth_info(j_data);
   json_decref(j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to pjsip_aor.");
@@ -2813,7 +2813,7 @@ static void ami_event_voicemailuserentry(json_t* j_msg)
   asprintf(&id, "%s@%s", mailbox, context);
 
   // create info
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
   j_data = json_pack("{"
       "s:s, s:s, s:s, "   // basic info
       "s:s, s:s, s:s, "   // user info
@@ -2915,9 +2915,9 @@ static void ami_event_coreshowchannel(json_t* j_msg)
 
   // convert duration
   tmp_const = json_string_value(json_object_get(j_msg, "Duration"));
-  sec = convert_time_string(tmp_const, "%H:%M:%S");
+  sec = utils_convert_time_string(tmp_const, "%H:%M:%S");
 
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
   j_tmp = json_pack("{"
       "s:s, s:s, "
       "s:s, s:i, s:s, "
@@ -2991,7 +2991,7 @@ static void ami_event_newstate(json_t* j_msg)
   }
   slog(LOG_DEBUG, "Fired ami_event_newstate.");
 
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
   j_tmp = json_pack("{"
       "s:s, s:s, "
       "s:s, s:i, s:s, "
@@ -3054,7 +3054,7 @@ static void ami_event_newexten(json_t* j_msg)
   }
   slog(LOG_DEBUG, "Fired ami_event_newexten.");
 
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
   j_tmp = json_pack("{"
       "s:s, s:s, "
       "s:s, s:i, s:s, "
@@ -3131,14 +3131,14 @@ static void ami_event_asyncagistart(json_t* j_msg)
   j_env = NULL;
   env_tmp = json_string_value(json_object_get(j_msg, "Env"));
   if(env_tmp != NULL) {
-    env = uri_decode(env_tmp);
+    env = utils_uri_decode(env_tmp);
     slog(LOG_DEBUG, "Check value. env[%s]", env);
-    j_env = parse_ami_agi_env(env);
+    j_env = ami_parse_agi_env(env);
     sfree(env);
   }
 
   // creat info
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
   j_tmp = json_pack("{"
       "s:s, s:s, "
       "s:s, s:i, s:s, "
@@ -3190,7 +3190,7 @@ static void ami_event_asyncagistart(json_t* j_msg)
 
   // add cmds
   agi_uuid = json_string_value(json_object_get(j_msg, "Uniqueid"));
-  ret = add_dialplan_cmds(agi_uuid);
+  ret = dialplan_add_cmds(agi_uuid);
 
   return;
 }
@@ -3220,7 +3220,7 @@ static void ami_event_asyncagiend(json_t* j_msg)
   }
 
   // update channel info
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
   j_tmp = json_pack("{"
       "s:s, s:s, "
       "s:s, s:i, s:s, "
@@ -3298,7 +3298,7 @@ static void ami_event_asyncagiexec(json_t* j_msg)
   }
 
   // update channel info
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
   j_tmp = json_pack("{"
       "s:s, s:s, "
       "s:s, s:i, s:s, "
@@ -3335,7 +3335,7 @@ static void ami_event_asyncagiexec(json_t* j_msg)
 
   // get result
   tmp_const = json_string_value(json_object_get(j_msg, "Result"));
-  result = uri_decode(tmp_const);
+  result = utils_uri_decode(tmp_const);
   if(result == NULL) {
     return;
   }
@@ -3343,7 +3343,7 @@ static void ami_event_asyncagiexec(json_t* j_msg)
   // get command id
   tmp_const = json_string_value(json_object_get(j_msg, "CommandId"));
   if(tmp_const == NULL) {
-    tmp = gen_uuid();
+    tmp = utils_gen_uuid();
     asprintf(&command_id, "unknown-%s", tmp);
     sfree(tmp);
   }
@@ -3407,20 +3407,20 @@ static void ami_event_reload(json_t* j_msg)
   // parse module
   // fire reload handler
   if(strstr(module, "app_queue.so") != NULL) {
-    ret = reload_queue_handler();
+    ret = queue_reload_handler();
   }
   else if(strstr(module, "res_parking.so") != NULL) {
-    ret = reload_park_handler();
+    ret = park_reload_handler();
   }
   else if(strstr(module, "res_pjsip.so") != NULL) {
-    ret = reload_pjsip_handler();
+    ret = pjsip_reload_handler();
   }
   else if(strstr(module, "chan_sip.so") != NULL) {
-    ret = reload_sip_handler();
+    ret = sip_reload_handler();
   }
 
   // update core_module info
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
   j_tmp = json_pack("{s:s, s:s, s:s}",
       "name",       module,
       "load",       "loaded",

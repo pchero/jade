@@ -111,7 +111,7 @@ static const char* get_res_dial_detail_string(int res_dial);
  * @param j_dl
  * @return
  */
-json_t* create_ob_dialing(
+json_t* ob_create_dialing(
     const char* dialing_uuid,
     json_t* j_camp,
     json_t* j_plan,
@@ -149,7 +149,7 @@ json_t* create_ob_dialing(
   json_object_set_new(j_dialing, "status", json_integer(E_DIALING_NONE));
 
   // action
-  tmp = gen_uuid();
+  tmp = utils_gen_uuid();
   json_object_set_new(j_dialing, "action_id", json_string(tmp));
   sfree(tmp);
 
@@ -262,7 +262,7 @@ json_t* create_ob_dialing(
 
   //// timestamp
   // tm_create
-  tmp = get_utc_timestamp();
+  tmp = utils_get_utc_timestamp();
   json_object_set_new(j_dialing, "tm_create", json_string(tmp));
   sfree(tmp);
 
@@ -280,7 +280,7 @@ json_t* create_ob_dialing(
   return j_dialing;
 }
 
-bool update_ob_dialing_timestamp(const char* uuid)
+bool ob_update_dialing_timestamp(const char* uuid)
 {
   int ret;
   json_t* j_tmp;
@@ -293,14 +293,14 @@ bool update_ob_dialing_timestamp(const char* uuid)
     return false;
   }
 
-  ret = is_exist_ob_dialing(uuid);
+  ret = ob_is_exist_dialing(uuid);
   if(ret == false) {
     // non exist
     // already deleted dialing or wrong dialing uuid
     return false;
   }
 
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
   j_tmp = json_pack("{s:s}",
       "tm_update",  timestamp
       );
@@ -330,7 +330,7 @@ bool update_ob_dialing_timestamp(const char* uuid)
  * @param uuid
  * @return
  */
-bool delete_ob_dialing(const char* uuid)
+bool ob_delete_dialing(const char* uuid)
 {
   char* sql;
   int ret;
@@ -351,7 +351,7 @@ bool delete_ob_dialing(const char* uuid)
   return true;
 }
 
-bool insert_ob_dialing(json_t* j_dialing)
+bool ob_insert_dialing(json_t* j_dialing)
 {
   int ret;
 
@@ -370,7 +370,7 @@ bool insert_ob_dialing(json_t* j_dialing)
   return true;
 }
 
-void rb_dialing_destory(rb_dialing* dialing)
+void ob_destroy_rb_dialing(rb_dialing* dialing)
 {
   // todo:
 //  slog(LOG_ERR, "Need to fix.");
@@ -568,7 +568,7 @@ bool rb_dialing_update_event_substitute(rb_dialing* dialing, json_t* j_evt)
 //  return true;
 }
 
-bool update_ob_dialing_status(const char* uuid, E_DIALING_STATUS_T status)
+bool ob_update_dialing_status(const char* uuid, E_DIALING_STATUS_T status)
 {
   json_t* j_tmp;
   char* timestamp;
@@ -582,14 +582,14 @@ bool update_ob_dialing_status(const char* uuid, E_DIALING_STATUS_T status)
   }
 
   // check ob_dialing exists
-  ret = is_exist_ob_dialing(uuid);
+  ret = ob_is_exist_dialing(uuid);
   if(ret == false) {
     // not ob_dialing call
     return false;
   }
   slog(LOG_DEBUG, "Fired update_ob_dialing_status. dialing_uuid[%s], status[%d]", uuid, status);
 
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
   j_tmp = json_pack("{s:i, s:s}",
       "status",     status,
       "tm_update",  timestamp
@@ -667,7 +667,7 @@ bool update_ob_dialing_status(const char* uuid, E_DIALING_STATUS_T status)
 //  return true;
 //}
 
-bool update_ob_dialing_hangup(const char* uuid, int hangup, const char* hangup_detail)
+bool ob_update_dialing_hangup(const char* uuid, int hangup, const char* hangup_detail)
 {
   char* timestamp;
   char* sql;
@@ -684,13 +684,13 @@ bool update_ob_dialing_hangup(const char* uuid, int hangup, const char* hangup_d
       );
 
   // check exist
-  ret = is_exist_ob_dialing(uuid);
+  ret = ob_is_exist_dialing(uuid);
   if(ret == false) {
     // not ob_dialing call
     return false;
   }
 
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
   j_tmp = json_pack("{s:i, s:i, s:s, s:s}",
       "status",             E_DIALING_HANGUP,
       "res_hangup",         hangup,
@@ -723,7 +723,7 @@ bool update_ob_dialing_hangup(const char* uuid, int hangup, const char* hangup_d
   return true;
 }
 
-bool update_ob_dialing_res_dial(const char* uuid, bool success, int res_dial, const char* channel)
+bool ob_update_dialing_res_dial(const char* uuid, bool success, int res_dial, const char* channel)
 {
   char* timestamp;
   char* sql;
@@ -740,14 +740,14 @@ bool update_ob_dialing_res_dial(const char* uuid, bool success, int res_dial, co
       uuid, success, res_dial);
 
   // check exist
-  ret = is_exist_ob_dialing(uuid);
+  ret = ob_is_exist_dialing(uuid);
   if(ret == false) {
     // not ob_dialing call
     return false;
   }
 
   // create update info
-  timestamp = get_utc_timestamp();
+  timestamp = utils_get_utc_timestamp();
   res_dial_detail = get_res_dial_detail_string(res_dial);
   j_tmp = json_pack("{s:i, s:s, s:s, s:s}",
       "res_dial",         res_dial,
@@ -781,10 +781,10 @@ bool update_ob_dialing_res_dial(const char* uuid, bool success, int res_dial, co
 
   // update status
   if(success == true) {
-    ret = update_ob_dialing_status(uuid, E_DIALING_ORIGINATE_RESPONSED);
+    ret = ob_update_dialing_status(uuid, E_DIALING_ORIGINATE_RESPONSED);
   }
   else {
-    ret = update_ob_dialing_status(uuid, E_DIALING_ERROR_ORIGINATE_RESPONSE_FAILED);
+    ret = ob_update_dialing_status(uuid, E_DIALING_ERROR_ORIGINATE_RESPONSE_FAILED);
   }
   if(ret == false) {
     slog(LOG_ERR, "Could not update ob_dialing status info.");
@@ -907,7 +907,7 @@ rb_dialing* rb_dialing_find_chan_uuid(const char* uuid)
  * @param camp_uuid
  * @return
  */
-int get_ob_dialing_count_by_camp_uuid(const char* camp_uuid)
+int ob_get_dialing_count_by_camp_uuid(const char* camp_uuid)
 {
   char* sql;
   json_t* j_res;
@@ -943,7 +943,7 @@ int get_ob_dialing_count_by_camp_uuid(const char* camp_uuid)
  * @param action_id
  * @return
  */
-json_t* get_ob_dialing_by_action_id(const char* action_id)
+json_t* ob_get_dialing_by_action_id(const char* action_id)
 {
   char* sql;
   int ret;
@@ -979,7 +979,7 @@ json_t* get_ob_dialing_by_action_id(const char* action_id)
     return NULL;
   }
 
-  j_res = get_ob_dialing(uuid);
+  j_res = ob_get_dialing(uuid);
   json_decref(j_tmp);
 
   return j_res;
@@ -990,7 +990,7 @@ json_t* get_ob_dialing_by_action_id(const char* action_id)
  * @param action_id
  * @return
  */
-json_t* get_ob_dialing(const char* uuid)
+json_t* ob_get_dialing(const char* uuid)
 {
   char* sql;
   int ret;
@@ -1073,7 +1073,7 @@ json_t* get_ob_dialings_uuid_timeout(void)
  * @param action_id
  * @return
  */
-json_t* get_ob_dialings_timeout(void)
+json_t* ob_get_dialings_timeout(void)
 {
   json_t* j_uuids;
   unsigned int idx;
@@ -1092,7 +1092,7 @@ json_t* get_ob_dialings_timeout(void)
       continue;
     }
 
-    j_tmp = get_ob_dialing(uuid);
+    j_tmp = ob_get_dialing(uuid);
     if(j_tmp == NULL) {
       continue;
     }
@@ -1147,7 +1147,7 @@ static json_t* get_ob_dalings_uuid_error(void)
  * @param action_id
  * @return
  */
-json_t* get_ob_dialings_error(void)
+json_t* ob_get_dialings_error(void)
 {
   json_t* j_uuids;
   json_t* j_val;
@@ -1168,7 +1168,7 @@ json_t* get_ob_dialings_error(void)
       continue;
     }
 
-    j_tmp = get_ob_dialing(uuid);
+    j_tmp = ob_get_dialing(uuid);
     if(j_tmp == NULL) {
       continue;
     }
@@ -1223,7 +1223,7 @@ static json_t* get_ob_dialings_uuid_by_status(E_DIALING_STATUS_T status)
  * @param action_id
  * @return
  */
-json_t* get_ob_dialings_hangup(void)
+json_t* ob_get_dialings_hangup(void)
 {
   json_t* j_uuids;
   json_t* j_uuid;
@@ -1244,7 +1244,7 @@ json_t* get_ob_dialings_hangup(void)
       continue;
     }
 
-    j_tmp = get_ob_dialing(uuid);
+    j_tmp = ob_get_dialing(uuid);
     if(j_tmp == NULL) {
       continue;
     }
@@ -1261,7 +1261,7 @@ json_t* get_ob_dialings_hangup(void)
  * @param action_id
  * @return
  */
-json_t* get_ob_dialings_all(void)
+json_t* ob_get_dialings_all(void)
 {
   char* sql;
   int ret;
@@ -1298,7 +1298,7 @@ json_t* get_ob_dialings_all(void)
  * @param uuid
  * @return
  */
-bool is_exist_ob_dialing(const char* uuid)
+bool ob_is_exist_dialing(const char* uuid)
 {
   int ret;
   char* sql;
@@ -1358,7 +1358,7 @@ static const char* get_res_dial_detail_string(int res_dial)
  * Returns list of all dialing uuid.
  * @return
  */
-json_t* get_ob_dialings_uuid_all(void)
+json_t* ob_get_dialings_uuid_all(void)
 {
   int ret;
   char* sql;
@@ -1401,7 +1401,7 @@ json_t* get_ob_dialings_uuid_all(void)
  * @param uuid
  * @return
  */
-bool send_ob_dialing_hangup_request(const char* uuid)
+bool ob_send_dialing_hangup_request(const char* uuid)
 {
   json_t* j_dialing;
   int ret;
@@ -1412,14 +1412,14 @@ bool send_ob_dialing_hangup_request(const char* uuid)
   }
 
   // check dialing existence
-  ret = is_exist_ob_dialing(uuid);
+  ret = ob_is_exist_dialing(uuid);
   if(ret == false) {
     slog(LOG_ERR, "The given dialing uuid for hangup is not exist. uuid[%s]", uuid);
     return false;
   }
 
   // get ob dialing
-  j_dialing = get_ob_dialing(uuid);
+  j_dialing = ob_get_dialing(uuid);
   if(j_dialing == NULL) {
     slog(LOG_ERR, "Could not get dialing info for hangup. uuid[%s]", uuid);
     return false;

@@ -42,7 +42,7 @@ extern db_ctx_t* g_db_ob;
  *
  * @return
  */
-bool init_plan(void)
+bool ob_init_plan(void)
 {
   return true;
 }
@@ -52,7 +52,7 @@ bool init_plan(void)
  * @param j_plan
  * @return
  */
-bool validate_ob_plan(json_t* j_data)
+bool ob_validate_plan(json_t* j_data)
 {
   const char* tmp_const;
   json_t* j_tmp;
@@ -92,7 +92,7 @@ bool validate_ob_plan(json_t* j_data)
  * @param j_plan
  * @return
  */
-json_t* create_ob_plan(json_t* j_plan)
+json_t* ob_create_plan(json_t* j_plan)
 {
   int ret;
   char* uuid;
@@ -107,10 +107,10 @@ json_t* create_ob_plan(json_t* j_plan)
   j_tmp = create_ob_plan_default();
   json_object_update_existing(j_tmp, j_plan);
 
-  uuid = gen_uuid();
+  uuid = utils_gen_uuid();
   json_object_set_new(j_tmp, "uuid", json_string(uuid));
 
-  tmp = get_utc_timestamp();
+  tmp = utils_get_utc_timestamp();
   json_object_set_new(j_tmp, "tm_create", json_string(tmp));
   sfree(tmp);
 
@@ -126,7 +126,7 @@ json_t* create_ob_plan(json_t* j_plan)
   }
   slog(LOG_DEBUG, "Finished insert.");
 
-  j_tmp = get_ob_plan(uuid);
+  j_tmp = ob_get_plan(uuid);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get created plan info. uuid[%s]", uuid);
     sfree(uuid);
@@ -142,7 +142,7 @@ json_t* create_ob_plan(json_t* j_plan)
  * @param uuid
  * @return
  */
-json_t* delete_ob_plan(const char* uuid)
+json_t* ob_delete_plan(const char* uuid)
 {
   json_t* j_tmp;
   char* tmp;
@@ -156,7 +156,7 @@ json_t* delete_ob_plan(const char* uuid)
   }
 
   j_tmp = json_object();
-  tmp = get_utc_timestamp();
+  tmp = utils_get_utc_timestamp();
   json_object_set_new(j_tmp, "tm_delete", json_string(tmp));
   json_object_set_new(j_tmp, "in_use", json_integer(E_USE_NO));
   sfree(tmp);
@@ -214,7 +214,7 @@ static json_t* get_ob_plan_use(const char* uuid, E_USE use)
  * @param uuid
  * @return
  */
-json_t* get_ob_plan(const char* uuid)
+json_t* ob_get_plan(const char* uuid)
 {
   json_t* j_res;
 
@@ -253,7 +253,7 @@ static json_t* get_deleted_ob_plan(const char* uuid)
  * Get all plan info.
  * @return
  */
-json_t* get_ob_plans_all(void)
+json_t* ob_get_plans_all(void)
 {
   char* sql;
   int ret;
@@ -288,7 +288,7 @@ json_t* get_ob_plans_all(void)
  * Get all plan's uuid array
  * @return
  */
-json_t* get_ob_plans_all_uuid(void)
+json_t* ob_get_plans_all_uuid(void)
 {
   char* sql;
   int ret;
@@ -333,7 +333,7 @@ json_t* get_ob_plans_all_uuid(void)
  * @param j_plan
  * @return
  */
-json_t* update_ob_plan(const json_t* j_plan)
+json_t* ob_update_plan(const json_t* j_plan)
 {
   char* tmp;
   const char* tmp_const;
@@ -360,7 +360,7 @@ json_t* update_ob_plan(const json_t* j_plan)
   }
   uuid = strdup(tmp_const);
 
-  tmp = get_utc_timestamp();
+  tmp = utils_get_utc_timestamp();
   json_object_set_new(j_tmp, "tm_update", json_string(tmp));
   sfree(tmp);
 
@@ -384,7 +384,7 @@ json_t* update_ob_plan(const json_t* j_plan)
     return NULL;
   }
 
-  j_tmp = get_ob_plan(uuid);
+  j_tmp = ob_get_plan(uuid);
   if(j_tmp == NULL) {
     slog(LOG_WARNING, "Could not get updated plan info. uuid[%s]", uuid);
     sfree(uuid);
@@ -395,7 +395,7 @@ json_t* update_ob_plan(const json_t* j_plan)
   return j_tmp;
 }
 
-json_t* create_ob_dial_plan_info(json_t* j_plan)
+json_t* ob_create_dial_plan_info(json_t* j_plan)
 {
   json_t* j_res;
 
@@ -422,7 +422,7 @@ json_t* create_ob_dial_plan_info(json_t* j_plan)
  * \param j_plan
  * \return
  */
-bool is_nonstop_ob_dl_handle(json_t* j_plan)
+bool ob_is_dl_handle_nonstop(json_t* j_plan)
 {
   int ret;
 
@@ -443,7 +443,7 @@ bool is_nonstop_ob_dl_handle(json_t* j_plan)
  * \param j_plan
  * \return
  */
-bool is_endable_ob_plan(json_t* j_plan)
+bool ob_is_plan_enable(json_t* j_plan)
 {
   int ret;
 
@@ -452,7 +452,7 @@ bool is_endable_ob_plan(json_t* j_plan)
     return true;
   }
 
-  ret = is_nonstop_ob_dl_handle(j_plan);
+  ret = ob_is_dl_handle_nonstop(j_plan);
   if(ret == true) {
     slog(LOG_DEBUG, "The plan dl_end_handle is nonstop. plan_uuid[%s], is_nonstop[%d]",
         json_string_value(json_object_get(j_plan, "uuid"))? : "",
@@ -469,7 +469,7 @@ bool is_endable_ob_plan(json_t* j_plan)
  * @param uuid
  * @return
  */
-bool is_exist_ob_plan(const char* uuid)
+bool ob_is_plan_exist(const char* uuid)
 {
   char* sql;
   json_t* j_tmp;
@@ -514,7 +514,7 @@ bool is_exist_ob_plan(const char* uuid)
  * @param uuid
  * @return
  */
-bool is_deletable_ob_plan(const char* uuid)
+bool ob_is_plan_deletable(const char* uuid)
 {
   int ret;
 
@@ -525,7 +525,7 @@ bool is_deletable_ob_plan(const char* uuid)
   slog(LOG_INFO, "Fired is_deletable_ob_plan. uuid[%s]", uuid);
 
   // check referenced campaign
-  ret = is_referenced_plan_by_campaign(uuid);
+  ret = ob_is_referenced_plan_by_campaign(uuid);
   if(ret == false) {
     slog(LOG_NOTICE, "The given plan info is used in campaign. dlma_uuid[%s]", uuid);
     return false;

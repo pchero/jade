@@ -36,7 +36,7 @@ static bool is_setting_section(const char* context);
 static bool create_park_setting(const json_t* j_data);
 
 
-bool init_park_handler(void)
+bool park_init_handler(void)
 {
   int ret;
   json_t* j_tmp;
@@ -47,7 +47,7 @@ bool init_park_handler(void)
   j_tmp = json_pack("{s:s}",
       "Action", "ParkingLots"
       );
-  ret = send_ami_cmd(j_tmp);
+  ret = ami_send_cmd(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not send ami action. action[%s]", "Parkinglosts");
@@ -58,7 +58,7 @@ bool init_park_handler(void)
   j_tmp = json_pack("{s:s}",
       "Action", "ParkedCalls"
       );
-  ret = send_ami_cmd(j_tmp);
+  ret = ami_send_cmd(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not send ami action. action[%s]", "ParkedCalls");
@@ -68,7 +68,7 @@ bool init_park_handler(void)
   return true;
 }
 
-bool term_park_handler(void)
+bool park_term_handler(void)
 {
   int ret;
 
@@ -87,16 +87,16 @@ bool term_park_handler(void)
   return true;
 }
 
-bool reload_park_handler(void)
+bool park_reload_handler(void)
 {
   int ret;
 
-  ret = term_park_handler();
+  ret = park_term_handler();
   if(ret == false) {
     return false;
   }
 
-  ret = init_park_handler();
+  ret = park_init_handler();
   if(ret == false) {
     return false;
   }
@@ -111,7 +111,7 @@ bool reload_park_handler(void)
  * @param req
  * @param data
  */
-void htp_get_park_parkinglots(evhtp_request_t *req, void *data)
+void park_htp_get_park_parkinglots(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
@@ -142,7 +142,7 @@ void htp_get_park_parkinglots(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_post_park_parkinglots(evhtp_request_t *req, void *data)
+void park_htp_post_park_parkinglots(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_data;
@@ -185,7 +185,7 @@ void htp_post_park_parkinglots(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_park_parkinglots_detail(evhtp_request_t *req, void *data)
+void park_htp_get_park_parkinglots_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
@@ -231,7 +231,7 @@ void htp_get_park_parkinglots_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_put_park_parkinglots_detail(evhtp_request_t *req, void *data)
+void park_htp_put_park_parkinglots_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_data;
@@ -286,7 +286,7 @@ void htp_put_park_parkinglots_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_delete_park_parkinglots_detail(evhtp_request_t *req, void *data)
+void park_htp_delete_park_parkinglots_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   char* detail;
@@ -331,7 +331,7 @@ void htp_delete_park_parkinglots_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_park_parkedcalls(evhtp_request_t *req, void *data)
+void park_htp_get_park_parkedcalls(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
@@ -361,7 +361,7 @@ void htp_get_park_parkedcalls(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_park_parkedcalls_detail(evhtp_request_t *req, void *data)
+void park_htp_get_park_parkedcalls_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
@@ -406,7 +406,7 @@ void htp_get_park_parkedcalls_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_park_config(evhtp_request_t *req, void *data)
+void park_htp_get_park_config(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   char* res;
@@ -418,7 +418,7 @@ void htp_get_park_config(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_park_config.");
 
   // get info
-  res = get_ast_current_config_info_text(DEF_PARK_CONFNAME);
+  res = conf_get_ast_current_config_info_text(DEF_PARK_CONFNAME);
   if(res == NULL) {
     slog(LOG_ERR, "Could not get park conf.");
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
@@ -442,7 +442,7 @@ void htp_get_park_config(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_put_park_config(evhtp_request_t *req, void *data)
+void park_htp_put_park_config(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   char* req_data;
@@ -463,7 +463,7 @@ void htp_put_park_config(evhtp_request_t *req, void *data)
   }
 
   // update config
-  ret = update_ast_current_config_info_text(DEF_PARK_CONFNAME, req_data);
+  ret = conf_update_ast_current_config_info_text(DEF_PARK_CONFNAME, req_data);
   sfree(req_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update park config info.");
@@ -486,7 +486,7 @@ void htp_put_park_config(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_park_configs(evhtp_request_t *req, void *data)
+void park_htp_get_park_configs(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
@@ -498,7 +498,7 @@ void htp_get_park_configs(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_park_configs.");
 
   // get info
-  j_tmp = get_ast_backup_configs_info_all(DEF_PARK_CONFNAME);
+  j_tmp = conf_get_ast_backup_configs_info_all(DEF_PARK_CONFNAME);
   if(j_tmp == NULL) {
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
@@ -521,7 +521,7 @@ void htp_get_park_configs(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_park_configs_detail(evhtp_request_t *req, void *data)
+void park_htp_get_park_configs_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   char* res;
@@ -542,7 +542,7 @@ void htp_get_park_configs_detail(evhtp_request_t *req, void *data)
   }
 
   // get info
-  res = get_ast_backup_config_info_text_valid(detail, DEF_PARK_CONFNAME);
+  res = conf_get_ast_backup_config_info_text_valid(detail, DEF_PARK_CONFNAME);
   sfree(detail);
   if(res == NULL) {
   	slog(LOG_NOTICE, "Could not get backup config info.");
@@ -567,7 +567,7 @@ void htp_get_park_configs_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_delete_park_configs_detail(evhtp_request_t *req, void *data)
+void park_htp_delete_park_configs_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   char* detail;
@@ -588,7 +588,7 @@ void htp_delete_park_configs_detail(evhtp_request_t *req, void *data)
   }
 
   // remove it
-  ret = remove_ast_backup_config_info_valid(detail, DEF_PARK_CONFNAME);
+  ret = conf_remove_ast_backup_config_info_valid(detail, DEF_PARK_CONFNAME);
   sfree(detail);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not delete setting file.");
@@ -612,7 +612,7 @@ void htp_delete_park_configs_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_park_settings(evhtp_request_t *req, void *data)
+void park_htp_get_park_settings(evhtp_request_t *req, void *data)
 {
   json_t* j_tmp;
   json_t* j_res;
@@ -624,7 +624,7 @@ void htp_get_park_settings(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_park_settings.");
 
   // get info
-  j_tmp = get_ast_settings_all(DEF_PARK_CONFNAME);
+  j_tmp = conf_get_ast_settings_all(DEF_PARK_CONFNAME);
 
   // create result
   j_res = http_create_default_result(EVHTP_RES_OK);
@@ -644,7 +644,7 @@ void htp_get_park_settings(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_post_park_settings(evhtp_request_t *req, void *data)
+void park_htp_post_park_settings(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_data;
@@ -689,7 +689,7 @@ void htp_post_park_settings(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_get_park_settings_detail(evhtp_request_t *req, void *data)
+void park_htp_get_park_settings_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_tmp;
@@ -710,7 +710,7 @@ void htp_get_park_settings_detail(evhtp_request_t *req, void *data)
   }
 
   // get setting
-  j_tmp = get_ast_setting(DEF_PARK_CONFNAME, detail);
+  j_tmp = conf_get_ast_setting(DEF_PARK_CONFNAME, detail);
   sfree(detail);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get park setting.");
@@ -735,7 +735,7 @@ void htp_get_park_settings_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_put_park_settings_detail(evhtp_request_t *req, void *data)
+void park_htp_put_park_settings_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   json_t* j_data;
@@ -766,7 +766,7 @@ void htp_put_park_settings_detail(evhtp_request_t *req, void *data)
   }
 
   // update setting
-  ret = update_ast_setting(DEF_PARK_CONFNAME, detail, j_data);
+  ret = conf_update_ast_setting(DEF_PARK_CONFNAME, detail, j_data);
   sfree(detail);
   json_decref(j_data);
   if(ret == false) {
@@ -791,7 +791,7 @@ void htp_put_park_settings_detail(evhtp_request_t *req, void *data)
  * @param req
  * @param data
  */
-void htp_delete_park_settings_detail(evhtp_request_t *req, void *data)
+void park_htp_delete_park_settings_detail(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
   char* detail;
@@ -812,7 +812,7 @@ void htp_delete_park_settings_detail(evhtp_request_t *req, void *data)
   }
 
   // delete setting
-  ret = remove_ast_setting(DEF_PARK_CONFNAME, detail);
+  ret = conf_remove_ast_setting(DEF_PARK_CONFNAME, detail);
   sfree(detail);
   if(ret == false) {
     slog(LOG_ERR, "Could not remove park setting.");
@@ -874,7 +874,7 @@ static bool delete_parkinglot_info(const char* parkinglot)
   }
 
   // delete parkinglot
-  ret = remove_ast_setting(DEF_PARK_CONFNAME, parkinglot);
+  ret = conf_remove_ast_setting(DEF_PARK_CONFNAME, parkinglot);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete parkinglot.");
     return false;
@@ -921,7 +921,7 @@ static bool create_parkinglot_info(json_t* j_data)
   }
 
   // create new parkinglot
-  ret = create_ast_setting(DEF_PARK_CONFNAME, name, j_tmp);
+  ret = conf_create_ast_setting(DEF_PARK_CONFNAME, name, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not create new parkinglot.");
@@ -987,7 +987,7 @@ static bool update_parkinglot_info(const char* name, json_t* j_data)
   }
 
   // update parkinglot info
-  ret = update_ast_setting(DEF_PARK_CONFNAME, name, j_tmp);
+  ret = conf_update_ast_setting(DEF_PARK_CONFNAME, name, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not update park info.");
@@ -1020,7 +1020,7 @@ static bool create_park_setting(const json_t* j_data)
 		return false;
 	}
 
-	ret = create_ast_setting(DEF_PARK_CONFNAME, name, j_setting);
+	ret = conf_create_ast_setting(DEF_PARK_CONFNAME, name, j_setting);
 	if(ret == false) {
 		slog(LOG_ERR, "Could not create park setting.");
 		return false;

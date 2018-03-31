@@ -15,7 +15,7 @@
 #include "utils.h"
 #include "action_handler.h"
 
-bool insert_action(const char* id, const char* type, const json_t* j_data)
+bool action_insert(const char* id, const char* type, const json_t* j_data)
 {
   int ret;
   json_t* j_tmp;
@@ -51,7 +51,7 @@ bool insert_action(const char* id, const char* type, const json_t* j_data)
   return true;
 }
 
-json_t* get_action(const char* id)
+json_t* action_get(const char* id)
 {
   char* sql;
   int ret;
@@ -81,7 +81,7 @@ json_t* get_action(const char* id)
   return j_res;
 }
 
-bool delete_action(const char* id)
+bool action_delete(const char* id)
 {
   char* sql;
   int ret;
@@ -102,7 +102,7 @@ bool delete_action(const char* id)
   return true;
 }
 
-json_t* get_action_and_delete(const char* id)
+json_t* action_get_and_delete(const char* id)
 {
   json_t* j_res;
 
@@ -111,8 +111,8 @@ json_t* get_action_and_delete(const char* id)
     return NULL;
   }
 
-  j_res = get_action(id);
-  delete_action(id);
+  j_res = action_get(id);
+  action_delete(id);
 
   return j_res;
 }

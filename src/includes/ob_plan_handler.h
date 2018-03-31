@@ -28,20 +28,20 @@ typedef enum _E_PLAN_DL_END_HANDLE {
 } E_PLAN_DL_END_HANDLE;
 
 
-bool init_plan(void);
+bool ob_init_plan(void);
 
-bool validate_ob_plan(json_t* j_data);
-json_t* create_ob_plan(json_t* j_plan);
-json_t* delete_ob_plan(const char* uuid);
-json_t* update_ob_plan(const json_t* j_plan);
-json_t* get_ob_plan(const char* uuid);
-json_t* get_ob_plans_all(void);
-json_t* get_ob_plans_all_uuid(void);
+bool ob_validate_plan(json_t* j_data);
+json_t* ob_create_plan(json_t* j_plan);
+json_t* ob_delete_plan(const char* uuid);
+json_t* ob_update_plan(const json_t* j_plan);
+json_t* ob_get_plan(const char* uuid);
+json_t* ob_get_plans_all(void);
+json_t* ob_get_plans_all_uuid(void);
 
-json_t* create_ob_dial_plan_info(json_t* j_plan);
-bool is_endable_ob_plan(json_t* j_plan);
-bool is_nonstop_ob_dl_handle(json_t* j_plan);
-bool is_exist_ob_plan(const char* uuid);
-bool is_deletable_ob_plan(const char* uuid);
+json_t* ob_create_dial_plan_info(json_t* j_plan);
+bool ob_is_plan_enable(json_t* j_plan);
+bool ob_is_dl_handle_nonstop(json_t* j_plan);
+bool ob_is_plan_exist(const char* uuid);
+bool ob_is_plan_deletable(const char* uuid);
 
 #endif /* SRC_PLAN_HANDLER_H_ */

@@ -33,7 +33,7 @@ static int s_sendmore(void* socket, const char* data);
 /**
  * @brief Initiate zmq_hanler.
  */
-bool init_zmq_handler(void)
+bool zmq_init_handler(void)
 {
   int ret;
 
@@ -54,7 +54,7 @@ bool init_zmq_handler(void)
   return true;
 }
 
-void term_zmq_handler(void)
+void zmq_term_handler(void)
 {
   // close sockets
   // close pub
@@ -145,7 +145,7 @@ static void* get_zmq_sock_pub(void)
 /**
  * @brief publish the given data to the given subscribers
  */
-bool publish_message(const char* pub_target, json_t* j_data)
+bool zmq_publish_message(const char* pub_target, json_t* j_data)
 {
   char* tmp;
   int ret;
@@ -178,7 +178,7 @@ bool publish_message(const char* pub_target, json_t* j_data)
   }
 
   // send data string
-  ret = s_send(sock, tmp);
+  ret = zmq_send_string(sock, tmp);
   free(tmp);
   if(ret < 0) {
     slog(LOG_ERR, "Could not send the data.");
@@ -194,7 +194,7 @@ bool publish_message(const char* pub_target, json_t* j_data)
  * The only string data can be sent.
  * @return sent length
  */
-int s_send(void* socket, const char* data)
+int zmq_send_string(void* socket, const char* data)
 {
   int size;
 
@@ -215,7 +215,7 @@ int s_send(void* socket, const char* data)
  @param socket
  @return
  */
-char* s_recv(void* socket)
+char* zmq_recv_string(void* socket)
 {
   char buffer[40960];
   int size;
@@ -264,7 +264,7 @@ static int s_sendmore(void* socket, const char* data)
 /**
  * Return zmq context
  */
-void* get_zmq_context(void)
+void* zmq_get_context(void)
 {
   return g_zmq_contxt;
 }
@@ -273,7 +273,7 @@ void* get_zmq_context(void)
  * Return inproc address for pub
  * @return
  */
-const char* get_zmq_pub_addr(void)
+const char* zmq_get_pub_addr(void)
 {
   return DEF_LOCAL_ADDR;
 }

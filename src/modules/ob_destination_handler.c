@@ -42,7 +42,7 @@ extern db_ctx_t* g_db_ob;
  * @param j_dest
  * @return
  */
-json_t* create_ob_destination(json_t* j_dest)
+json_t* ob_create_destination(json_t* j_dest)
 {
   int ret;
   char* uuid;
@@ -57,10 +57,10 @@ json_t* create_ob_destination(json_t* j_dest)
   j_tmp = create_ob_destination_default();
   json_object_update_existing(j_tmp, j_dest);
 
-  uuid = gen_uuid();
+  uuid = utils_gen_uuid();
   json_object_set_new(j_tmp, "uuid", json_string(uuid));
 
-  tmp = get_utc_timestamp();
+  tmp = utils_get_utc_timestamp();
   json_object_set_new(j_tmp, "tm_create", json_string(tmp));
   sfree(tmp);
 
@@ -75,7 +75,7 @@ json_t* create_ob_destination(json_t* j_dest)
     return NULL;
   }
 
-  j_tmp = get_ob_destination(uuid);
+  j_tmp = ob_get_destination(uuid);
   sfree(uuid);
 
   return j_tmp;
@@ -114,7 +114,7 @@ static json_t* create_ob_destination_default(void)
  * @param uuid
  * @return
  */
-json_t* delete_ob_destination(const char* uuid)
+json_t* ob_delete_destination(const char* uuid)
 {
   json_t* j_tmp;
   char* tmp;
@@ -128,7 +128,7 @@ json_t* delete_ob_destination(const char* uuid)
   }
 
   j_tmp = json_object();
-  tmp = get_utc_timestamp();
+  tmp = utils_get_utc_timestamp();
   json_object_set_new(j_tmp, "tm_delete", json_string(tmp));
   json_object_set_new(j_tmp, "in_use", json_integer(E_USE_NO));
   sfree(tmp);
@@ -185,7 +185,7 @@ static json_t* get_ob_destination_use(const char* uuid, E_USE use)
  * Get specified destination
  * @return
  */
-json_t* get_ob_destination(const char* uuid)
+json_t* ob_get_destination(const char* uuid)
 {
   json_t* j_res;
 
@@ -224,7 +224,7 @@ static json_t* get_deleted_ob_destination(const char* uuid)
  * Returns list of all destination uuid.
  * @return
  */
-json_t* get_ob_destinations_all_uuid(void)
+json_t* ob_get_destinations_all_uuid(void)
 {
 
   char* sql;
@@ -267,7 +267,7 @@ json_t* get_ob_destinations_all_uuid(void)
  * Get all destinations
  * @return
  */
-json_t* get_ob_destinations_all(void)
+json_t* ob_get_destinations_all(void)
 {
 
   char* sql;
@@ -302,7 +302,7 @@ json_t* get_ob_destinations_all(void)
  * @param j_dest
  * @return updated ob_destination info
  */
-json_t* update_ob_destination(const json_t* j_dest)
+json_t* ob_update_destination(const json_t* j_dest)
 {
   char* tmp;
   const char* tmp_const;
@@ -329,7 +329,7 @@ json_t* update_ob_destination(const json_t* j_dest)
   }
   uuid = strdup(tmp_const);
 
-  tmp = get_utc_timestamp();
+  tmp = utils_get_utc_timestamp();
   json_object_set_new(j_tmp, "tm_update", json_string(tmp));
   sfree(tmp);
 
@@ -355,7 +355,7 @@ json_t* update_ob_destination(const json_t* j_dest)
   }
 
   // get updated ob_destination info
-  j_tmp = get_ob_destination(uuid);
+  j_tmp = ob_get_destination(uuid);
   sfree(uuid);
   if(j_tmp == NULL) {
     slog(LOG_WARNING, "Could not get updated ob_destination info.");
@@ -370,7 +370,7 @@ json_t* update_ob_destination(const json_t* j_dest)
  * \param j_dest
  * \return
  */
-int get_ob_destination_available_count(json_t* j_dest)
+int ob_get_destination_available_count(json_t* j_dest)
 {
   int type;
   int ret;
@@ -716,7 +716,7 @@ static json_t* create_dial_destination_application(json_t* j_dest)
   return j_res;
 }
 
-json_t* create_ob_dial_destination_info(json_t* j_dest)
+json_t* ob_create_dial_destination_info(json_t* j_dest)
 {
   int type;
   json_t* j_res;
@@ -764,7 +764,7 @@ json_t* create_ob_dial_destination_info(json_t* j_dest)
  * @param uuid
  * @return
  */
-bool is_exist_ob_destination(const char* uuid)
+bool ob_is_exist_destination(const char* uuid)
 {
   int ret;
   char* sql;
@@ -806,7 +806,7 @@ bool is_exist_ob_destination(const char* uuid)
  * @param uuid
  * @return
  */
-bool is_deletable_destination(const char* uuid)
+bool ob_is_deletable_destination(const char* uuid)
 {
   int ret;
 
@@ -817,7 +817,7 @@ bool is_deletable_destination(const char* uuid)
   slog(LOG_DEBUG, "Fired is_deletable_destination. uuid[%s]", uuid);
 
   // check referenced campaign
-  ret = is_referenced_destination_by_campaign(uuid);
+  ret = ob_is_referenced_destination_by_campaign(uuid);
   if(ret == false) {
     slog(LOG_NOTICE, "The given destination info is used in campaign. dlma_uuid[%s]", uuid);
     return false;
@@ -831,7 +831,7 @@ bool is_deletable_destination(const char* uuid)
  * @param
  * @return
  */
-bool validate_ob_destination(json_t* j_data)
+bool ob_validate_destination(json_t* j_data)
 {
   json_t* j_tmp;
 

@@ -10,8 +10,8 @@
 
 #include <evhtp.h>
 
-void htp_get_agent_agents(evhtp_request_t *req, void *data);
-void htp_get_agent_agents_detail(evhtp_request_t *req, void *data);
+void agent_htp_get_agent_agents(evhtp_request_t *req, void *data);
+void agent_htp_get_agent_agents_detail(evhtp_request_t *req, void *data);
 
 
 #endif /* SRC_AGENT_HANDLER_H_ */

@@ -21,8 +21,8 @@
 #define LOG_DEBUG 7   /* debug-level messages */
 #define LOG_VERBOSE 8
 
-bool init_log(void);
-bool update_log_level(int level);
+bool slog_init_handler(void);
+bool slog_update_log_level(int level);
 
 #define slog(...) syslog(__VA_ARGS__)
 

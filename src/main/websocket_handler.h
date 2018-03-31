@@ -10,8 +10,8 @@
 
 #include <stdbool.h>
 
-bool init_websocket_handler(void);
-void term_websocket_handler(void);
+bool websocket_init_handler(void);
+void websocket_term_handler(void);
 
 
 #endif /* SRC_WEBSOCKET_HANDLER_H_ */

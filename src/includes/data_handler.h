@@ -10,7 +10,7 @@
 
 #include <stdbool.h>
 
-bool init_data_handler(void);
-void term_ami_handler(void);
+bool data_init_handler(void);
+void data_term_handler(void);
 
 #endif /* BACKEND_SRC_DATA_HANDLER_H_ */

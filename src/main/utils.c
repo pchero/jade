@@ -32,7 +32,7 @@
  *
  * @param s
  */
-void trim(char* s)
+void utils_trim(char* s)
 {
 	char* p;
 	int l;
@@ -57,7 +57,7 @@ void trim(char* s)
  * @param prefix
  * @return
  */
-char* gen_uuid(void)
+char* utils_gen_uuid(void)
 {
   uuid_t uuid;
   char tmp[DEF_UUID_STR_LEN];
@@ -76,7 +76,7 @@ char* gen_uuid(void)
  * YYYY-MM-DDTHH:mm:ssZ
  * @return
  */
-char* get_utc_timestamp(void)
+char* utils_get_utc_timestamp(void)
 {
   char  timestr[128];
   char*   res;
@@ -99,7 +99,7 @@ char* get_utc_timestamp(void)
  * YYYY-MM-DDTHH:mm:ssZ
  * @return
  */
-char* get_utc_timestamp_using_timespec(struct timespec timeptr)
+char* utils_get_utc_timestamp_using_timespec(struct timespec timeptr)
 {
   char  timestr[128];
   char*   res;
@@ -120,7 +120,7 @@ char* get_utc_timestamp_using_timespec(struct timespec timeptr)
  * YYYY-MM-DD
  * @return
  */
-char* get_utc_timestamp_time(void)
+char* utils_get_utc_timestamp_time(void)
 {
   char  timestr[128];
   char*   res;
@@ -143,7 +143,7 @@ char* get_utc_timestamp_time(void)
  * YYYY-MM-DD
  * @return
  */
-char* get_utc_timestamp_date(void)
+char* utils_get_utc_timestamp_date(void)
 {
   char  timestr[128];
   char*   res;
@@ -166,13 +166,13 @@ char* get_utc_timestamp_date(void)
  * 0=Sunday, 1=Monday, ..., 6=Saturday
  * @return
  */
-int get_utc_timestamp_day(void)
+int utils_get_utc_timestamp_day(void)
 {
   struct tm tm;
   time_t time;
   char* tmp;
 
-  tmp = get_utc_timestamp_date();
+  tmp = utils_get_utc_timestamp_date();
   if(strptime(tmp, "%Y-%m-%d", &tm) == NULL) {
     sfree(tmp);
     return -1;
@@ -182,7 +182,7 @@ int get_utc_timestamp_day(void)
   return localtime(&time)->tm_wday;
 }
 
-time_t get_unixtime_from_utc_timestamp(const char* timestamp)
+time_t utils_get_unixtime_from_utc_timestamp(const char* timestamp)
 {
   int ret;
   struct tm ti={0};
@@ -216,7 +216,7 @@ time_t get_unixtime_from_utc_timestamp(const char* timestamp)
  * @param str
  * @return
  */
-char* get_variables_info_ami_str_from_string(const char* str)
+char* utils_get_variables_info_ami_str_from_string(const char* str)
 {
   const char* key;
   json_t* j_tmp;
@@ -251,7 +251,7 @@ char* get_variables_info_ami_str_from_string(const char* str)
  * @param str
  * @return
  */
-char* get_variables_ami_str_from_object(json_t* j_variables)
+char* utils_get_variables_ami_str_from_object(json_t* j_variables)
 {
   const char* key;
   json_t* j_val;
@@ -289,7 +289,7 @@ char* get_variables_ami_str_from_object(json_t* j_variables)
  * @param str
  * @return
  */
-char* uri_decode(const char* str)
+char* utils_uri_decode(const char* str)
 {
   int i, j = 0, len;
   char* tmp;
@@ -332,7 +332,7 @@ char* uri_decode(const char* str)
  * @param str
  * @return
  */
-char* uri_encode(const char* str)
+char* utils_uri_encode(const char* str)
 {
   int i;
   int j;
@@ -369,7 +369,7 @@ char* uri_encode(const char* str)
  * @param format
  * @return
  */
-int convert_time_string(const char* time, const char* format)
+int utils_convert_time_string(const char* time, const char* format)
 {
   struct tm tm;
   int sec;
@@ -392,7 +392,7 @@ int convert_time_string(const char* time, const char* format)
 /**
  @brief strip extension
  */
-char* strip_ext(char *fname)
+char* utils_strip_ext(char *fname)
 {
   char* filename;
   char* end;
@@ -421,7 +421,7 @@ char* strip_ext(char *fname)
  * @param str
  * @return
  */
-bool is_exist_string_in_file(const char* filename, const char* str)
+bool utils_is_string_exist_in_file(const char* filename, const char* str)
 {
   FILE* fp;
   char* tmp;
@@ -467,7 +467,7 @@ bool is_exist_string_in_file(const char* filename, const char* str)
  * @param str
  * @return
  */
-bool append_string_to_file_end(const char* filename, const char* str)
+bool utils_append_string_to_file_end(const char* filename, const char* str)
 {
   FILE* fp;
   int ret;
@@ -497,7 +497,7 @@ bool append_string_to_file_end(const char* filename, const char* str)
   return true;
 }
 
-bool create_empty_file(const char* filename)
+bool utils_create_empty_file(const char* filename)
 {
   FILE* fp;
 
@@ -523,7 +523,7 @@ bool create_empty_file(const char* filename)
  * @param uuid
  * @return
  */
-char* string_replace_char(const char* str, const char org, const char target)
+char* utils_string_replace_char(const char* str, const char org, const char target)
 {
   char* tmp;
   int len;

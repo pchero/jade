@@ -5,12 +5,12 @@
 #include <stdbool.h>
 #include <jansson.h>
 
-json_t* parse_ami_msg(const char* msg);
-json_t* parse_ami_agi_env(const char* msg);
+json_t* ami_parse_msg(const char* msg);
+json_t* ami_parse_agi_env(const char* msg);
 
-int send_ami_cmd_raw(const char* cmd);
-bool send_ami_cmd(json_t* j_cmd);
+int ami_send_cmd_raw(const char* cmd);
+bool ami_send_cmd(json_t* j_cmd);
 
-void set_ami_socket(int socket);
+void ami_set_socket(int socket);
 
 #endif

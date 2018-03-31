@@ -175,12 +175,12 @@ static void cb_ami_status_check(__attribute__((unused)) int fd, __attribute__((u
       );
 
   // create action
-  action_id = gen_uuid();
+  action_id = utils_gen_uuid();
   j_tmp = json_pack("{s:s, s:s}",
       "Action",   "CoreStatus",
       "ActionID", action_id
       );
-  ret = send_ami_cmd(j_tmp);
+  ret = ami_send_cmd(j_tmp);
   sfree(action_id);
   if(ret == false) {
     slog(LOG_ERR, "Could not send ami request.");
@@ -190,7 +190,7 @@ static void cb_ami_status_check(__attribute__((unused)) int fd, __attribute__((u
   }
 
   // insert action
-  insert_action(json_string_value(json_object_get(j_tmp, "ActionID")), "corestatus", j_data);
+  action_insert(json_string_value(json_object_get(j_tmp, "ActionID")), "corestatus", j_data);
   json_decref(j_tmp);
   json_decref(j_data);
 
@@ -201,12 +201,12 @@ static void cb_ami_status_check(__attribute__((unused)) int fd, __attribute__((u
       );
 
   // create action
-  action_id = gen_uuid();
+  action_id = utils_gen_uuid();
   j_tmp = json_pack("{s:s, s:s}",
       "Action",     "CoreSettings",
       "ActionID",   action_id
       );
-  ret = send_ami_cmd(j_tmp);
+  ret = ami_send_cmd(j_tmp);
   sfree(action_id);
   if(ret == false) {
     slog(LOG_ERR, "Could not send ami request.");
@@ -216,7 +216,7 @@ static void cb_ami_status_check(__attribute__((unused)) int fd, __attribute__((u
   }
 
   // insert action
-  insert_action(json_string_value(json_object_get(j_tmp, "ActionID")), "coresettings", j_data);
+  action_insert(json_string_value(json_object_get(j_tmp, "ActionID")), "coresettings", j_data);
   json_decref(j_tmp);
   json_decref(j_data);
 
@@ -239,7 +239,7 @@ static void cb_ami_ping_check(__attribute__((unused)) int fd, __attribute__((unu
   j_tmp = json_pack("{s:s}",
       "Action", "Ping"
       );
-  ret = send_ami_cmd(j_tmp);
+  ret = ami_send_cmd(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not send ping request. ret[%d]", ret);
@@ -253,7 +253,7 @@ static void cb_ami_ping_check(__attribute__((unused)) int fd, __attribute__((unu
  * Terminate ami handler.
  * @return
  */
-void term_ami_handler(void)
+void data_term_handler(void)
 {
   slog(LOG_DEBUG, "Fired term_ami_handler.");
   release_ami_connection();
@@ -285,7 +285,7 @@ static bool ami_login(void)
       "Secret",   password
       );
 
-  ret = send_ami_cmd(j_tmp);
+  ret = ami_send_cmd(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not login.");
@@ -399,7 +399,7 @@ static bool send_init_actions(void)
   j_tmp = json_pack("{s:s}",
       "Action", "Agents"
       );
-  ret = send_ami_cmd(j_tmp);
+  ret = ami_send_cmd(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not send ami action. action[%s]", "Agents");
@@ -410,7 +410,7 @@ static bool send_init_actions(void)
   j_tmp = json_pack("{s:s}",
       "Action", "DeviceStateList"
       );
-  ret = send_ami_cmd(j_tmp);
+  ret = ami_send_cmd(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not send ami action. action[%s]", "DeviceStateList");
@@ -421,7 +421,7 @@ static bool send_init_actions(void)
   j_tmp = json_pack("{s:s}",
       "Action", "VoicemailUsersList"
       );
-  ret = send_ami_cmd(j_tmp);
+  ret = ami_send_cmd(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not send ami action. action[%s]", "VoicemailUsersList");
@@ -432,7 +432,7 @@ static bool send_init_actions(void)
   j_tmp = json_pack("{s:s}",
       "Action", "CoreShowChannels"
       );
-  ret = send_ami_cmd(j_tmp);
+  ret = ami_send_cmd(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not send ami action. action[%s]", "CoreShowChannels");
@@ -446,7 +446,7 @@ static bool send_init_actions(void)
  * Initiate ami_handler.
  * @return
  */
-bool init_data_handler(void)
+bool data_init_handler(void)
 {
   struct timeval tm_event;
   struct event* ev;
@@ -468,17 +468,17 @@ bool init_data_handler(void)
   // add ami connect check
   ev = event_new(g_app->evt_base, -1, EV_TIMEOUT | EV_PERSIST, cb_ami_connect_check, NULL);
   event_add(ev, &tm_event);
-  add_event_handler(ev);
+  event_add_handler(ev);
 
   // add ping check
   ev = event_new(g_app->evt_base, -1, EV_TIMEOUT | EV_PERSIST, cb_ami_ping_check, NULL);
   event_add(ev, &tm_event);
-  add_event_handler(ev);
+  event_add_handler(ev);
 
   // check ami status
   ev = event_new(g_app->evt_base, -1, EV_TIMEOUT | EV_PERSIST, cb_ami_status_check, NULL);
   event_add(ev, &tm_event);
-  add_event_handler(ev);
+  event_add_handler(ev);
 
   return true;
 }
@@ -605,7 +605,7 @@ static bool init_ami_connect(void)
   slog(LOG_DEBUG, "Set the non-block option for the Asterisk socket. ret[%d]", ret);
 
   // set ami_handler ami_sock
-  set_ami_socket(g_ami_sock);
+  ami_set_socket(g_ami_sock);
 
   return true;
 }

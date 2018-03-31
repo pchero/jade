@@ -10,7 +10,7 @@
 
 #include <stdbool.h>
 
-bool init_misc_handler(void);
+bool misc_init_handler(void);
 
 
 #endif /* SRC_MISC_HANDLER_H_ */

@@ -13,29 +13,29 @@
 
 #define sfree(p) { if(p != NULL) free(p); p=NULL; }
 
-void trim(char * s);
+void utils_trim(char * s);
 
-char* gen_uuid(void);
-char* get_utc_timestamp(void);
-int   get_utc_timestamp_day(void);
-char* get_utc_timestamp_date(void);
-char* get_utc_timestamp_time(void);
-char* get_utc_timestamp_using_timespec(struct timespec timeptr);
-time_t get_unixtime_from_utc_timestamp(const char* timestamp);
+char* utils_gen_uuid(void);
+char* utils_get_utc_timestamp(void);
+int   utils_get_utc_timestamp_day(void);
+char* utils_get_utc_timestamp_date(void);
+char* utils_get_utc_timestamp_time(void);
+char* utils_get_utc_timestamp_using_timespec(struct timespec timeptr);
+time_t utils_get_unixtime_from_utc_timestamp(const char* timestamp);
 
-char* get_variables_info_ami_str_from_string(const char* str);
-char* get_variables_ami_str_from_object(json_t* j_variables);
+char* utils_get_variables_info_ami_str_from_string(const char* str);
+char* utils_get_variables_ami_str_from_object(json_t* j_variables);
 
-char* uri_decode(const char* uri);
-char* uri_encode(const char* uri);
-int convert_time_string(const char* time, const char* format);
-char* strip_ext(char *fname);
+char* utils_uri_decode(const char* uri);
+char* utils_uri_encode(const char* uri);
+int utils_convert_time_string(const char* time, const char* format);
+char* utils_strip_ext(char *fname);
 
 
-bool is_exist_string_in_file(const char* filename, const char* str);
-bool append_string_to_file_end(const char* filename, const char* str);
-bool create_empty_file(const char* filename);
+bool utils_is_string_exist_in_file(const char* filename, const char* str);
+bool utils_append_string_to_file_end(const char* filename, const char* str);
+bool utils_create_empty_file(const char* filename);
 
-char* string_replace_char(const char* str, const char org, const char target);
+char* utils_string_replace_char(const char* str, const char org, const char target);
 
 #endif /* BACKEND_SRC_UTILS_H_ */

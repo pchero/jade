@@ -11,7 +11,7 @@
 #include <stdbool.h>
 #include <jansson.h>
 
-bool init_config(void);
-bool update_config_filename(const char* filename);
+bool config_init(void);
+bool config_update_filename(const char* filename);
 
 #endif /* BACKEND_SRC_CONFIG_H_ */

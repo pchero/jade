@@ -19,7 +19,7 @@ extern app* g_app;
 bool g_log_initiated = false;
 
 
-bool init_log(void)
+bool slog_init_handler(void)
 {
   // set max loglevel
   setlogmask(LOG_UPTO(DEF_LOGLEVEL));
@@ -31,7 +31,7 @@ bool init_log(void)
   return true;
 }
 
-bool update_log_level(int level)
+bool slog_update_log_level(int level)
 {
   setlogmask(LOG_UPTO(level));
 

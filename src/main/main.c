@@ -46,113 +46,113 @@ bool init(void)
   g_app->j_conf = NULL;
   g_app->evt_base = NULL;
 
-  ret = init_log();
+  ret = slog_init_handler();
   if(ret == false) {
     printf("Failed initiate log.");
     return false;
   }
   slog(LOG_NOTICE, "Finished init_log.");
 
-  ret = init_config();
+  ret = config_init();
   if(ret == false) {
     printf("Could not initiate config.");
     return false;
   }
   slog(LOG_NOTICE, "Finished init_config.");
 
-  ret = init_event_handler();
+  ret = event_init_handler();
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate event_handler.");
     return false;
   }
   slog(LOG_DEBUG, "Finished init_event_handler.");
 
-  ret = init_resource_handler();
+  ret = resource_init_handler();
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate resource.");
     return false;
   }
   slog(LOG_NOTICE, "Finished resource_init.");
 
-  ret = init_zmq_handler();
+  ret = zmq_init_handler();
   if(ret == false) {
     slog(LOG_ERR, "Coudl not initiate zmq_handler.");
     return false;
   }
 
-  ret = init_data_handler();
+  ret = data_init_handler();
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate ami_handle.");
     return false;
   }
   slog(LOG_DEBUG, "Finished init_ami_handler.");
 
-  ret = init_http_handler();
+  ret = htpp_init_handler();
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate http_handler.");
     return false;
   }
   slog(LOG_DEBUG, "Finished init_http_handler.");
   
-  ret = init_websocket_handler();
+  ret = websocket_init_handler();
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate websocket_handler.");
     return false;
   }
   slog(LOG_DEBUG, "Finished init_websocket_handler.");
 
-  ret = init_outbound();
+  ret = ob_init_handler();
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate ob_handler.");
     return false;
   }
   slog(LOG_DEBUG, "Finished init_outbound.");
 
-  ret = init_conf_handler();
+  ret = conf_init_handler();
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate conf_handler.");
     return false;
   }
   slog(LOG_DEBUG, "Finished init_conf_handler.");
 
-  ret = init_user_handler();
+  ret = user_init_handler();
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate user_handler");
     return false;
   }
 
-  ret = init_misc_handler();
+  ret = misc_init_handler();
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate misc_handler.");
     return false;
   }
 
   // other module handlers
-  ret = init_park_handler();
+  ret = park_init_handler();
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate park_handler.");
     return false;
   }
 
-  ret = init_queue_handler();
+  ret = queue_init_handler();
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate queue_handler.");
     return false;
   }
 
-  ret = init_pjsip_handler();
+  ret = pjsip_init_handler();
   if(ret == false) {
     slog(LOG_ERR, "Could not initate pjsip_handler.");
     return false;
   }
 
-  ret = init_sip_handler();
+  ret = sip_init_handler();
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate sip_handler.");
     return false;
   }
 
-  ret = init_chat_handler();
+  ret = chat_init_handler();
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate chat_handler.");
     return false;
@@ -165,20 +165,20 @@ bool terminate(void)
 {
   slog(LOG_INFO, "Terminating..");
 
-  term_http_handler();
+  http_term_handler();
 
   // terminate event handler
-  term_event_handler();
+  event_term_handler();
 
   // terminate outbound module.
-  term_outbound();
+  ob_term_handler();
 
   // terminate zmq
-  term_zmq_handler();
+  zmq_term_handler();
 
-  term_websocket_handler();
+  websocket_term_handler();
 
-  term_resource_handler();
+  resource_term_handler();
 
   event_base_free(g_app->evt_base);
   g_app->evt_base = NULL;
@@ -241,7 +241,7 @@ static bool option_parse(int argc, char** argv)
     switch(opt) {
       case 'f':
       {
-        update_config_filename(optarg);
+        config_update_filename(optarg);
       }
       break;
 
