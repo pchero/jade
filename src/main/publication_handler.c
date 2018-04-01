@@ -809,3 +809,52 @@ bool publication_publish_event_me_chat_message(enum EN_PUBLISH_TYPES type, const
   }
   return true;
 }
+
+/**
+ * Publish event.
+ * me.buddies.<type>
+ * @param type
+ * @param j_data
+ * @return
+ */
+bool publication_publish_event_me_buddy(enum EN_PUBLISH_TYPES type, const char* uuid_user, json_t* j_data)
+{
+  char* topic;
+  char* event;
+  int ret;
+
+  if((uuid_user == NULL) || (j_data == NULL)){
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired publication_publish_event_me_buddy.");
+
+  // create event name
+  if(type == EN_PUBLISH_CREATE) {
+    asprintf(&event, "me.buddies.%s", DEF_PUB_TYPE_CREATE);
+  }
+  else if(type == EN_PUBLISH_UPDATE) {
+    asprintf(&event, "me.buddies.%s", DEF_PUB_TYPE_UPDATE);
+  }
+  else if(type == EN_PUBLISH_DELETE) {
+    asprintf(&event, "me.buddies.%s", DEF_PUB_TYPE_DELETE);
+  }
+  else {
+    slog(LOG_ERR, "Could not get correct publish type. type[%u]", type);
+    return false;
+  }
+
+  // create topic
+  asprintf(&topic, "/me/info/%s", uuid_user);
+
+  // publish event
+  ret = publish_event(topic, event, j_data);
+  sfree(topic);
+  sfree(event);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+  return true;
+}
+

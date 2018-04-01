@@ -1,5 +1,57 @@
 .. _me_api:
 
+.. _me_buddies:
+
+/me/buddies
+===========
+
+Methods
+-------
+GET : Get the all buddy info.
+
+POST : Create buddy info
+
+Method: GET
+-----------
+Get the all buddy info.
+
+Example
++++++++
+::
+
+  $ curl -k https://localhost:8081/me/buddies\?authtoken=490d3714-348a-4fb4-9748-0e6eef484b33
+  
+  {
+    "api_ver": "0.1",
+    "result": [
+        {
+            "detail": null,
+            "name": null,
+            "tm_create": "2018-03-28T01:37:52.133197867Z",
+            "tm_update": null,
+            "uuid": "611f9902-00c9-4765-9775-20fbaf8261b0",
+            "uuid_user": "980404a2-f509-4140-9c92-96a018d1b61c"
+        }
+    ],
+    "statuscode": 200,
+    "timestamp": "2018-03-28T01:46:34.598437496Z"
+  }
+  
+Method: POST
+------------
+Create buddy info
+
+Example
++++++++
+::
+
+  $ curl -k -X POST https://localhost:8081/me/buddies\?authtoken=490d3714-348a-4fb4-9748-0e6eef484b33 -d '{"uuid_user": "980404a2-f509-4140-9c92-96a018d1b61c"}'
+  
+  {
+    "api_ver": "0.1",
+    "statuscode": 200,
+    "timestamp": "2018-03-28T01:37:19.333332411Z"
+  }
 
 .. _me_chats:
 

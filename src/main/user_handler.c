@@ -43,6 +43,7 @@ static bool init_database_buddy(void);
 
 static bool db_create_buddy_info(const json_t* j_data);
 static json_t* db_get_buddies_info_by_owneruuid(const char* uuid_user);
+static bool db_update_buddy_info(const json_t* j_data);
 static bool db_delete_buddy_info(const char* uuid);
 
 static bool db_create_authtoken_info(const json_t* j_data);
@@ -62,11 +63,16 @@ static bool db_create_userinfo_info(const json_t* j_data);
 
 static bool create_userinfo(json_t* j_data);
 static bool update_userinfo(const char* uuid, json_t* j_data);
+
 static bool create_permission(const char* user_uuid, const char* permission);
 static bool create_permission_by_json(json_t* j_data);
+
 static bool create_contact(const json_t* j_data);
 static bool update_contact(const char* uuid, json_t* j_data);
+
 static bool create_buddy(const char* uuid, const json_t* j_data);
+static json_t* get_buddy(const char* uuid);
+static bool update_buddy(const json_t* j_data);
 
 static bool is_user_exist(const char* user_uuid);
 static bool is_user_exsit_by_username(const char* username);
@@ -332,7 +338,7 @@ static bool init_database_buddy(void)
 
       // identity
       "   uuid          varchar(255),"
-      "   uuid_onwer    varchar(255),"  // owner
+      "   uuid_owner    varchar(255),"  // owner
       "   uuid_user     varchar(255),"  // owner's buddy
 
       // info
@@ -1815,6 +1821,75 @@ static bool db_create_contact_info(const json_t* j_data)
   return true;
 }
 
+static json_t* db_get_buddies_info_by_owneruuid(const char* uuid_user)
+{
+  json_t* j_res;
+
+  if(uuid_user == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  j_res = resource_get_jade_detail_items_key_string(DEF_DB_TABLE_USER_BUDDY, "uuid_owner", uuid_user);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
+static bool db_create_buddy_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  ret = resource_insert_jade_item(DEF_DB_TABLE_USER_BUDDY, j_data);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not insert data into table.");
+    return false;
+  }
+
+  return true;
+}
+
+static bool db_delete_buddy_info(const char* uuid)
+{
+  int ret;
+
+  if(uuid == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  ret = resource_delete_jade_items_string(DEF_DB_TABLE_USER_BUDDY, "uuid", uuid);
+  if(ret == false) {
+    return false;
+  }
+
+  return true;
+}
+
+static bool db_update_buddy_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  ret = resource_update_jade_item(DEF_DB_TABLE_USER_BUDDY, "uuid", j_data);
+  if(ret == false) {
+    return false;
+  }
+
+  return true;
+}
+
 bool user_update_authtoken_tm_update(const char* uuid)
 {
   json_t* j_token;
@@ -2081,7 +2156,7 @@ bool user_delete_contact_info(const char* key)
  * @param uuid_user
  * @return
  */
-json_t* user_get_buddies_info(const char* uuid_user)
+json_t* user_get_buddies_info_by_owneruuid(const char* uuid_user)
 {
   json_t* j_res;
 
@@ -2100,6 +2175,28 @@ json_t* user_get_buddies_info(const char* uuid_user)
 }
 
 /**
+ * Return the buddy info of given data.
+ * @param uuid
+ * @return
+ */
+json_t* user_get_buddy_info(const char* uuid)
+{
+  json_t* j_res;
+
+  if(uuid == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  j_res = resource_get_jade_detail_item_key_string(DEF_DB_TABLE_USER_BUDDY, "uuid", uuid);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
+/**
  * Interface for create buddy info.
  * @param uuid
  * @param j_data
@@ -2108,12 +2205,41 @@ json_t* user_get_buddies_info(const char* uuid_user)
 bool user_create_buddy_info(const char* uuid, const json_t* j_data)
 {
   int ret;
+  const char* uuid_owner;
+  const char* uuid_user;
 
   if((uuid == NULL) || (j_data == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
 
+  // get owner
+  uuid_owner = json_string_value(json_object_get(j_data, "uuid_owner"));
+  if(uuid_owner == NULL) {
+    slog(LOG_WARNING, "Could not get owner uuid.");
+    return false;
+  }
+
+  ret = is_user_exist(uuid_owner);
+  if(ret == false) {
+    slog(LOG_WARNING, "The owner is not exist.");
+    return false;
+  }
+
+  // get user
+  uuid_user = json_string_value(json_object_get(j_data, "uuid_user"));
+  if(uuid_user == NULL) {
+    slog(LOG_WARNING, "Could not get user uuid.");
+    return false;
+  }
+
+  ret = is_user_exist(uuid_user);
+  if(ret == false) {
+    slog(LOG_WARNING, "The user is not exsit.");
+    return false;
+  }
+
+  // create
   ret = create_buddy(uuid, j_data);
   if(ret == false) {
     return false;
@@ -2137,6 +2263,23 @@ bool user_delete_buddy_info(const char* uuid)
   }
 
   ret = db_delete_buddy_info(uuid);
+  if(ret == false) {
+    return false;
+  }
+
+  return true;
+}
+
+bool user_update_buddy_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  ret = update_buddy(j_data);
   if(ret == false) {
     return false;
   }
@@ -2179,16 +2322,44 @@ static bool create_buddy(const char* uuid, const json_t* j_data)
   return true;
 }
 
-static json_t* db_get_buddies_info_by_owneruuid(const char* uuid_user)
+static bool update_buddy(const json_t* j_data)
+{
+  int ret;
+  char* timestamp;
+  json_t* j_tmp;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  timestamp = utils_get_utc_timestamp();
+
+  j_tmp = json_deep_copy(j_data);
+  json_object_set_new(j_tmp, "tm_update", json_string(timestamp));
+  json_object_del(j_tmp, "tm_create");
+  sfree(timestamp);
+
+  // update
+  ret = db_update_buddy_info(j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    return false;
+  }
+
+  return true;
+}
+
+static json_t* get_buddy(const char* uuid)
 {
   json_t* j_res;
 
-  if(uuid_user == NULL) {
+  if(uuid == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return NULL;
   }
 
-  j_res = resource_get_jade_detail_items_key_string(DEF_DB_TABLE_USER_BUDDY, "uuid_owner", uuid_user);
+  j_res = resource_get_jade_detail_item_key_string(DEF_DB_TABLE_USER_BUDDY, "uuid", uuid);
   if(j_res == NULL) {
     return NULL;
   }
@@ -2196,38 +2367,40 @@ static json_t* db_get_buddies_info_by_owneruuid(const char* uuid_user)
   return j_res;
 }
 
-static bool db_create_buddy_info(const json_t* j_data)
+/**
+ * Return true if given user owned given buddy.
+ * Otherwise, return false.
+ * @param uuid_owner
+ * @param uuid_buddy
+ * @return
+ */
+bool user_is_user_owned_buddy(const char* uuid_owner, const char* uuid_buddy)
 {
   int ret;
+  json_t* j_tmp;
+  const char* tmp_const;
 
-  if(j_data == NULL) {
+  if((uuid_owner == NULL) || (uuid_buddy == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
-    return NULL;
+    return false;
   }
 
-  ret = resource_insert_jade_item(DEF_DB_TABLE_USER_BUDDY, j_data);
-  if(ret == false) {
-    slog(LOG_WARNING, "Could not insert data into table.");
+  j_tmp = get_buddy(uuid_buddy);
+  if(j_tmp == NULL) {
+    return false;
+  }
+
+  tmp_const = json_string_value(json_object_get(j_tmp, "uuid_owner"));
+  if(tmp_const == NULL) {
+    json_decref(j_tmp);
+    return false;
+  }
+
+  ret = strcmp(tmp_const, uuid_owner);
+  json_decref(j_tmp);
+  if(ret != 0) {
     return false;
   }
 
   return true;
 }
-
-static bool db_delete_buddy_info(const char* uuid)
-{
-  int ret;
-
-  if(uuid == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return false;
-  }
-
-  ret = resource_delete_jade_items_string(DEF_DB_TABLE_USER_BUDDY, "uuid", uuid);
-  if(ret == false) {
-    return false;
-  }
-
-  return true;
-}
-
