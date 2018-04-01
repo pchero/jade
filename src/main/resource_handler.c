@@ -27,6 +27,7 @@ db_ctx_t* g_db_jade;
 // db
 static bool clear_table(db_ctx_t* ctx, const char* table);
 static bool insert_item(db_ctx_t* ctx, const char* table, const json_t* j_data);
+static bool insrep_item(db_ctx_t* ctx, const char* table, const json_t* j_data);
 static bool update_item(db_ctx_t* ctx, const char* table, const char* key_column, const json_t* j_data);
 static json_t* get_items(db_ctx_t* ctx, const char* table, const char* item);
 static json_t* get_detail_item_key_string(db_ctx_t* ctx, const char* table, const char* key, const char* val);
@@ -269,12 +270,38 @@ static bool init_jade_database(void)
 }
 
 /**
- *
+ * Insert
  * @param table
  * @param item
  * @return
  */
 static bool insert_item(db_ctx_t* ctx, const char* table, const json_t* j_data)
+{
+  int ret;
+
+  if((ctx == NULL) || (table == NULL) || (j_data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired create_item. table[%s]", table);
+
+  ret = db_ctx_insert(ctx, table, j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert item.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Insert or replace
+ * @param ctx
+ * @param table
+ * @param j_data
+ * @return
+ */
+static bool insrep_item(db_ctx_t* ctx, const char* table, const json_t* j_data)
 {
   int ret;
 
@@ -292,6 +319,8 @@ static bool insert_item(db_ctx_t* ctx, const char* table, const json_t* j_data)
 
   return true;
 }
+
+
 
 /**
  * Update item info.
@@ -802,6 +831,30 @@ bool resource_insert_ast_item(const char* table, const json_t* j_data)
 }
 
 /**
+ *
+ * @param table
+ * @param item
+ * @return
+ */
+bool resource_insrep_ast_item(const char* table, const json_t* j_data)
+{
+  int ret;
+
+  if((table == NULL) || (j_data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired resource_insrep_ast_item. table[%s]", table);
+
+  ret = insrep_item(g_db_ast, table, j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert ast info.");
+    return false;
+  }
+  return true;
+}
+
+/**
  * Update item info.
  * @param table
  * @param key_name
@@ -973,6 +1026,30 @@ bool resource_insert_jade_item(const char* table, const json_t* j_data)
   slog(LOG_DEBUG, "Fired insert_jade_item. table[%s]", table);
 
   ret = insert_item(g_db_jade, table, j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert jade info.");
+    return false;
+  }
+  return true;
+}
+
+/**
+ * insert or replace
+ * @param table
+ * @param item
+ * @return
+ */
+bool resource_insrep_jade_item(const char* table, const json_t* j_data)
+{
+  int ret;
+
+  if((table == NULL) || (j_data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired resource_insrep_jade_item. table[%s]", table);
+
+  ret = insrep_item(g_db_jade, table, j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert jade info.");
     return false;

@@ -32,8 +32,6 @@ static char* create_public_url(const char* target);
 
 static json_t* get_contacts_info(const json_t* j_user);
 
-static json_t* create_contact_info(const char* id, const char* password);
-
 static json_t* get_userinfo(evhtp_request_t *req);
 
 static json_t* get_contact_info(const json_t* j_user_contact);
@@ -50,6 +48,11 @@ static bool delete_chatroom_info(json_t* j_user, const char* uuid_userroom);
 static json_t* get_chatmessages_info(json_t* j_user, const char* uuid_userroom, const char* timestamp, int count);
 static bool create_chatmessage_info(json_t* j_user, const char* uuid_userroom, json_t* j_data);
 
+static bool create_buddy_info(const json_t* j_user, const json_t* j_data);
+static json_t* get_buddy_info(const json_t* j_user, const char* uuid_buddy);
+static json_t* get_buddies_info(const json_t* j_user);
+static bool update_buddy_info(const json_t* j_user, const char* detail, const json_t* j_data);
+static bool delete_buddy_info(const json_t* j_user, const char* detail);
 
 bool me_init_handler(void)
 {
@@ -523,6 +526,274 @@ void me_htp_post_me_chats_detail_messages(evhtp_request_t *req, void *data)
   return;
 }
 
+/**
+ * GET ^/me/buddies request handler.
+ * @param req
+ * @param data
+ */
+void me_htp_get_me_buddies(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+  json_t* j_user;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired me_htp_get_me_buddies.");
+
+  // get userinfo
+  j_user = get_userinfo(req);
+  if(j_user == NULL) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  // get buddies info
+  j_tmp = get_buddies_info(j_user);
+  json_decref(j_user);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get buddy info.");
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", j_tmp);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * POST ^/me/buddies request handler.
+ * @param req
+ * @param data
+ */
+void me_htp_post_me_buddies(evhtp_request_t *req, void *data)
+{
+  int ret;
+  json_t* j_res;
+  json_t* j_user;
+  json_t* j_data;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired me_htp_post_me_buddies.");
+
+  // get user info
+  j_user = get_userinfo(req);
+  if(j_user == NULL) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  // get data
+  j_data = http_get_json_from_request_data(req);
+  if(j_data == NULL) {
+    json_decref(j_user);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // create buddy
+  ret = create_buddy_info(j_user, j_data);
+  json_decref(j_user);
+  json_decref(j_data);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * GET ^/me/buddies/<detail> request handler.
+ * @param req
+ * @param data
+ */
+void me_htp_get_me_buddies_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+  json_t* j_user;
+  char* detail;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired me_htp_get_me_buddies_detail.");
+
+  // get userinfo
+  j_user = get_userinfo(req);
+  if(j_user == NULL) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  // detail parse
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // get chat room info
+  j_tmp = get_buddy_info(j_user, detail);
+  json_decref(j_user);
+  sfree(detail);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get me buddy info.");
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", j_tmp);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * htp request handler.
+ * PUT ^/me/buddies/<detail> request handler.
+ * @param req
+ * @param data
+ */
+void me_htp_put_me_buddies_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_user;
+  json_t* j_res;
+  json_t* j_data;
+  char* detail;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired me_htp_put_me_buddies_detail.");
+
+  // get userinfo
+  j_user = get_userinfo(req);
+  if(j_user == NULL) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  // detail parse
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // get data
+  j_data = http_get_json_from_request_data(req);
+  if(j_data == NULL) {
+    slog(LOG_ERR, "Could not get correct data from request.");
+    sfree(detail);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // update
+  ret = update_buddy_info(j_user, detail, j_data);
+  json_decref(j_user);
+  json_decref(j_data);
+  sfree(detail);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update buddy info.");
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * htp request handler.
+ * DELETE ^/me/buddies/<detail> request handler.
+ * @param req
+ * @param data
+ */
+void me_htp_delete_me_buddies_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_user;
+  json_t* j_res;
+  char* detail;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired me_htp_delete_me_buddies_detail.");
+
+  // get userinfo
+  j_user = get_userinfo(req);
+  if(j_user == NULL) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  // detail parse
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // delete info
+  ret = delete_buddy_info(j_user, detail);
+  json_decref(j_user);
+  sfree(detail);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update buddy info.");
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
 
 /**
  * Get given authtoken's me info.
@@ -613,6 +884,9 @@ static json_t* get_contact_info_pjsip(const char* target)
   json_t* j_res;
   json_t* j_endpoint;
   json_t* j_auth;
+  const char* id;
+  const char* password;
+  char* pub_url;
 
   if(target == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -633,11 +907,26 @@ static json_t* get_contact_info_pjsip(const char* target)
     return NULL;
   }
 
-  // create contact info
-  j_res = create_contact_info(
-      json_string_value(json_object_get(j_endpoint, "object_name")),
-      json_string_value(json_object_get(j_auth, "password"))
+  id = json_string_value(json_object_get(j_endpoint, "object_name"));
+  password = json_string_value(json_object_get(j_auth, "password"));
+
+  // create public url
+  pub_url = create_public_url(id);
+  if(pub_url == NULL) {
+    slog(LOG_ERR, "Could not create public url. id[%s]", id);
+    return NULL;
+  }
+
+  j_res = json_pack("{"
+      "s:s, s:s, s:s, s:s"
+      "}",
+
+      "realm",        "localhost",
+      "id",           id,
+      "password",     password,
+      "public_url",   pub_url
       );
+  sfree(pub_url);
   json_decref(j_endpoint);
   json_decref(j_auth);
 
@@ -659,39 +948,6 @@ static char* create_public_url(const char* target)
       );
 
   return res;
-}
-
-static json_t* create_contact_info(const char* id, const char* password)
-{
-  json_t* j_res;
-  char* pub_url;
-
-  if((id == NULL) || (password == NULL)) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return NULL;
-  }
-  slog(LOG_DEBUG, "Fired create_contact_info. id[%s], password[%s]", id, password);
-
-  // create public url
-  pub_url = create_public_url(id);
-  if(pub_url == NULL) {
-    slog(LOG_ERR, "Could not create public url. id[%s]", id);
-    return NULL;
-  }
-
-  j_res = json_pack("{"
-      "s:s, s:s, s:s, s:s"
-      "}",
-
-      "realm",        "localhost",
-      "id",           id,
-      "password",     password,
-      "public_url",   pub_url
-      );
-  sfree(pub_url);
-
-  return j_res;
-
 }
 
 /**
@@ -1143,6 +1399,232 @@ static bool create_chatmessage_info(json_t* j_user, const char* uuid_userroom, j
   sfree(uuid_room);
   if(ret == false) {
     slog(LOG_WARNING, "Could not publish chat message notification. ");
+    return false;
+  }
+
+  return true;
+}
+
+static json_t* get_buddy_info(const json_t* j_user, const char* uuid_buddy)
+{
+  int ret;
+  json_t* j_res;
+  const char* uuid_user;
+
+  if((j_user == NULL) || (uuid_buddy == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  uuid_user = json_string_value(json_object_get(j_user, "uuid"));
+  if(uuid_user == NULL) {
+    slog(LOG_WARNING, "Could not get user uuid.");
+    return NULL;
+  }
+
+  // check permission
+  ret = user_is_user_owned_buddy(uuid_user, uuid_buddy);
+  if(ret == false) {
+    slog(LOG_WARNING, "The user does not have permission.");
+    return false;
+  }
+
+  // get info
+  j_res = user_get_buddy_info(uuid_buddy);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  json_object_del(j_res, "uuid_owner");
+  return j_res;
+}
+
+static json_t* get_buddies_info(const json_t* j_user)
+{
+  const char* uuid_user;
+  json_t* j_buddies;
+  json_t* j_buddy;
+  json_t* j_res;
+  json_t* j_tmp;
+  const char* uuid;
+  int idx;
+
+  if(j_user == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  uuid_user = json_string_value(json_object_get(j_user, "uuid"));
+  if(uuid_user == NULL) {
+    slog(LOG_WARNING, "Could not get user uuid info.");
+    return NULL;
+  }
+
+  j_buddies = user_get_buddies_info_by_owneruuid(uuid_user);
+  if(j_buddies == NULL) {
+    slog(LOG_WARNING, "Could not get buddies info. user_uuid[%s]", uuid_user);
+    return NULL;
+  }
+
+  j_res = json_array();
+  json_array_foreach(j_buddies, idx, j_buddy) {
+    uuid = json_string_value(json_object_get(j_buddy, "uuid"));
+    if(uuid == NULL) {
+      continue;
+    }
+
+    j_tmp = get_buddy_info(j_user, uuid);
+    if(j_tmp == NULL) {
+      continue;
+    }
+
+    json_array_append_new(j_res, j_tmp);
+  }
+  json_decref(j_buddies);
+
+  return j_res;
+}
+
+static bool create_buddy_info(const json_t* j_user, const json_t* j_data)
+{
+  int ret;
+  json_t* j_tmp;
+  const char* uuid_owner;
+  char* uuid;
+
+  if((j_user == NULL) || (j_data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  uuid_owner = json_string_value(json_object_get(j_user, "uuid"));
+  if(uuid_owner == NULL) {
+    slog(LOG_WARNING, "Could not get user uuid info.");
+    return false;
+  }
+
+  // create request data
+  j_tmp = json_deep_copy(j_data);
+  json_object_set_new(j_tmp, "uuid_owner", json_string(uuid_owner));
+
+  // create
+  uuid = utils_gen_uuid();
+  ret = user_create_buddy_info(uuid, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    sfree(uuid);
+    return false;
+  }
+
+  // get created buddy info
+  j_tmp = user_get_buddy_info(uuid);
+  sfree(uuid);
+  if(j_tmp == NULL) {
+    slog(LOG_WARNING, "Could not get created buddy info.");
+    return false;
+  }
+
+  json_object_del(j_tmp, "uuid_owner");
+
+  // publish event
+  ret = publication_publish_event_me_buddy(EN_PUBLISH_CREATE, uuid_owner, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not publish the event.");
+    return false;
+  }
+
+  return true;
+}
+
+static bool update_buddy_info(const json_t* j_user, const char* detail, const json_t* j_data)
+{
+  int ret;
+  json_t* j_tmp;
+  const char* uuid_owner;
+
+  if((j_user == NULL) || (detail == NULL) || (j_data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  uuid_owner = json_string_value(json_object_get(j_user, "uuid"));
+  if(uuid_owner == NULL) {
+    slog(LOG_WARNING, "Could not get user uuid info.");
+    return false;
+  }
+
+  // permission check
+  ret = user_is_user_owned_buddy(uuid_owner, detail);
+  if(ret == false) {
+    slog(LOG_WARNING, "The user does not have permission.");
+    return false;
+  }
+
+  // create request data
+  j_tmp = json_deep_copy(j_data);
+  json_object_set_new(j_tmp, "uuid_owner", json_string(uuid_owner));
+  json_object_set_new(j_tmp, "uuid", json_string(detail));
+
+  // update
+  ret = user_update_buddy_info(j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    return false;
+  }
+
+  // get updated buddy info
+  j_tmp = user_get_buddy_info(detail);
+  if(j_tmp == NULL) {
+    slog(LOG_WARNING, "Could not get updated buddy info.");
+    return false;
+  }
+
+  json_object_del(j_tmp, "uuid_owner");
+
+  // publish event
+  ret = publication_publish_event_me_buddy(EN_PUBLISH_CREATE, uuid_owner, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not publish the event.");
+    return false;
+  }
+
+  return true;
+}
+
+static bool delete_buddy_info(const json_t* j_user, const char* detail)
+{
+  int ret;
+  const char* uuid_owner;
+
+  if((j_user == NULL) || (detail == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  if((j_user == NULL) || (detail == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  uuid_owner = json_string_value(json_object_get(j_user, "uuid"));
+  if(uuid_owner == NULL) {
+    slog(LOG_WARNING, "Could not get user uuid info.");
+    return false;
+  }
+
+  // permission check
+  ret = user_is_user_owned_buddy(uuid_owner, detail);
+  if(ret == false) {
+    slog(LOG_WARNING, "The user does not have permission.");
+    return false;
+  }
+
+  // delete
+  ret = user_delete_buddy_info(detail);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not delete buddy info.");
     return false;
   }
 

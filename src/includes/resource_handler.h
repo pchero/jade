@@ -24,6 +24,7 @@ void resource_term_handler(void);
 bool resource_exec_ast_sql(const char* sql);
 bool resource_clear_ast_table(const char* table);
 bool resource_insert_ast_item(const char* table, const json_t* j_data);
+bool resource_insrep_ast_item(const char* table, const json_t* j_data);
 bool resource_update_ast_item(const char* table, const char* key_column, const json_t* j_data);
 json_t* resource_get_ast_items(const char* table, const char* item);
 json_t* resource_get_ast_detail_items_by_condtion(const char* table, const char* condition);
@@ -34,6 +35,7 @@ bool resource_delete_ast_items_string(const char* table, const char* key, const 
 // jade
 bool resource_exec_jade_sql(const char* sql);
 bool resource_insert_jade_item(const char* table, const json_t* j_data);
+bool resource_insrep_jade_item(const char* table, const json_t* j_data);
 bool resource_update_jade_item(const char* table, const char* key_column, const json_t* j_data);
 bool resource_delete_jade_items_string(const char* table, const char* key, const char* val);
 bool resource_delete_jade_items_by_obj(const char* table, json_t* j_obj);

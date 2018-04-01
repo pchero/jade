@@ -22,6 +22,7 @@ enum EN_PUBLISH_TYPES {
 };
 
 
+bool publication_publish_event_me_buddy(enum EN_PUBLISH_TYPES type, const char* uuid_user, json_t* j_data);
 bool publication_publish_event_me_chat_message(enum EN_PUBLISH_TYPES type, const char* uuid_user, json_t* j_data);
 bool publication_publish_event_me_chat_room(enum EN_PUBLISH_TYPES type, const char* uuid_user, json_t* j_data);
 
