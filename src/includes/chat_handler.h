@@ -22,11 +22,13 @@ bool chat_term_handler(void);
 
 json_t* chat_get_room(const char* uuid);
 json_t* chat_get_rooms_by_useruuid(const char* user_uuid);
+bool chat_create_room_with_foreach_userroom(const char* uuid, const char* uuid_user, const json_t* j_data);
 bool chat_delete_room(const char* uuid);
 
 json_t* chat_get_userrooms_by_useruuid(const char* user_uuid);
 
 json_t* chat_get_userroom(const char* uuid);
+json_t* chat_get_userrooms_by_roomuuid(const char* uuid);
 bool chat_create_userroom(const char* uuid_user, const char* uuid_userroom, const json_t* j_data);
 bool chat_update_userroom(const char* uuid_userroom, const json_t* j_data);
 bool chat_delete_userroom(const char* uuid_userroom);

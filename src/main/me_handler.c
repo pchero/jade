@@ -1155,9 +1155,15 @@ static json_t* get_chatroom_info(const json_t* j_user, const char* uuid_userroom
 static bool create_chatroom_info(json_t* j_user, json_t* j_data)
 {
   int ret;
-  char* uuid_userroom;
+  char* uuid_room;
+  const char* tmp_uuid_userroom;
+  const char* tmp_uuid_user;
   const char* uuid_user;
+  int idx;
+  json_t* j_userrooms;
+  json_t* j_userroom;
   json_t* j_tmp;
+  json_t* j_tmp_user;
 
   if(j_user == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -1170,34 +1176,51 @@ static bool create_chatroom_info(json_t* j_user, json_t* j_data)
     return NULL;
   }
 
-  // create uuid_userroom
-  uuid_userroom = utils_gen_uuid();
-  if(uuid_userroom == NULL) {
-    slog(LOG_ERR, "Could not create uuid for userroom.");
+  // create chatroom uuid
+  uuid_room = utils_gen_uuid();
+  if(uuid_room == NULL) {
+    slog(LOG_ERR, "Could not create uuid for chat room.");
     return false;
   }
 
-  ret = chat_create_userroom(uuid_user, uuid_userroom, j_data);
+  // create chat room
+  ret = chat_create_room_with_foreach_userroom(uuid_room, uuid_user, j_data);
   if(ret == false) {
-    slog(LOG_ERR, "Could not create chat userroom.");
-    sfree(uuid_userroom);
+    slog(LOG_ERR, "Could not create chat room info.");
+    sfree(uuid_room);
     return false;
   }
 
-  // get created userroom info
-  j_tmp = get_chatroom_info(j_user, uuid_userroom);
-  sfree(uuid_userroom);
-  if(j_tmp == NULL) {
-    slog(LOG_WARNING, "Could not get created userroom info.");
+  // get all userrooms
+  j_userrooms = chat_get_userrooms_by_roomuuid(uuid_room);
+  sfree(uuid_room);
+  if(j_userrooms == NULL) {
+    slog(LOG_ERR, "Could not get created userrooms info.");
     return false;
   }
 
-  // publish event
-  ret = publication_publish_event_me_chat_room(EN_PUBLISH_CREATE, uuid_user, j_tmp);
-  json_decref(j_tmp);
-  if(ret == false) {
-    return false;
+  // publish event foreach
+  json_array_foreach(j_userrooms, idx, j_userroom) {
+    tmp_uuid_user = json_string_value(json_object_get(j_userroom, "uuid_user"));
+    tmp_uuid_userroom = json_string_value(json_object_get(j_userroom, "uuid"));
+
+    j_tmp_user = user_get_userinfo_info(tmp_uuid_user);
+    j_tmp = get_chatroom_info(j_tmp_user, tmp_uuid_userroom);
+    json_decref(j_tmp_user);
+    if(j_tmp == NULL) {
+      slog(LOG_NOTICE, "Could not create chatroom info for event publish.");
+      continue;
+    }
+
+    // publish event
+    ret = publication_publish_event_me_chat_room(EN_PUBLISH_CREATE, tmp_uuid_user, j_tmp);
+    json_decref(j_tmp);
+    if(ret == false) {
+      slog(LOG_ERR, "Could not publish event.");
+      continue;
+    }
   }
+  json_decref(j_userrooms);
 
   return true;
 }
