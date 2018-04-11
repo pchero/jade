@@ -181,6 +181,243 @@ bool htpp_init_handler(void)
   }
 
 
+
+  ///// v1 apis
+
+  /////////////////////// apis
+
+
+  //// ^/agent/
+  // agents
+  evhtp_set_regex_cb(g_htps, "^/v1/agent/agents/(.*)", cb_htp_agent_agents_detail, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/agent/agents$", cb_htp_agent_agents, NULL);
+
+
+
+  //// ^/core/
+  // agis
+  evhtp_set_regex_cb(g_htps, "^/v1/core/agis/(.*)", cb_htp_core_agis_detail, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/core/agis$", cb_htp_core_agis, NULL);
+
+  // channels
+  evhtp_set_regex_cb(g_htps, "^/v1/core/channels/(.*)", cb_htp_core_channels_detail, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/core/channels$", cb_htp_core_channels, NULL);
+
+  // modules
+  evhtp_set_regex_cb(g_htps, "^/v1/core/modules/(.*)", cb_htp_core_modules_detail, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/core/modules$", cb_htp_core_modules, NULL);
+
+  // systems
+  evhtp_set_regex_cb(g_htps, "^/v1/core/systems/(.*)", cb_htp_core_systems_detail, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/core/systems$", cb_htp_core_systems, NULL);
+
+
+
+  //// ^/dp/
+  // config
+  evhtp_set_regex_cb(g_htps, "^/v1/dp/config$", cb_htp_dp_config, NULL);
+
+  // dialplans
+  evhtp_set_regex_cb(g_htps, "^/v1/dp/dialplans/(.*)", cb_htp_dp_dialplans_detail, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/dp/dialplans$", cb_htp_dp_dialplans, NULL);
+  // dpmas
+  evhtp_set_regex_cb(g_htps, "^/v1/dp/dpmas/(.*)", cb_htp_dp_dpmas_detail, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/dp/dpmas$", cb_htp_dp_dpmas, NULL);
+
+
+
+  //// ^/me/
+  // buddies
+  evhtp_set_regex_cb(g_htps, "^/v1/me/buddies$", cb_htp_me_buddies, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/me/buddies/("DEF_REG_UUID")$", cb_htp_me_buddies_detail, NULL);
+
+  // chats
+  evhtp_set_regex_cb(g_htps, "^/v1/me/chats$", cb_htp_me_chats, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/me/chats/("DEF_REG_UUID")$", cb_htp_me_chats_detail, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/me/chats/("DEF_REG_UUID")/messages$", cb_htp_me_chats_detail_messages, NULL);
+
+  // info
+  evhtp_set_regex_cb(g_htps, "^/v1/me/info$", cb_htp_me_info, NULL);
+
+  // login
+  evhtp_set_regex_cb(g_htps, "^/v1/me/login$", cb_htp_me_login, NULL);
+
+
+
+  ////// ^/ob/
+  ////// outbound modules
+  // destinations
+  evhtp_set_regex_cb(g_htps, "^/v1/ob/destinations$", ob_cb_htp_ob_destinations, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/ob/destinations/("DEF_REG_UUID")$", ob_cb_htp_ob_destinations_detail, NULL);
+
+  // plans
+  evhtp_set_regex_cb(g_htps, "^/v1/ob/plans$", ob_cb_htp_ob_plans, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/ob/plans/("DEF_REG_UUID")$", ob_cb_htp_ob_plans_detail, NULL);
+
+  // campaigns
+  evhtp_set_regex_cb(g_htps, "^/v1/ob/campaigns$", ob_cb_htp_ob_campaigns, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/ob/campaigns/("DEF_REG_UUID")$", ob_cb_htp_ob_campaigns_detail, NULL);
+
+  // dlmas
+  evhtp_set_regex_cb(g_htps, "^/v1/ob/dlmas$", ob_cb_htp_ob_dlmas, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/ob/dlmas/("DEF_REG_UUID")$", ob_cb_htp_ob_dlmas_detail, NULL);
+
+  // dls
+  evhtp_set_regex_cb(g_htps, "^/v1/ob/dls$", ob_cb_htp_ob_dls, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/ob/dls/("DEF_REG_UUID")$", ob_cb_htp_ob_dls_detail, NULL);
+
+  // dialings
+  evhtp_set_regex_cb(g_htps, "^/v1/ob/dialings$", ob_cb_htp_ob_dialings, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/ob/dialings/("DEF_REG_UUID")$", ob_cb_htp_ob_dialings_detail, NULL);
+
+
+
+  //// ^/park/
+  // config
+  evhtp_set_regex_cb(g_htps, "^/v1/park/config$", cb_htp_park_config, NULL);
+
+  // configs
+  evhtp_set_regex_cb(g_htps, "^/v1/park/configs/(.*)", cb_htp_park_configs_detail, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/park/configs$", cb_htp_park_configs, NULL);
+
+  // parkinglots
+  evhtp_set_regex_cb(g_htps, "^/v1/park/parkinglots/(.*)", cb_htp_park_parkinglots_detail, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/park/parkinglots$", cb_htp_park_parkinglots, NULL);
+
+  // parkedcalls
+  evhtp_set_regex_cb(g_htps, "^/v1/park/parkedcalls/(.*)", cb_htp_park_parkedcalls_detail, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/park/parkedcalls$", cb_htp_park_parkedcalls, NULL);
+
+  // settings
+  evhtp_set_regex_cb(g_htps, "^/v1/park/settings/(.*)", cb_htp_park_settings_detail, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/park/settings$", cb_htp_park_settings, NULL);
+
+
+  //// ^/pjsip/
+  // aors
+  evhtp_set_regex_cb(g_htps, "^/v1/pjsip/aors/(.*)", cb_htp_pjsip_aors_detail, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/pjsip/aors$", cb_htp_pjsip_aors, NULL);
+
+  // auths
+  evhtp_set_regex_cb(g_htps, "^/v1/pjsip/auths/(.*)", cb_htp_pjsip_auths_detail, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/pjsip/auths$", cb_htp_pjsip_auths, NULL);
+
+  // config
+  evhtp_set_regex_cb(g_htps, "^/v1/pjsip/config$", cb_htp_pjsip_config, NULL);
+
+  // configs
+  evhtp_set_regex_cb(g_htps, "^/v1/pjsip/configs/(.*)", cb_htp_pjsip_configs_detail, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/pjsip/configs$", cb_htp_pjsip_configs, NULL);
+
+  // contacts
+  evhtp_set_regex_cb(g_htps, "^/v1/pjsip/contacts/(.*)", cb_htp_pjsip_contacts_detail, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/pjsip/contacts$", cb_htp_pjsip_contacts, NULL);
+
+  // endpoints
+  evhtp_set_regex_cb(g_htps, "^/v1/pjsip/endpoints/(.*)", cb_htp_pjsip_endpoints_detail, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/pjsip/endpoints$", cb_htp_pjsip_endpoints, NULL);
+
+  // identifies
+  evhtp_set_regex_cb(g_htps, "^/v1/pjsip/identifies/(.*)", cb_htp_pjsip_identifies_detail, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/pjsip/identifies$", cb_htp_pjsip_identifies, NULL);
+
+  // registrations
+  evhtp_set_regex_cb(g_htps, "^/v1/pjsip/registrations/(.*)", cb_htp_pjsip_registrations_detail, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/pjsip/registrations$", cb_htp_pjsip_registrations, NULL);
+
+  // transports
+  evhtp_set_regex_cb(g_htps, "^/v1/pjsip/transports/(.*)", cb_htp_pjsip_transports_detail, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/pjsip/transports$", cb_htp_pjsip_transports, NULL);
+
+
+
+  //// ^/queue/
+  // config
+  evhtp_set_regex_cb(g_htps, "^/v1/queue/config$", cb_htp_queue_config, NULL);
+
+  // configs
+  evhtp_set_regex_cb(g_htps, "^/v1/queue/configs/(.*)", cb_htp_queue_configs_detail, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/queue/configs$", cb_htp_queue_configs, NULL);
+
+  // entries
+  evhtp_set_regex_cb(g_htps, "^/v1/queue/entries/(.*)", cb_htp_queue_entries_detail, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/queue/entries$", cb_htp_queue_entries, NULL);
+
+  // members
+  evhtp_set_regex_cb(g_htps, "^/v1/queue/members/(.*)", cb_htp_queue_members_detail, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/queue/members$", cb_htp_queue_members, NULL);
+
+  // queues
+  evhtp_set_regex_cb(g_htps, "^/v1/queue/queues/(.*)", cb_htp_queue_queues_detail, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/queue/queues$", cb_htp_queue_queues, NULL);
+
+  // settings
+  evhtp_set_regex_cb(g_htps, "^/v1/queue/settings/(.*)", cb_htp_queue_settings_detail, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/queue/settings$", cb_htp_queue_settings, NULL);
+
+  // statuses
+  evhtp_set_regex_cb(g_htps, "^/v1/queue/statuses/(.*)", cb_htp_queue_statuses_detail, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/queue/statuses$", cb_htp_queue_statuses, NULL);
+
+
+
+  //// ^/sip/
+  // config
+  evhtp_set_regex_cb(g_htps, "^/v1/sip/config$", cb_htp_sip_config, NULL);
+
+  // configs
+  evhtp_set_regex_cb(g_htps, "^/v1/sip/configs/(.*)", cb_htp_sip_configs_detail, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/sip/configs$", cb_htp_sip_configs, NULL);
+
+  // peers
+  evhtp_set_regex_cb(g_htps, "^/v1/sip/peers/(.*)", cb_htp_sip_peers_detail, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/sip/peers$", cb_htp_sip_peers, NULL);
+
+  // registries
+  evhtp_set_regex_cb(g_htps, "^/v1/sip/registries/(.*)", cb_htp_sip_registries_detail, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/sip/registries$", cb_htp_sip_registries, NULL);
+
+  // settings
+  evhtp_set_regex_cb(g_htps, "^/v1/sip/settings/(.*)", cb_htp_sip_settings_detail, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/sip/settings$", cb_htp_sip_settings, NULL);
+
+
+
+  //// ^/user/
+  // contacts
+  evhtp_set_regex_cb(g_htps, "^/v1/user/contacts/(.*)", cb_htp_user_contacts_detail, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/user/contacts$", cb_htp_user_contacts, NULL);
+
+  // login
+  evhtp_set_regex_cb(g_htps, "^/v1/user/login$", cb_htp_user_login, NULL);
+
+  // permissions
+  evhtp_set_regex_cb(g_htps, "^/v1/user/permissions/(.*)", cb_htp_user_permissions_detail, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/user/permissions$", cb_htp_user_permissions, NULL);
+
+  // users
+  evhtp_set_regex_cb(g_htps, "^/v1/user/users/(.*)", cb_htp_user_users_detail, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/user/users$", cb_htp_user_users, NULL);
+
+
+  //// ^/voicemail/
+  // config
+  evhtp_set_regex_cb(g_htps, "^/v1/voicemail/config$", cb_htp_voicemail_config, NULL);
+
+  // configs
+  evhtp_set_regex_cb(g_htps, "^/v1/voicemail/configs/(.*)", cb_htp_voicemail_configs_detail, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/voicemail/configs$", cb_htp_voicemail_configs, NULL);
+
+  // users
+  evhtp_set_regex_cb(g_htps, "^/v1/voicemail/users/(.*)", cb_htp_voicemail_users_detail, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/voicemail/users$", cb_htp_voicemail_users, NULL);
+
+  // vms
+  evhtp_set_regex_cb(g_htps, "^/v1/voicemail/vms/("DEF_REG_MSGNAME")", cb_htp_voicemail_vms_msgname, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/voicemail/vms$", cb_htp_voicemail_vms, NULL);
+
+
+
   /////////////////////// apis
 
 
