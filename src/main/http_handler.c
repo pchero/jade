@@ -182,10 +182,7 @@ bool htpp_init_handler(void)
 
 
 
-  ///// v1 apis
-
-  /////////////////////// apis
-
+  ///// apis v.1
 
   //// ^/agent/
   // agents
