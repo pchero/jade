@@ -16,6 +16,7 @@ bool call_term_handler(void);
 bool call_reload_handler(void);
 
 json_t* call_get_channels_all(void);
+json_t* call_get_channels_by_devicename(const char* device_name);
 json_t* call_get_channel_info(const char* unique_id);
 bool call_create_channel_info(const json_t* j_data);
 int call_update_channel_info(const json_t* j_tmp);

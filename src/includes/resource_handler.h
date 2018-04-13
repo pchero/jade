@@ -27,8 +27,8 @@ bool resource_insert_mem_item(const char* table, const json_t* j_data);
 bool resource_insrep_mem_item(const char* table, const json_t* j_data);
 bool resource_update_mem_item(const char* table, const char* key_column, const json_t* j_data);
 json_t* resource_get_mem_items(const char* table, const char* item);
-json_t* resource_get_mem_detail_items_by_condtion(const char* table, const char* condition);
 json_t* resource_get_mem_detail_item_key_string(const char* table, const char* key, const char* val);
+json_t* resource_get_mem_detail_items_by_condtion(const char* table, const char* condition);
 json_t* resource_get_mem_detail_items_key_string(const char* table, const char* key, const char* val);
 bool resource_delete_mem_items_string(const char* table, const char* key, const char* val);
 

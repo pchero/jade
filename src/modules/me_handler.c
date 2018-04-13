@@ -459,7 +459,8 @@ void me_htp_get_me_chats_detail_messages(evhtp_request_t *req, void *data)
 
   // create result
   j_res = http_create_default_result(EVHTP_RES_OK);
-  json_object_set_new(j_res, "result", j_tmp);
+  json_object_set_new(j_res, "result", json_object());
+  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
 
   // response
   http_simple_response_normal(req, j_res);
@@ -562,9 +563,11 @@ void me_htp_get_me_buddies(evhtp_request_t *req, void *data)
     return;
   }
 
+
   // create result
   j_res = http_create_default_result(EVHTP_RES_OK);
-  json_object_set_new(j_res, "result", j_tmp);
+  json_object_set_new(j_res, "result", json_object());
+  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
 
   // response
   http_simple_response_normal(req, j_res);
@@ -833,7 +836,8 @@ void me_htp_get_me_calls(evhtp_request_t *req, void *data)
 
   // create result
   j_res = http_create_default_result(EVHTP_RES_OK);
-  json_object_set_new(j_res, "result", j_tmp);
+  json_object_set_new(j_res, "result", json_object());
+  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
 
   // response
   http_simple_response_normal(req, j_res);
@@ -1714,12 +1718,14 @@ static bool delete_buddy_info(const json_t* j_user, const char* detail)
 static json_t* get_calls_info(const json_t* j_user)
 {
   const char* uuid_user;
-  json_t* j_buddies;
-  json_t* j_buddy;
   json_t* j_res;
-  json_t* j_tmp;
-  const char* uuid;
+  json_t* j_contacts;
+  json_t* j_contact;
+  json_t* j_calls;
+  json_t* j_call;
+  const char* target;
   int idx;
+  int idx_2;
 
   if(j_user == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -1732,27 +1738,38 @@ static json_t* get_calls_info(const json_t* j_user)
     return NULL;
   }
 
-  j_buddies = user_get_buddies_info_by_owneruuid(uuid_user);
-  if(j_buddies == NULL) {
-    slog(LOG_WARNING, "Could not get buddies info. user_uuid[%s]", uuid_user);
+  // get user's contacts
+  j_contacts = user_get_contacts_by_user_uuid(uuid_user);
+  if(j_contacts == NULL) {
+    slog(LOG_WARNING, "Could not get user's contacts info.");
     return NULL;
   }
 
+  // get all calls info of given user's all contacts.
   j_res = json_array();
-  json_array_foreach(j_buddies, idx, j_buddy) {
-    uuid = json_string_value(json_object_get(j_buddy, "uuid"));
-    if(uuid == NULL) {
+  json_array_foreach(j_contacts, idx, j_contact) {
+    // get target
+    target = json_string_value(json_object_get(j_contact, "target"));
+    if(target == NULL) {
+      slog(LOG_WARNING, "Could not get target info.");
       continue;
     }
 
-    j_tmp = get_buddy_info(j_user, uuid);
-    if(j_tmp == NULL) {
+    // get call info
+    j_calls = call_get_channels_by_devicename(target);
+    if(j_calls == NULL) {
+      slog(LOG_NOTICE, "Could not get channels info. target[%s]", target);
       continue;
     }
 
-    json_array_append_new(j_res, j_tmp);
+    // add to result array
+    json_array_foreach(j_calls, idx_2, j_call) {
+      json_array_append(j_res, j_call);
+    }
+    json_decref(j_calls);
+
   }
-  json_decref(j_buddies);
+  json_decref(j_contacts);
 
   return j_res;
 }
