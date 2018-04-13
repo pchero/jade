@@ -154,7 +154,7 @@ static bool init_chat_database_room(void)
     ");";
 
   // execute
-  ret = resource_exec_jade_sql(create_table);
+  ret = resource_exec_file_sql(create_table);
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate database. database[%s]", DEF_DB_TABLE_CHAT_ROOM);
     return false;
@@ -192,7 +192,7 @@ static bool init_chat_database_userroom(void)
     ");";
 
   // execute
-  ret = resource_exec_jade_sql(create_table);
+  ret = resource_exec_file_sql(create_table);
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate database. database[%s]", DEF_DB_TABLE_CHAT_USERROOM);
     return false;
@@ -230,7 +230,7 @@ static bool db_create_table_chat_message(const char* table_name)
       );
 
   // execute
-  ret = resource_exec_jade_sql(create_table);
+  ret = resource_exec_file_sql(create_table);
   sfree(create_table);
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate database. database[%s]", table_name);
@@ -261,7 +261,7 @@ static bool db_delete_table_chat_message(const char* table_name)
   asprintf(&drop_table, "drop table %s", table_name);
 
   // execute
-  ret = resource_exec_jade_sql(drop_table);
+  ret = resource_exec_file_sql(drop_table);
   sfree(drop_table);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete chat_message table. table_name[%s]", table_name);
@@ -280,7 +280,7 @@ static json_t* db_get_chat_userroom_info(const char* uuid)
 {
   json_t* j_res;
 
-  j_res = resource_get_jade_detail_item_key_string(DEF_DB_TABLE_CHAT_USERROOM, "uuid", uuid);
+  j_res = resource_get_file_detail_item_key_string(DEF_DB_TABLE_CHAT_USERROOM, "uuid", uuid);
   if(j_res == NULL) {
     slog(LOG_ERR, "Could not get chat_userroom info. uuid[%s]", uuid);
     return NULL;
@@ -312,7 +312,7 @@ static json_t* db_get_chat_userroom_info_by_user_room(const char* uuid_user, con
       "uuid_room",    uuid_room
       );
 
-  j_res = resource_get_jade_detail_item_by_obj(DEF_DB_TABLE_CHAT_USERROOM, j_data);
+  j_res = resource_get_file_detail_item_by_obj(DEF_DB_TABLE_CHAT_USERROOM, j_data);
   json_decref(j_data);
   if(j_res == NULL) {
     return NULL;
@@ -336,7 +336,7 @@ static json_t* db_get_chat_userrooms_info_by_useruuid(const char* user_uuid)
     return NULL;
   }
 
-  j_res = resource_get_jade_detail_items_key_string(DEF_DB_TABLE_CHAT_USERROOM, "uuid_user", user_uuid);
+  j_res = resource_get_file_detail_items_key_string(DEF_DB_TABLE_CHAT_USERROOM, "uuid_user", user_uuid);
   if(j_res == NULL) {
     slog(LOG_ERR, "Could not get list of chat_userrooms info. user_uuid[%s]", user_uuid);
     return NULL;
@@ -359,7 +359,7 @@ static json_t* db_get_chat_userrooms_info_by_roomuuid(const char* uuid_room)
     return NULL;
   }
 
-  j_res = resource_get_jade_detail_items_key_string(DEF_DB_TABLE_CHAT_USERROOM, "uuid_room", uuid_room);
+  j_res = resource_get_file_detail_items_key_string(DEF_DB_TABLE_CHAT_USERROOM, "uuid_room", uuid_room);
   if(j_res == NULL) {
     slog(LOG_ERR, "Could not get list of chat_userrooms info. uuid_room[%s]", uuid_room);
     return NULL;
@@ -378,7 +378,7 @@ static bool db_create_chat_userroom_info(const json_t* j_data)
   }
 
   // insert info
-  ret = resource_insert_jade_item(DEF_DB_TABLE_CHAT_USERROOM, j_data);
+  ret = resource_insert_file_item(DEF_DB_TABLE_CHAT_USERROOM, j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert chat_userroom.");
     return false;
@@ -397,7 +397,7 @@ static bool db_update_chat_userroom_info(const json_t* j_data)
   }
 
   // update
-  ret = resource_update_jade_item(DEF_DB_TABLE_CHAT_USERROOM, "uuid", j_data);
+  ret = resource_update_file_item(DEF_DB_TABLE_CHAT_USERROOM, "uuid", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update chat_userroom.");
     return false;
@@ -415,7 +415,7 @@ static bool db_delete_chat_userroom_info(const char* uuid)
     return false;
   }
 
-  ret = resource_delete_jade_items_string(DEF_DB_TABLE_CHAT_USERROOM, "uuid", uuid);
+  ret = resource_delete_file_items_string(DEF_DB_TABLE_CHAT_USERROOM, "uuid", uuid);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete chat userroom info. uuid[%s]", uuid);
     return false;
@@ -434,7 +434,7 @@ static bool db_create_chat_room_info(const json_t* j_data)
   }
 
   // insert info
-  ret = resource_insert_jade_item(DEF_DB_TABLE_CHAT_ROOM, j_data);
+  ret = resource_insert_file_item(DEF_DB_TABLE_CHAT_ROOM, j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert chat_room.");
     return false;
@@ -452,7 +452,7 @@ static json_t* db_get_chat_room_info(const char* uuid)
 {
   json_t* j_res;
 
-  j_res = resource_get_jade_detail_item_key_string(DEF_DB_TABLE_CHAT_ROOM, "uuid", uuid);
+  j_res = resource_get_file_detail_item_key_string(DEF_DB_TABLE_CHAT_ROOM, "uuid", uuid);
   if(j_res == NULL) {
     slog(LOG_ERR, "Could not get chat_room info. uuid[%s]", uuid);
     return NULL;
@@ -487,7 +487,7 @@ static json_t* db_get_chat_room_info_by_type_members(const enum EN_CHAT_ROOM_TYP
       "members",  j_tmp
       );
 
-  j_res = resource_get_jade_detail_item_by_obj(DEF_DB_TABLE_CHAT_ROOM, j_data);
+  j_res = resource_get_file_detail_item_by_obj(DEF_DB_TABLE_CHAT_ROOM, j_data);
   json_decref(j_data);
   if(j_res == NULL) {
     return NULL;
@@ -514,7 +514,7 @@ static json_t* db_get_chat_rooms_info_by_useruuid(const char* user_uuid)
 
   asprintf(&condition, "where member like '%%%s%%'", user_uuid);
 
-  j_res = resource_get_jade_detail_items_by_condtion(DEF_DB_TABLE_CHAT_ROOM, condition);
+  j_res = resource_get_file_detail_items_by_condtion(DEF_DB_TABLE_CHAT_ROOM, condition);
   sfree(condition);
   if(j_res == NULL) {
     slog(LOG_ERR, "Could not get chat rooms info. user_uuid[%s]", user_uuid);
@@ -533,7 +533,7 @@ static bool db_update_chat_room_info(json_t* j_data)
     return false;
   }
 
-  ret = resource_update_jade_item(DEF_DB_TABLE_CHAT_ROOM, "uuid", j_data);
+  ret = resource_update_file_item(DEF_DB_TABLE_CHAT_ROOM, "uuid", j_data);
   if(ret == false) {
     return false;
   }
@@ -550,7 +550,7 @@ static bool db_delete_chat_room_info(const char* uuid)
     return false;
   }
 
-  ret = resource_delete_jade_items_string(DEF_DB_TABLE_CHAT_ROOM, "uuid", uuid);
+  ret = resource_delete_file_items_string(DEF_DB_TABLE_CHAT_ROOM, "uuid", uuid);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete chat room info. uuid[%s]", uuid);
     return false;
@@ -1543,7 +1543,7 @@ static bool db_create_chat_message_info(const char* table_name, const json_t* j_
   // todo: need to validate table_name
 
   // insert info
-  ret = resource_insert_jade_item(table_name, j_data);
+  ret = resource_insert_file_item(table_name, j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert chat_room.");
     return false;
@@ -1567,7 +1567,7 @@ static json_t* db_get_chat_message_info(const char* table_name, const char* uuid
     return NULL;
   }
 
-  j_res = resource_get_jade_detail_item_key_string(table_name, "uuid", uuid_message);
+  j_res = resource_get_file_detail_item_key_string(table_name, "uuid", uuid_message);
   if(j_res == NULL) {
     return NULL;
   }
@@ -1595,7 +1595,7 @@ static json_t* db_get_chat_messages_info_newest(const char* table_name, const ch
   // create condition
   asprintf(&condition, "where tm_create < '%s' order by tm_create desc limit %u", timestamp, count);
 
-  j_res = resource_get_jade_detail_items_by_condtion(table_name, condition);
+  j_res = resource_get_file_detail_items_by_condtion(table_name, condition);
   sfree(condition);
 
   return j_res;

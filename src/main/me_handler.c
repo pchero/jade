@@ -54,6 +54,9 @@ static json_t* get_buddies_info(const json_t* j_user);
 static bool update_buddy_info(const json_t* j_user, const char* detail, const json_t* j_data);
 static bool delete_buddy_info(const json_t* j_user, const char* detail);
 
+static json_t* get_calls_info(const json_t* j_user);
+
+
 bool me_init_handler(void)
 {
   slog(LOG_DEBUG, "Fired init_me_handler.");
@@ -796,6 +799,50 @@ void me_htp_delete_me_buddies_detail(evhtp_request_t *req, void *data)
 }
 
 /**
+ * GET ^/me/calls request handler.
+ * @param req
+ * @param data
+ */
+void me_htp_get_me_calls(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+  json_t* j_user;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired me_htp_get_me_calls.");
+
+  // get userinfo
+  j_user = get_userinfo(req);
+  if(j_user == NULL) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  // get calls info
+  j_tmp = get_calls_info(j_user);
+  json_decref(j_user);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get buddy info.");
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", j_tmp);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
  * Get given authtoken's me info.
  * @param authtoken
  * @return
@@ -1462,6 +1509,11 @@ static json_t* get_buddy_info(const json_t* j_user, const char* uuid_buddy)
   return j_res;
 }
 
+/**
+ * Returns json array of given user's buddies
+ * @param j_user
+ * @return
+ */
 static json_t* get_buddies_info(const json_t* j_user)
 {
   const char* uuid_user;
@@ -1654,3 +1706,53 @@ static bool delete_buddy_info(const json_t* j_user, const char* detail)
   return true;
 }
 
+/**
+ * Returns json array of given user's calls
+ * @param j_user
+ * @return
+ */
+static json_t* get_calls_info(const json_t* j_user)
+{
+  const char* uuid_user;
+  json_t* j_buddies;
+  json_t* j_buddy;
+  json_t* j_res;
+  json_t* j_tmp;
+  const char* uuid;
+  int idx;
+
+  if(j_user == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  uuid_user = json_string_value(json_object_get(j_user, "uuid"));
+  if(uuid_user == NULL) {
+    slog(LOG_WARNING, "Could not get user uuid info.");
+    return NULL;
+  }
+
+  j_buddies = user_get_buddies_info_by_owneruuid(uuid_user);
+  if(j_buddies == NULL) {
+    slog(LOG_WARNING, "Could not get buddies info. user_uuid[%s]", uuid_user);
+    return NULL;
+  }
+
+  j_res = json_array();
+  json_array_foreach(j_buddies, idx, j_buddy) {
+    uuid = json_string_value(json_object_get(j_buddy, "uuid"));
+    if(uuid == NULL) {
+      continue;
+    }
+
+    j_tmp = get_buddy_info(j_user, uuid);
+    if(j_tmp == NULL) {
+      continue;
+    }
+
+    json_array_append_new(j_res, j_tmp);
+  }
+  json_decref(j_buddies);
+
+  return j_res;
+}

@@ -158,14 +158,6 @@ static bool init_ast_database(void)
     return false;
   }
 
-  // core_channel
-  db_ctx_exec(g_db_ast, g_sql_drop_channel);
-  ret = db_ctx_exec(g_db_ast, g_sql_create_channel);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create table. table[%s]", "channel");
-    return false;
-  }
-
   // queue_param
   db_ctx_exec(g_db_ast, g_sql_drop_queue_param);
   ret = db_ctx_exec(g_db_ast, g_sql_create_queue_param);
@@ -770,7 +762,7 @@ static json_t* get_detail_items_by_condition(db_ctx_t* ctx, const char* table, c
   return j_res;
 }
 
-bool resource_exec_ast_sql(const char* sql)
+bool resource_exec_mem_sql(const char* sql)
 {
   int ret;
 
@@ -788,7 +780,7 @@ bool resource_exec_ast_sql(const char* sql)
   return true;
 }
 
-bool resource_clear_ast_table(const char* table)
+bool resource_clear_mem_table(const char* table)
 {
   int ret;
 
@@ -812,7 +804,7 @@ bool resource_clear_ast_table(const char* table)
  * @param item
  * @return
  */
-bool resource_insert_ast_item(const char* table, const json_t* j_data)
+bool resource_insert_mem_item(const char* table, const json_t* j_data)
 {
   int ret;
 
@@ -836,7 +828,7 @@ bool resource_insert_ast_item(const char* table, const json_t* j_data)
  * @param item
  * @return
  */
-bool resource_insrep_ast_item(const char* table, const json_t* j_data)
+bool resource_insrep_mem_item(const char* table, const json_t* j_data)
 {
   int ret;
 
@@ -861,7 +853,7 @@ bool resource_insrep_ast_item(const char* table, const json_t* j_data)
  * @param j_data
  * @return
  */
-bool resource_update_ast_item(const char* table, const char* key_column, const json_t* j_data)
+bool resource_update_mem_item(const char* table, const char* key_column, const json_t* j_data)
 {
   int ret;
 
@@ -886,7 +878,7 @@ bool resource_update_ast_item(const char* table, const char* key_column, const j
  * @param item
  * @return
  */
-json_t* resource_get_ast_items(const char* table, const char* item)
+json_t* resource_get_mem_items(const char* table, const char* item)
 {
   json_t* j_res;
 
@@ -901,7 +893,7 @@ json_t* resource_get_ast_items(const char* table, const char* item)
   return j_res;
 }
 
-json_t* resource_get_ast_detail_items_by_condtion(const char* table, const char* condition)
+json_t* resource_get_mem_detail_items_by_condtion(const char* table, const char* condition)
 {
   json_t* j_res;
 
@@ -922,7 +914,7 @@ json_t* resource_get_ast_detail_items_by_condtion(const char* table, const char*
  * delete all selected items with string value.
  * @return
  */
-bool resource_delete_ast_items_string(const char* table, const char* key, const char* val)
+bool resource_delete_mem_items_string(const char* table, const char* key, const char* val)
 {
   int ret;
 
@@ -948,7 +940,7 @@ bool resource_delete_ast_items_string(const char* table, const char* key, const 
  * @param item
  * @return
  */
-json_t* resource_get_ast_detail_item_key_string(const char* table, const char* key, const char* val)
+json_t* resource_get_mem_detail_item_key_string(const char* table, const char* key, const char* val)
 {
   json_t* j_res;
 
@@ -973,7 +965,7 @@ json_t* resource_get_ast_detail_item_key_string(const char* table, const char* k
  * @param item
  * @return
  */
-json_t* resource_get_ast_detail_items_key_string(const char* table, const char* key, const char* val)
+json_t* resource_get_mem_detail_items_key_string(const char* table, const char* key, const char* val)
 {
   json_t* j_res;
 
@@ -991,7 +983,7 @@ json_t* resource_get_ast_detail_items_key_string(const char* table, const char* 
   return j_res;
 }
 
-bool resource_exec_jade_sql(const char* sql)
+bool resource_exec_file_sql(const char* sql)
 {
   int ret;
 
@@ -1015,7 +1007,7 @@ bool resource_exec_jade_sql(const char* sql)
  * @param item
  * @return
  */
-bool resource_insert_jade_item(const char* table, const json_t* j_data)
+bool resource_insert_file_item(const char* table, const json_t* j_data)
 {
   int ret;
 
@@ -1039,7 +1031,7 @@ bool resource_insert_jade_item(const char* table, const json_t* j_data)
  * @param item
  * @return
  */
-bool resource_insrep_jade_item(const char* table, const json_t* j_data)
+bool resource_insrep_file_item(const char* table, const json_t* j_data)
 {
   int ret;
 
@@ -1064,7 +1056,7 @@ bool resource_insrep_jade_item(const char* table, const json_t* j_data)
  * @param j_data
  * @return
  */
-bool resource_update_jade_item(const char* table, const char* key_column, const json_t* j_data)
+bool resource_update_file_item(const char* table, const char* key_column, const json_t* j_data)
 {
   int ret;
 
@@ -1087,7 +1079,7 @@ bool resource_update_jade_item(const char* table, const char* key_column, const 
  * delete all selected items with string value.
  * @return
  */
-bool resource_delete_jade_items_string(const char* table, const char* key, const char* val)
+bool resource_delete_file_items_string(const char* table, const char* key, const char* val)
 {
   int ret;
 
@@ -1110,7 +1102,7 @@ bool resource_delete_jade_items_string(const char* table, const char* key, const
  * delete all selected items with string value.
  * @return
  */
-bool resource_delete_jade_items_by_obj(const char* table, json_t* j_obj)
+bool resource_delete_file_items_by_obj(const char* table, json_t* j_obj)
 {
   int ret;
 
@@ -1133,7 +1125,7 @@ bool resource_delete_jade_items_by_obj(const char* table, json_t* j_obj)
  * @param item
  * @return
  */
-json_t* resource_get_jade_items(const char* table, const char* item)
+json_t* resource_get_file_items(const char* table, const char* item)
 {
   json_t* j_res;
 
@@ -1155,7 +1147,7 @@ json_t* resource_get_jade_items(const char* table, const char* item)
  * @param item
  * @return
  */
-json_t* resource_get_jade_detail_item_key_string(const char* table, const char* key, const char* val)
+json_t* resource_get_file_detail_item_key_string(const char* table, const char* key, const char* val)
 {
   json_t* j_res;
 
@@ -1173,7 +1165,7 @@ json_t* resource_get_jade_detail_item_key_string(const char* table, const char* 
   return j_res;
 }
 
-json_t* resource_get_jade_detail_item_by_obj(const char* table, json_t* j_obj)
+json_t* resource_get_file_detail_item_by_obj(const char* table, json_t* j_obj)
 {
   json_t* j_res;
 
@@ -1197,7 +1189,7 @@ json_t* resource_get_jade_detail_item_by_obj(const char* table, json_t* j_obj)
  * @param item
  * @return
  */
-json_t* resource_get_jade_detail_items_key_string(const char* table, const char* key, const char* val)
+json_t* resource_get_file_detail_items_key_string(const char* table, const char* key, const char* val)
 {
   json_t* j_res;
 
@@ -1215,7 +1207,7 @@ json_t* resource_get_jade_detail_items_key_string(const char* table, const char*
   return j_res;
 }
 
-json_t* resource_get_jade_detail_items_by_obj(const char* table, json_t* j_obj)
+json_t* resource_get_file_detail_items_by_obj(const char* table, json_t* j_obj)
 {
   json_t* j_res;
 
@@ -1232,7 +1224,7 @@ json_t* resource_get_jade_detail_items_by_obj(const char* table, json_t* j_obj)
   return j_res;
 }
 
-json_t* resource_get_jade_detail_items_by_obj_order(const char* table, json_t* j_obj, const char* order)
+json_t* resource_get_file_detail_items_by_obj_order(const char* table, json_t* j_obj, const char* order)
 {
   json_t* j_res;
 
@@ -1250,7 +1242,7 @@ json_t* resource_get_jade_detail_items_by_obj_order(const char* table, json_t* j
 
 }
 
-json_t* resource_get_jade_detail_items_by_condtion(const char* table, const char* condition)
+json_t* resource_get_file_detail_items_by_condtion(const char* table, const char* condition)
 {
   json_t* j_res;
 
@@ -1308,7 +1300,7 @@ json_t* resource_sort_json_array_string(const json_t* j_data, enum EN_SORT_TYPES
   asprintf(&sql, "create table %s (item varchar(255));", table_name);
 
   // create table
-  ret = resource_exec_ast_sql(sql);
+  ret = resource_exec_mem_sql(sql);
   sfree(sql);
   if(ret == false) {
     slog(LOG_ERR, "Could not create tmp sort table.");
@@ -1327,7 +1319,7 @@ json_t* resource_sort_json_array_string(const json_t* j_data, enum EN_SORT_TYPES
         "item", j_tmp
         );
 
-    resource_insert_ast_item(table_name, j_tmp_insert);
+    resource_insert_mem_item(table_name, j_tmp_insert);
     json_decref(j_tmp_insert);
   }
 
@@ -1340,12 +1332,12 @@ json_t* resource_sort_json_array_string(const json_t* j_data, enum EN_SORT_TYPES
   }
 
   // get sorted items
-  j_tmp_res = resource_get_ast_detail_items_by_condtion(table_name, sql);
+  j_tmp_res = resource_get_mem_detail_items_by_condtion(table_name, sql);
   sfree(sql);
 
   // delete table
   asprintf(&sql, "drop table %s", table_name);
-  resource_exec_ast_sql(sql);
+  resource_exec_mem_sql(sql);
   sfree(sql);
   sfree(table_name);
 
@@ -1447,7 +1439,7 @@ bool clear_queue_param(void)
 {
   int ret;
 
-  ret = resource_clear_ast_table("queue_param");
+  ret = resource_clear_mem_table("queue_param");
   if(ret == false) {
     slog(LOG_ERR, "Could not clear clear_queue_param");
     return false;
@@ -1460,7 +1452,7 @@ bool clear_queue_member(void)
 {
   int ret;
 
-  ret = resource_clear_ast_table("queue_member");
+  ret = resource_clear_mem_table("queue_member");
   if(ret == false) {
     slog(LOG_ERR, "Could not clear clear_queue_member");
     return false;
@@ -1473,7 +1465,7 @@ bool clear_queue_entry(void)
 {
   int ret;
 
-  ret = resource_clear_ast_table("queue_entry");
+  ret = resource_clear_mem_table("queue_entry");
   if(ret == false) {
     slog(LOG_ERR, "Could not clear clear_queue_entry");
     return false;
@@ -1540,7 +1532,7 @@ int create_queue_param_info(const json_t* j_data)
   }
 
   // insert queue info
-  ret = resource_insert_ast_item("queue_param", j_data);
+  ret = resource_insert_mem_item("queue_param", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert queue_param.");
     return false;
@@ -1578,7 +1570,7 @@ int delete_queue_param_info(const char* key)
     return false;
   }
 
-  ret = resource_delete_ast_items_string("queue_param", "name", key);
+  ret = resource_delete_mem_items_string("queue_param", "name", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete queue info. name[%s]", key);
     return false;
@@ -1595,7 +1587,7 @@ json_t* get_queue_params_all(void)
 {
   json_t* j_res;
 
-  j_res = resource_get_ast_items("queue_param", "*");
+  j_res = resource_get_mem_items("queue_param", "*");
   return j_res;
 }
 
@@ -1613,7 +1605,7 @@ json_t* get_queue_param_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired get_queue_param_info.");
 
-  j_res = resource_get_ast_detail_item_key_string("queue_param", "name", key);
+  j_res = resource_get_mem_detail_item_key_string("queue_param", "name", key);
 
   return j_res;
 }
@@ -1678,7 +1670,7 @@ bool create_queue_member_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired create_queue_member_info.");
 
   // create member info
-  ret = resource_insert_ast_item("queue_member", j_data);
+  ret = resource_insert_mem_item("queue_member", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert queue_member.");
     return false;
@@ -1712,7 +1704,7 @@ bool update_queue_member_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired update_queue_member_info.");
 
   // update
-  ret = resource_update_ast_item("queue_member", "id", j_data);
+  ret = resource_update_mem_item("queue_member", "id", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update queue_member info.");
     return false;
@@ -1754,14 +1746,14 @@ bool delete_queue_member_info(const char* key)
   slog(LOG_DEBUG, "Fired delete_queue_member_info.");
 
   // get member info
-  j_tmp = resource_get_ast_detail_item_key_string("queue_member", "id", key);
+  j_tmp = resource_get_mem_detail_item_key_string("queue_member", "id", key);
   if(j_tmp == NULL) {
     slog(LOG_NOTICE, "The key is already deleted.");
     return true;
   }
 
   // delete
-  ret = resource_delete_ast_items_string("queue_member", "id", key);
+  ret = resource_delete_mem_items_string("queue_member", "id", key);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete queue member info.");
     json_decref(j_tmp);
@@ -1787,7 +1779,7 @@ json_t* get_queue_members_all(void)
 {
   json_t* j_res;
 
-  j_res = resource_get_ast_items("queue_member", "*");
+  j_res = resource_get_mem_items("queue_member", "*");
   return j_res;
 }
 
@@ -1806,7 +1798,7 @@ json_t* get_queue_members_all_by_queuename(const char* name)
   slog(LOG_DEBUG, "Fired get_queue_members_all_by_queuename. name[%s]", name);
 
   // get items
-  j_res = resource_get_ast_detail_items_key_string("queue_member", "queue_name", name);
+  j_res = resource_get_mem_detail_items_key_string("queue_member", "queue_name", name);
 
   return j_res;
 }
@@ -1826,7 +1818,7 @@ json_t* get_queue_member_info(const char* id)
   slog(LOG_DEBUG, "Fired get_queue_member_info. id[%s]", id);
 
   // get queue member
-  j_tmp = resource_get_ast_detail_item_key_string("queue_member", "id", id);
+  j_tmp = resource_get_mem_detail_item_key_string("queue_member", "id", id);
   if(j_tmp == NULL) {
     return NULL;
   }
@@ -1884,7 +1876,7 @@ json_t* get_queue_entries_all(void)
 {
   json_t* j_res;
 
-  j_res = resource_get_ast_items("queue_entry", "*");
+  j_res = resource_get_mem_items("queue_entry", "*");
   return j_res;
 }
 
@@ -1903,7 +1895,7 @@ json_t* get_queue_entries_all_by_queuename(const char* name)
   slog(LOG_DEBUG, "Fired get_queue_entries_all_by_queuename. name[%s]", name);
 
   // get items
-  j_res = resource_get_ast_detail_items_key_string("queue_entry", "queue_name", name);
+  j_res = resource_get_mem_detail_items_key_string("queue_entry", "queue_name", name);
 
   return j_res;
 }
@@ -1924,7 +1916,7 @@ json_t* get_queue_entry_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired get_queue_entry_info.");
 
-  j_res = resource_get_ast_detail_item_key_string("queue_entry", "unique_id", key);
+  j_res = resource_get_mem_detail_item_key_string("queue_entry", "unique_id", key);
 
   return j_res;
 }
@@ -1978,14 +1970,14 @@ int delete_queue_entry_info(const char* key)
   slog(LOG_DEBUG, "Fired delete_queue_entry_info. key[%s]", key);
 
   // get data
-  j_data = resource_get_ast_detail_item_key_string("queue_entry", "unique_id", key);
+  j_data = resource_get_mem_detail_item_key_string("queue_entry", "unique_id", key);
   if(j_data == NULL) {
     slog(LOG_NOTICE, "The queue_entry info is already deleted. unique_id[%s]", key);
     return true;
   }
 
   // delete
-  ret = resource_delete_ast_items_string("queue_entry", "unique_id", key);
+  ret = resource_delete_mem_items_string("queue_entry", "unique_id", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete channel info. unique_id[%s]", key);
     json_decref(j_data);
@@ -2019,7 +2011,7 @@ int create_queue_entry_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired create_queue_entry_info.");
 
   // insert item
-  ret = resource_insert_ast_item("queue_entry", j_data);
+  ret = resource_insert_mem_item("queue_entry", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert queue_entry.");
     return false;
@@ -2140,7 +2132,7 @@ bool create_core_channel_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired create_core_channel_info.");
 
   // insert item
-  ret = resource_insert_ast_item("channel", j_data);
+  ret = resource_insert_mem_item("channel", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert core_channel.");
     return false;
@@ -2217,7 +2209,7 @@ json_t* get_core_channels_all(void)
 {
   json_t* j_res;
 
-  j_res = resource_get_ast_items("channel", "*");
+  j_res = resource_get_mem_items("channel", "*");
   return j_res;
 }
 
@@ -2269,7 +2261,7 @@ int update_core_channel_info(const json_t* j_data)
   }
 
   // update
-  ret = resource_update_ast_item("channel", "unique_id", j_data);
+  ret = resource_update_mem_item("channel", "unique_id", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update core_channel info.");
     return false;
@@ -2314,7 +2306,7 @@ int delete_core_channel_info(const char* key)
     return false;
   }
 
-  ret = resource_delete_ast_items_string("channel", "unique_id", key);
+  ret = resource_delete_mem_items_string("channel", "unique_id", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete channel info. unique_id[%s]", key);
     json_decref(j_tmp);
@@ -2340,7 +2332,7 @@ json_t* get_core_agis_all(void)
 {
   json_t* j_res;
 
-  j_res = resource_get_ast_items("core_agi", "*");
+  j_res = resource_get_mem_items("core_agi", "*");
   return j_res;
 }
 
@@ -2358,7 +2350,7 @@ json_t* get_core_agi_info(const char* unique_id)
   }
   slog(LOG_DEBUG, "Fired get_core_agi_info. unique_id[%s]", unique_id);
 
-  j_res = resource_get_ast_detail_item_key_string("core_agi", "unique_id", unique_id);
+  j_res = resource_get_mem_detail_item_key_string("core_agi", "unique_id", unique_id);
   if(j_res == NULL) {
     return NULL;
   }
@@ -2383,7 +2375,7 @@ bool create_core_agi_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired create_core_agi_info.");
 
   // insert item
-  ret = resource_insert_ast_item("core_agi", j_data);
+  ret = resource_insert_mem_item("core_agi", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert core_channel.");
     return false;
@@ -2426,7 +2418,7 @@ bool update_core_agi_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired update_core_agi_info.");
 
   // update
-  ret = resource_update_ast_item("core_agi", "unique_id", j_data);
+  ret = resource_update_mem_item("core_agi", "unique_id", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update core_agi info.");
     return false;
@@ -2626,7 +2618,7 @@ bool delete_core_agi_info(const char* key)
     return false;
   }
 
-  ret = resource_delete_ast_items_string("core_agi", "unique_id", key);
+  ret = resource_delete_mem_items_string("core_agi", "unique_id", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete core_agi info. unique_id[%s]", key);
     return false;
@@ -2698,7 +2690,7 @@ json_t* get_agent_agents_all(void)
 
   slog(LOG_DEBUG, "Fired get_agents_all.");
 
-  j_res = resource_get_ast_items("agent", "*");
+  j_res = resource_get_mem_items("agent", "*");
 
   return j_res;
 }
@@ -2746,7 +2738,7 @@ json_t* get_core_systems_all_id(void)
 
   slog(LOG_DEBUG, "Fired get_systems_all_id.");
 
-  j_res = resource_get_ast_items("system", "id");
+  j_res = resource_get_mem_items("system", "id");
 
   return j_res;
 }
@@ -2761,7 +2753,7 @@ json_t* get_core_systems_all(void)
 
   slog(LOG_DEBUG, "Fired get_systems_all.");
 
-  j_res = resource_get_ast_items("system", "*");
+  j_res = resource_get_mem_items("system", "*");
 
   return j_res;
 }
@@ -2781,7 +2773,7 @@ json_t* get_core_system_info(const char* id)
   }
   slog(LOG_DEBUG, "Fired get_system_info. id[%s]", id);
 
-  j_res = resource_get_ast_detail_item_key_string("system", "id", id);
+  j_res = resource_get_mem_detail_item_key_string("system", "id", id);
 
   return j_res;
 }
@@ -2797,7 +2789,7 @@ json_t* get_device_states_all_device(void)
 
   slog(LOG_DEBUG, "Fired get_device_states_all_device.");
 
-  j_res = resource_get_ast_items("device_state", "device");
+  j_res = resource_get_mem_items("device_state", "device");
 
   return j_res;
 }
@@ -2816,7 +2808,7 @@ json_t* get_device_state_info(const char* name)
   }
   slog(LOG_DEBUG, "Fired get_device_state_info. device[%s]", name);
 
-  j_res = resource_get_ast_detail_item_key_string("device_state", "device", name);
+  j_res = resource_get_mem_detail_item_key_string("device_state", "device", name);
 
   return j_res;
 }
@@ -2825,7 +2817,7 @@ bool clear_park_parkinglot(void)
 {
   int ret;
 
-  ret = resource_clear_ast_table("parking_lot");
+  ret = resource_clear_mem_table("parking_lot");
   if(ret == false) {
     slog(LOG_ERR, "Could not clear park_parkinglot");
     return false;
@@ -2844,7 +2836,7 @@ json_t* get_park_parkinglots_all(void)
 
   slog(LOG_DEBUG, "Fired get_park_parkinglots_all.");
 
-  j_res = resource_get_ast_items("parking_lot", "*");
+  j_res = resource_get_mem_items("parking_lot", "*");
 
   return j_res;
 }
@@ -2859,7 +2851,7 @@ json_t* get_park_parkinglots_all_name(void)
 
   slog(LOG_DEBUG, "Fired get_park_parkinglots_all_name.");
 
-  j_res = resource_get_ast_items("parking_lot", "name");
+  j_res = resource_get_mem_items("parking_lot", "name");
 
   return j_res;
 }
@@ -2878,7 +2870,7 @@ json_t* get_park_parkinglot_info(const char* name)
   }
   slog(LOG_DEBUG, "Fired get_park_parkinglot_info. name[%s]", name);
 
-  j_res = resource_get_ast_detail_item_key_string("parking_lot", "name", name);
+  j_res = resource_get_mem_detail_item_key_string("parking_lot", "name", name);
 
   return j_res;
 }
@@ -2899,7 +2891,7 @@ int create_park_parkinglot_info(const json_t* j_data)
   }
   slog(LOG_DEBUG, "Fired create_park_parkinglot_info.");
 
-  ret = resource_insert_ast_item("parking_lot", j_data);
+  ret = resource_insert_mem_item("parking_lot", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to parking_lot.");
     return false;
@@ -2929,7 +2921,7 @@ bool clear_park_parkedcall(void)
 {
   int ret;
 
-  ret = resource_clear_ast_table("parked_call");
+  ret = resource_clear_mem_table("parked_call");
   if(ret == false) {
     slog(LOG_ERR, "Could not clear park_parkedcall.");
     return false;
@@ -2948,7 +2940,7 @@ json_t* get_park_parkedcalls_all_parkee_unique_id(void)
 
   slog(LOG_DEBUG, "Fired get_park_parkedcalls_all_parkee_unique_id.");
 
-  j_res = resource_get_ast_items("parked_call", "parkee_unique_id");
+  j_res = resource_get_mem_items("parked_call", "parkee_unique_id");
 
   return j_res;
 }
@@ -2963,7 +2955,7 @@ json_t* get_park_parkedcalls_all(void)
 
   slog(LOG_DEBUG, "Fired get_park_parkedcalls_all.");
 
-  j_res = resource_get_ast_items("parked_call", "*");
+  j_res = resource_get_mem_items("parked_call", "*");
 
   return j_res;
 }
@@ -2983,7 +2975,7 @@ json_t* get_park_parkedcall_info(const char* parkee_unique_id)
   }
   slog(LOG_DEBUG, "Fired get_parked_call_info. name[%s]", parkee_unique_id);
 
-  j_res = resource_get_ast_detail_item_key_string("parked_call", "parkee_unique_id", parkee_unique_id);
+  j_res = resource_get_mem_detail_item_key_string("parked_call", "parkee_unique_id", parkee_unique_id);
 
   return j_res;
 }
@@ -3003,7 +2995,7 @@ bool create_park_parkedcall_info(const json_t* j_data)
     return false;
   }
 
-  ret = resource_insert_ast_item("parked_call", j_data);
+  ret = resource_insert_mem_item("parked_call", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to parked_call.");
     return false;
@@ -3046,7 +3038,7 @@ bool update_park_parkedcall_info(const json_t* j_data)
   }
   slog(LOG_DEBUG, "Fired update_park_parkedcall_info.");
 
-  ret = resource_update_ast_item("parked_call", "parkee_unique_id", j_data);
+  ret = resource_update_mem_item("parked_call", "parkee_unique_id", j_data);
   if(ret == false) {
     slog(LOG_WARNING, "Could not update park parked_call info.");
     return false;
@@ -3093,7 +3085,7 @@ bool delete_park_parkedcall_info(const char* key)
     return false;
   }
 
-  ret = resource_delete_ast_items_string("parked_call", "parkee_unique_id", key);
+  ret = resource_delete_mem_items_string("parked_call", "parkee_unique_id", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete park parkedcall info. unique_id[%s]", key);
     json_decref(j_tmp);
@@ -3126,7 +3118,7 @@ bool create_voicemail_user_info(json_t* j_tmp)
   }
   slog(LOG_DEBUG, "Fired create_voicemail_user_info.");
 
-  ret = resource_insert_ast_item("voicemail_user", j_tmp);
+  ret = resource_insert_mem_item("voicemail_user", j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not create voicemail_user.");
     return false;
@@ -3150,7 +3142,7 @@ json_t* get_voicemail_user_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired get_voicemail_user_info. id[%s]", key);
 
-  j_res = resource_get_ast_detail_item_key_string("voicemail_user", "id", key);
+  j_res = resource_get_mem_detail_item_key_string("voicemail_user", "id", key);
   if(j_res == NULL) {
     return NULL;
   }
@@ -3166,7 +3158,7 @@ json_t* get_voicemail_users_all()
   json_t* j_res;
   slog(LOG_DEBUG, "Fired get_voicemail_users_all.");
 
-  j_res = resource_get_ast_items("voicemail_user", "*");
+  j_res = resource_get_mem_items("voicemail_user", "*");
 
   return j_res;
 }
@@ -3185,7 +3177,7 @@ int create_core_module(json_t* j_tmp)
     return false;
   }
 
-  ret = resource_insert_ast_item("core_module", j_tmp);
+  ret = resource_insert_mem_item("core_module", j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert core_module.");
     return false;
@@ -3203,7 +3195,7 @@ json_t* get_core_modules_all(void)
   json_t* j_res;
   slog(LOG_DEBUG, "Fired get_core_modules_all.");
 
-  j_res = resource_get_ast_items("core_module", "*");
+  j_res = resource_get_mem_items("core_module", "*");
 
   return j_res;
 }
@@ -3222,7 +3214,7 @@ json_t* get_core_module_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired get_core_module_info.");
 
-  j_res = resource_get_ast_detail_item_key_string("core_module", "name", key);
+  j_res = resource_get_mem_detail_item_key_string("core_module", "name", key);
 
   return j_res;
 }
@@ -3244,7 +3236,7 @@ bool update_core_module_info(const json_t* j_data)
   }
   slog(LOG_DEBUG, "Fired update_core_module_info.");
 
-  ret = resource_update_ast_item("core_module", "name", j_data);
+  ret = resource_update_mem_item("core_module", "name", j_data);
   if(ret == false) {
     slog(LOG_WARNING, "Could not update core module info.");
     return false;
@@ -3256,7 +3248,7 @@ bool update_core_module_info(const json_t* j_data)
     return false;
   }
 
-  j_tmp = resource_get_ast_detail_item_key_string("core_module", "name", module_name);
+  j_tmp = resource_get_mem_detail_item_key_string("core_module", "name", module_name);
 
   ret = publication_publish_event_core_module(DEF_PUB_TYPE_UPDATE, j_tmp);
   json_decref(j_tmp);
@@ -3283,7 +3275,7 @@ bool create_agent_agent_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired create_agent_agent_info.");
 
   // insert queue info
-  ret = resource_insert_ast_item("agent", j_data);
+  ret = resource_insert_mem_item("agent", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert agent agent.");
     return false;
@@ -3307,7 +3299,7 @@ bool update_agent_agent_info(const json_t* j_data)
   }
   slog(LOG_DEBUG, "Fired update_agent_agent_info.");
 
-  ret = resource_update_ast_item("agent", "id", j_data);
+  ret = resource_update_mem_item("agent", "id", j_data);
   if(ret == false) {
     slog(LOG_WARNING, "Could not update agent agent info.");
     return false;
@@ -3330,7 +3322,7 @@ bool delete_agent_agent_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired delete_agent_agent_info. id[%s]", key);
 
-  ret = resource_delete_ast_items_string("agent", "id", key);
+  ret = resource_delete_mem_items_string("agent", "id", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete agent agent info. id[%s]", key);
     return false;
@@ -3347,7 +3339,7 @@ json_t* get_dp_dpmas_all(void)
 {
   json_t* j_res;
 
-  j_res = resource_get_jade_items("dp_dpma", "*");
+  j_res = resource_get_file_items("dp_dpma", "*");
   return j_res;
 }
 
@@ -3365,7 +3357,7 @@ json_t* get_dp_dpma_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired get_dp_dpma_info. key[%s]", key);
 
-  j_res = resource_get_jade_detail_item_key_string("dp_dpma", "uuid", key);
+  j_res = resource_get_file_detail_item_key_string("dp_dpma", "uuid", key);
 
   return j_res;
 }
@@ -3389,7 +3381,7 @@ bool create_dp_dpma_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired create_dp_dpma_info.");
 
   // insert info
-  ret = resource_insert_jade_item("dp_dpma", j_data);
+  ret = resource_insert_file_item("dp_dpma", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert dp_dpma info.");
     return false;
@@ -3433,7 +3425,7 @@ bool update_dp_dpma_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired update_dp_dpma_info.");
 
   // update
-  ret = resource_update_jade_item("dp_dpma", "uuid", j_data);
+  ret = resource_update_file_item("dp_dpma", "uuid", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update dp_dpma info.");
     return false;
@@ -3482,7 +3474,7 @@ bool delete_dp_dpma_info(const char* key)
     return false;
   }
 
-  ret = resource_delete_jade_items_string("dp_dpma", "uuid", key);
+  ret = resource_delete_file_items_string("dp_dpma", "uuid", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete dp_dpma info. key[%s]", key);
     json_decref(j_tmp);
@@ -3509,7 +3501,7 @@ json_t* get_dp_dialplans_all(void)
 {
   json_t* j_res;
 
-  j_res = resource_get_jade_items("dp_dialplan", "*");
+  j_res = resource_get_file_items("dp_dialplan", "*");
   return j_res;
 }
 
@@ -3529,7 +3521,7 @@ json_t* get_dp_dialplans_by_dpma_uuid_order_sequence(const char* dpma_uuid)
 
   j_obj = json_pack("{s:s}", "dpma_uuid", dpma_uuid);
 
-  j_res = resource_get_jade_detail_items_by_obj_order("dp_dialplan", j_obj, "sequence");
+  j_res = resource_get_file_detail_items_by_obj_order("dp_dialplan", j_obj, "sequence");
   json_decref(j_obj);
 
   return j_res;
@@ -3549,7 +3541,7 @@ json_t* get_dp_dialplan_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired get_dp_dialplan_info. key[%s]", key);
 
-  j_res = resource_get_jade_detail_item_key_string("dp_dialplan", "uuid", key);
+  j_res = resource_get_file_detail_item_key_string("dp_dialplan", "uuid", key);
 
   return j_res;
 }
@@ -3574,7 +3566,7 @@ json_t* get_dp_dialplan_info_by_dpma_seq(const char* dpma_uuid, int seq)
       "sequence",   seq
       );
 
-  j_res = resource_get_jade_detail_item_by_obj("dp_dialplan", j_obj);
+  j_res = resource_get_file_detail_item_by_obj("dp_dialplan", j_obj);
   json_decref(j_obj);
   if(j_res == NULL) {
     return NULL;
@@ -3602,7 +3594,7 @@ bool create_dp_dialplan_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired create_dp_dialplan_info.");
 
   // insert info
-  ret = resource_insert_jade_item("dp_dialplan", j_data);
+  ret = resource_insert_file_item("dp_dialplan", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert dp_dialplan contact.");
     return false;
@@ -3646,7 +3638,7 @@ bool update_dp_dialplan_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired update_dp_dialplan_info.");
 
   // update
-  ret = resource_update_jade_item("dp_dialplan", "uuid", j_data);
+  ret = resource_update_file_item("dp_dialplan", "uuid", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update dp_dialplan info.");
     return false;
@@ -3695,7 +3687,7 @@ bool delete_dp_dialplan_info(const char* key)
     return false;
   }
 
-  ret = resource_delete_jade_items_string("dp_dialplan", "uuid", key);
+  ret = resource_delete_file_items_string("dp_dialplan", "uuid", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete dp_dialplan info. key[%s]", key);
     json_decref(j_tmp);

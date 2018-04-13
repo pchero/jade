@@ -71,6 +71,8 @@ static void cb_htp_dp_config(evhtp_request_t *req, void *data);
 // me
 static void cb_htp_me_buddies(evhtp_request_t *req, void *data);
 static void cb_htp_me_buddies_detail(evhtp_request_t *req, void *data);
+static void cb_htp_me_calls(evhtp_request_t *req, void *data);
+static void cb_htp_me_calls_detail(evhtp_request_t *req, void *data);
 static void cb_htp_me_chats(evhtp_request_t *req, void *data);
 static void cb_htp_me_chats_detail(evhtp_request_t *req, void *data);
 static void cb_htp_me_chats_detail_messages(evhtp_request_t *req, void *data);
@@ -227,6 +229,10 @@ bool htpp_init_handler(void)
   // buddies
   evhtp_set_regex_cb(g_htps, "^/v1/me/buddies$", cb_htp_me_buddies, NULL);
   evhtp_set_regex_cb(g_htps, "^/v1/me/buddies/("DEF_REG_UUID")$", cb_htp_me_buddies_detail, NULL);
+
+  // calls
+  evhtp_set_regex_cb(g_htps, "^/v1/me/calls$", cb_htp_me_calls, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/me/calls/("DEF_REG_UUID")$", cb_htp_me_calls_detail, NULL);
 
   // chats
   evhtp_set_regex_cb(g_htps, "^/v1/me/chats$", cb_htp_me_chats, NULL);
@@ -5780,6 +5786,114 @@ static void cb_htp_me_buddies_detail(evhtp_request_t *req, void *data)
     return;
   }
   slog(LOG_INFO, "Fired cb_htp_me_buddies_detail.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_USER);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if((method != htp_method_GET) && (method != htp_method_PUT) && (method != htp_method_DELETE)) {
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // fire handlers
+  if(method == htp_method_GET) {
+    me_htp_get_me_buddies_detail(req, data);
+    return;
+  }
+  else if(method == htp_method_PUT) {
+    me_htp_put_me_buddies_detail(req, data);
+    return;
+  }
+  else if(method == htp_method_DELETE) {
+    me_htp_delete_me_buddies_detail(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+
+  return;
+}
+
+/**
+ * http request handler
+ * ^/me/calls$
+ * @param req
+ * @param data
+ */
+static void cb_htp_me_calls(evhtp_request_t *req, void *data)
+{
+  int method;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_me_calls.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_USER);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if((method != htp_method_GET) && (method != htp_method_POST)) {
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // fire handlers
+  if(method == htp_method_GET) {
+    me_htp_get_me_calls(req, data);
+    return;
+  }
+  else if(method == htp_method_POST) {
+    me_htp_post_me_buddies(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+
+  return;
+}
+
+/**
+ * http request handler
+ * ^/me/calls/<detail>$
+ * @param req
+ * @param data
+ */
+static void cb_htp_me_calls_detail(evhtp_request_t *req, void *data)
+{
+  int method;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_me_calls_detail.");
 
   // check authorization
   ret = http_is_request_has_permission(req, EN_HTTP_PERM_USER);
