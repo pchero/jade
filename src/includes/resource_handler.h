@@ -72,13 +72,6 @@ bool update_core_agi_info_cmd_result_done(const char* agi_uuid, const char* cmd_
 
 bool delete_core_agi_info(const char* key);
 bool add_core_agi_info_cmd(const char* agi_uuid, const char* cmd_uuid, const char* command, const char* dp_uuid);
-// core_channel
-json_t* get_core_channels_all_unique_id(void);
-json_t* get_core_channels_all(void);
-json_t* get_core_channel_info(const char* unique_id);
-bool create_core_channel_info(const json_t* j_data);
-int update_core_channel_info(const json_t* j_tmp);
-int delete_core_channel_info(const char* key);
 // core_system
 json_t* get_core_systems_all_id(void);
 json_t* get_core_systems_all(void);

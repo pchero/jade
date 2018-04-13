@@ -9,6 +9,7 @@
 #include "http_handler.h"
 #include "ami_action_handler.h"
 #include "utils.h"
+#include "call_handler.h"
 
 #include "core_handler.h"
 
@@ -30,7 +31,7 @@ void core_htp_get_core_channels(evhtp_request_t *req, void *data)
   }
   slog(LOG_INFO, "Fired htp_get_core_channels_detail.");
 
-  j_tmp = get_core_channels_all();
+  j_tmp = call_get_channels_all();
   if(j_tmp == NULL) {
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
@@ -74,7 +75,7 @@ void core_htp_get_core_channels_detail(evhtp_request_t *req, void *data)
   }
 
   // get channel info.
-  j_tmp = get_core_channel_info(unique_id);
+  j_tmp = call_get_channel_info(unique_id);
   sfree(unique_id);
   if(j_tmp == NULL) {
     slog(LOG_NOTICE, "Could not get channel info.");
