@@ -22,5 +22,6 @@ bool call_create_channel_info(const json_t* j_data);
 int call_update_channel_info(const json_t* j_tmp);
 int call_delete_channel_info(const char* key);
 
+bool call_originate_call_to_device(const char* source, const char* destination);
 
 #endif /* SRC_INCLUDES_CALL_HANDLER_H_ */

@@ -26,6 +26,7 @@ void me_htp_put_me_buddies_detail(evhtp_request_t *req, void *data);
 void me_htp_delete_me_buddies_detail(evhtp_request_t *req, void *data);
 
 void me_htp_get_me_calls(evhtp_request_t *req, void *data);
+void me_htp_post_me_calls(evhtp_request_t *req, void *data);
 
 void me_htp_get_me_chats(evhtp_request_t *req, void *data);
 void me_htp_post_me_chats(evhtp_request_t *req, void *data);

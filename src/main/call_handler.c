@@ -16,6 +16,8 @@
 #include "slog.h"
 #include "resource_handler.h"
 #include "publication_handler.h"
+#include "utils.h"
+#include "dialplan_handler.h"
 
 #include "call_handler.h"
 
@@ -345,11 +347,33 @@ int call_delete_channel_info(const char* key)
 bool call_originate_call_to_device(const char* source, const char* destination)
 {
   json_t* j_cmd;
+  char* data;
+  char* channel;
+  char* dpma_uuid;
 
   if((source == NULL) || (destination == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
+  slog(LOG_DEBUG, "Fired call_originate_call_to_device. source[%s], destination[%s]", source, destination);
+
+  // get default dpma for originate to device
+  dpma_uuid = dialplan_get_default_dpma_originate_to_device();
+  if(dpma_uuid == NULL) {
+    slog(LOG_ERR, "Could not get default dpma originate to device.");
+    return false;
+  }
+
+  // create data
+  asprintf(&data, "aig:async,%s,%s,%s",
+      DEF_DIALPLAN_JADE_AGI_NAME,
+      dpma_uuid,
+      destination
+      );
+  sfree(dpma_uuid);
+
+  // create channel
+  asprintf(&channel, "PJSIP/%s", source);
 
   //  Action: Originate
   //  ActionID: <value>
@@ -369,15 +393,14 @@ bool call_originate_call_to_device(const char* source, const char* destination)
   //  ChannelId: <value>
   //  OtherChannelId: <value>
   j_cmd = json_pack("{s:s, s:s, s:s, s:s, s:s, s:s, s:s, s:s}",
-      "Action",     "Originate",
-      "ActionID",   json_string_value(json_object_get(j_dialing, "action_id"))? : "",
-      "Async",      "true",
-      "Channel",    json_string_value(json_object_get(j_dialing, "dial_channel"))? : "",
-      "Exten",      json_string_value(json_object_get(j_dialing, "dial_exten"))? : "",
-      "Context",    json_string_value(json_object_get(j_dialing, "dial_context"))? : "",
-      "Priority",   json_string_value(json_object_get(j_dialing, "dial_priority"))? : "",
-      "ChannelId",  json_string_value(json_object_get(j_dialing, "uuid"))
+      "Action",         "Originate",
+      "Async",          "true",
+      "Channel",        channel,
+      "Application",    "AGI"
+      "Data",           data
       );
+  sfree(channel);
+  sfree(data);
   if(j_cmd == NULL) {
     slog(LOG_ERR, "Could not create default originate request info.");
     return false;

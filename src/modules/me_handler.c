@@ -22,7 +22,8 @@
 #include "sip_handler.h"
 #include "pjsip_handler.h"
 #include "chat_handler.h"
-#include <publication_handler.h>
+#include "publication_handler.h"
+#include "call_handler.h"
 
 #include "me_handler.h"
 
@@ -56,6 +57,9 @@ static bool delete_buddy_info(const json_t* j_user, const char* detail);
 
 static json_t* get_calls_info(const json_t* j_user);
 static bool create_call_info(const json_t* j_user, const json_t* j_data);
+static bool create_call_to_user(const json_t* j_user, const json_t* j_data);
+static char* get_callable_contact_from_useruuid(const json_t* j_user);
+
 
 bool me_init_handler(void)
 {
@@ -856,7 +860,6 @@ void me_htp_post_me_calls(evhtp_request_t *req, void *data)
 {
   int ret;
   json_t* j_res;
-  json_t* j_tmp;
   json_t* j_user;
   json_t* j_data;
 
@@ -1523,6 +1526,7 @@ static bool create_chatmessage_info(json_t* j_user, const char* uuid_userroom, j
 
   // publish event
   ret = publication_publish_event_me_chat_message(EN_PUBLISH_CREATE, uuid_room, j_message);
+  json_decref(j_message);
   sfree(uuid_room);
   if(ret == false) {
     slog(LOG_WARNING, "Could not publish chat message notification. ");
@@ -1827,13 +1831,108 @@ static json_t* get_calls_info(const json_t* j_user)
   return j_res;
 }
 
+static char* get_callable_contact_from_useruuid(const char* uuid_user)
+{
+  json_t* j_contacts;
+  json_t* j_contact;
+  const char* tmp_const;
+  char* res;
+
+  if(uuid_user == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  // get user's contacts
+  j_contacts = user_get_contacts_by_user_uuid(uuid_user);
+  if(j_contacts == NULL) {
+    slog(LOG_WARNING, "Could not get user's contacts info.");
+    return NULL;
+  }
+
+  j_contact = json_array_get(j_contacts, 0);
+  if(j_contact == NULL) {
+    slog(LOG_NOTICE, "The given user has no contact.");
+    json_decref(j_contacts);
+    return NULL;
+  }
+
+  tmp_const = json_string_value(json_object_get(j_contact, "uuid"));
+  if(tmp_const == NULL) {
+    slog(LOG_ERR, "Could not get contact uuid info.");
+    json_decref(j_contacts);
+    return NULL;
+  }
+
+  res = strdup(tmp_const);
+  json_decref(j_contacts);
+
+  return res;
+}
+
 static bool create_call_info(const json_t* j_user, const json_t* j_data)
 {
+  int ret;
+  const char* type;
+
   if((j_user == NULL) || (j_data == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
   slog(LOG_DEBUG, "Fired create_call_info.");
+
+  type = json_string_value(json_object_get(j_data, "destination_type"));
+  if(type == NULL) {
+    slog(LOG_NOTICE, "Could not get destination type info.");
+    return false;
+  }
+
+  if(strcmp(type, "user") == 0) {
+    ret = create_call_to_user(j_user, j_data);
+  }
+  else {
+    slog(LOG_NOTICE, "Not support yet.");
+    ret = false;
+  }
+
+  if(ret == false) {
+    return false;
+  }
+
+  return true;
+}
+
+static bool create_call_to_user(const json_t* j_user, const json_t* j_data)
+{
+  int ret;
+  const char* tmp_const;
+  char* source;
+  char* destination;
+
+  // get source
+  tmp_const = json_string_value(json_object_get(j_user, "uuid"));
+  source = get_callable_contact_from_useruuid(tmp_const);
+  if(source == NULL) {
+    slog(LOG_NOTICE, "Could not get source info.");
+    return false;
+  }
+
+  // get destination
+  tmp_const = json_string_value(json_object_get(j_data, "destination"));
+  destination = get_callable_contact_from_useruuid(tmp_const);
+  if(destination == NULL) {
+    slog(LOG_NOTICE, "Could not get destination info.");
+    sfree(source);
+    return false;
+  }
+
+  ret = call_originate_call_to_device(source, destination);
+  sfree(source);
+  sfree(destination);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create call to user.");
+    return false;
+  }
 
   return true;
 }

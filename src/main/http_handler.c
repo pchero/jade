@@ -5863,7 +5863,7 @@ static void cb_htp_me_calls(evhtp_request_t *req, void *data)
     return;
   }
   else if(method == htp_method_POST) {
-    me_htp_post_me_buddies(req, data);
+    me_htp_post_me_calls(req, data);
     return;
   }
   else {

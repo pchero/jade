@@ -214,3 +214,37 @@ bool ami_action_moduleload(const char* name, const char* type)
 
   return true;
 }
+
+/**
+ * AMI action handler.
+ * Action: SetVar
+ */
+bool ami_action_setvar(const char* channel, const char* key, const char* value)
+{
+  json_t* j_data;
+  int ret;
+
+  if((channel == NULL) || (key == NULL) || (value == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired ami_action_setvar. channel[%s], key[%s], value[%s]", channel, key, value);
+
+  // create request
+  j_data = json_pack("{s:s, s:s, s:s, s:s}",
+      "Action",     "SetVar",
+      "Channel",    channel,
+      "Variable",   key,
+      "Value",      value
+      );
+
+  // send action request
+  ret = ami_send_cmd(j_data);
+  if(ret == false) {
+    json_decref(j_data);
+    slog(LOG_ERR, "Could not send ami action");
+    return false;
+  }
+
+  return true;
+}
