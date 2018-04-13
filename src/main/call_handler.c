@@ -227,7 +227,7 @@ json_t* call_get_channels_by_devicename(const char* device_name)
 
   asprintf(&condition, "where channel like '%%%s%%'", device_name);
 
-  j_res = resource_get_file_detail_items_by_condtion(DEF_DB_TABLE_CALL_CHANNEL, condition);
+  j_res = resource_get_mem_detail_items_by_condtion(DEF_DB_TABLE_CALL_CHANNEL, condition);
   sfree(condition);
   if(j_res == NULL) {
     slog(LOG_ERR, "Could not get chat rooms info. user_uuid[%s]", device_name);

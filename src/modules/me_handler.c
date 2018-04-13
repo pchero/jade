@@ -58,7 +58,7 @@ static bool delete_buddy_info(const json_t* j_user, const char* detail);
 static json_t* get_calls_info(const json_t* j_user);
 static bool create_call_info(const json_t* j_user, const json_t* j_data);
 static bool create_call_to_user(const json_t* j_user, const json_t* j_data);
-static char* get_callable_contact_from_useruuid(const json_t* j_user);
+static char* get_callable_contact_from_useruuid(const char* uuid_user);
 
 
 bool me_init_handler(void)

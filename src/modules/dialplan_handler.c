@@ -205,6 +205,7 @@ static bool init_default_originate_to_device(void)
   if(j_dpma != NULL) {
     // already exist.
     sfree(dpma_uuid);
+    json_decref(j_dpma);
     return true;
   }
 
