@@ -16,10 +16,18 @@
 #include "conf_handler.h"
 #include "http_handler.h"
 #include "resource_handler.h"
+#include "publication_handler.h"
 #include "ami_action_handler.h"
 
 
 #define DEF_DIALPLAN_CONFNAME   "extensions.conf"
+
+#define DEF_DB_TABLE_DP_DIALPLANMASTER    "dp_dpma"
+#define DEF_DB_TABLE_DP_DIALPLAN          "dp_dialplan"
+
+static bool init_databases(void);
+static bool init_database_dp_dialplan(void);
+static bool init_database_dp_dialplanmaster(void);
 
 static bool create_dpma_info(const json_t* j_data);
 static bool delete_dpma_info(const char* uuid);
@@ -32,6 +40,128 @@ static bool update_dialplan_info(const char* uuid, const json_t* j_data);
 static bool delete_dialplan_info(const char* uuid);
 static bool is_exist_dialplan_info(const char* dpma_uuid, int seq);
 static bool is_exist_dialplan_info_uuid(const char* uuid);
+
+bool dialplan_init_handler(void)
+{
+  int ret;
+
+  ret = init_databases();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate database.");
+    return false;
+  }
+
+  return true;
+}
+
+bool dialplan_term_handler(void)
+{
+  return true;
+}
+
+bool dialplan_reload_handler(void)
+{
+  int ret;
+
+  ret = dialplan_term_handler();
+  if(ret == false) {
+    return false;
+  }
+
+  ret = dialplan_init_handler();
+  if(ret == false) {
+    return false;
+  }
+
+  return true;
+}
+
+static bool init_databases(void)
+{
+  int ret;
+
+  slog(LOG_DEBUG, "Fired init_databases.");
+
+  ret = init_database_dp_dialplanmaster();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate dialplanmaster database.");
+    return false;
+  }
+
+  ret = init_database_dp_dialplan();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate dialplan database.");
+    return false;
+  }
+
+  return true;
+}
+
+static bool init_database_dp_dialplanmaster(void)
+{
+  int ret;
+  const char* create_table;
+
+  create_table =
+      "create table if not exists " DEF_DB_TABLE_DP_DIALPLANMASTER " ("
+
+      // identify
+      "   uuid    varchar(255),"
+
+      // info
+      "   name        varchar(255),"
+      "   detail      varchar(1023),"
+
+      // timestamp. UTC."
+      "   tm_create         datetime(6),"   // create time
+      "   tm_update         datetime(6),"   // update time.
+
+      "   primary key(uuid)"
+      ");";
+
+  ret = resource_exec_mem_sql(create_table);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate database. database[%s]", DEF_DB_TABLE_DP_DIALPLANMASTER);
+    return false;
+  }
+
+  return true;
+}
+
+static bool init_database_dp_dialplan(void)
+{
+  int ret;
+  const char* create_table;
+
+  create_table =
+      "create table if not exists " DEF_DB_TABLE_DP_DIALPLAN " ("
+
+      // identify
+      "   uuid        varchar(255),"  // identity.
+      "   dpma_uuid   varchar(255),"
+      "   sequence    int,"
+
+      // info
+      "   name        varchar(255),"
+      "   detail      varchar(1023),"
+      "   command     varchar(1023),"
+
+      // timestamp. UTC."
+      "   tm_create         datetime(6),"   // create time
+      "   tm_update         datetime(6),"   // update time.
+
+      "   primary key(dpma_uuid, sequence)"   ///
+      ");";
+
+
+  ret = resource_exec_mem_sql(create_table);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate database. database[%s]", DEF_DB_TABLE_DP_DIALPLAN);
+    return false;
+  }
+
+  return true;
+}
 
 /**
  * GET ^/dp/config request handler.
@@ -128,7 +258,7 @@ void dialplan_htp_get_dp_dpmas(evhtp_request_t *req, void *data)
   }
   slog(LOG_INFO, "Fired htp_get_dp_dpmas.");
 
-  j_tmp = get_dp_dpmas_all();
+  j_tmp = dialplan_get_dpmas_all();
   if(j_tmp == NULL) {
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
@@ -215,7 +345,7 @@ void dialplan_htp_get_dp_dpmas_detail(evhtp_request_t *req, void *data)
   }
 
   // get info
-  j_tmp = get_dp_dpma_info(detail);
+  j_tmp = dialplan_get_dpma_info(detail);
   sfree(detail);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get dp_dpma info.");
@@ -350,7 +480,7 @@ void dialplan_htp_get_dp_dialplans(evhtp_request_t *req, void *data)
   }
   slog(LOG_INFO, "Fired htp_get_dp_dialplans.");
 
-  j_tmp = get_dp_dialplans_all();
+  j_tmp = dialplan_get_dialplans_all();
   if(j_tmp == NULL) {
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
@@ -438,7 +568,7 @@ void dialplan_htp_get_dp_dialplans_detail(evhtp_request_t *req, void *data)
   }
 
   // get info
-  j_tmp = get_dp_dialplan_info(detail);
+  j_tmp = dialplan_get_dialplan_info(detail);
   sfree(detail);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get dp_dialplan info.");
@@ -590,7 +720,7 @@ static bool update_dpma_info(const char* uuid, const json_t* j_data)
   json_object_set_new(j_tmp, "tm_update", json_string(timestamp));
   sfree(timestamp);
 
-  ret = update_dp_dpma_info(j_tmp);
+  ret = dialplan_update_dpma_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not update dpma info.");
@@ -614,7 +744,7 @@ static bool delete_dpma_info(const char* uuid)
   }
   slog(LOG_DEBUG, "Fired delete_dpma_info. uuid[%s]", uuid);
 
-  ret = delete_dp_dpma_info(uuid);
+  ret = dialplan_delete_dpma_info(uuid);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete dpma info.");
     return false;
@@ -654,7 +784,7 @@ static bool create_dpma_info(const json_t* j_data)
   sfree(timestamp);
 
   // insert info
-  ret = create_dp_dpma_info(j_tmp);
+  ret = dialplan_create_dpma_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert dp_dpma contact.");
@@ -719,7 +849,7 @@ static bool create_dialplan_info(const json_t* j_data)
   sfree(timestamp);
 
   // insert info
-  ret = create_dp_dialplan_info(j_tmp);
+  ret = dialplan_create_dialplan_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert dp_dialplan contact.");
@@ -776,7 +906,7 @@ static bool update_dialplan_info(const char* uuid, const json_t* j_data)
   json_object_set_new(j_tmp, "tm_update", json_string(timestamp));
   sfree(timestamp);
 
-  ret = update_dp_dialplan_info(j_tmp);
+  ret = dialplan_update_dialplan_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not update dpma info.");
@@ -800,7 +930,7 @@ static bool delete_dialplan_info(const char* uuid)
   }
   slog(LOG_DEBUG, "Fired delete_dialplan_info. uuid[%s]", uuid);
 
-  ret = delete_dp_dialplan_info(uuid);
+  ret = dialplan_delete_dialplan_info(uuid);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete dialplan info.");
     return false;
@@ -814,7 +944,7 @@ static bool is_exist_dpma_info(const char* uuid)
 {
   json_t* j_tmp;
 
-  j_tmp = get_dp_dpma_info(uuid);
+  j_tmp = dialplan_get_dpma_info(uuid);
   if(j_tmp == NULL) {
     return false;
   }
@@ -827,7 +957,7 @@ static bool is_exist_dialplan_info_uuid(const char* uuid)
 {
   json_t* j_tmp;
 
-  j_tmp = get_dp_dialplan_info(uuid);
+  j_tmp = dialplan_get_dialplan_info(uuid);
   if(j_tmp == NULL) {
     return false;
   }
@@ -841,7 +971,7 @@ static bool is_exist_dialplan_info(const char* dpma_uuid, int seq)
 {
   json_t* j_tmp;
 
-  j_tmp = get_dp_dialplan_info_by_dpma_seq(dpma_uuid, seq);
+  j_tmp = dialplan_get_dialplan_info_by_dpma_seq(dpma_uuid, seq);
   if(j_tmp == NULL) {
     return false;
   }
@@ -912,7 +1042,7 @@ bool dialplan_add_cmds(const char* agi_uuid)
   }
 
   // get dialplans
-  j_dps = get_dp_dialplans_by_dpma_uuid_order_sequence(dpma_uuid);
+  j_dps = dialplan_get_dialplans_by_dpma_uuid_order_sequence(dpma_uuid);
   if(j_dps == NULL) {
     slog(LOG_ERR, "Could not get dialplan info");
     json_decref(j_agi);
@@ -947,3 +1077,379 @@ bool dialplan_add_cmds(const char* agi_uuid)
 
   return true;
 }
+
+/**
+ * Get all dp_dpma array
+ * @return
+ */
+json_t* dialplan_get_dpmas_all(void)
+{
+  json_t* j_res;
+
+  j_res = resource_get_file_items("dp_dpma", "*");
+  return j_res;
+}
+
+/**
+ * Get corresponding dp_dpma detail info.
+ * @return
+ */
+json_t* dialplan_get_dpma_info(const char* key)
+{
+  json_t* j_res;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_dp_dpma_info. key[%s]", key);
+
+  j_res = resource_get_file_detail_item_key_string("dp_dpma", "uuid", key);
+
+  return j_res;
+}
+
+
+/**
+ * Create dp dpma info.
+ * @param j_data
+ * @return
+ */
+bool dialplan_create_dpma_info(const json_t* j_data)
+{
+  int ret;
+  const char* tmp_const;
+  json_t* j_tmp;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired create_dp_dpma_info.");
+
+  // insert info
+  ret = resource_insert_file_item("dp_dpma", j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert dp_dpma info.");
+    return false;
+  }
+
+  // publish
+  // get info
+  tmp_const = json_string_value(json_object_get(j_data, "uuid"));
+  j_tmp = dialplan_get_dpma_info(tmp_const);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get dp_dpma info. uuid[%s]", tmp_const);
+    return false;
+  }
+
+  // publish event
+  ret = publication_publish_event_dp_dpma(DEF_PUB_TYPE_CREATE, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Update dp_dpma info.
+ * @param j_data
+ * @return
+ */
+bool dialplan_update_dpma_info(const json_t* j_data)
+{
+  int ret;
+  const char* tmp_const;
+  json_t* j_tmp;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired update_dp_dpma_info.");
+
+  // update
+  ret = resource_update_file_item("dp_dpma", "uuid", j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update dp_dpma info.");
+    return false;
+  }
+
+  // publish
+  // get info
+  tmp_const = json_string_value(json_object_get(j_data, "uuid"));
+  j_tmp = dialplan_get_dpma_info(tmp_const);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get dp_dpma info. uuid[%s]", tmp_const);
+    return false;
+  }
+
+  // publish event
+  ret = publication_publish_event_dp_dpma(DEF_PUB_TYPE_UPDATE, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Delete dp_dpma info.
+ * @param j_data
+ * @return
+ */
+bool dialplan_delete_dpma_info(const char* key)
+{
+  int ret;
+  json_t* j_tmp;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired delete_dp_dpma_info. key[%s]", key);
+
+  // get info
+  j_tmp = dialplan_get_dpma_info(key);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get dp_dpma info. uuid[%s]", key);
+    return false;
+  }
+
+  ret = resource_delete_file_items_string("dp_dpma", "uuid", key);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not delete dp_dpma info. key[%s]", key);
+    json_decref(j_tmp);
+    return false;
+  }
+
+  // publish
+  // publish event
+  ret = publication_publish_event_dp_dpma(DEF_PUB_TYPE_DELETE, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Get all dp_dialplan array
+ * @return
+ */
+json_t* dialplan_get_dialplans_all(void)
+{
+  json_t* j_res;
+
+  j_res = resource_get_file_items("dp_dialplan", "*");
+  return j_res;
+}
+
+/**
+ * Get all dp_dialplans by dpma_uuid order by sequence
+ * @return
+ */
+json_t* dialplan_get_dialplans_by_dpma_uuid_order_sequence(const char* dpma_uuid)
+{
+  json_t* j_res;
+  json_t* j_obj;
+
+  if(dpma_uuid == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  j_obj = json_pack("{s:s}", "dpma_uuid", dpma_uuid);
+
+  j_res = resource_get_file_detail_items_by_obj_order("dp_dialplan", j_obj, "sequence");
+  json_decref(j_obj);
+
+  return j_res;
+}
+
+/**
+ * Get corresponding dp_dialplan detail info.
+ * @return
+ */
+json_t* dialplan_get_dialplan_info(const char* key)
+{
+  json_t* j_res;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_dp_dialplan_info. key[%s]", key);
+
+  j_res = resource_get_file_detail_item_key_string("dp_dialplan", "uuid", key);
+
+  return j_res;
+}
+
+/**
+ * Get corresponding dp_dialplan detail info.
+ * @return
+ */
+json_t* dialplan_get_dialplan_info_by_dpma_seq(const char* dpma_uuid, int seq)
+{
+  json_t* j_res;
+  json_t* j_obj;
+
+  if(dpma_uuid == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_dp_dialplan_info_by_dpma_seq. dpma_uuid[%s], sequence[%d]", dpma_uuid, seq);
+
+  j_obj = json_pack("{s:s, s:i}",
+      "dpma_uuid",  dpma_uuid,
+      "sequence",   seq
+      );
+
+  j_res = resource_get_file_detail_item_by_obj("dp_dialplan", j_obj);
+  json_decref(j_obj);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
+
+/**
+ * Create dp_dialplan info.
+ * @param j_data
+ * @return
+ */
+bool dialplan_create_dialplan_info(const json_t* j_data)
+{
+  int ret;
+  json_t* j_tmp;
+  const char* tmp_const;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired create_dp_dialplan_info.");
+
+  // insert info
+  ret = resource_insert_file_item("dp_dialplan", j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert dp_dialplan contact.");
+    return false;
+  }
+
+  // publish
+  // get info
+  tmp_const = json_string_value(json_object_get(j_data, "uuid"));
+  j_tmp = dialplan_get_dialplan_info(tmp_const);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get dp_dialplan info. uuid[%s]", tmp_const);
+    return false;
+  }
+
+  // publish event
+  ret = publication_publish_event_dp_dialplan(DEF_PUB_TYPE_CREATE, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Update dp_dialplan info.
+ * @param j_data
+ * @return
+ */
+bool dialplan_update_dialplan_info(const json_t* j_data)
+{
+  int ret;
+  const char* tmp_const;
+  json_t* j_tmp;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired update_dp_dialplan_info.");
+
+  // update
+  ret = resource_update_file_item("dp_dialplan", "uuid", j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update dp_dialplan info.");
+    return false;
+  }
+
+  // publish
+  // get info
+  tmp_const = json_string_value(json_object_get(j_data, "uuid"));
+  j_tmp = dialplan_get_dialplan_info(tmp_const);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get dp_dialplan info. uuid[%s]", tmp_const);
+    return false;
+  }
+
+  // publish event
+  ret = publication_publish_event_dp_dialplan(DEF_PUB_TYPE_UPDATE, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Delete dp_dialplan info.
+ * @param j_data
+ * @return
+ */
+bool dialplan_delete_dialplan_info(const char* key)
+{
+  int ret;
+  json_t* j_tmp;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired delete_dp_dialplan_info. key[%s]", key);
+
+  // get info
+  j_tmp = dialplan_get_dialplan_info(key);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get dp_dialplan info. uuid[%s]", key);
+    return false;
+  }
+
+  ret = resource_delete_file_items_string("dp_dialplan", "uuid", key);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not delete dp_dialplan info. key[%s]", key);
+    json_decref(j_tmp);
+    return false;
+  }
+
+  // publish
+  // publish event
+  ret = publication_publish_event_dp_dialplan(DEF_PUB_TYPE_DELETE, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
+  return true;
+}
+

@@ -2052,7 +2052,7 @@ static void ami_event_devicestatechange(json_t* j_msg)
     return;
   }
 
-  ret = db_ctx_insert_or_replace(g_db_ast, "device_state", j_tmp);
+  ret = db_ctx_insert_or_replace(g_db_memory, "device_state", j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to device_state.");

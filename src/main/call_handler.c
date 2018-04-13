@@ -335,3 +335,53 @@ int call_delete_channel_info(const char* key)
 
   return true;
 }
+
+/**
+ * Originate call from the source device to destination device.
+ * @param source
+ * @param destination
+ * @return
+ */
+bool call_originate_call_to_device(const char* source, const char* destination)
+{
+  json_t* j_cmd;
+
+  if((source == NULL) || (destination == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  //  Action: Originate
+  //  ActionID: <value>
+  //  Channel: <value>
+  //  Exten: <value>
+  //  Context: <value>
+  //  Priority: <value>
+  //  Application: <value>
+  //  Data: <value>
+  //  Timeout: <value>
+  //  CallerID: <value>
+  //  Variable: <value>
+  //  Account: <value>
+  //  EarlyMedia: <value>
+  //  Async: <value>
+  //  Codecs: <value>
+  //  ChannelId: <value>
+  //  OtherChannelId: <value>
+  j_cmd = json_pack("{s:s, s:s, s:s, s:s, s:s, s:s, s:s, s:s}",
+      "Action",     "Originate",
+      "ActionID",   json_string_value(json_object_get(j_dialing, "action_id"))? : "",
+      "Async",      "true",
+      "Channel",    json_string_value(json_object_get(j_dialing, "dial_channel"))? : "",
+      "Exten",      json_string_value(json_object_get(j_dialing, "dial_exten"))? : "",
+      "Context",    json_string_value(json_object_get(j_dialing, "dial_context"))? : "",
+      "Priority",   json_string_value(json_object_get(j_dialing, "dial_priority"))? : "",
+      "ChannelId",  json_string_value(json_object_get(j_dialing, "uuid"))
+      );
+  if(j_cmd == NULL) {
+    slog(LOG_ERR, "Could not create default originate request info.");
+    return false;
+  }
+
+  return true;
+}

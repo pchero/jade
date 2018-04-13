@@ -41,7 +41,7 @@ bool action_insert(const char* id, const char* type, const json_t* j_data)
     json_object_set_new(j_tmp, "data", j_data_tmp);
   }
 
-  ret = db_ctx_insert(g_db_ast, "action", j_tmp);
+  ret = db_ctx_insert(g_db_memory, "action", j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert action info.");
@@ -64,15 +64,15 @@ json_t* action_get(const char* id)
 
   asprintf(&sql, "select * from action where id=\"%s\";", id);
 
-  ret = db_ctx_query(g_db_ast, sql);
+  ret = db_ctx_query(g_db_memory, sql);
   sfree(sql);
   if(ret == false) {
     slog(LOG_ERR, "Could not get correct action info.");
     return NULL;
   }
 
-  j_res = db_ctx_get_record(g_db_ast);
-  db_ctx_free(g_db_ast);
+  j_res = db_ctx_get_record(g_db_memory);
+  db_ctx_free(g_db_memory);
   if(j_res == NULL) {
     // no result.
     return NULL;
@@ -93,7 +93,7 @@ bool action_delete(const char* id)
 
   asprintf(&sql, "delete from action where id=\"%s\";", id);
 
-  ret = db_ctx_exec(g_db_ast, sql);
+  ret = db_ctx_exec(g_db_memory, sql);
   sfree(sql);
   if(ret == false) {
     return false;

@@ -55,7 +55,7 @@ static bool update_buddy_info(const json_t* j_user, const char* detail, const js
 static bool delete_buddy_info(const json_t* j_user, const char* detail);
 
 static json_t* get_calls_info(const json_t* j_user);
-
+static bool create_call_info(const json_t* j_user, const json_t* j_data);
 
 bool me_init_handler(void)
 {
@@ -159,7 +159,8 @@ void me_htp_get_me_chats(evhtp_request_t *req, void *data)
 
   // create result
   j_res = http_create_default_result(EVHTP_RES_OK);
-  json_object_set_new(j_res, "result", j_tmp);
+  json_object_set_new(j_res, "result", json_object());
+  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
 
   // response
   http_simple_response_normal(req, j_res);
@@ -845,6 +846,58 @@ void me_htp_get_me_calls(evhtp_request_t *req, void *data)
 
   return;
 }
+
+/**
+ * POST ^/me/calls request handler.
+ * @param req
+ * @param data
+ */
+void me_htp_post_me_calls(evhtp_request_t *req, void *data)
+{
+  int ret;
+  json_t* j_res;
+  json_t* j_tmp;
+  json_t* j_user;
+  json_t* j_data;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired me_htp_post_me_calls.");
+
+  // get userinfo
+  j_user = get_userinfo(req);
+  if(j_user == NULL) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  j_data = http_get_json_from_request_data(req);
+  if(j_data == NULL) {
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // create call
+  ret = create_call_info(j_user, j_data);
+  json_decref(j_user);
+  json_decref(j_data);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
 
 /**
  * Get given authtoken's me info.
@@ -1772,4 +1825,15 @@ static json_t* get_calls_info(const json_t* j_user)
   json_decref(j_contacts);
 
   return j_res;
+}
+
+static bool create_call_info(const json_t* j_user, const json_t* j_data)
+{
+  if((j_user == NULL) || (j_data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired create_call_info.");
+
+  return true;
 }

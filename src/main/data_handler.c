@@ -165,7 +165,7 @@ static void cb_ami_status_check(__attribute__((unused)) int fd, __attribute__((u
 
   // create initial info if need.
   asprintf(&sql, "insert or ignore into system(id) values(1)");
-  db_ctx_exec(g_db_ast, sql);
+  db_ctx_exec(g_db_memory, sql);
   sfree(sql);
 
   //// CoreStatus
