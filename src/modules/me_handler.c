@@ -60,6 +60,8 @@ static bool create_call_info(const json_t* j_user, const json_t* j_data);
 static bool create_call_to_user(const json_t* j_user, const json_t* j_data);
 static char* get_callable_contact_from_useruuid(const char* uuid_user);
 
+static json_t* get_search_info(json_t* j_user, const char* filter, const char* type);
+static json_t* get_users_info_by_username(const char* username);
 
 bool me_init_handler(void)
 {
@@ -902,6 +904,68 @@ void me_htp_post_me_calls(evhtp_request_t *req, void *data)
   return;
 }
 
+/**
+ * GET ^/me/search request handler.
+ * @param req
+ * @param data
+ */
+void me_htp_get_me_search(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+  json_t* j_user;
+  char* filter;
+  char* type;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired me_htp_get_me_search.");
+
+  // get userinfo
+  j_user = get_userinfo(req);
+  if(j_user == NULL) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  // get filter
+  filter = http_get_parameter(req, "filter");
+  if(filter == NULL) {
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // get type
+  type = http_get_parameter(req, "type");
+  if(type == NULL) {
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    sfree(filter);
+    return;
+  }
+
+  j_tmp = get_search_info(j_user, filter, type);
+  json_decref(j_user);
+  sfree(filter);
+  sfree(type);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get search info.");
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", json_object());
+  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
 
 /**
  * Get given authtoken's me info.
@@ -1936,4 +2000,55 @@ static bool create_call_to_user(const json_t* j_user, const json_t* j_data)
   }
 
   return true;
+}
+
+static json_t* get_search_info(json_t* j_user, const char* filter, const char* type)
+{
+  json_t* j_res;
+
+  if((j_user == NULL) || (filter == NULL) || (type == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  if(strcmp(type, "username") == 0) {
+    j_res = get_users_info_by_username(filter);
+  }
+  else {
+    slog(LOG_NOTICE, "Not support search type. type[%s]", type);
+    return NULL;
+  }
+
+  return j_res;
+}
+
+/**
+ *
+ * @param username
+ * @return
+ */
+static json_t* get_users_info_by_username(const char* username)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+
+  if(username == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  j_tmp = user_get_userinfo_info_by_username(username);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "No find userinfo.");
+    return NULL;
+  }
+
+  json_object_del(j_tmp, "password");
+  json_object_del(j_tmp, "tm_create");
+  json_object_del(j_tmp, "tm_update");
+
+  j_res = json_array();
+  json_array_append_new(j_res, j_tmp);
+
+  return j_res;
 }
