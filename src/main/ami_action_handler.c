@@ -14,6 +14,7 @@
 #include "ami_handler.h"
 #include "resource_handler.h"
 #include "action_handler.h"
+#include "call_handler.h"
 
 #include "ami_action_handler.h"
 
@@ -103,7 +104,7 @@ bool ami_action_hangup_by_uniqueid(const char* unique_id)
   }
   slog(LOG_DEBUG, "Fired ami_action_hangup_by_uniqueid. unique_id[%s]", unique_id);
 
-  j_tmp = get_core_channel_info(unique_id);
+  j_tmp = call_get_channel_info(unique_id);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get channel info.");
     return false;
@@ -208,6 +209,40 @@ bool ami_action_moduleload(const char* name, const char* type)
   json_decref(j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert action.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * AMI action handler.
+ * Action: SetVar
+ */
+bool ami_action_setvar(const char* channel, const char* key, const char* value)
+{
+  json_t* j_data;
+  int ret;
+
+  if((channel == NULL) || (key == NULL) || (value == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired ami_action_setvar. channel[%s], key[%s], value[%s]", channel, key, value);
+
+  // create request
+  j_data = json_pack("{s:s, s:s, s:s, s:s}",
+      "Action",     "SetVar",
+      "Channel",    channel,
+      "Variable",   key,
+      "Value",      value
+      );
+
+  // send action request
+  ret = ami_send_cmd(j_data);
+  if(ret == false) {
+    json_decref(j_data);
+    slog(LOG_ERR, "Could not send ami action");
     return false;
   }
 

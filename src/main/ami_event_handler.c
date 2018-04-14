@@ -17,6 +17,7 @@
 #include "action_handler.h"
 #include "ami_response_handler.h"
 #include "resource_handler.h"
+#include "call_handler.h"
 
 #include "ob_ami_handler.h"
 #include "ob_dialing_handler.h"
@@ -1296,7 +1297,7 @@ static void ami_event_hangup(json_t* j_msg)
   sfree(timestamp);
 
   // update info
-  ret = update_core_channel_info(j_tmp);
+  ret = call_update_channel_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not update channel info.");
@@ -1304,7 +1305,7 @@ static void ami_event_hangup(json_t* j_msg)
   }
 
   // delete channel info.
-  ret = delete_core_channel_info(unique_id);
+  ret = call_delete_channel_info(unique_id);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete channel info. unique_id[%s]", unique_id);
     return;
@@ -1379,7 +1380,7 @@ static void ami_event_newchannel(json_t* j_msg)
   }
 
   // create info
-  ret = create_core_channel_info(j_tmp);
+  ret = call_create_channel_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to channel.");
@@ -1481,7 +1482,7 @@ static void ami_event_rename(json_t* j_msg)
   }
 
   // get channel info
-  j_tmp = get_core_channel_info(unique_id);
+  j_tmp = call_get_channel_info(unique_id);
   if(j_tmp == NULL) {
     slog(LOG_NOTICE, "Could not get correct channel info.");
     return;
@@ -1494,7 +1495,7 @@ static void ami_event_rename(json_t* j_msg)
   sfree(timestamp);
 
   // update channel info.
-  ret = update_core_channel_info(j_tmp);
+  ret = call_update_channel_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not update channel info.");
@@ -2051,7 +2052,7 @@ static void ami_event_devicestatechange(json_t* j_msg)
     return;
   }
 
-  ret = db_ctx_insert_or_replace(g_db_ast, "device_state", j_tmp);
+  ret = db_ctx_insert_or_replace(g_db_memory, "device_state", j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to device_state.");
@@ -2094,7 +2095,7 @@ static void ami_event_varset(json_t* j_msg)
   slog(LOG_DEBUG, "Check value. key[%s], val[%s]", key, val);
 
   // get channel info
-  j_chan = get_core_channel_info(unique_id);
+  j_chan = call_get_channel_info(unique_id);
   if(j_chan == NULL) {
     slog(LOG_ERR, "Could not get channel info.");
     return;
@@ -2126,7 +2127,7 @@ static void ami_event_varset(json_t* j_msg)
   sfree(timestamp);
 
   // update info
-  ret = update_core_channel_info(j_chan);
+  ret = call_update_channel_info(j_chan);
   json_decref(j_chan);
   if(ret == false) {
     slog(LOG_ERR, "Could not update to channel.");
@@ -2964,7 +2965,7 @@ static void ami_event_coreshowchannel(json_t* j_msg)
   }
 
   // create channel info
-  ret = create_core_channel_info(j_tmp);
+  ret = call_create_channel_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to channel.");
@@ -3027,7 +3028,7 @@ static void ami_event_newstate(json_t* j_msg)
   }
 
   // update channel info.
-  ret = update_core_channel_info(j_tmp);
+  ret = call_update_channel_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not update channel info.");
@@ -3096,7 +3097,7 @@ static void ami_event_newexten(json_t* j_msg)
   }
 
   // update channel info.
-  ret = update_core_channel_info(j_tmp);
+  ret = call_update_channel_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not update channel info.");

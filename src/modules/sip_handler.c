@@ -133,8 +133,8 @@ static bool init_sip_database_peer(void)
       ");";
 
   // execute
-  ret = resource_exec_ast_sql(drop_table);
-  ret = resource_exec_ast_sql(create_table);
+  ret = resource_exec_mem_sql(drop_table);
+  ret = resource_exec_mem_sql(create_table);
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate sip_peer database.");
     return false;
@@ -174,8 +174,8 @@ static bool init_sip_database_peeraccount(void)
       ");";
 
   // execute
-  ret = resource_exec_ast_sql(drop_table);
-  ret = resource_exec_ast_sql(create_table);
+  ret = resource_exec_mem_sql(drop_table);
+  ret = resource_exec_mem_sql(create_table);
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate sip_peeraccount database.");
     return false;
@@ -219,8 +219,8 @@ static bool init_sip_database_registry(void)
       ");";
 
   // execute
-  ret = resource_exec_ast_sql(drop_table);
-  ret = resource_exec_ast_sql(create_table);
+  ret = resource_exec_mem_sql(drop_table);
+  ret = resource_exec_mem_sql(create_table);
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate sip_registry database.");
     return false;
@@ -1011,7 +1011,7 @@ bool sip_create_peeraccount_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired create_sip_peeraccount_info.");
 
   // insert peeraccount info
-  ret = resource_insert_ast_item(DEF_DB_TABLE_SIP_PEERACCOUNT, j_data);
+  ret = resource_insert_mem_item(DEF_DB_TABLE_SIP_PEERACCOUNT, j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert sip peeraccount.");
     return false;
@@ -1035,7 +1035,7 @@ json_t* sip_get_peeraccount_info(const char* peer)
   }
   slog(LOG_DEBUG, "Fired get_sip_peeraccount_info.");
 
-  j_res = resource_get_ast_detail_item_key_string(DEF_DB_TABLE_SIP_PEERACCOUNT, "peer", peer);
+  j_res = resource_get_mem_detail_item_key_string(DEF_DB_TABLE_SIP_PEERACCOUNT, "peer", peer);
 
   return j_res;
 }
@@ -1054,7 +1054,7 @@ json_t* sip_get_peer_info(const char* peer)
   }
   slog(LOG_DEBUG, "Fired get_sip_peer_info.");
 
-  j_res = resource_get_ast_detail_item_key_string(DEF_DB_TABLE_SIP_PEER, "peer", peer);
+  j_res = resource_get_mem_detail_item_key_string(DEF_DB_TABLE_SIP_PEER, "peer", peer);
 
   return j_res;
 }
@@ -1069,7 +1069,7 @@ json_t* sip_get_peers_all_peer(void)
 
   slog(LOG_DEBUG, "Fired get_sip_peers_all_peer.");
 
-  j_res = resource_get_ast_items(DEF_DB_TABLE_SIP_PEER, "peer");
+  j_res = resource_get_mem_items(DEF_DB_TABLE_SIP_PEER, "peer");
 
   return j_res;
 }
@@ -1084,7 +1084,7 @@ json_t* sip_get_peers_all(void)
 
   slog(LOG_DEBUG, "Fired get_sip_peers_all.");
 
-  j_res = resource_get_ast_items(DEF_DB_TABLE_SIP_PEER, "*");
+  j_res = resource_get_mem_items(DEF_DB_TABLE_SIP_PEER, "*");
 
   return j_res;
 }
@@ -1099,7 +1099,7 @@ json_t* sip_get_registries_all_account(void)
 
   slog(LOG_DEBUG, "Fired get_sip_registries_all_account.");
 
-  j_res = resource_get_ast_items(DEF_DB_TABLE_SIP_REGISTRY, "account");
+  j_res = resource_get_mem_items(DEF_DB_TABLE_SIP_REGISTRY, "account");
 
   return j_res;
 }
@@ -1118,7 +1118,7 @@ json_t* sip_get_registry_info(const char* account)
   }
   slog(LOG_DEBUG, "Fired get_sip_registry_info. account[%s]", account);
 
-  j_res = resource_get_ast_detail_item_key_string(DEF_DB_TABLE_SIP_REGISTRY, "account", account);
+  j_res = resource_get_mem_detail_item_key_string(DEF_DB_TABLE_SIP_REGISTRY, "account", account);
 
   return j_res;
 }
@@ -1131,7 +1131,7 @@ json_t* sip_get_registries_all(void)
 {
   json_t* j_res;
 
-  j_res = resource_get_ast_items(DEF_DB_TABLE_SIP_REGISTRY, "*");
+  j_res = resource_get_mem_items(DEF_DB_TABLE_SIP_REGISTRY, "*");
   return j_res;
 }
 
@@ -1153,7 +1153,7 @@ bool sip_create_peer_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired create_sip_peer_info.");
 
   // insert peer info
-  ret = resource_insert_ast_item(DEF_DB_TABLE_SIP_PEER, j_data);
+  ret = resource_insert_mem_item(DEF_DB_TABLE_SIP_PEER, j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert sip peer..");
     return false;
@@ -1196,7 +1196,7 @@ bool sip_update_peer_info(const json_t* j_data)
   }
   slog(LOG_DEBUG, "Fired update_sip_peer_info.");
 
-  ret = resource_update_ast_item(DEF_DB_TABLE_SIP_PEER, "peer", j_data);
+  ret = resource_update_mem_item(DEF_DB_TABLE_SIP_PEER, "peer", j_data);
   if(ret == false) {
     slog(LOG_WARNING, "Could not update sip peer info.");
     return false;
@@ -1244,7 +1244,7 @@ bool sip_delete_peer_info(const char* key)
     return false;
   }
 
-  ret = resource_delete_ast_items_string(DEF_DB_TABLE_SIP_PEER, "peer", key);
+  ret = resource_delete_mem_items_string(DEF_DB_TABLE_SIP_PEER, "peer", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete sip peer info. name[%s]", key);
     json_decref(j_tmp);
@@ -1281,7 +1281,7 @@ bool sip_create_registry_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired create_sip_registry_info.");
 
   // insert queue info
-  ret = resource_insert_ast_item(DEF_DB_TABLE_SIP_REGISTRY, j_data);
+  ret = resource_insert_mem_item(DEF_DB_TABLE_SIP_REGISTRY, j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert sip registry.");
     return false;
@@ -1324,7 +1324,7 @@ bool sip_update_registry_info(const json_t* j_data)
   }
   slog(LOG_DEBUG, "Fired update_sip_registry_info.");
 
-  ret = resource_update_ast_item(DEF_DB_TABLE_SIP_REGISTRY, "account", j_data);
+  ret = resource_update_mem_item(DEF_DB_TABLE_SIP_REGISTRY, "account", j_data);
   if(ret == false) {
     slog(LOG_WARNING, "Could not update sip registry info.");
     return false;
@@ -1372,7 +1372,7 @@ bool sip_delete_registry_info(const char* key)
     return false;
   }
 
-  ret = resource_delete_ast_items_string(DEF_DB_TABLE_SIP_REGISTRY, "account", key);
+  ret = resource_delete_mem_items_string(DEF_DB_TABLE_SIP_REGISTRY, "account", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete sip registry info. account[%s]", key);
     return false;
@@ -1399,21 +1399,21 @@ static bool term_sip_database(void)
   int ret;
 
   // peer
-  ret = resource_clear_ast_table(DEF_DB_TABLE_SIP_PEER);
+  ret = resource_clear_mem_table(DEF_DB_TABLE_SIP_PEER);
   if(ret == false) {
     slog(LOG_ERR, "Could not clear sip table. table[%s]", DEF_DB_TABLE_SIP_PEER);
     return false;
   }
 
   // peeraccount
-  ret = resource_clear_ast_table(DEF_DB_TABLE_SIP_PEERACCOUNT);
+  ret = resource_clear_mem_table(DEF_DB_TABLE_SIP_PEERACCOUNT);
   if(ret == false) {
     slog(LOG_ERR, "Could not clear sip table. table[%s]", DEF_DB_TABLE_SIP_PEERACCOUNT);
     return false;
   }
 
   // registry
-  ret = resource_clear_ast_table(DEF_DB_TABLE_SIP_REGISTRY);
+  ret = resource_clear_mem_table(DEF_DB_TABLE_SIP_REGISTRY);
   if(ret == false) {
     slog(LOG_ERR, "Could not clear table. table[%s]", DEF_DB_TABLE_SIP_REGISTRY);
     return false;

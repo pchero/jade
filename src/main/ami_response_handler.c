@@ -78,7 +78,7 @@ ACTION_RES ami_response_handler_corestatus(json_t* j_action, json_t* j_msg)
       );
   sfree(tmp);
 
-  ret = db_ctx_exec(g_db_ast, sql);
+  ret = db_ctx_exec(g_db_memory, sql);
   sfree(sql);
   if(ret == false) {
     slog(LOG_WARNING, "Could not update system info. id[%s]", json_string_value(json_object_get(json_object_get(j_action, "data"), "id")));
@@ -160,7 +160,7 @@ ACTION_RES ami_response_handler_coresettings(json_t* j_action, json_t* j_msg)
       );
   sfree(tmp);
 
-  ret = db_ctx_exec(g_db_ast, sql);
+  ret = db_ctx_exec(g_db_memory, sql);
   sfree(sql);
   if(ret == false) {
     slog(LOG_WARNING, "Could not update system info. id[%s]", json_string_value(json_object_get(json_object_get(j_action, "data"), "id")));

@@ -369,8 +369,8 @@ static bool init_pjsip_database_aor(void)
     ");";
 
   // execute
-  resource_exec_ast_sql(drop_table);
-  ret = resource_exec_ast_sql(create_table);
+  resource_exec_mem_sql(drop_table);
+  ret = resource_exec_mem_sql(create_table);
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate database. database[%s]", DEF_DB_TABLE_PJSIP_AOR);
     return false;
@@ -417,8 +417,8 @@ static bool init_pjsip_database_auth(void)
     ");";
 
   // execute
-  resource_exec_ast_sql(drop_table);
-  ret = resource_exec_ast_sql(create_table);
+  resource_exec_mem_sql(drop_table);
+  ret = resource_exec_mem_sql(create_table);
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate database. database[%s]", DEF_DB_TABLE_PJSIP_AUTH);
     return false;
@@ -470,8 +470,8 @@ static bool init_pjsip_database_contact(void)
     ");";
 
   // execute
-  resource_exec_ast_sql(drop_table);
-  ret = resource_exec_ast_sql(create_table);
+  resource_exec_mem_sql(drop_table);
+  ret = resource_exec_mem_sql(create_table);
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate database. database[%s]", DEF_DB_TABLE_PJSIP_CONTACT);
     return false;
@@ -687,8 +687,8 @@ static bool init_pjsip_database_endpoint(void)
     ");";
 
   // execute
-  resource_exec_ast_sql(drop_table);
-  ret = resource_exec_ast_sql(create_table);
+  resource_exec_mem_sql(drop_table);
+  ret = resource_exec_mem_sql(create_table);
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate database. database[%s]", DEF_DB_TABLE_PJSIP_ENDPOINT);
     return false;
@@ -2315,7 +2315,7 @@ json_t* pjsip_get_endpoint_info(const char* name)
   }
   slog(LOG_DEBUG, "Fired get_pjsip_endpoint_info. object_name[%s]", name);
 
-  j_res = resource_get_ast_detail_item_key_string(DEF_DB_TABLE_PJSIP_ENDPOINT, "object_name", name);
+  j_res = resource_get_mem_detail_item_key_string(DEF_DB_TABLE_PJSIP_ENDPOINT, "object_name", name);
 
   return j_res;
 }
@@ -2331,7 +2331,7 @@ json_t* pjsip_get_endpoints_all(void)
 
   slog(LOG_DEBUG, "Fired get_pjsip_endpoints_all.");
 
-  j_res = resource_get_ast_items(DEF_DB_TABLE_PJSIP_ENDPOINT, "*");
+  j_res = resource_get_mem_items(DEF_DB_TABLE_PJSIP_ENDPOINT, "*");
 
   return j_res;
 }
@@ -2347,7 +2347,7 @@ json_t* pjsip_get_aors_all(void)
 
   slog(LOG_DEBUG, "Fired pjsip_aor.");
 
-  j_res = resource_get_ast_items(DEF_DB_TABLE_PJSIP_AOR, "*");
+  j_res = resource_get_mem_items(DEF_DB_TABLE_PJSIP_AOR, "*");
 
   return j_res;
 }
@@ -2367,7 +2367,7 @@ json_t* pjsip_get_aor_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired get_pjsip_aors_info.");
 
-  j_res = resource_get_ast_detail_item_key_string(DEF_DB_TABLE_PJSIP_AOR, "object_name", key);
+  j_res = resource_get_mem_detail_item_key_string(DEF_DB_TABLE_PJSIP_AOR, "object_name", key);
 
   return j_res;
 }
@@ -2383,7 +2383,7 @@ json_t* pjsip_get_auths_all(void)
 
   slog(LOG_DEBUG, "Fired get_pjsip_auths_all.");
 
-  j_res = resource_get_ast_items(DEF_DB_TABLE_PJSIP_AUTH, "*");
+  j_res = resource_get_mem_items(DEF_DB_TABLE_PJSIP_AUTH, "*");
 
   return j_res;
 }
@@ -2403,7 +2403,7 @@ json_t* pjsip_get_auth_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired get_pjsip_auth_info.");
 
-  j_res = resource_get_ast_detail_item_key_string(DEF_DB_TABLE_PJSIP_AUTH, "object_name", key);
+  j_res = resource_get_mem_detail_item_key_string(DEF_DB_TABLE_PJSIP_AUTH, "object_name", key);
 
   return j_res;
 }
@@ -2419,7 +2419,7 @@ json_t* pjsip_get_contacts_all(void)
 
   slog(LOG_DEBUG, "Fired get_pjsip_contacts_all.");
 
-  j_res = resource_get_ast_items(DEF_DB_TABLE_PJSIP_CONTACT, "*");
+  j_res = resource_get_mem_items(DEF_DB_TABLE_PJSIP_CONTACT, "*");
 
   return j_res;
 }
@@ -2439,7 +2439,7 @@ json_t* pjsip_get_contact_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired get_pjsip_contact_info.");
 
-  j_res = resource_get_ast_detail_item_key_string(DEF_DB_TABLE_PJSIP_CONTACT, "uri", key);
+  j_res = resource_get_mem_detail_item_key_string(DEF_DB_TABLE_PJSIP_CONTACT, "uri", key);
 
   return j_res;
 }
@@ -2463,7 +2463,7 @@ bool pjsip_create_endpoint_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired create_pjsip_endpoint_info.");
 
   // insert queue info
-  ret = resource_insert_ast_item(DEF_DB_TABLE_PJSIP_ENDPOINT, j_data);
+  ret = resource_insert_mem_item(DEF_DB_TABLE_PJSIP_ENDPOINT, j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert pjsip endpoint.");
     return false;
@@ -2506,7 +2506,7 @@ bool pjsip_update_endpoint_info(const json_t* j_data)
   }
   slog(LOG_DEBUG, "Fired update_pjsip_endpoint_info.");
 
-  ret = resource_update_ast_item(DEF_DB_TABLE_PJSIP_ENDPOINT, "object_name", j_data);
+  ret = resource_update_mem_item(DEF_DB_TABLE_PJSIP_ENDPOINT, "object_name", j_data);
   if(ret == false) {
     slog(LOG_WARNING, "Could not update pjsip endpoint info.");
     return false;
@@ -2555,7 +2555,7 @@ bool pjsip_pjsip_endpoint_info(const char* key)
   }
 
   // delete info
-  ret = resource_delete_ast_items_string(DEF_DB_TABLE_PJSIP_ENDPOINT, "object_name", key);
+  ret = resource_delete_mem_items_string(DEF_DB_TABLE_PJSIP_ENDPOINT, "object_name", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete pjsip_endpoint info. key[%s]", key);
     json_decref(j_tmp);
@@ -2592,7 +2592,7 @@ bool pjsip_create_auth_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired create_pjsip_auth_info.");
 
   // insert queue info
-  ret = resource_insert_ast_item(DEF_DB_TABLE_PJSIP_AUTH, j_data);
+  ret = resource_insert_mem_item(DEF_DB_TABLE_PJSIP_AUTH, j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert pjsip auth.");
     return false;
@@ -2636,7 +2636,7 @@ bool pjsip_update_auth_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired update_pjsip_auth_info.");
 
   // update
-  ret = resource_update_ast_item(DEF_DB_TABLE_PJSIP_AUTH, "object_name", j_data);
+  ret = resource_update_mem_item(DEF_DB_TABLE_PJSIP_AUTH, "object_name", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update pjsip_auth info.");
     return false;
@@ -2684,7 +2684,7 @@ bool pjsip_delete_auth_info(const char* key)
     return false;
   }
 
-  ret = resource_delete_ast_items_string(DEF_DB_TABLE_PJSIP_AUTH, "object_name", key);
+  ret = resource_delete_mem_items_string(DEF_DB_TABLE_PJSIP_AUTH, "object_name", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete pjsip_auth info. key[%s]", key);
     json_decref(j_tmp);
@@ -2721,7 +2721,7 @@ bool pjsip_create_aor_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired create_pjsip_aor_info.");
 
   // insert queue info
-  ret = resource_insert_ast_item(DEF_DB_TABLE_PJSIP_AOR, j_data);
+  ret = resource_insert_mem_item(DEF_DB_TABLE_PJSIP_AOR, j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert pjsip aor.");
     return false;
@@ -2765,7 +2765,7 @@ bool pjsip_update_aor_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired update_pjsip_aor_info.");
 
   // update
-  ret = resource_update_ast_item(DEF_DB_TABLE_PJSIP_AOR, "object_name", j_data);
+  ret = resource_update_mem_item(DEF_DB_TABLE_PJSIP_AOR, "object_name", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update pjsip_aor info.");
     return false;
@@ -2815,7 +2815,7 @@ bool pjsip_delete_aor_info(const char* key)
     return false;
   }
 
-  ret = resource_delete_ast_items_string(DEF_DB_TABLE_PJSIP_AOR, "object_name", key);
+  ret = resource_delete_mem_items_string(DEF_DB_TABLE_PJSIP_AOR, "object_name", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete pjsip_aor info. key[%s]", key);
     return false;
@@ -2850,7 +2850,7 @@ bool pjsip_create_contact_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired create_pjsip_contact_info.");
 
   // insert info
-  ret = resource_insert_ast_item(DEF_DB_TABLE_PJSIP_CONTACT, j_data);
+  ret = resource_insert_mem_item(DEF_DB_TABLE_PJSIP_CONTACT, j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert pjsip contact.");
     return false;
@@ -2894,7 +2894,7 @@ bool pjsip_update_contact_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired update_pjsip_contact_info.");
 
   // update
-  ret = resource_update_ast_item(DEF_DB_TABLE_PJSIP_CONTACT, "uri", j_data);
+  ret = resource_update_mem_item(DEF_DB_TABLE_PJSIP_CONTACT, "uri", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update pjsip_contact info.");
     return false;
@@ -2942,7 +2942,7 @@ bool pjsip_delete_contact_info(const char* key)
     return false;
   }
 
-  ret = resource_delete_ast_items_string(DEF_DB_TABLE_PJSIP_CONTACT, "uri", key);
+  ret = resource_delete_mem_items_string(DEF_DB_TABLE_PJSIP_CONTACT, "uri", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete pjsip_contact info. key[%s]", key);
     json_decref(j_tmp);
@@ -2970,25 +2970,25 @@ static bool term_pjsip_databases(void)
 {
   int ret;
 
-  ret = resource_clear_ast_table(DEF_DB_TABLE_PJSIP_AOR);
+  ret = resource_clear_mem_table(DEF_DB_TABLE_PJSIP_AOR);
   if(ret == false) {
     slog(LOG_ERR, "Could not clear pjsip_aor");
     return false;
   }
 
-  ret = resource_clear_ast_table(DEF_DB_TABLE_PJSIP_AUTH);
+  ret = resource_clear_mem_table(DEF_DB_TABLE_PJSIP_AUTH);
   if(ret == false) {
     slog(LOG_ERR, "Could not clear pjsip_auth");
     return false;
   }
 
-  ret = resource_clear_ast_table(DEF_DB_TABLE_PJSIP_CONTACT);
+  ret = resource_clear_mem_table(DEF_DB_TABLE_PJSIP_CONTACT);
   if(ret == false) {
     slog(LOG_ERR, "Could not clear pjsip_contact");
     return false;
   }
 
-  ret = resource_clear_ast_table(DEF_DB_TABLE_PJSIP_ENDPOINT);
+  ret = resource_clear_mem_table(DEF_DB_TABLE_PJSIP_ENDPOINT);
   if(ret == false) {
     slog(LOG_ERR, "Could not clear pjsip_endpoint");
     return false;

@@ -15,7 +15,7 @@ bool ami_action_hangup(const char* channel);
 bool ami_action_hangup_by_uniqueid(const char* unique_id);
 bool ami_action_modulecheck(const char* name);
 bool ami_action_moduleload(const char* name, const char* type);
-
+bool ami_action_setvar(const char* channel, const char* key, const char* value);
 
 
 #endif /* SRC_AMI_ACTION_HANDLER_H_ */

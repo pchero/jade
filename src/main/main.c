@@ -22,6 +22,8 @@
 #include "conf_handler.h"
 #include "user_handler.h"
 #include "chat_handler.h"
+#include "call_handler.h"
+#include "dialplan_handler.h"
 
 #include "park_handler.h"
 #include "queue_handler.h"
@@ -115,6 +117,12 @@ bool init(void)
   }
   slog(LOG_DEBUG, "Finished init_conf_handler.");
 
+  ret = call_init_handler();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate call_handler.");
+    return false;
+  }
+
   ret = user_init_handler();
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate user_handler");
@@ -155,6 +163,12 @@ bool init(void)
   ret = chat_init_handler();
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate chat_handler.");
+    return false;
+  }
+
+  ret = dialplan_init_handler();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate dialplan_handler.");
     return false;
   }
 

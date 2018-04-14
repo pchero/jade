@@ -44,6 +44,10 @@
 #define DEF_OB_DIALING_TIMEOUT          "30"
 #define DEF_OB_DATABASE_NAME  "./outbound_database.db"
 
+#define DEF_DIALPLA_DEFAULT_ORIGINATE_TO_DEVICE   "72ebc4b8-ac5e-4863-a7d3-55ffdfef43ee"
+#define DEF_DIALPLA_DEFAULT_ORIGINATE_TO_NUMBER   "a922cf23-c650-426a-9ba0-a35ebc68a464"
+
+
 extern app* g_app;
 static char g_config_filename[1024] = "";
 
@@ -118,8 +122,9 @@ static bool load_config(void)
       	"s:s, s:s, "
       	"s:s, s:s "
 			"},"	// general
-      "s:{s:s}, "	// voicemail
-      "s:{s:s, s:s, s:s}"	// ob
+      "s:{s:s}, "	            // voicemail
+      "s:{s:s, s:s, s:s},"    // ob
+      "s:{s:s, s:s}"          // dialplan
       "}",
       "general",
         "ast_serv_addr",    DEF_GENERAL_AST_SERV_ADDR,
@@ -152,7 +157,11 @@ static bool load_config(void)
       "ob",
         "dialing_result_filename",  DEF_OB_DIALING_RESULT_FILENAME,
         "dialing_timeout",          DEF_OB_DIALING_TIMEOUT,
-        "database_name",            DEF_OB_DATABASE_NAME
+        "database_name",            DEF_OB_DATABASE_NAME,
+
+      "dialplan",
+        "default_dpma_originate_to_device",     DEF_DIALPLA_DEFAULT_ORIGINATE_TO_DEVICE,
+        "default_dpma_originate_to_number",     DEF_DIALPLA_DEFAULT_ORIGINATE_TO_NUMBER
       );
   if(j_conf_def == NULL) {
     printf("Could not create default config.\n");

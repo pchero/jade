@@ -214,7 +214,7 @@ static bool init_database_contact(void)
     ");";
 
   // execute
-  ret = resource_exec_jade_sql(create_table);
+  ret = resource_exec_file_sql(create_table);
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate database. database[%s]", DEF_DB_TABLE_USER_CONTACT);
     return false;
@@ -244,7 +244,7 @@ static bool init_database_permission(void)
     ");";
 
   // execute
-  ret = resource_exec_jade_sql(create_table);
+  ret = resource_exec_file_sql(create_table);
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate database. database[%s]", DEF_DB_TABLE_USER_PERMISSION);
     return false;
@@ -278,7 +278,7 @@ static bool init_database_authtoken(void)
     ");";
 
   // execute
-  ret = resource_exec_jade_sql(create_table);
+  ret = resource_exec_file_sql(create_table);
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate database. database[%s]", DEF_DB_TABLE_USER_AUTHTOKEN);
     return false;
@@ -315,7 +315,7 @@ static bool init_database_userinfo(void)
       ");";
 
   // execute
-  ret = resource_exec_jade_sql(create_table);
+  ret = resource_exec_file_sql(create_table);
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate database. database[%s]", DEF_DB_TABLE_USER_USERINFO);
     return false;
@@ -353,7 +353,7 @@ static bool init_database_buddy(void)
       ");";
 
   // execute
-  ret = resource_exec_jade_sql(create_table);
+  ret = resource_exec_file_sql(create_table);
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate database. database[%s]", DEF_DB_TABLE_USER_BUDDY);
     return false;
@@ -1501,7 +1501,7 @@ json_t* user_get_userinfo_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired get_user_userinfo_info. key[%s]", key);
 
-  j_res = resource_get_jade_detail_item_key_string(DEF_DB_TABLE_USER_USERINFO, "uuid", key);
+  j_res = resource_get_file_detail_item_key_string(DEF_DB_TABLE_USER_USERINFO, "uuid", key);
 
   return j_res;
 }
@@ -1516,7 +1516,7 @@ json_t* user_get_userinfos_all(void)
 
   slog(LOG_DEBUG, "Fired get_user_userinfos_all.");
 
-  j_res = resource_get_jade_items(DEF_DB_TABLE_USER_USERINFO, "*");
+  j_res = resource_get_file_items(DEF_DB_TABLE_USER_USERINFO, "*");
 
   return j_res;
 }
@@ -1536,7 +1536,7 @@ json_t* user_get_userinfo_info_by_username(const char* key)
   }
   slog(LOG_DEBUG, "Fired get_user_userinfo_info_by_username. key[%s]", key);
 
-  j_res = resource_get_jade_detail_item_key_string(DEF_DB_TABLE_USER_USERINFO, "username", key);
+  j_res = resource_get_file_detail_item_key_string(DEF_DB_TABLE_USER_USERINFO, "username", key);
 
   return j_res;
 }
@@ -1561,7 +1561,7 @@ json_t* user_get_userinfo_info_by_username_password(const char* username, const 
       "password",   pass
       );
 
-  j_res = resource_get_jade_detail_item_by_obj(DEF_DB_TABLE_USER_USERINFO, j_obj);
+  j_res = resource_get_file_detail_item_by_obj(DEF_DB_TABLE_USER_USERINFO, j_obj);
   json_decref(j_obj);
   if(j_res == NULL) {
     return NULL;
@@ -1616,7 +1616,7 @@ static bool db_create_userinfo_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired create_user_userinfo_info.");
 
   // insert userinfo info
-  ret = resource_insert_jade_item(DEF_DB_TABLE_USER_USERINFO, j_data);
+  ret = resource_insert_file_item(DEF_DB_TABLE_USER_USERINFO, j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert user_userinfo.");
     return false;
@@ -1636,7 +1636,7 @@ bool user_update_userinfo_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired create_user_userinfo_info.");
 
   // update info
-  ret = resource_update_jade_item(DEF_DB_TABLE_USER_USERINFO, "uuid", j_data);
+  ret = resource_update_file_item(DEF_DB_TABLE_USER_USERINFO, "uuid", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update user_userinfo info.");
     return false;
@@ -1659,7 +1659,7 @@ bool user_delete_userinfo_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired delete_user_userinfo_info. key[%s]", key);
 
-  ret = resource_delete_jade_items_string(DEF_DB_TABLE_USER_USERINFO, "uuid", key);
+  ret = resource_delete_file_items_string(DEF_DB_TABLE_USER_USERINFO, "uuid", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete dp_dialplan info. key[%s]", key);
     return false;
@@ -1676,7 +1676,7 @@ json_t* user_get_authtokens_all(void)
 {
   json_t* j_res;
 
-  j_res = resource_get_jade_items(DEF_DB_TABLE_USER_AUTHTOKEN, "*");
+  j_res = resource_get_file_items(DEF_DB_TABLE_USER_AUTHTOKEN, "*");
   return j_res;
 }
 
@@ -1694,7 +1694,7 @@ json_t* user_get_authtoken_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired get_user_authtoken_info. key[%s]", key);
 
-  j_res = resource_get_jade_detail_item_key_string(DEF_DB_TABLE_USER_AUTHTOKEN, "uuid", key);
+  j_res = resource_get_file_detail_item_key_string(DEF_DB_TABLE_USER_AUTHTOKEN, "uuid", key);
 
   return j_res;
 }
@@ -1710,7 +1710,7 @@ static bool db_create_authtoken_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired db_create_authtoken_info.");
 
   // insert authtoken info
-  ret = resource_insert_jade_item(DEF_DB_TABLE_USER_AUTHTOKEN, j_data);
+  ret = resource_insert_file_item(DEF_DB_TABLE_USER_AUTHTOKEN, j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert user_authtoken.");
     return false;
@@ -1730,7 +1730,7 @@ static bool db_update_authtoken_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired db_update_authtoken_info.");
 
   // update info
-  ret = resource_update_jade_item(DEF_DB_TABLE_USER_AUTHTOKEN, "uuid", j_data);
+  ret = resource_update_file_item(DEF_DB_TABLE_USER_AUTHTOKEN, "uuid", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update user_authtoken info.");
     return false;
@@ -1754,7 +1754,7 @@ static bool db_delete_authtoken_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired db_delete_authtoken_info. key[%s]", key);
 
-  ret = resource_delete_jade_items_string(DEF_DB_TABLE_USER_AUTHTOKEN, "uuid", key);
+  ret = resource_delete_file_items_string(DEF_DB_TABLE_USER_AUTHTOKEN, "uuid", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete user_authtoken info. key[%s]", key);
     return false;
@@ -1774,7 +1774,7 @@ static bool db_create_permission_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired db_create_permission_info.");
 
   // insert permission info
-  ret = resource_insert_jade_item(DEF_DB_TABLE_USER_PERMISSION, j_data);
+  ret = resource_insert_file_item(DEF_DB_TABLE_USER_PERMISSION, j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert user_permission.");
     return false;
@@ -1792,7 +1792,7 @@ static bool db_delete_permission_info(const char* key)
     return false;
   }
   // delete
-  ret = resource_delete_jade_items_string(DEF_DB_TABLE_USER_PERMISSION, "uuid", key);
+  ret = resource_delete_file_items_string(DEF_DB_TABLE_USER_PERMISSION, "uuid", key);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete permission info. uuid[%s]", key);
     return false;
@@ -1812,7 +1812,7 @@ static bool db_create_contact_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired create_user_contact_info.");
 
   // insert info
-  ret = resource_insert_jade_item(DEF_DB_TABLE_USER_CONTACT, j_data);
+  ret = resource_insert_file_item(DEF_DB_TABLE_USER_CONTACT, j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert user_contact.");
     return false;
@@ -1830,7 +1830,7 @@ static json_t* db_get_buddies_info_by_owneruuid(const char* uuid_user)
     return NULL;
   }
 
-  j_res = resource_get_jade_detail_items_key_string(DEF_DB_TABLE_USER_BUDDY, "uuid_owner", uuid_user);
+  j_res = resource_get_file_detail_items_key_string(DEF_DB_TABLE_USER_BUDDY, "uuid_owner", uuid_user);
   if(j_res == NULL) {
     return NULL;
   }
@@ -1847,7 +1847,7 @@ static bool db_create_buddy_info(const json_t* j_data)
     return NULL;
   }
 
-  ret = resource_insert_jade_item(DEF_DB_TABLE_USER_BUDDY, j_data);
+  ret = resource_insert_file_item(DEF_DB_TABLE_USER_BUDDY, j_data);
   if(ret == false) {
     slog(LOG_WARNING, "Could not insert data into table.");
     return false;
@@ -1865,7 +1865,7 @@ static bool db_delete_buddy_info(const char* uuid)
     return false;
   }
 
-  ret = resource_delete_jade_items_string(DEF_DB_TABLE_USER_BUDDY, "uuid", uuid);
+  ret = resource_delete_file_items_string(DEF_DB_TABLE_USER_BUDDY, "uuid", uuid);
   if(ret == false) {
     return false;
   }
@@ -1882,7 +1882,7 @@ static bool db_update_buddy_info(const json_t* j_data)
     return false;
   }
 
-  ret = resource_update_jade_item(DEF_DB_TABLE_USER_BUDDY, "uuid", j_data);
+  ret = resource_update_file_item(DEF_DB_TABLE_USER_BUDDY, "uuid", j_data);
   if(ret == false) {
     return false;
   }
@@ -1968,7 +1968,7 @@ json_t* user_get_permissions_all(void)
 {
   json_t* j_res;
 
-  j_res = resource_get_jade_items(DEF_DB_TABLE_USER_PERMISSION, "*");
+  j_res = resource_get_file_items(DEF_DB_TABLE_USER_PERMISSION, "*");
   return j_res;
 }
 
@@ -2016,7 +2016,7 @@ json_t* user_get_permission_info_by_useruuid_perm(const char* useruuid, const ch
       "permission",   perm
       );
 
-  j_res = resource_get_jade_detail_item_by_obj(DEF_DB_TABLE_USER_PERMISSION, j_obj);
+  j_res = resource_get_file_detail_item_by_obj(DEF_DB_TABLE_USER_PERMISSION, j_obj);
   json_decref(j_obj);
   if(j_res == NULL) {
     return NULL;
@@ -2029,7 +2029,7 @@ json_t* user_get_contacts_all(void)
 {
   json_t* j_res;
 
-  j_res = resource_get_jade_items(DEF_DB_TABLE_USER_CONTACT, "*");
+  j_res = resource_get_file_items(DEF_DB_TABLE_USER_CONTACT, "*");
   return j_res;
 }
 
@@ -2052,7 +2052,7 @@ json_t* user_get_contacts_by_user_uuid(const char* user_uuid)
       "user_uuid",  user_uuid
       );
 
-  j_res = resource_get_jade_detail_items_by_obj(DEF_DB_TABLE_USER_CONTACT, j_obj);
+  j_res = resource_get_file_detail_items_by_obj(DEF_DB_TABLE_USER_CONTACT, j_obj);
   json_decref(j_obj);
 
   return j_res;
@@ -2072,7 +2072,7 @@ json_t* user_get_contact_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired get_user_contact_info. key[%s]", key);
 
-  j_res = resource_get_jade_detail_item_key_string(DEF_DB_TABLE_USER_CONTACT, "uuid", key);
+  j_res = resource_get_file_detail_item_key_string(DEF_DB_TABLE_USER_CONTACT, "uuid", key);
 
   return j_res;
 }
@@ -2118,7 +2118,7 @@ bool user_update_contact_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired update_user_contact_info.");
 
   // update info
-  ret = resource_update_jade_item(DEF_DB_TABLE_USER_CONTACT, "uuid", j_data);
+  ret = resource_update_file_item(DEF_DB_TABLE_USER_CONTACT, "uuid", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update user_contact info.");
     return false;
@@ -2142,7 +2142,7 @@ bool user_delete_contact_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired delete_user_contact_info. key[%s]", key);
 
-  ret = resource_delete_jade_items_string(DEF_DB_TABLE_USER_CONTACT, "uuid", key);
+  ret = resource_delete_file_items_string(DEF_DB_TABLE_USER_CONTACT, "uuid", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete user_contact info. key[%s]", key);
     return false;
@@ -2188,7 +2188,7 @@ json_t* user_get_buddy_info(const char* uuid)
     return NULL;
   }
 
-  j_res = resource_get_jade_detail_item_key_string(DEF_DB_TABLE_USER_BUDDY, "uuid", uuid);
+  j_res = resource_get_file_detail_item_key_string(DEF_DB_TABLE_USER_BUDDY, "uuid", uuid);
   if(j_res == NULL) {
     return NULL;
   }
@@ -2359,7 +2359,7 @@ static json_t* get_buddy(const char* uuid)
     return NULL;
   }
 
-  j_res = resource_get_jade_detail_item_key_string(DEF_DB_TABLE_USER_BUDDY, "uuid", uuid);
+  j_res = resource_get_file_detail_item_key_string(DEF_DB_TABLE_USER_BUDDY, "uuid", uuid);
   if(j_res == NULL) {
     return NULL;
   }

@@ -22,7 +22,8 @@
 #include "sip_handler.h"
 #include "pjsip_handler.h"
 #include "chat_handler.h"
-#include <publication_handler.h>
+#include "publication_handler.h"
+#include "call_handler.h"
 
 #include "me_handler.h"
 
@@ -53,6 +54,12 @@ static json_t* get_buddy_info(const json_t* j_user, const char* uuid_buddy);
 static json_t* get_buddies_info(const json_t* j_user);
 static bool update_buddy_info(const json_t* j_user, const char* detail, const json_t* j_data);
 static bool delete_buddy_info(const json_t* j_user, const char* detail);
+
+static json_t* get_calls_info(const json_t* j_user);
+static bool create_call_info(const json_t* j_user, const json_t* j_data);
+static bool create_call_to_user(const json_t* j_user, const json_t* j_data);
+static char* get_callable_contact_from_useruuid(const char* uuid_user);
+
 
 bool me_init_handler(void)
 {
@@ -156,7 +163,8 @@ void me_htp_get_me_chats(evhtp_request_t *req, void *data)
 
   // create result
   j_res = http_create_default_result(EVHTP_RES_OK);
-  json_object_set_new(j_res, "result", j_tmp);
+  json_object_set_new(j_res, "result", json_object());
+  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
 
   // response
   http_simple_response_normal(req, j_res);
@@ -456,7 +464,8 @@ void me_htp_get_me_chats_detail_messages(evhtp_request_t *req, void *data)
 
   // create result
   j_res = http_create_default_result(EVHTP_RES_OK);
-  json_object_set_new(j_res, "result", j_tmp);
+  json_object_set_new(j_res, "result", json_object());
+  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
 
   // response
   http_simple_response_normal(req, j_res);
@@ -559,9 +568,11 @@ void me_htp_get_me_buddies(evhtp_request_t *req, void *data)
     return;
   }
 
+
   // create result
   j_res = http_create_default_result(EVHTP_RES_OK);
-  json_object_set_new(j_res, "result", j_tmp);
+  json_object_set_new(j_res, "result", json_object());
+  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
 
   // response
   http_simple_response_normal(req, j_res);
@@ -794,6 +805,102 @@ void me_htp_delete_me_buddies_detail(evhtp_request_t *req, void *data)
 
   return;
 }
+
+/**
+ * GET ^/me/calls request handler.
+ * @param req
+ * @param data
+ */
+void me_htp_get_me_calls(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+  json_t* j_user;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired me_htp_get_me_calls.");
+
+  // get userinfo
+  j_user = get_userinfo(req);
+  if(j_user == NULL) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  // get calls info
+  j_tmp = get_calls_info(j_user);
+  json_decref(j_user);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get buddy info.");
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", json_object());
+  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * POST ^/me/calls request handler.
+ * @param req
+ * @param data
+ */
+void me_htp_post_me_calls(evhtp_request_t *req, void *data)
+{
+  int ret;
+  json_t* j_res;
+  json_t* j_user;
+  json_t* j_data;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired me_htp_post_me_calls.");
+
+  // get userinfo
+  j_user = get_userinfo(req);
+  if(j_user == NULL) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  j_data = http_get_json_from_request_data(req);
+  if(j_data == NULL) {
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // create call
+  ret = create_call_info(j_user, j_data);
+  json_decref(j_user);
+  json_decref(j_data);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
 
 /**
  * Get given authtoken's me info.
@@ -1419,6 +1526,7 @@ static bool create_chatmessage_info(json_t* j_user, const char* uuid_userroom, j
 
   // publish event
   ret = publication_publish_event_me_chat_message(EN_PUBLISH_CREATE, uuid_room, j_message);
+  json_decref(j_message);
   sfree(uuid_room);
   if(ret == false) {
     slog(LOG_WARNING, "Could not publish chat message notification. ");
@@ -1462,6 +1570,11 @@ static json_t* get_buddy_info(const json_t* j_user, const char* uuid_buddy)
   return j_res;
 }
 
+/**
+ * Returns json array of given user's buddies
+ * @param j_user
+ * @return
+ */
 static json_t* get_buddies_info(const json_t* j_user)
 {
   const char* uuid_user;
@@ -1654,3 +1767,172 @@ static bool delete_buddy_info(const json_t* j_user, const char* detail)
   return true;
 }
 
+/**
+ * Returns json array of given user's calls
+ * @param j_user
+ * @return
+ */
+static json_t* get_calls_info(const json_t* j_user)
+{
+  const char* uuid_user;
+  json_t* j_res;
+  json_t* j_contacts;
+  json_t* j_contact;
+  json_t* j_calls;
+  json_t* j_call;
+  const char* target;
+  int idx;
+  int idx_2;
+
+  if(j_user == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  uuid_user = json_string_value(json_object_get(j_user, "uuid"));
+  if(uuid_user == NULL) {
+    slog(LOG_WARNING, "Could not get user uuid info.");
+    return NULL;
+  }
+
+  // get user's contacts
+  j_contacts = user_get_contacts_by_user_uuid(uuid_user);
+  if(j_contacts == NULL) {
+    slog(LOG_WARNING, "Could not get user's contacts info.");
+    return NULL;
+  }
+
+  // get all calls info of given user's all contacts.
+  j_res = json_array();
+  json_array_foreach(j_contacts, idx, j_contact) {
+    // get target
+    target = json_string_value(json_object_get(j_contact, "target"));
+    if(target == NULL) {
+      slog(LOG_WARNING, "Could not get target info.");
+      continue;
+    }
+
+    // get call info
+    j_calls = call_get_channels_by_devicename(target);
+    if(j_calls == NULL) {
+      slog(LOG_NOTICE, "Could not get channels info. target[%s]", target);
+      continue;
+    }
+
+    // add to result array
+    json_array_foreach(j_calls, idx_2, j_call) {
+      json_array_append(j_res, j_call);
+    }
+    json_decref(j_calls);
+
+  }
+  json_decref(j_contacts);
+
+  return j_res;
+}
+
+static char* get_callable_contact_from_useruuid(const char* uuid_user)
+{
+  json_t* j_contacts;
+  json_t* j_contact;
+  const char* tmp_const;
+  char* res;
+
+  if(uuid_user == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  // get user's contacts
+  j_contacts = user_get_contacts_by_user_uuid(uuid_user);
+  if(j_contacts == NULL) {
+    slog(LOG_WARNING, "Could not get user's contacts info.");
+    return NULL;
+  }
+
+  j_contact = json_array_get(j_contacts, 0);
+  if(j_contact == NULL) {
+    slog(LOG_NOTICE, "The given user has no contact.");
+    json_decref(j_contacts);
+    return NULL;
+  }
+
+  tmp_const = json_string_value(json_object_get(j_contact, "uuid"));
+  if(tmp_const == NULL) {
+    slog(LOG_ERR, "Could not get contact uuid info.");
+    json_decref(j_contacts);
+    return NULL;
+  }
+
+  res = strdup(tmp_const);
+  json_decref(j_contacts);
+
+  return res;
+}
+
+static bool create_call_info(const json_t* j_user, const json_t* j_data)
+{
+  int ret;
+  const char* type;
+
+  if((j_user == NULL) || (j_data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired create_call_info.");
+
+  type = json_string_value(json_object_get(j_data, "destination_type"));
+  if(type == NULL) {
+    slog(LOG_NOTICE, "Could not get destination type info.");
+    return false;
+  }
+
+  if(strcmp(type, "user") == 0) {
+    ret = create_call_to_user(j_user, j_data);
+  }
+  else {
+    slog(LOG_NOTICE, "Not support yet.");
+    ret = false;
+  }
+
+  if(ret == false) {
+    return false;
+  }
+
+  return true;
+}
+
+static bool create_call_to_user(const json_t* j_user, const json_t* j_data)
+{
+  int ret;
+  const char* tmp_const;
+  char* source;
+  char* destination;
+
+  // get source
+  tmp_const = json_string_value(json_object_get(j_user, "uuid"));
+  source = get_callable_contact_from_useruuid(tmp_const);
+  if(source == NULL) {
+    slog(LOG_NOTICE, "Could not get source info.");
+    return false;
+  }
+
+  // get destination
+  tmp_const = json_string_value(json_object_get(j_data, "destination"));
+  destination = get_callable_contact_from_useruuid(tmp_const);
+  if(destination == NULL) {
+    slog(LOG_NOTICE, "Could not get destination info.");
+    sfree(source);
+    return false;
+  }
+
+  ret = call_originate_call_to_device(source, destination);
+  sfree(source);
+  sfree(destination);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create call to user.");
+    return false;
+  }
+
+  return true;
+}
