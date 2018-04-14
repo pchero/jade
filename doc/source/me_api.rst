@@ -340,5 +340,41 @@ Example
     "timestamp": "2018-03-27T20:25:32.526413444Z"
   }
 
+.. _me_search:
+
+/me/search
+==========
+
+Methods
+-------
+GET : Get searched info.
+
+.. _get_me_info:
+
+Method: GET
+-----------
+Get searched info
+
+Example
++++++++
+::
+
+  $ curl -k https://localhost:8081/v1/me/search\?filter=test\&type=username\&authtoken=8eaa8d32-b58d-494a-a323-c0535b6f66d5
   
-  
+  {
+    "api_ver": "0.1",
+    "result": {
+        "list": [
+            {
+                "name": "test name",
+                "username": "test",
+                "uuid": "980404a2-f509-4140-9c92-96a018d1b61c"
+            }
+        ]
+    },
+    "statuscode": 200,
+    "timestamp": "2018-04-12T06:42:15.741891135Z"
+  }
+
+
+
