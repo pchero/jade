@@ -1844,6 +1844,7 @@ static bool delete_buddy_info(const json_t* j_user, const char* detail)
 {
   int ret;
   const char* uuid_owner;
+  json_t* j_tmp;
 
   if((j_user == NULL) || (detail == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -1868,10 +1869,25 @@ static bool delete_buddy_info(const json_t* j_user, const char* detail)
     return false;
   }
 
+  // get deleted buddy info
+  j_tmp = get_buddy_info(j_user, detail);
+  if(j_tmp == NULL) {
+    slog(LOG_WARNING, "Could not get deleted buddy info.");
+    return false;
+  }
+
   // delete
   ret = user_delete_buddy_info(detail);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete buddy info.");
+    json_decref(j_tmp);
+    return false;
+  }
+
+  // publish event
+  ret = publication_publish_event_me_buddy(EN_PUBLISH_DELETE, uuid_owner, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
     return false;
   }
 
