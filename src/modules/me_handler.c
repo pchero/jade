@@ -454,6 +454,7 @@ void me_htp_get_me_chats_detail_messages(evhtp_request_t *req, void *data)
 
   // get messages
   j_tmp = get_chatmessages_info(j_user, detail, timestamp, count);
+  json_decref(j_user);
   sfree(detail);
   sfree(timestamp);
   if(j_tmp == NULL) {
