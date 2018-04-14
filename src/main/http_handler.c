@@ -170,7 +170,7 @@ extern app* g_app;
 evhtp_t* g_htps = NULL;
 
 
-bool htpp_init_handler(void)
+bool http_init_handler(void)
 {
   int ret;
 

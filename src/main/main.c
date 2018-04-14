@@ -89,7 +89,7 @@ bool init(void)
   }
   slog(LOG_DEBUG, "Finished init_ami_handler.");
 
-  ret = htpp_init_handler();
+  ret = http_init_handler();
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate http_handler.");
     return false;
