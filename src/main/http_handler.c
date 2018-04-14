@@ -73,6 +73,7 @@ static void cb_htp_me_buddies(evhtp_request_t *req, void *data);
 static void cb_htp_me_buddies_detail(evhtp_request_t *req, void *data);
 static void cb_htp_me_calls(evhtp_request_t *req, void *data);
 static void cb_htp_me_calls_detail(evhtp_request_t *req, void *data);
+static void cb_htp_me_contacts(evhtp_request_t *req, void *data);
 static void cb_htp_me_chats(evhtp_request_t *req, void *data);
 static void cb_htp_me_chats_detail(evhtp_request_t *req, void *data);
 static void cb_htp_me_chats_detail_messages(evhtp_request_t *req, void *data);
@@ -170,7 +171,7 @@ extern app* g_app;
 evhtp_t* g_htps = NULL;
 
 
-bool htpp_init_handler(void)
+bool http_init_handler(void)
 {
   int ret;
 
@@ -234,6 +235,9 @@ bool htpp_init_handler(void)
   // calls
   evhtp_set_regex_cb(g_htps, "^/v1/me/calls$", cb_htp_me_calls, NULL);
   evhtp_set_regex_cb(g_htps, "^/v1/me/calls/("DEF_REG_UUID")$", cb_htp_me_calls_detail, NULL);
+
+  // contacts
+  evhtp_set_regex_cb(g_htps, "^/v1/me/contacts$", cb_htp_me_contacts, NULL);
 
   // chats
   evhtp_set_regex_cb(g_htps, "^/v1/me/chats$", cb_htp_me_chats, NULL);
@@ -5971,6 +5975,54 @@ static void cb_htp_me_search(evhtp_request_t *req, void *data)
 
   // should not reach to here.
   http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+
+  return;
+}
+
+/**
+ * http request handler
+ * ^/me/contacts$
+ * @param req
+ * @param data
+ */
+static void cb_htp_me_contacts(evhtp_request_t *req, void *data)
+{
+  int method;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_me_contacts.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_USER);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if(method != htp_method_GET) {
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // fire handlers
+  if(method == htp_method_GET) {
+    me_htp_get_me_contacts(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
 
   return;
 }

@@ -52,6 +52,53 @@ Example
     "statuscode": 200,
     "timestamp": "2018-03-28T01:37:19.333332411Z"
   }
+  
+  
+.. _me_contacts:
+
+/me/contacts
+============
+
+Methods
+-------
+GET : Get all contacts info.
+
+Method: GET
+-----------
+Get all contacts info.
+
+Example
++++++++
+::
+
+  $ curl -k https://localhost:8081/v1/me/contacts\?authtoken=73fe26da-bdcf-4558-afb8-b241deb00aba
+  
+  {
+    "api_ver": "0.1",
+    "result": {
+        "list": [
+            {
+                "detail": "test target detail 4",
+                "info": {
+                    "id": "199",
+                    "password": "199",
+                    "public_url": "sip:199@192.168.200.10",
+                    "realm": "localhost"
+                },
+                "name": "test target",
+                "target": "199",
+                "tm_create": "2018-02-13T17:54:12.399972783Z",
+                "tm_update": "2018-03-28T01:15:50.278779412Z",
+                "type": "pjsip_endpoint",
+                "user_uuid": "59e3a7d5-b05f-43cd-abdf-db7009eed6cf",
+                "uuid": "62a78a12-34ba-4b4f-b9ea-e52e4bac6459"
+            }
+        ]
+    },
+    "statuscode": 200,
+    "timestamp": "2018-04-12T14:28:30.181544876Z"
+  }
+
 
 .. _me_chats:
 

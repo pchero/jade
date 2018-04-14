@@ -63,6 +63,7 @@ static char* get_callable_contact_from_useruuid(const char* uuid_user);
 static json_t* get_search_info(json_t* j_user, const char* filter, const char* type);
 static json_t* get_users_info_by_username(const char* username);
 
+
 bool me_init_handler(void)
 {
   slog(LOG_DEBUG, "Fired init_me_handler.");
@@ -951,6 +952,51 @@ void me_htp_get_me_search(evhtp_request_t *req, void *data)
   sfree(type);
   if(j_tmp == NULL) {
     slog(LOG_NOTICE, "Could not get search info.");
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", json_object());
+  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * GET ^/me/contacts request handler.
+ * @param req
+ * @param data
+ */
+void me_htp_get_me_contacts(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+  json_t* j_user;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired me_htp_get_me_contacts.");
+
+  // get userinfo
+  j_user = get_userinfo(req);
+  if(j_user == NULL) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  // get contacts info
+  j_tmp = get_contacts_info(j_user);
+  json_decref(j_user);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get contacts info.");
     http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
     return;
   }
@@ -2052,3 +2098,4 @@ static json_t* get_users_info_by_username(const char* username)
 
   return j_res;
 }
+
