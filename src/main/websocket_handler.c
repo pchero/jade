@@ -13,6 +13,7 @@
 #include <signal.h>
 
 #include "bsd_queue.h"
+#include "bsd_tree.h"
 #include "common.h"
 #include "slog.h"
 #include "utils.h"
@@ -24,11 +25,14 @@
  * Client session
  */
 struct client_session {
+  RB_ENTRY(client_session) linkage;
+
   struct lws* wsi;    // websocket handler
   void* zmq_sock;     // zeromq socket for subscribe
   void* evt;          // event for socket
 
   char* addr;   ///< connected session address
+  char* authtoken;  ///< authtoken
 
   json_t* j_subs;   ///< subscription json array
 
@@ -60,7 +64,7 @@ static struct lws_protocols* g_protocols;
 struct lws_context* g_websocket_context;
 extern app* g_app;
 
-
+static int callback_http(struct lws *wsi, enum lws_callback_reasons reason, void *user, void *in, size_t len);
 
 static bool init_client_session(struct lws* wsi, struct client_session* session);
 static void destroy_client_session(struct client_session* session);
@@ -80,6 +84,88 @@ static void zmq_sub_message_recv(int fd, short ev, void* arg);
 static void add_subscription(struct client_session* session, const char* topic);
 static void remove_subscription(struct client_session* session, const char* topic);
 
+static json_t* parse_uri_parameter(struct lws *wsi);
+static json_t* parse_uri_parameter_string(const char* param);
+
+static bool set_zmq_sock(struct client_session* session);
+static bool set_event_handler(struct client_session* session);
+static bool set_authtoken(struct client_session* session);
+
+static int compare_client_session(struct client_session *e1, struct client_session *e2);
+
+RB_HEAD(client_session_entries, client_session) client_session_head = RB_INITIALIZER(&head);
+RB_PROTOTYPE(client_session_entries, client_session, linkage, compare_client_session);
+RB_GENERATE(client_session_entries, client_session, linkage, compare_client_session);
+
+/**
+ * Initiate websocket handler
+ * @return
+ */
+bool websocket_init_handler(void)
+{
+  struct lws_context_creation_info info;
+  const char* addr;
+  const char* port;
+  const char* pem_file;
+  int ret;
+
+  memset(&info, 0, sizeof(info));
+
+  // get init info
+  addr = json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "websock_addr"));
+  port = json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "websock_port"));
+  pem_file = json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "https_pemfile"));
+  slog(LOG_INFO, "Initiating websock. addr[%s], port[%s]", addr, port);
+
+  // set protocols
+  g_protocols = calloc(2, sizeof(struct lws_protocols));
+
+  // http protocol
+  g_protocols[0].name = "http-only";
+  g_protocols[0].callback = callback_http;
+  g_protocols[0].per_session_data_size = sizeof(struct client_session);
+  g_protocols[0].rx_buffer_size = 0;
+  g_protocols[0].tx_packet_size = 0;
+  g_protocols[0].user = NULL;
+
+  g_protocols[1].name = NULL;
+  g_protocols[1].callback = NULL;
+  g_protocols[1].per_session_data_size = 0;
+  g_protocols[1].rx_buffer_size = 0;
+  g_protocols[1].tx_packet_size = 0;
+  g_protocols[1].user = NULL;
+
+  // initiate options
+  info.iface = addr;
+  info.port = atoi(port);
+  info.protocols = g_protocols;
+  info.gid = -1;
+  info.uid = -1;
+  info.options = LWS_SERVER_OPTION_LIBEVENT;
+  info.ssl_cert_filepath = pem_file;
+  info.ssl_private_key_filepath = pem_file;
+  info.options |= LWS_SERVER_OPTION_REDIRECT_HTTP_TO_HTTPS;
+  lws_set_log_level(0, NULL);
+  g_websocket_context = lws_create_context(&info);
+  if(g_websocket_context == NULL) {
+    slog(LOG_ERR, "Could not create lws context.");
+    return false;
+  }
+
+  ret = lws_event_initloop(g_websocket_context, g_app->evt_base, 0);
+  slog(LOG_DEBUG, "Check value. ret[%d]", ret);
+
+  return true;
+}
+
+/**
+ * Terminate websocket handler
+ */
+void websocket_term_handler(void)
+{
+  lws_context_destroy(g_websocket_context);
+}
+
 /**
  * HTTP weboscket handler
  * @param wsi
@@ -98,7 +184,6 @@ static int callback_http(struct lws *wsi, enum lws_callback_reasons reason, void
     slog(LOG_WARNING, "Wrong input parameter.");
     return 1;
   }
-
   session = (struct client_session*)user;
 
   switch(reason)
@@ -160,14 +245,7 @@ static int callback_http(struct lws *wsi, enum lws_callback_reasons reason, void
 static bool init_client_session(struct lws* wsi, struct client_session* session)
 {
   char buf[1024];
-  void* zmq_sock;
   int ret;
-  struct event* evt;
-  int fd;
-  size_t length;
-
-  const char* zmq_addr_pub;
-  void* zmq_context;
 
   if((wsi == NULL) || (session == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -191,46 +269,29 @@ static bool init_client_session(struct lws* wsi, struct client_session* session)
   slog(LOG_DEBUG, "Connected new client. addr[%s]", buf);
   session->addr = strdup(buf);
 
-  // create new zmq sock
-  zmq_context = zmq_get_context();
-  zmq_addr_pub = zmq_get_pub_addr();
-  slog(LOG_DEBUG, "Connecting to the local pub socket. addr[%s]", zmq_addr_pub);
-
-  // connect zmq
-  zmq_sock = zmq_socket(zmq_context, ZMQ_SUB);
-  ret = zmq_connect(zmq_sock, zmq_addr_pub);
-  if(ret != 0) {
-    slog(LOG_ERR, "Could not connect to zmq socket. err[%d:%s]", errno, strerror(errno));
-    destroy_client_session(session);
-    return false;
-  }
-  session->zmq_sock= zmq_sock;
-
-  // get file descriptor
-  length = sizeof(fd);
-  ret = zmq_getsockopt(session->zmq_sock, ZMQ_FD, &fd, &length);
-  if(ret != 0) {
-    slog(LOG_ERR, "Could not get zmq fd. err[%d:%s]", errno, strerror(errno));
-    destroy_client_session(session);
+  // set zmq_sock
+  ret = set_zmq_sock(session);
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not set zmq socket.");
     return false;
   }
 
-  // create event
-  evt = event_new(g_app->evt_base, fd, EV_PERSIST | EV_READ, zmq_sub_message_recv, session);
-  if(evt == NULL) {
-    slog(LOG_ERR, "Could not create event for zmq messge subscribe handler.");
-    destroy_client_session(session);
+  // set event handler
+  ret = set_event_handler(session);
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not set event handler.");
     return false;
   }
 
-  // register event
-  ret = event_add(evt, NULL);
-  if(ret != 0) {
-    slog(LOG_ERR, "Could not register event.");
-    destroy_client_session(session);
+  // set authtoken
+  ret = set_authtoken(session);
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not set authtoken.");
     return false;
   }
-  session->evt = evt;
+
+  // insert into RBTREE
+  RB_INSERT(client_session_entries, &client_session_head, session);
 
   return true;
 }
@@ -248,6 +309,9 @@ static void destroy_client_session(struct client_session* session)
     return;
   }
 
+  // delete from RBTREE
+  RB_REMOVE(client_session_entries, &client_session_head, session);
+
   // delete all msg
   TAILQ_FOREACH_SAFE(entry, &(session->msg_queue), entries, entry_tmp) {
     TAILQ_REMOVE(&(session->msg_queue), session->msg_queue.tqh_first, entries);
@@ -256,6 +320,7 @@ static void destroy_client_session(struct client_session* session)
 
   // free all members.
   sfree(session->addr);
+  sfree(session->authtoken);
   zmq_close(session->zmq_sock);
   if(session->evt != NULL) {
     event_del(session->evt);
@@ -763,72 +828,219 @@ static bool websocket_handler_receive(struct client_session* session, char* data
   return true;
 }
 
+static json_t* parse_uri_parameter(struct lws *wsi)
+{
+  char tmp[1024];
+  int i;
+  int ret;
+  json_t* j_res;
+  json_t* j_tmp;
+
+  if(wsi == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  j_res = json_object();
+  while(1) {
+    ret = lws_hdr_copy_fragment(wsi, tmp, sizeof(tmp), WSI_TOKEN_HTTP_URI_ARGS, i);
+    if(ret <= 0) {
+      break;
+    }
+    i++;
+
+    // parse
+    j_tmp = parse_uri_parameter_string(tmp);
+    if(j_tmp == NULL) {
+      continue;
+    }
+
+    json_object_update(j_res, j_tmp);
+    json_decref(j_tmp);
+  }
+
+  return j_res;
+}
+
 /**
- * Initiate websocket handler
+ * Parse uri parameter.
+ * @param param
  * @return
  */
-bool websocket_init_handler(void)
+static json_t* parse_uri_parameter_string(const char* param)
 {
-  struct lws_context_creation_info info;
-  const char* addr;
-  const char* port;
-  const char* pem_file;
+  char key[1024];
+  char val[1024];
+  int len;
+  int i;
+  json_t* j_res;
+  bool find;
+
+  if(param == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  find = false;
+  len = strlen(param);
+  for(i = 0; i < len; i++) {
+    if(param[i] == '=') {
+      find = true;
+      break;
+    }
+  }
+
+  if(find == false) {
+    // if could not find it, just return NULL
+    return NULL;
+  }
+
+  // get key
+  snprintf(key, i + 1, "%s", param);
+
+  // get value
+  snprintf(val, sizeof(val), "%s", param + i + 1);
+
+  j_res = json_object();
+  json_object_set_new(j_res, key, json_string(val));
+
+  return j_res;
+}
+
+static int compare_client_session(struct client_session *e1, struct client_session *e2)
+{
   int ret;
 
-  memset(&info, 0, sizeof(info));
+  if((e1->authtoken == NULL) || (e2->authtoken == NULL)) {
+    return 1;
+  }
 
-  // get init info
-  addr = json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "websock_addr"));
-  port = json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "websock_port"));
-  pem_file = json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "https_pemfile"));
-  slog(LOG_INFO, "Initiating websock. addr[%s], port[%s]", addr, port);
+  ret = strcmp(e1->authtoken, e2->authtoken);
 
-  // set protocols
-  g_protocols = calloc(2, sizeof(struct lws_protocols));
+  return ret;
+}
 
-  // http protocol
-  g_protocols[0].name = "http-only";
-  g_protocols[0].callback = callback_http;
-  g_protocols[0].per_session_data_size = sizeof(struct client_session);
-  g_protocols[0].rx_buffer_size = 0;
-  g_protocols[0].tx_packet_size = 0;
-  g_protocols[0].user = NULL;
+/**
+ * Create zeromq socket.
+ */
+static bool set_zmq_sock(struct client_session* session)
+{
+  int ret;
+  void* sock;
+  void* context;
+  const char* addr_pub;
 
-  g_protocols[1].name = NULL;
-  g_protocols[1].callback = NULL;
-  g_protocols[1].per_session_data_size = 0;
-  g_protocols[1].rx_buffer_size = 0;
-  g_protocols[1].tx_packet_size = 0;
-  g_protocols[1].user = NULL;
-
-  // initiate options
-  info.iface = addr;
-  info.port = atoi(port);
-  info.protocols = g_protocols;
-  info.gid = -1;
-  info.uid = -1;
-  info.options = LWS_SERVER_OPTION_LIBEVENT;
-  info.ssl_cert_filepath = pem_file;
-  info.ssl_private_key_filepath = pem_file;
-  info.options |= LWS_SERVER_OPTION_REDIRECT_HTTP_TO_HTTPS;
-  lws_set_log_level(0, NULL);
-  g_websocket_context = lws_create_context(&info);
-  if(g_websocket_context == NULL) {
-    slog(LOG_ERR, "Could not create lws context.");
+  if(session == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
 
-  ret = lws_event_initloop(g_websocket_context, g_app->evt_base, 0);
-  slog(LOG_DEBUG, "Check value. ret[%d]", ret);
+  // create new zmq sock
+  context = zmq_get_context();
+  addr_pub = zmq_get_pub_addr();
+  slog(LOG_DEBUG, "Connecting to the local pub socket. addr[%s]", addr_pub);
+
+  // connect zmq
+  sock = zmq_socket(context, ZMQ_SUB);
+  ret = zmq_connect(sock, addr_pub);
+  if(ret != 0) {
+    slog(LOG_ERR, "Could not connect to zmq socket. err[%d:%s]", errno, strerror(errno));
+    return false;
+  }
+
+  session->zmq_sock = sock;
+
+  return true;
+}
+
+static bool set_event_handler(struct client_session* session)
+{
+  int ret;
+  int fd;
+  size_t length;
+  struct event* event;
+
+  if(session == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  // get file descriptor
+  length = sizeof(fd);
+  ret = zmq_getsockopt(session->zmq_sock, ZMQ_FD, &fd, &length);
+  if(ret != 0) {
+    slog(LOG_ERR, "Could not get zmq fd. err[%d:%s]", errno, strerror(errno));
+    return false;
+  }
+
+  // create event
+  event = event_new(g_app->evt_base, fd, EV_PERSIST | EV_READ, zmq_sub_message_recv, session);
+  if(event == NULL) {
+    slog(LOG_ERR, "Could not create event for zmq messge subscribe handler.");
+    return false;
+  }
+
+  // register event
+  ret = event_add(event, NULL);
+  if(ret != 0) {
+    slog(LOG_ERR, "Could not register event.");
+    return false;
+  }
+
+  session->evt = event;
 
   return true;
 }
 
 /**
- * Terminate websocket handler
+ * Set authtoken info
+ * @param session
+ * @return
  */
-void websocket_term_handler(void)
+static bool set_authtoken(struct client_session* session)
 {
-  lws_context_destroy(g_websocket_context);
+  json_t* j_param;
+  const char* tmp_const;
+
+  if(session == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  j_param = parse_uri_parameter(session->wsi);
+  if(j_param == NULL) {
+    slog(LOG_NOTICE, "Could not parse parameter.");
+    return false;
+  }
+
+  tmp_const = json_string_value(json_object_get(j_param, "authtoken"));
+  if(tmp_const == NULL) {
+    slog(LOG_NOTICE, "Could not get authtoken info.");
+    return false;
+  }
+
+  session->authtoken = strdup(tmp_const);
+
+  return true;
 }
 
+void* websocket_get_subscription_socket(const char* authtoken)
+{
+  struct client_session* session;
+  struct client_session find;
+
+  if(authtoken == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  find.authtoken = strdup(authtoken);
+
+  session = RB_FIND(client_session_entries, &client_session_head, &find);
+  sfree(find.authtoken);
+  if(session == NULL) {
+    return NULL;
+  }
+
+  return session->zmq_sock;
+}

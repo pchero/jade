@@ -14,4 +14,6 @@ bool websocket_init_handler(void);
 void websocket_term_handler(void);
 
 
+void* websocket_get_subscription_socket(const char* authtoken);
+
 #endif /* SRC_WEBSOCKET_HANDLER_H_ */

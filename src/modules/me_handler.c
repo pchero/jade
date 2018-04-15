@@ -2115,3 +2115,44 @@ static json_t* get_users_info_by_username(const char* username)
   return j_res;
 }
 
+json_t* me_get_subscribable_topics_all(const json_t* j_user)
+{
+  char* topic;
+  const char* tmp_const;
+  json_t* j_res;
+  json_t* j_chats;
+  json_t* j_chat;
+  int idx;
+
+  if(j_user == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  j_res = json_array();
+
+  // set topics for me info
+  tmp_const = json_string_value(json_object_get(j_user, "uuid"));
+  asprintf(&topic, "/me/info/%s", tmp_const);
+  json_array_append_new(j_res, json_string(topic));
+  sfree(topic);
+
+  // get all involved chat rooms
+  j_chats = chat_get_rooms_by_useruuid(tmp_const);
+  if(j_chats == NULL) {
+    slog(LOG_ERR, "Could not get chats info.");
+    json_decref(j_res);
+    return NULL;
+  }
+
+  // set topics for chat rooms
+  json_array_foreach(j_chats, idx, j_chat) {
+    tmp_const = json_string_value(json_object_get(j_chat, "uuid"));
+    asprintf(&topic, "/me/chats/%s", tmp_const);
+    json_array_append_new(j_res, json_string(topic));
+    sfree(topic);
+  }
+  json_decref(j_chats);
+
+  return j_res;
+}
