@@ -1436,6 +1436,7 @@ json_t* chat_get_userroom_message(const char* uuid_message, const char* uuid_use
 
   // get message
   j_res = db_get_chat_message_info(table_name, uuid_message);
+  sfree(table_name);
   if(j_res == NULL) {
     return NULL;
   }
@@ -1916,9 +1917,9 @@ static char* get_message_table_by_userroom(const char* uuid_userroom)
 
   // get room
   j_room = chat_get_room(uuid_room);
+  json_decref(j_userroom);
   if(j_room == NULL) {
     slog(LOG_ERR, "Could not get room info.");
-    json_decref(j_userroom);
     return NULL;
   }
 
@@ -1926,12 +1927,12 @@ static char* get_message_table_by_userroom(const char* uuid_userroom)
   table_name = json_string_value(json_object_get(j_room, "message_table"));
   if(table_name == NULL) {
     slog(LOG_ERR, "Could not get table name.");
-    json_decref(j_userroom);
     json_decref(j_room);
     return NULL;
   }
 
   res = strdup(table_name);
+  json_decref(j_room);
 
   return res;
 }

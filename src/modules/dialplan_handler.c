@@ -39,6 +39,7 @@ static bool create_dpma_info_with_uuid(const char* uuid, const json_t* j_data);
 static bool delete_dpma_info(const char* uuid);
 static bool update_dpma_info(const char* uuid, const json_t* j_data);
 static bool is_exist_dpma_info(const char* uuid);
+static bool is_default_dpma_originate_to_device(const char* agi_uuid);
 
 static bool create_dialplan_info(const json_t* j_data);
 static bool update_dialplan_info(const char* uuid, const json_t* j_data);
@@ -49,6 +50,7 @@ static bool is_exist_dialplan_info_uuid(const char* uuid);
 static bool send_setvar_for_agi_call(const char* agi_uuid);
 
 static bool db_create_dpma_info(const json_t* j_data);
+static bool add_agi_cmd_for_default_originate_to_device(const json_t* j_agi);
 
 
 /**
@@ -226,7 +228,7 @@ static bool init_default_originate_to_device(void)
   // add dialplans 1
   j_tmp = json_pack("{s:s, s:s, s:s, s:s, s:i}",
       "dpma_uuid",  dpma_uuid,
-      "command",    "NoOp(Jade default dialplan for originate call to device)",
+      "command",    "Exec NoOp \"Jade default dialplan for originate call to device\"",
       "name",       "OCTD ",
       "detail",     "Jade default dialplan for originate call to device",
       "sequence",   1
@@ -236,38 +238,6 @@ static bool init_default_originate_to_device(void)
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not add dialplan 1.");
-    sfree(dpma_uuid);
-    return false;
-  }
-
-  // add dialplans 2
-  j_tmp = json_pack("{s:s, s:s, s:s, s:s, s:i}",
-      "dpma_uuid",  dpma_uuid,
-      "command",    "Dial(PJSIP/{$agi_arg_3}",
-      "name",       "OCTD ",
-      "detail",     "Jade default dialplan for originate call to device",
-      "sequence",   2
-      );
-  ret = create_dialplan_info(j_tmp);
-  json_decref(j_tmp);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not add dialplan 2.");
-    sfree(dpma_uuid);
-    return false;
-  }
-
-  // add dialplans
-  j_tmp = json_pack("{s:s, s:s, s:s, s:s, s:i}",
-      "dpma_uuid",  dpma_uuid,
-      "command",    "Hangup()",
-      "name",       "OCTD ",
-      "detail",     "Jade default dialplan for originate call to device",
-      "sequence",   3
-      );
-  ret = create_dialplan_info(j_tmp);
-  json_decref(j_tmp);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not add dialplan 3.");
     sfree(dpma_uuid);
     return false;
   }
@@ -1131,8 +1101,8 @@ bool dialplan_add_cmds(const char* agi_uuid)
   int ret;
   int idx;
   char* uuid;
-  const char* agi_arg_1;
-  const char* agi_arg_2;
+  const char* jade_dpma_constant;
+  const char* jade_dpma_uuid;
   const char* channel;
   const char* dp_uuid;
   const char* command;
@@ -1152,13 +1122,13 @@ bool dialplan_add_cmds(const char* agi_uuid)
 
   // check the given agi is DEF_DIALPLAN_AGI_NAME or not.
   // agi_arg_1 should be DEF_DIALPLAN_AGI_NAME.
-  agi_arg_1 = json_string_value(json_object_get(json_object_get(j_agi, "env"), "agi_arg_1"));
-  if(agi_arg_1 == NULL) {
+  jade_dpma_constant = json_string_value(json_object_get(json_object_get(j_agi, "env"), "agi_arg_1"));
+  if(jade_dpma_constant == NULL) {
     slog(LOG_NOTICE, "The given agi is not for the jade_dialplan.");
     json_decref(j_agi);
     return false;
   }
-  if(strcasecmp(agi_arg_1, DEF_DIALPLAN_JADE_AGI_NAME) != 0) {
+  if(strcasecmp(jade_dpma_constant, DEF_DIALPLAN_JADE_AGI_NAME) != 0) {
     slog(LOG_NOTICE, "Unmatched jade_dialplan. The given agi is not for the jade_dialplan.");
     json_decref(j_agi);
     return false;
@@ -1166,14 +1136,14 @@ bool dialplan_add_cmds(const char* agi_uuid)
 
   // get agi_arg_2
   // consider agi_arg_2 as a dpma_uuid
-  agi_arg_2 = json_string_value(json_object_get(json_object_get(j_agi, "env"), "agi_arg_2"));
-  if(agi_arg_2 == NULL) {
+  jade_dpma_uuid = json_string_value(json_object_get(json_object_get(j_agi, "env"), "agi_arg_2"));
+  if(jade_dpma_uuid == NULL) {
     slog(LOG_NOTICE, "Could not get agi_arg_2 info.");
     json_decref(j_agi);
     return false;
   }
 
-  ret = is_exist_dpma_info(agi_arg_2);
+  ret = is_exist_dpma_info(jade_dpma_uuid);
   if(ret == false) {
     slog(LOG_ERR, "The given agi_arg_2 is not exist.");
     json_decref(j_agi);
@@ -1181,14 +1151,14 @@ bool dialplan_add_cmds(const char* agi_uuid)
   }
 
   // get dialplans
-  j_dps = dialplan_get_dialplans_by_dpma_uuid_order_sequence(agi_arg_2);
+  j_dps = dialplan_get_dialplans_by_dpma_uuid_order_sequence(jade_dpma_uuid);
   if(j_dps == NULL) {
     slog(LOG_ERR, "Could not get dialplan info");
     json_decref(j_agi);
     return false;
   }
 
-  // send
+  // send setvar
   ret = send_setvar_for_agi_call(agi_uuid);
   if(ret == false) {
     slog(LOG_ERR, "Could not get send setvar for agi call. uuid[%s]", agi_uuid);
@@ -1219,6 +1189,14 @@ bool dialplan_add_cmds(const char* agi_uuid)
       continue;
     }
   }
+
+  // check default dpma originate to device
+  ret = is_default_dpma_originate_to_device(jade_dpma_uuid);
+  if(ret == true) {
+    slog(LOG_INFO, "The given agi is default dpma for originate to device.");
+    add_agi_cmd_for_default_originate_to_device(j_agi);
+  }
+
   json_decref(j_dps);
   json_decref(j_agi);
 
@@ -1230,6 +1208,7 @@ static bool send_setvar_for_agi_call(const char* agi_uuid)
   int ret;
   json_t* j_agi;
   json_t* j_env;
+  json_t* j_val;
   const char* channel;
   const char* key;
   const char* value;
@@ -1262,7 +1241,8 @@ static bool send_setvar_for_agi_call(const char* agi_uuid)
   }
 
   // send setvar for each env object
-  json_object_foreach(j_env, key, value) {
+  json_object_foreach(j_env, key, j_val) {
+    value = json_string_value(j_val);
     ret = ami_action_setvar(channel, key, value);
     if(ret == false) {
       slog(LOG_ERR, "Coudl not send setvar request. channel[%s], key[%s], value[%s]", channel, key, value);
@@ -1659,7 +1639,7 @@ char* dialplan_get_default_dpma_originate_to_device(void)
     return NULL;
   }
 
-  // init default_dpma_originate_to_device
+  // get default_dpma_originate_to_device
   tmp_const = json_string_value(json_object_get(j_dp_conf, "default_dpma_originate_to_device"));
   if(tmp_const == NULL) {
     slog(LOG_ERR, "Could not get default_dpma_originate_to_device info.");
@@ -1670,3 +1650,77 @@ char* dialplan_get_default_dpma_originate_to_device(void)
   return res;
 }
 
+static bool is_default_dpma_originate_to_device(const char* agi_uuid)
+{
+  int ret;
+  char* default_dpma;
+
+  if(agi_uuid == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  default_dpma = dialplan_get_default_dpma_originate_to_device();
+  if(default_dpma == NULL) {
+    slog(LOG_ERR, "Could not get default_dpma info.");
+    return false;
+  }
+
+  ret = strcmp(agi_uuid, default_dpma);
+  sfree(default_dpma);
+  if(ret != 0) {
+    return false;
+  }
+
+  return true;
+}
+
+static bool add_agi_cmd_for_default_originate_to_device(const json_t* j_agi)
+{
+  int ret;
+  const char* target;
+  char* cmd;
+  char* uuid;
+  const char* uuid_agi;
+  const char* channel;
+
+  if(j_agi == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired add_agi_cmd_for_default_originate_to_device.");
+
+  // get target
+  target = json_string_value(json_object_get(json_object_get(j_agi, "env"), "agi_arg_3"));
+  if(target == NULL) {
+    slog(LOG_NOTICE, "Could not get target device info.");
+    return false;
+  }
+
+  // create command
+  asprintf(&cmd, "Exec Dial PJSIP/%s", target);
+  slog(LOG_DEBUG, "Created originate to device cmd. cmd[%s]", cmd);
+
+  uuid = utils_gen_uuid();
+  channel = json_string_value(json_object_get(j_agi, "channel"));
+
+  // send agi
+  ret = ami_action_agi(channel, cmd, uuid);
+  if(ret == false) {
+    sfree(cmd);
+    sfree(uuid);
+    return false;
+  }
+
+  // add cmd info
+  uuid_agi = json_string_value(json_object_get(j_agi, "uuid"));
+  ret = add_core_agi_info_cmd(uuid_agi, uuid, cmd, "");
+  sfree(uuid);
+  sfree(cmd);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not add cmd info.");
+    return false;
+  }
+
+  return true;
+}

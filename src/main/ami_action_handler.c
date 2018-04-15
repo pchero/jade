@@ -240,8 +240,61 @@ bool ami_action_setvar(const char* channel, const char* key, const char* value)
 
   // send action request
   ret = ami_send_cmd(j_data);
+  json_decref(j_data);
   if(ret == false) {
-    json_decref(j_data);
+    slog(LOG_ERR, "Could not send ami action");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * AMI action handler.
+ * Action: Originate
+ */
+bool ami_action_originate_application(const char* channel, const char* application, const char* data)
+{
+  json_t* j_cmd;
+  int ret;
+
+  if((channel == NULL) || (application == NULL) || (data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired ami_action_originate_application. channel[%s], application[%s], data[%s]", channel, application, data);
+
+  // create request
+  //  Action: Originate
+  //  ActionID: <value>
+  //  Channel: <value>
+  //  Exten: <value>
+  //  Context: <value>
+  //  Priority: <value>
+  //  Application: <value>
+  //  Data: <value>
+  //  Timeout: <value>
+  //  CallerID: <value>
+  //  Variable: <value>
+  //  Account: <value>
+  //  EarlyMedia: <value>
+  //  Async: <value>
+  //  Codecs: <value>
+  //  ChannelId: <value>
+  //  OtherChannelId: <value>
+  j_cmd = json_pack("{s:s, s:s, s:s, s:s, s:s}",
+      "Action",         "Originate",
+      "Async",          "true",
+
+      "Channel",        channel,
+      "Application",    application,
+      "Data",           data
+      );
+
+  // send action request
+  ret = ami_send_cmd(j_cmd);
+  json_decref(j_cmd);
+  if(ret == false) {
     slog(LOG_ERR, "Could not send ami action");
     return false;
   }

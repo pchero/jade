@@ -2298,8 +2298,7 @@ bool update_core_agi_info_cmd_result_done(const char* agi_uuid, const char* cmd_
  * @param result
  * @return
  */
-bool add_core_agi_info_cmd(const char* agi_uuid, const char* cmd_uuid, const char* command, const char* dp_uuid
-    )
+bool add_core_agi_info_cmd(const char* agi_uuid, const char* cmd_uuid, const char* command, const char* dp_uuid)
 {
   int ret;
   json_t* j_agi;

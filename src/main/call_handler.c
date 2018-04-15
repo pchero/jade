@@ -18,6 +18,7 @@
 #include "publication_handler.h"
 #include "utils.h"
 #include "dialplan_handler.h"
+#include "ami_action_handler.h"
 
 #include "call_handler.h"
 
@@ -346,7 +347,7 @@ int call_delete_channel_info(const char* key)
  */
 bool call_originate_call_to_device(const char* source, const char* destination)
 {
-  json_t* j_cmd;
+  int ret;
   char* data;
   char* channel;
   char* dpma_uuid;
@@ -365,7 +366,7 @@ bool call_originate_call_to_device(const char* source, const char* destination)
   }
 
   // create data
-  asprintf(&data, "aig:async,%s,%s,%s",
+  asprintf(&data, "agi:async,%s,%s,%s",
       DEF_DIALPLAN_JADE_AGI_NAME,
       dpma_uuid,
       destination
@@ -375,34 +376,12 @@ bool call_originate_call_to_device(const char* source, const char* destination)
   // create channel
   asprintf(&channel, "PJSIP/%s", source);
 
-  //  Action: Originate
-  //  ActionID: <value>
-  //  Channel: <value>
-  //  Exten: <value>
-  //  Context: <value>
-  //  Priority: <value>
-  //  Application: <value>
-  //  Data: <value>
-  //  Timeout: <value>
-  //  CallerID: <value>
-  //  Variable: <value>
-  //  Account: <value>
-  //  EarlyMedia: <value>
-  //  Async: <value>
-  //  Codecs: <value>
-  //  ChannelId: <value>
-  //  OtherChannelId: <value>
-  j_cmd = json_pack("{s:s, s:s, s:s, s:s, s:s, s:s, s:s, s:s}",
-      "Action",         "Originate",
-      "Async",          "true",
-      "Channel",        channel,
-      "Application",    "AGI"
-      "Data",           data
-      );
+  // send request
+  ret = ami_action_originate_application(channel, "AGI", data);
   sfree(channel);
   sfree(data);
-  if(j_cmd == NULL) {
-    slog(LOG_ERR, "Could not create default originate request info.");
+  if(ret == false) {
+    slog(LOG_ERR, "Could not send originate request to device info.");
     return false;
   }
 

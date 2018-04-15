@@ -1984,7 +1984,7 @@ static char* get_callable_contact_from_useruuid(const char* uuid_user)
     return NULL;
   }
 
-  tmp_const = json_string_value(json_object_get(j_contact, "uuid"));
+  tmp_const = json_string_value(json_object_get(j_contact, "target"));
   if(tmp_const == NULL) {
     slog(LOG_ERR, "Could not get contact uuid info.");
     json_decref(j_contacts);
