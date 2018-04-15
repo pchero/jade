@@ -1789,7 +1789,7 @@ static bool delete_room_member(const char* uuid_room, const char* uuid_user)
     }
 
     // delete
-    json_array_remove(j_room, idx);
+    json_array_remove(j_members, idx);
     break;
   }
 
