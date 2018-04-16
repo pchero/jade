@@ -1409,10 +1409,12 @@ char* chat_get_uuidroom_by_uuiduserroom(const char* uuid_userroom)
   tmp_const = json_string_value(json_object_get(j_tmp, "uuid_room"));
   if(tmp_const == NULL) {
     slog(LOG_ERR, "Could not get room uuid info.");
+    json_decref(j_tmp);
     return NULL;
   }
 
   res = strdup(tmp_const);
+  json_decref(j_tmp);
 
   return res;
 }
