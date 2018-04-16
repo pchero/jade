@@ -5703,8 +5703,7 @@ static void cb_htp_me_login(evhtp_request_t *req, void *data)
   }
 
   if(method == htp_method_POST) {
-    // synonym of post /user/login
-    user_htp_post_user_login(req, data);
+    me_htp_post_me_login(req, data);
     return;
   }
   else if(method == htp_method_DELETE) {

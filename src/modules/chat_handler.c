@@ -512,7 +512,7 @@ static json_t* db_get_chat_rooms_info_by_useruuid(const char* user_uuid)
   }
   slog(LOG_DEBUG, "Fired db_get_chat_rooms_by_useruuid. user_uuid[%s]", user_uuid);
 
-  asprintf(&condition, "where member like '%%%s%%'", user_uuid);
+  asprintf(&condition, "where members like '%%%s%%'", user_uuid);
 
   j_res = resource_get_file_detail_items_by_condtion(DEF_DB_TABLE_CHAT_ROOM, condition);
   sfree(condition);

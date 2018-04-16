@@ -58,6 +58,9 @@ bool user_delete_buddy_info(const char* uuid);
 bool user_is_user_exist(const char* user_uuid);
 bool user_is_user_owned_buddy(const char* uuid_owner, const char* uuid_buddy);
 
+// authtoken
+char* user_create_authtoken(const char* username, const char* password, const char* type);
+
 
 // http handlers
 void user_htp_post_user_login(evhtp_request_t *req, void *data);

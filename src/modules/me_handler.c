@@ -906,6 +906,60 @@ void me_htp_post_me_calls(evhtp_request_t *req, void *data)
 }
 
 /**
+ * POST ^/me/login request handler.
+ * @param req
+ * @param data
+ */
+void me_htp_post_me_login(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+  char* username;
+  char* password;
+  char* authtoken;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired me_htp_post_me_login.");
+
+  // get username/pass
+  ret = http_get_htp_id_pass(req, &username, &password);
+  if(ret == false) {
+    sfree(username);
+    sfree(password);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // create authtoken
+  authtoken = user_create_authtoken(username, password, "me");
+  sfree(username);
+  sfree(password);
+  if(authtoken == NULL) {
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  j_tmp = json_pack("{s:s}",
+      "authtoken",  authtoken
+      );
+  sfree(authtoken);
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", j_tmp);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
  * GET ^/me/search request handler.
  * @param req
  * @param data

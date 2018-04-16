@@ -12,6 +12,7 @@
 #include "user_handler.h"
 #include "me_handler.h"
 #include "zmq_handler.h"
+#include "websocket_handler.h"
 
 #include "subscription_handler.h"
 
@@ -94,6 +95,13 @@ bool subscription_subscribe_topics_client(const char* authtoken, void* zmq_sock)
     j_topics = me_get_subscribable_topics_all(j_user);
   }
 
+  if(j_topics == NULL) {
+    slog(LOG_NOTICE, "Could not get subscribe topics.");
+    json_decref(j_user);
+    json_decref(j_authtoken);
+    return false;
+  }
+
   json_array_foreach(j_topics, idx, j_topic) {
     topic = json_string_value(j_topic);
 
@@ -118,6 +126,7 @@ static bool subscribe_topic(void* zmq_sock, const char* topic)
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
+  slog(LOG_DEBUG, "Fired subscribe_topic. topic[%s]", topic);
 
   ret = zmq_setsockopt(zmq_sock, ZMQ_SUBSCRIBE, topic, strlen(topic));
   if(ret != 0) {
@@ -130,8 +139,24 @@ static bool subscribe_topic(void* zmq_sock, const char* topic)
 
 bool subscription_subscribe_topic(const char* authtoken, const char* topic)
 {
+  int ret;
+  void* sock;
+
   if((authtoken == NULL) || (topic == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired subscription_subscribe_topic. authtoken[%s], topic[%s]", authtoken, topic);
+
+  sock = websocket_get_subscription_socket(authtoken);
+  if(sock == NULL) {
+    slog(LOG_NOTICE, "Could not get subscription socket.");
+    return false;
+  }
+
+  // subscribe topic
+  ret = subscribe_topic(sock, topic);
+  if(ret == false) {
     return false;
   }
 

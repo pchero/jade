@@ -18,6 +18,8 @@
 #include "slog.h"
 #include "utils.h"
 #include "zmq_handler.h"
+#include "subscription_handler.h"
+
 
 #define MAX_MSG_COUNT 1000
 
@@ -292,6 +294,13 @@ static bool init_client_session(struct lws* wsi, struct client_session* session)
 
   // insert into RBTREE
   RB_INSERT(client_session_entries, &client_session_head, session);
+
+  // subscribe
+  ret = subscription_subscribe_topics_client(session->authtoken, session->zmq_sock);
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not subscribe client topics.");
+    return false;
+  }
 
   return true;
 }
@@ -646,7 +655,7 @@ static bool recv_session_message_handler(struct client_session* session, json_t*
   slog(LOG_DEBUG, "Received message info. type[%s], topic[%s]", type, topic);
 
   // message parse
-  if(strcmp(type, "subscribe") == 0) {
+  if(strcmp(type, "subscribe__") == 0) {
     ret = zmq_setsockopt(session->zmq_sock, ZMQ_SUBSCRIBE, topic, strlen(topic));
     if(ret != 0) {
       slog(LOG_ERR, "Could not add the subscription. session_addr[%s], topic[%s], err[%d:%s]",
@@ -655,7 +664,7 @@ static bool recv_session_message_handler(struct client_session* session, json_t*
     }
     add_subscription(session, topic);
   }
-  else if(strcmp(type, "unsubscribe") == 0) {
+  else if(strcmp(type, "unsubscribe__") == 0) {
     ret = zmq_setsockopt(session->zmq_sock, ZMQ_UNSUBSCRIBE, topic, strlen(topic));
     if(ret != 0) {
       slog(LOG_ERR, "Could not unsubscribe topic. session_addr[%s], topic[%s], err[%d:%s]",
@@ -1020,6 +1029,7 @@ static bool set_authtoken(struct client_session* session)
   }
 
   session->authtoken = strdup(tmp_const);
+  json_decref(j_param);
 
   return true;
 }
