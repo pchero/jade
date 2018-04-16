@@ -15,6 +15,9 @@ bool me_reload_handler(void);
 void me_term_handler(void);
 
 
+json_t* me_get_subscribable_topics_all(const json_t* j_user);
+
+
 // http handlers
 void me_htp_get_me_info(evhtp_request_t *req, void *data);
 
@@ -39,6 +42,8 @@ void me_htp_delete_me_chats_detail(evhtp_request_t *req, void *data);
 
 void me_htp_post_me_chats_detail_messages(evhtp_request_t *req, void *data);
 void me_htp_get_me_chats_detail_messages(evhtp_request_t *req, void *data);
+
+void me_htp_post_me_login(evhtp_request_t *req, void *data);
 
 void me_htp_get_me_search(evhtp_request_t *req, void *data);
 

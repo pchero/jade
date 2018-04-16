@@ -56,7 +56,7 @@ static bool db_delete_permission_info(const char* key);
 static bool db_create_contact_info(const json_t* j_data);
 
 
-static char* create_authtoken(const char* username, const char* password);
+static char* create_authtoken(const char* username, const char* password, const char* type);
 
 static bool db_create_userinfo_info(const json_t* j_data);
 
@@ -269,6 +269,7 @@ static bool init_database_authtoken(void)
     "   uuid        varchar(255),"
 
     "   user_uuid   varchar(255),"    // user uuid
+    "   type        varchar(255),"    // create module name. (me, admin, ...)
 
     // timestamp. UTC."
     "   tm_create         datetime(6),"   // create time
@@ -452,7 +453,7 @@ void user_htp_post_user_login(evhtp_request_t *req, void *data)
   }
 
   // create authtoken
-  authtoken = create_authtoken(username, password);
+  authtoken = create_authtoken(username, password, "admin");
   sfree(username);
   sfree(password);
   if(authtoken == NULL) {
@@ -1075,14 +1076,14 @@ void user_htp_delete_user_permissions_detail(evhtp_request_t *req, void *data)
   return;
 }
 
-static char* create_authtoken(const char* username, const char* password)
+static char* create_authtoken(const char* username, const char* password, const char* type)
 {
   json_t* j_user;
   json_t* j_auth;
   char* token;
   char* timestamp;
 
-  if((username == NULL) || (password == NULL)) {
+  if((username == NULL) || (password == NULL) || (type == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return NULL;
   }
@@ -1098,9 +1099,10 @@ static char* create_authtoken(const char* username, const char* password)
   // create
   token = utils_gen_uuid();
   timestamp = utils_get_utc_timestamp();
-  j_auth = json_pack("{s:s, s:s, s:s, s:s}",
+  j_auth = json_pack("{s:s, s:s, s:s, s:s, s:s}",
       "uuid",       token,
       "user_uuid",  json_string_value(json_object_get(j_user, "uuid")),
+      "type",       type,
 
       "tm_create",  timestamp,
       "tm_update",  timestamp
@@ -2404,3 +2406,21 @@ bool user_is_user_owned_buddy(const char* uuid_owner, const char* uuid_buddy)
 
   return true;
 }
+
+char* user_create_authtoken(const char* username, const char* password, const char* type)
+{
+  char* res;
+
+  if((username == NULL) || (password == NULL) || (type == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  res = create_authtoken(username, password, type);
+  if(res == NULL) {
+    return NULL;
+  }
+
+  return res;
+}
+

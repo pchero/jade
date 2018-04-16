@@ -512,7 +512,7 @@ static json_t* db_get_chat_rooms_info_by_useruuid(const char* user_uuid)
   }
   slog(LOG_DEBUG, "Fired db_get_chat_rooms_by_useruuid. user_uuid[%s]", user_uuid);
 
-  asprintf(&condition, "where member like '%%%s%%'", user_uuid);
+  asprintf(&condition, "where members like '%%%s%%'", user_uuid);
 
   j_res = resource_get_file_detail_items_by_condtion(DEF_DB_TABLE_CHAT_ROOM, condition);
   sfree(condition);
@@ -1409,10 +1409,12 @@ char* chat_get_uuidroom_by_uuiduserroom(const char* uuid_userroom)
   tmp_const = json_string_value(json_object_get(j_tmp, "uuid_room"));
   if(tmp_const == NULL) {
     slog(LOG_ERR, "Could not get room uuid info.");
+    json_decref(j_tmp);
     return NULL;
   }
 
   res = strdup(tmp_const);
+  json_decref(j_tmp);
 
   return res;
 }
