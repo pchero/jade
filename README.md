@@ -30,9 +30,11 @@ Or may be used by either companies who wish to make calls on their own behalf, o
   * PJSIP
   * SIP
 
+* Chat
+  * Live chat.
+
 * SMS(WIP)
 * Mail(WIP)
-* Chat(WIP)
 * Video call(WIP)
 * Conference call(WIP)
 
@@ -52,6 +54,15 @@ Or may be used by either companies who wish to make calls on their own behalf, o
 * jade
   * You can try apis to here.
   * http://project.pchero21.com/jade/
+
+* jade-me
+  * https://github.com/pchero/jade-me
+  * Simple user tool for jade.
+  * You can try jade-me web application at here.
+  * ID: admin
+  * Password: admin
+  * https://project.pchero21.com/jade-me/
+  * ![Screen Preview](https://raw.githubusercontent.com/pchero/jade-me/master/jade-me.png)
 
 * jade-admin
   * https://github.com/pchero/jade-admin
