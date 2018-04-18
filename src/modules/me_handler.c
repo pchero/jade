@@ -1394,24 +1394,24 @@ static json_t* get_chatroom_info(const json_t* j_user, const char* uuid_userroom
   // get owner uuid.
   uuid_user = json_string_value(json_object_get(j_res, "uuid_user"));
   if(uuid_user == NULL) {
-    json_decref(j_res);
     slog(LOG_ERR, "Could not check permission.");
+    json_decref(j_res);
     return NULL;
   }
 
   // check permission
   ret = strcmp(uuid, uuid_user);
   if(ret != 0) {
-    json_decref(j_res);
     slog(LOG_NOTICE, "The given user has no permission.");
+    json_decref(j_res);
     return NULL;
   }
 
   // get chat room uuid.
   uuid_room = json_string_value(json_object_get(j_res, "uuid_room"));
   if(uuid_user == NULL) {
-    json_decref(j_res);
     slog(LOG_ERR, "Could not get chat_room uuid info.");
+    json_decref(j_res);
     return NULL;
   }
 
@@ -1420,7 +1420,8 @@ static json_t* get_chatroom_info(const json_t* j_user, const char* uuid_userroom
   json_object_del(j_res, "uuid_user");
   if(j_room == NULL) {
     slog(LOG_NOTICE, "Could not get chat room info.");
-    return j_res;
+    json_decref(j_res);
+    return NULL;
   }
 
   json_object_del(j_room, "message_table");
