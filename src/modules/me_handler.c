@@ -32,7 +32,7 @@
 #define DEF_ME_AUTHTOKEN_TYPE       "me"
 
 #define DEF_PUBLISH_TOPIC_PREFIX_ME_INFO        "/me/info"
-#define DEF_PUBLISH_TOPIC_PREFIX_ME_CHATROOM    "/me/chats"
+#define DEF_PUBLISH_TOPIC_PREFIX_ME_CHATROOM_MESSAGE    "/me/chats"
 
 #define DEF_PUB_EVENT_PREFIX_ME_CHATROOM            "me.chats.room"       // topic: DEF_PUBLISH_TOPIC_PREFIX_ME_INFO
 #define DEF_PUB_EVENT_PREFIX_ME_CHATROOM_MESSAGE    "me.chats.message"    // topic: DEF_PUBLISH_TOPIC_PREFIX_ME_CHATROOM
@@ -74,6 +74,11 @@ static json_t* get_users_info_by_username(const char* username);
 
 static bool add_subscription_to_useruuid(const char* uuid_user, const char* topic);
 static bool add_subscription_to_useruuid_chatroom(const char* uuid_user, const char* uuid_room);
+
+static bool publish_event_me_buddy(enum EN_PUBLISH_TYPES type, const char* uuid_user, json_t* j_data);
+static bool publish_event_me_chat_message(enum EN_PUBLISH_TYPES type, const char* uuid_user, json_t* j_data);
+static bool publish_event_me_chat_room(enum EN_PUBLISH_TYPES type, const char* uuid_user, json_t* j_data);
+
 
 bool me_init_handler(void)
 {
@@ -1505,7 +1510,7 @@ static bool create_chatroom_info(json_t* j_user, json_t* j_data)
     }
 
     // publish event
-    ret = publication_publish_event_me_chat_room(EN_PUBLISH_CREATE, tmp_uuid_user, j_tmp);
+    ret = publish_event_me_chat_room(EN_PUBLISH_CREATE, tmp_uuid_user, j_tmp);
     json_decref(j_tmp);
     if(ret == false) {
       slog(LOG_ERR, "Could not publish event.");
@@ -1557,7 +1562,7 @@ static bool update_chatroom_info(json_t* j_user, const char* uuid_userroom, json
   }
 
   // publish event
-  ret = publication_publish_event_me_chat_room(EN_PUBLISH_UPDATE, uuid_user, j_tmp);
+  ret = publish_event_me_chat_room(EN_PUBLISH_UPDATE, uuid_user, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     return false;
@@ -1605,7 +1610,7 @@ static bool delete_chatroom_info(json_t* j_user, const char* uuid_userroom)
   }
 
   // publish event
-  ret = publication_publish_event_me_chat_room(EN_PUBLISH_DELETE, uuid_user, j_userroom);
+  ret = publish_event_me_chat_room(EN_PUBLISH_DELETE, uuid_user, j_userroom);
   json_decref(j_userroom);
   if(ret == false) {
     return false;
@@ -1718,7 +1723,7 @@ static bool create_chatmessage_info(json_t* j_user, const char* uuid_userroom, j
   json_object_set_new(j_message, "uuid_room", json_string(uuid_room));
 
   // publish event
-  ret = publication_publish_event_me_chat_message(EN_PUBLISH_CREATE, uuid_room, j_message);
+  ret = publish_event_me_chat_message(EN_PUBLISH_CREATE, uuid_room, j_message);
   json_decref(j_message);
   sfree(uuid_room);
   if(ret == false) {
@@ -1856,7 +1861,7 @@ static bool create_buddy_info(const json_t* j_user, const json_t* j_data)
   json_object_del(j_tmp, "uuid_owner");
 
   // publish event
-  ret = publication_publish_event_me_buddy(EN_PUBLISH_CREATE, uuid_owner, j_tmp);
+  ret = publish_event_me_buddy(EN_PUBLISH_CREATE, uuid_owner, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_WARNING, "Could not publish the event.");
@@ -1912,7 +1917,7 @@ static bool update_buddy_info(const json_t* j_user, const char* detail, const js
   json_object_del(j_tmp, "uuid_owner");
 
   // publish event
-  ret = publication_publish_event_me_buddy(EN_PUBLISH_CREATE, uuid_owner, j_tmp);
+  ret = publish_event_me_buddy(EN_PUBLISH_UPDATE, uuid_owner, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_WARNING, "Could not publish the event.");
@@ -1967,7 +1972,7 @@ static bool delete_buddy_info(const json_t* j_user, const char* detail)
   }
 
   // publish event
-  ret = publication_publish_event_me_buddy(EN_PUBLISH_DELETE, uuid_owner, j_tmp);
+  ret = publish_event_me_buddy(EN_PUBLISH_DELETE, uuid_owner, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     return false;
@@ -2250,7 +2255,7 @@ static bool add_subscription_to_useruuid_chatroom(const char* uuid_user, const c
   }
 
   // create topic
-  asprintf(&topic, "%s/%s", DEF_PUBLISH_TOPIC_PREFIX_ME_CHATROOM, uuid_room);
+  asprintf(&topic, "%s/%s", DEF_PUBLISH_TOPIC_PREFIX_ME_CHATROOM_MESSAGE, uuid_room);
 
   ret = add_subscription_to_useruuid(uuid_user, topic);
   sfree(topic);
@@ -2305,3 +2310,99 @@ static bool add_subscription_to_useruuid(const char* uuid_user, const char* topi
 
   return true;
 }
+
+/**
+ * Publish event.
+ * me.buddies.<type>
+ * @param type
+ * @param j_data
+ * @return
+ */
+static bool publish_event_me_buddy(enum EN_PUBLISH_TYPES type, const char* uuid_user, json_t* j_data)
+{
+  char* topic;
+  int ret;
+
+  if((uuid_user == NULL) || (j_data == NULL)){
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired publish_event_me_buddy.");
+
+  // create topic
+  asprintf(&topic, "%s/%s", DEF_PUBLISH_TOPIC_PREFIX_ME_INFO, uuid_user);
+
+  // publish event
+  ret = publication_publish_event(topic, DEF_PUB_EVENT_PREFIX_ME_BUDDY, type, j_data);
+  sfree(topic);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Publish event.
+ * me.chats.message.<type>
+ * @param type
+ * @param j_data
+ * @return
+ */
+static bool publish_event_me_chat_message(enum EN_PUBLISH_TYPES type, const char* uuid_room, json_t* j_data)
+{
+  char* topic;
+  int ret;
+
+  if((uuid_room == NULL) || (j_data == NULL)){
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired publish_event_me_chat_message.");
+
+  // create topic
+  asprintf(&topic, "%s/%s", DEF_PUBLISH_TOPIC_PREFIX_ME_CHATROOM_MESSAGE, uuid_room);
+
+  // publish event
+  ret = publication_publish_event(topic, DEF_PUB_EVENT_PREFIX_ME_CHATROOM_MESSAGE, type, j_data);
+  sfree(topic);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Publish event.
+ * me.chats.room.<type>
+ * @param type
+ * @param j_data
+ * @return
+ */
+static bool publish_event_me_chat_room(enum EN_PUBLISH_TYPES type, const char* uuid_user, json_t* j_data)
+{
+  char* topic;
+  int ret;
+
+  if((uuid_user == NULL) || (j_data == NULL)){
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired publish_event_me_chat_room.");
+
+  // create topic
+  asprintf(&topic, "%s/%s", DEF_PUBLISH_TOPIC_PREFIX_ME_INFO, uuid_user);
+
+  // publish event
+  ret = publication_publish_event(topic, DEF_PUB_EVENT_PREFIX_ME_CHATROOM, type, j_data);
+  sfree(topic);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+  return true;
+}
+
