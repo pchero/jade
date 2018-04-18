@@ -30,6 +30,7 @@ json_t* user_get_userinfos_all(void);
 
 // authtoken
 json_t* user_get_authtokens_all(void);
+json_t* user_get_authtokens_user_type(const char* uuid_user, const char* type);
 json_t* user_get_authtoken_info(const char* key);
 bool user_update_authtoken_tm_update(const char* uuid);
 bool user_delete_authtoken_info(const char* key);

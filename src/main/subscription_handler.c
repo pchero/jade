@@ -46,6 +46,12 @@ bool subscription_reload_handler(void)
   return true;
 }
 
+/**
+ * Add all possible subscriptionis of given authtoken user.
+ * @param authtoken
+ * @param zmq_sock
+ * @return
+ */
 bool subscription_subscribe_topics_client(const char* authtoken, void* zmq_sock)
 {
   json_t* j_user;

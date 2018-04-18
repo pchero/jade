@@ -1683,6 +1683,36 @@ json_t* user_get_authtokens_all(void)
 }
 
 /**
+ * Get all authtokens of given user uuid.
+ * @param uuid_user
+ * @return
+ */
+json_t* user_get_authtokens_user_type(const char* uuid_user, const char* type)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+
+  if((uuid_user == NULL) || (type == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired user_get_authtokens_user_type. uuid_user[%s], type[%s]", uuid_user, type);
+
+  j_tmp = json_pack("{s:s, s:s}",
+      "user_uuid",    uuid_user,
+      "type",         type
+      );
+
+  j_res = resource_get_file_detail_items_by_obj(DEF_DB_TABLE_USER_AUTHTOKEN, j_tmp);
+  json_decref(j_tmp);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
+/**
  * Get corresponding user_authtoken detail info.
  * @return
  */
