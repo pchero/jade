@@ -23,11 +23,20 @@
 #include "pjsip_handler.h"
 #include "chat_handler.h"
 #include "publication_handler.h"
+#include "subscription_handler.h"
 #include "call_handler.h"
 
 #include "me_handler.h"
 
 #define DEF_ME_CHAT_MESSAGE_COUNT   30
+#define DEF_ME_AUTHTOKEN_TYPE       "me"
+
+#define DEF_PUBLISH_TOPIC_PREFIX_ME_INFO        "/me/info"
+#define DEF_PUBLISH_TOPIC_PREFIX_ME_CHATROOM    "/me/chats"
+
+#define DEF_PUB_EVENT_PREFIX_ME_CHATROOM            "me.chats.room"       // topic: DEF_PUBLISH_TOPIC_PREFIX_ME_INFO
+#define DEF_PUB_EVENT_PREFIX_ME_CHATROOM_MESSAGE    "me.chats.message"    // topic: DEF_PUBLISH_TOPIC_PREFIX_ME_CHATROOM
+#define DEF_PUB_EVENT_PREFIX_ME_BUDDY               "me.buddies"          // topic: DEF_PUBLISH_TOPIC_PREFIX_ME_INFO
 
 static char* create_public_url(const char* target);
 
@@ -63,6 +72,8 @@ static char* get_callable_contact_from_useruuid(const char* uuid_user);
 static json_t* get_search_info(json_t* j_user, const char* filter, const char* type);
 static json_t* get_users_info_by_username(const char* username);
 
+static bool add_subscription_to_useruuid(const char* uuid_user, const char* topic);
+static bool add_subscription_to_useruuid_chatroom(const char* uuid_user, const char* uuid_room);
 
 bool me_init_handler(void)
 {
@@ -935,7 +946,7 @@ void me_htp_post_me_login(evhtp_request_t *req, void *data)
   }
 
   // create authtoken
-  authtoken = user_create_authtoken(username, password, "me");
+  authtoken = user_create_authtoken(username, password, DEF_ME_AUTHTOKEN_TYPE);
   sfree(username);
   sfree(password);
   if(authtoken == NULL) {
@@ -1465,17 +1476,25 @@ static bool create_chatroom_info(json_t* j_user, json_t* j_data)
 
   // get all userrooms
   j_userrooms = chat_get_userrooms_by_roomuuid(uuid_room);
-  sfree(uuid_room);
   if(j_userrooms == NULL) {
     slog(LOG_ERR, "Could not get created userrooms info.");
+    sfree(uuid_room);
     return false;
   }
 
-  // publish event foreach
+  // publish/subscribe event foreach
   json_array_foreach(j_userrooms, idx, j_userroom) {
     tmp_uuid_user = json_string_value(json_object_get(j_userroom, "uuid_user"));
     tmp_uuid_userroom = json_string_value(json_object_get(j_userroom, "uuid"));
 
+    // add subscribe
+    ret = add_subscription_to_useruuid_chatroom(tmp_uuid_user, uuid_room);
+    if(ret == false) {
+      slog(LOG_ERR, "Could not add subscription for created chatroom.");
+      continue;
+    }
+
+    // get room info
     j_tmp_user = user_get_userinfo_info(tmp_uuid_user);
     j_tmp = get_chatroom_info(j_tmp_user, tmp_uuid_userroom);
     json_decref(j_tmp_user);
@@ -1493,6 +1512,7 @@ static bool create_chatroom_info(json_t* j_user, json_t* j_data)
     }
   }
   json_decref(j_userrooms);
+  sfree(uuid_room);
 
   return true;
 }
@@ -1628,6 +1648,13 @@ static json_t* get_chatmessages_info(json_t* j_user, const char* uuid_userroom, 
   return j_res;
 }
 
+/**
+ * Create chat message.
+ * @param j_user
+ * @param uuid_userroom
+ * @param j_data
+ * @return
+ */
 static bool create_chatmessage_info(json_t* j_user, const char* uuid_userroom, json_t* j_data)
 {
   int ret;
@@ -2209,4 +2236,71 @@ json_t* me_get_subscribable_topics_all(const json_t* j_user)
   json_decref(j_chats);
 
   return j_res;
+}
+
+static bool add_subscription_to_useruuid_chatroom(const char* uuid_user, const char* uuid_room)
+{
+  int ret;
+  char* topic;
+
+  if((uuid_user == NULL) || (uuid_room == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  // create topic
+  asprintf(&topic, "%s/%s", DEF_PUBLISH_TOPIC_PREFIX_ME_CHATROOM, uuid_room);
+
+  ret = add_subscription_to_useruuid(uuid_user, topic);
+  sfree(topic);
+  if(ret == false) {
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Add the subscription to given topic of all given user's authtoken
+ * @param uuid_user
+ * @param topic
+ * @return
+ */
+static bool add_subscription_to_useruuid(const char* uuid_user, const char* topic)
+{
+  int ret;
+  int idx;
+  json_t* j_tokens;
+  json_t* j_token;
+  const char* authtoken;
+
+  if((uuid_user == NULL) || (topic == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired subscribe_created_chatroom. uuid_user[%s], topic[%s]", uuid_user, topic);
+
+  // get all authtokens
+  j_tokens = user_get_authtokens_user_type(uuid_user, DEF_ME_AUTHTOKEN_TYPE);
+  if(j_tokens == NULL) {
+    slog(LOG_ERR, "Could not get authtoken info.");
+    return false;
+  }
+
+  json_array_foreach(j_tokens, idx, j_token) {
+    authtoken = json_string_value(json_object_get(j_token, "uuid"));
+    if(authtoken == NULL) {
+      continue;
+    }
+
+    // add subscription
+    ret = subscription_subscribe_topic(authtoken, topic);
+    if(ret == false) {
+      slog(LOG_NOTICE, "Could not add subscribe topic.");
+      continue;
+    }
+  }
+  json_decref(j_tokens);
+
+  return true;
 }

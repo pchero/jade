@@ -858,3 +858,46 @@ bool publication_publish_event_me_buddy(enum EN_PUBLISH_TYPES type, const char* 
   return true;
 }
 
+/**
+ * Publish the event data with given parameters.
+ * @param topic
+ * @param event_prefix
+ * @param type
+ * @param j_data
+ * @return
+ */
+bool publication_publish_event(const char* topic, const char* event_prefix, enum EN_PUBLISH_TYPES type, json_t* j_data)
+{
+  char* event;
+  int ret;
+
+  if((topic == NULL) || (event_prefix == NULL) || (j_data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  // create event name
+  if(type == EN_PUBLISH_CREATE) {
+    asprintf(&event, "%s.%s", event_prefix, DEF_PUB_TYPE_CREATE);
+  }
+  else if(type == EN_PUBLISH_UPDATE) {
+    asprintf(&event, "%s.%s", event_prefix, DEF_PUB_TYPE_UPDATE);
+  }
+  else if(type == EN_PUBLISH_DELETE) {
+    asprintf(&event, "%s.%s", event_prefix, DEF_PUB_TYPE_DELETE);
+  }
+  else {
+    slog(LOG_ERR, "Could not get correct publish type. type[%u]", type);
+    return false;
+  }
+
+  // publish event
+  ret = publish_event(topic, event, j_data);
+  sfree(event);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
+  return true;
+}

@@ -21,6 +21,8 @@ enum EN_PUBLISH_TYPES {
   EN_PUBLISH_DELETE   = 3,
 };
 
+bool publication_publish_event(const char* topic, const char* event_prefix, enum EN_PUBLISH_TYPES type, json_t* j_data);
+
 
 bool publication_publish_event_me_buddy(enum EN_PUBLISH_TYPES type, const char* uuid_user, json_t* j_data);
 bool publication_publish_event_me_chat_message(enum EN_PUBLISH_TYPES type, const char* uuid_user, json_t* j_data);
