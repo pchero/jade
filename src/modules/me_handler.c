@@ -34,7 +34,7 @@
 #define DEF_PUBLISH_TOPIC_PREFIX_ME_INFO        "/me/info"
 #define DEF_PUBLISH_TOPIC_PREFIX_ME_CHATROOM_MESSAGE    "/me/chats"
 
-#define DEF_PUB_EVENT_PREFIX_ME_CHATROOM            "me.chats.room"       // topic: DEF_PUBLISH_TOPIC_PREFIX_ME_INFO
+#define DEF_PUB_EVENT_PREFIX_ME_CHATROOM            "me.chats"            // topic: DEF_PUBLISH_TOPIC_PREFIX_ME_INFO
 #define DEF_PUB_EVENT_PREFIX_ME_CHATROOM_MESSAGE    "me.chats.message"    // topic: DEF_PUBLISH_TOPIC_PREFIX_ME_CHATROOM
 #define DEF_PUB_EVENT_PREFIX_ME_BUDDY               "me.buddies"          // topic: DEF_PUBLISH_TOPIC_PREFIX_ME_INFO
 
