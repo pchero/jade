@@ -20,6 +20,7 @@ json_t* me_get_subscribable_topics_all(const json_t* j_user);
 
 // http handlers
 void me_htp_get_me_info(evhtp_request_t *req, void *data);
+void me_htp_put_me_info(evhtp_request_t *req, void *data);
 
 void me_htp_get_me_buddies(evhtp_request_t *req, void *data);
 void me_htp_post_me_buddies(evhtp_request_t *req, void *data);

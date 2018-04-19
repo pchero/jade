@@ -54,12 +54,12 @@ static bool db_create_permission_info(const json_t* j_data);
 static bool db_delete_permission_info(const char* key);
 
 static bool db_create_contact_info(const json_t* j_data);
-
+static bool db_update_contact_info(const json_t* j_data);
 
 static char* create_authtoken(const char* username, const char* password, const char* type);
 
 static bool db_create_userinfo_info(const json_t* j_data);
-
+static bool db_update_userinfo_info(const json_t* j_data);
 
 static bool create_userinfo(json_t* j_data);
 static bool update_userinfo(const char* uuid, json_t* j_data);
@@ -1267,7 +1267,7 @@ static bool update_contact(const char* uuid, json_t* j_data)
       );
   sfree(timestamp);
 
-  ret = user_update_contact_info(j_tmp);
+  ret = db_update_contact_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not update contact info.");
@@ -1361,24 +1361,19 @@ static bool update_userinfo(const char* uuid, json_t* j_data)
   }
   slog(LOG_DEBUG, "Fired update_contact. uuid[%s]", uuid);
 
+  j_tmp = json_deep_copy(j_data);
+
+  json_object_del(j_tmp, "username");
+  json_object_del(j_tmp, "tm_update");
+  json_object_del(j_tmp, "tm_create");
+
   timestamp = utils_get_utc_timestamp();
-  j_tmp = json_pack("{"
-      "s:s, "
-      "s:s, s:s, s:s, "
-      "s:s "
-      "}",
-
-      "uuid",       uuid,
-
-      "username",  json_string_value(json_object_get(j_data, "username"))? : "",
-      "password",  json_string_value(json_object_get(j_data, "password"))? : "",
-      "name",  json_string_value(json_object_get(j_data, "name"))? : "",
-
-      "tm_update", timestamp
-      );
+  json_object_set_new(j_tmp, "tm_update", json_string(timestamp));
   sfree(timestamp);
 
-  ret = user_update_userinfo_info(j_tmp);
+  json_object_set_new(j_tmp, "uuid", json_string(uuid));
+
+  ret = db_update_userinfo_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not update contact info.");
@@ -1627,7 +1622,7 @@ static bool db_create_userinfo_info(const json_t* j_data)
   return true;
 }
 
-bool user_update_userinfo_info(const json_t* j_data)
+static bool db_update_userinfo_info(const json_t* j_data)
 {
   int ret;
 
@@ -1635,12 +1630,48 @@ bool user_update_userinfo_info(const json_t* j_data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
-  slog(LOG_DEBUG, "Fired create_user_userinfo_info.");
+  slog(LOG_DEBUG, "Fired db_update_userinfo_info.");
 
-  // update info
+  // insert userinfo info
   ret = resource_update_file_item(DEF_DB_TABLE_USER_USERINFO, "uuid", j_data);
   if(ret == false) {
-    slog(LOG_ERR, "Could not update user_userinfo info.");
+    slog(LOG_ERR, "Could not insert user_userinfo.");
+    return false;
+  }
+
+  return true;
+}
+
+bool user_update_userinfo_info(const char* uuid_user, const json_t* j_data)
+{
+  int ret;
+  const char* tmp_const;
+  json_t* j_tmp;
+
+  if((uuid_user == NULL) || (j_data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired create_user_userinfo_info.");
+
+  // create update data
+  j_tmp = json_object();
+
+  tmp_const = json_string_value(json_object_get(j_data, "name"));
+  if(tmp_const != NULL) {
+    json_object_set_new(j_tmp, "name", json_string(tmp_const));
+  }
+
+  tmp_const = json_string_value(json_object_get(j_data, "password"));
+  if(tmp_const != NULL) {
+    json_object_set_new(j_tmp, "password", json_string(tmp_const));
+  }
+
+  // update info
+  ret = update_userinfo(uuid_user, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not update userinfo.");
     return false;
   }
 
@@ -2139,7 +2170,7 @@ bool user_create_contact_info(const json_t* j_data)
  * @param j_data
  * @return
  */
-bool user_update_contact_info(const json_t* j_data)
+static bool db_update_contact_info(const json_t* j_data)
 {
   int ret;
 
