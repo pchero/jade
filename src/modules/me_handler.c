@@ -48,6 +48,7 @@ static json_t* get_contact_info(const json_t* j_user_contact);
 static json_t* get_contact_info_pjsip(const char* target);
 
 static json_t* get_me_info(const json_t* j_user);
+static bool update_me_info(const json_t* j_user, const json_t* j_data);
 
 static json_t* get_chats_info(const json_t* j_user);
 static json_t* get_chatroom_info(const json_t* j_user, const char* uuid_userroom);
@@ -148,6 +149,61 @@ void me_htp_get_me_info(evhtp_request_t *req, void *data)
 }
 
 /**
+ * htp request handler.
+ * PUT ^/me/info request handler.
+ * @param req
+ * @param data
+ */
+void me_htp_put_me_info(evhtp_request_t *req, void *data)
+{
+  json_t* j_user;
+  json_t* j_res;
+  json_t* j_data;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired me_htp_put_me_info.");
+
+  // get userinfo
+  j_user = get_userinfo(req);
+  if(j_user == NULL) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  // get data
+  j_data = http_get_json_from_request_data(req);
+  if(j_data == NULL) {
+    slog(LOG_ERR, "Could not get correct data from request.");
+    json_decref(j_user);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // update
+  ret = update_me_info(j_user, j_data);
+  json_decref(j_user);
+  json_decref(j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update me info.");
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
  * GET ^/me/chats request handler.
  * @param req
  * @param data
@@ -222,6 +278,7 @@ void me_htp_post_me_chats(evhtp_request_t *req, void *data)
   if(j_data == NULL) {
     json_decref(j_user);
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    json_decref(j_user);
     return;
   }
 
@@ -330,6 +387,7 @@ void me_htp_put_me_chats_detail(evhtp_request_t *req, void *data)
   if(detail == NULL) {
     slog(LOG_ERR, "Could not get detail info.");
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    json_decref(j_user);
     return;
   }
 
@@ -337,8 +395,9 @@ void me_htp_put_me_chats_detail(evhtp_request_t *req, void *data)
   j_data = http_get_json_from_request_data(req);
   if(j_data == NULL) {
     slog(LOG_ERR, "Could not get correct data from request.");
-    sfree(detail);
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    sfree(detail);
+    json_decref(j_user);
     return;
   }
 
@@ -523,8 +582,8 @@ void me_htp_post_me_chats_detail_messages(evhtp_request_t *req, void *data)
   // get data
   j_data = http_get_json_from_request_data(req);
   if(j_data == NULL) {
-    json_decref(j_user);
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    json_decref(j_user);
     return;
   }
 
@@ -746,8 +805,9 @@ void me_htp_put_me_buddies_detail(evhtp_request_t *req, void *data)
   j_data = http_get_json_from_request_data(req);
   if(j_data == NULL) {
     slog(LOG_ERR, "Could not get correct data from request.");
-    sfree(detail);
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    sfree(detail);
+    json_decref(j_user);
     return;
   }
 
@@ -899,6 +959,7 @@ void me_htp_post_me_calls(evhtp_request_t *req, void *data)
   j_data = http_get_json_from_request_data(req);
   if(j_data == NULL) {
     http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    json_decref(j_user);
     return;
   }
 
@@ -1124,6 +1185,38 @@ static json_t* get_me_info(const json_t* j_user)
   json_object_del(j_res, "password");
 
   return j_res;
+}
+
+/**
+ * Get given authtoken's me info.
+ * @param authtoken
+ * @return
+ */
+static bool update_me_info(const json_t* j_user, const json_t* j_data)
+{
+  int ret;
+  const char* uuid_user;
+
+  if((j_user == NULL) || (j_data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired update_me_info.");
+
+  uuid_user = json_string_value(json_object_get(j_user, "uuid"));
+  if(uuid_user == NULL) {
+    slog(LOG_NOTICE, "Could not get user uuid info.");
+    return false;
+  }
+
+  // update userinfo
+  ret = user_update_userinfo_info(uuid_user, j_data);
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not update me info.");
+    return false;
+  }
+
+  return true;
 }
 
 /**

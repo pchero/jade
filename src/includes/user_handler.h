@@ -24,7 +24,7 @@ json_t* user_get_userinfo_info(const char* key);
 json_t* user_get_userinfo_info_by_username(const char* key);
 json_t* user_get_userinfo_info_by_username_password(const char* username, const char* pass);
 json_t* user_get_userinfo_by_authtoken(const char* authtoken);
-bool user_update_userinfo_info(const json_t* j_data);
+bool user_update_userinfo_info(const char* uuid_user, const json_t* j_data);
 bool user_delete_userinfo_info(const char* key);
 json_t* user_get_userinfos_all(void);
 
@@ -46,7 +46,6 @@ json_t* user_get_contacts_all(void);
 json_t* user_get_contacts_by_user_uuid(const char* user_uuid);
 json_t* user_get_contact_info(const char* key);
 bool user_create_contact_info(const json_t* j_data);
-bool user_update_contact_info(const json_t* j_data);
 bool user_delete_contact_info(const char* key);
 
 // buddy
