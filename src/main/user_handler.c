@@ -1361,7 +1361,6 @@ static bool update_userinfo(const char* uuid, json_t* j_data)
   }
   slog(LOG_DEBUG, "Fired update_contact. uuid[%s]", uuid);
 
-  timestamp = utils_get_utc_timestamp();
   j_tmp = json_deep_copy(j_data);
 
   json_object_del(j_tmp, "username");
@@ -1371,6 +1370,8 @@ static bool update_userinfo(const char* uuid, json_t* j_data)
   timestamp = utils_get_utc_timestamp();
   json_object_set_new(j_tmp, "tm_update", json_string(timestamp));
   sfree(timestamp);
+
+  json_object_set_new(j_tmp, "uuid", json_string(uuid));
 
   ret = db_update_userinfo_info(j_tmp);
   json_decref(j_tmp);

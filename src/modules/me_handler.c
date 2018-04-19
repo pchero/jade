@@ -34,6 +34,7 @@
 #define DEF_PUBLISH_TOPIC_PREFIX_ME_INFO        "/me/info"
 #define DEF_PUBLISH_TOPIC_PREFIX_ME_CHATROOM_MESSAGE    "/me/chats"
 
+#define DEF_PUB_EVENT_PREFIX_ME_INFO                "me.info"             // topic: DEF_PUBLISH_TOPIC_PREFIX_ME_INFO
 #define DEF_PUB_EVENT_PREFIX_ME_CHATROOM            "me.chats"            // topic: DEF_PUBLISH_TOPIC_PREFIX_ME_INFO
 #define DEF_PUB_EVENT_PREFIX_ME_CHATROOM_MESSAGE    "me.chats.message"    // topic: DEF_PUBLISH_TOPIC_PREFIX_ME_CHATROOM
 #define DEF_PUB_EVENT_PREFIX_ME_BUDDY               "me.buddies"          // topic: DEF_PUBLISH_TOPIC_PREFIX_ME_INFO
@@ -79,6 +80,7 @@ static bool add_subscription_to_useruuid_chatroom(const char* uuid_user, const c
 static bool publish_event_me_buddy(enum EN_PUBLISH_TYPES type, const char* uuid_user, json_t* j_data);
 static bool publish_event_me_chat_message(enum EN_PUBLISH_TYPES type, const char* uuid_user, json_t* j_data);
 static bool publish_event_me_chat_room(enum EN_PUBLISH_TYPES type, const char* uuid_user, json_t* j_data);
+static bool publish_event_me_info(enum EN_PUBLISH_TYPES type, const char* uuid_user, json_t* j_data);
 
 
 bool me_init_handler(void)
@@ -1152,8 +1154,7 @@ void me_htp_get_me_contacts(evhtp_request_t *req, void *data)
 static json_t* get_me_info(const json_t* j_user)
 {
   json_t* j_res;
-  json_t* j_contacts;
-  json_t* j_chats;
+  const char* uuid_user;
 
   if(j_user == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -1161,25 +1162,18 @@ static json_t* get_me_info(const json_t* j_user)
   }
   slog(LOG_DEBUG, "Fired get_me_info.");
 
-  // get contacts
-  j_contacts = get_contacts_info(j_user);
-  if(j_contacts == NULL) {
-    slog(LOG_WARNING, "Could not get contacts info.");
+  uuid_user = json_string_value(json_object_get(j_user, "uuid"));
+  if(uuid_user == NULL) {
+    slog(LOG_NOTICE, "Could not get user uuid info.");
     return NULL;
   }
 
-  // get chats info
-  j_chats = get_chats_info(j_user);
-  if(j_chats == NULL) {
-    slog(LOG_WARNING, "Could not get chats info.");
-    json_decref(j_contacts);
+  // get user info
+  j_res = user_get_userinfo_info(uuid_user);
+  if(j_res == NULL) {
+    slog(LOG_NOTICE, "Could not get user info.");
     return NULL;
   }
-
-  // create result
-  j_res = json_deep_copy(j_user);
-  json_object_set_new(j_res, "contacts", j_contacts);
-  json_object_set_new(j_res, "chats", j_chats);
 
   // remove password object
   json_object_del(j_res, "password");
@@ -1196,6 +1190,7 @@ static bool update_me_info(const json_t* j_user, const json_t* j_data)
 {
   int ret;
   const char* uuid_user;
+  json_t* j_tmp;
 
   if((j_user == NULL) || (j_data == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -1215,6 +1210,21 @@ static bool update_me_info(const json_t* j_user, const json_t* j_data)
     slog(LOG_NOTICE, "Could not update me info.");
     return false;
   }
+
+  // get updated info
+  j_tmp = get_me_info(j_user);
+  if(j_tmp == NULL) {
+    slog(LOG_WARNING, "Could not get updated me info.");
+    return false;
+  }
+
+  // publish event
+  ret = publish_event_me_info(EN_PUBLISH_UPDATE, uuid_user, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    return false;
+  }
+
 
   return true;
 }
@@ -2496,6 +2506,39 @@ static bool publish_event_me_chat_room(enum EN_PUBLISH_TYPES type, const char* u
     slog(LOG_ERR, "Could not publish event.");
     return false;
   }
+
+  return true;
+}
+
+/**
+ * Publish event.
+ * me.info.<type>
+ * @param type
+ * @param j_data
+ * @return
+ */
+static bool publish_event_me_info(enum EN_PUBLISH_TYPES type, const char* uuid_user, json_t* j_data)
+{
+  char* topic;
+  int ret;
+
+  if((uuid_user == NULL) || (j_data == NULL)){
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired publish_event_me_info.");
+
+  // create topic
+  asprintf(&topic, "%s/%s", DEF_PUBLISH_TOPIC_PREFIX_ME_INFO, uuid_user);
+
+  // publish event
+  ret = publication_publish_event(topic, DEF_PUB_EVENT_PREFIX_ME_INFO, type, j_data);
+  sfree(topic);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
   return true;
 }
 

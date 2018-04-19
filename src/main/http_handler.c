@@ -5497,7 +5497,7 @@ static void cb_htp_me_info(evhtp_request_t *req, void *data)
 
   // method check
   method = evhtp_request_get_method(req);
-  if((method != htp_method_GET) || (method != htp_method_PUT)) {
+  if((method != htp_method_GET) && (method != htp_method_PUT)) {
     http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
