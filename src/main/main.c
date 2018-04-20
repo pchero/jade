@@ -30,6 +30,9 @@
 #include "pjsip_handler.h"
 #include "sip_handler.h"
 
+#include "me_handler.h"
+#include "admin_handler.h"
+
 app* g_app;
 
 
@@ -172,6 +175,18 @@ bool init(void)
     return false;
   }
 
+  ret = me_init_handler();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate me_handler.");
+    return false;
+  }
+
+  ret = admin_init_handler();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate admin_handler.");
+    return false;
+  }
+
   return true;
 }
 
@@ -193,6 +208,10 @@ bool terminate(void)
   websocket_term_handler();
 
   resource_term_handler();
+
+  // terminate modules
+  me_term_handler();
+  admin_term_handler();
 
   event_base_free(g_app->evt_base);
   g_app->evt_base = NULL;
