@@ -43,8 +43,6 @@ static char* create_public_url(const char* target);
 
 static json_t* get_contacts_info(const json_t* j_user);
 
-static json_t* get_userinfo(evhtp_request_t *req);
-
 static json_t* get_contact_info(const json_t* j_user_contact);
 static json_t* get_contact_info_pjsip(const char* target);
 
@@ -124,7 +122,7 @@ void me_htp_get_me_info(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_me_info.");
 
   // get userinfo
-  j_user = get_userinfo(req);
+  j_user = http_get_userinfo(req);
   if(j_user == NULL) {
     http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
     return;
@@ -170,7 +168,7 @@ void me_htp_put_me_info(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired me_htp_put_me_info.");
 
   // get userinfo
-  j_user = get_userinfo(req);
+  j_user = http_get_userinfo(req);
   if(j_user == NULL) {
     http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
     return;
@@ -223,7 +221,7 @@ void me_htp_get_me_chats(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_me_chats.");
 
   // get userinfo
-  j_user = get_userinfo(req);
+  j_user = http_get_userinfo(req);
   if(j_user == NULL) {
     http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
     return;
@@ -269,7 +267,7 @@ void me_htp_post_me_chats(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_post_me_chats.");
 
   // get user info
-  j_user = get_userinfo(req);
+  j_user = http_get_userinfo(req);
   if(j_user == NULL) {
     http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
     return;
@@ -322,7 +320,7 @@ void me_htp_get_me_chats_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_me_chats_detail.");
 
   // get userinfo
-  j_user = get_userinfo(req);
+  j_user = http_get_userinfo(req);
   if(j_user == NULL) {
     http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
     return;
@@ -378,7 +376,7 @@ void me_htp_put_me_chats_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_put_me_chats_detail.");
 
   // get userinfo
-  j_user = get_userinfo(req);
+  j_user = http_get_userinfo(req);
   if(j_user == NULL) {
     http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
     return;
@@ -444,7 +442,7 @@ void me_htp_delete_me_chats_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_delete_me_chats_detail.");
 
   // get userinfo
-  j_user = get_userinfo(req);
+  j_user = http_get_userinfo(req);
   if(j_user == NULL) {
     http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
     return;
@@ -499,7 +497,7 @@ void me_htp_get_me_chats_detail_messages(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_me_chats_detail_messages.");
 
   // get user info
-  j_user = get_userinfo(req);
+  j_user = http_get_userinfo(req);
   if(j_user == NULL) {
     http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
     return;
@@ -575,7 +573,7 @@ void me_htp_post_me_chats_detail_messages(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_post_me_chats_detail_messages.");
 
   // get user info
-  j_user = get_userinfo(req);
+  j_user = http_get_userinfo(req);
   if(j_user == NULL) {
     http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
     return;
@@ -634,7 +632,7 @@ void me_htp_get_me_buddies(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired me_htp_get_me_buddies.");
 
   // get userinfo
-  j_user = get_userinfo(req);
+  j_user = http_get_userinfo(req);
   if(j_user == NULL) {
     http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
     return;
@@ -681,7 +679,7 @@ void me_htp_post_me_buddies(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired me_htp_post_me_buddies.");
 
   // get user info
-  j_user = get_userinfo(req);
+  j_user = http_get_userinfo(req);
   if(j_user == NULL) {
     http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
     return;
@@ -733,7 +731,7 @@ void me_htp_get_me_buddies_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired me_htp_get_me_buddies_detail.");
 
   // get userinfo
-  j_user = get_userinfo(req);
+  j_user = http_get_userinfo(req);
   if(j_user == NULL) {
     http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
     return;
@@ -789,7 +787,7 @@ void me_htp_put_me_buddies_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired me_htp_put_me_buddies_detail.");
 
   // get userinfo
-  j_user = get_userinfo(req);
+  j_user = http_get_userinfo(req);
   if(j_user == NULL) {
     http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
     return;
@@ -854,7 +852,7 @@ void me_htp_delete_me_buddies_detail(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired me_htp_delete_me_buddies_detail.");
 
   // get userinfo
-  j_user = get_userinfo(req);
+  j_user = http_get_userinfo(req);
   if(j_user == NULL) {
     http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
     return;
@@ -906,7 +904,7 @@ void me_htp_get_me_calls(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired me_htp_get_me_calls.");
 
   // get userinfo
-  j_user = get_userinfo(req);
+  j_user = http_get_userinfo(req);
   if(j_user == NULL) {
     http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
     return;
@@ -952,7 +950,7 @@ void me_htp_post_me_calls(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired me_htp_post_me_calls.");
 
   // get userinfo
-  j_user = get_userinfo(req);
+  j_user = http_get_userinfo(req);
   if(j_user == NULL) {
     http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
     return;
@@ -1058,7 +1056,7 @@ void me_htp_get_me_search(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired me_htp_get_me_search.");
 
   // get userinfo
-  j_user = get_userinfo(req);
+  j_user = http_get_userinfo(req);
   if(j_user == NULL) {
     http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
     return;
@@ -1119,7 +1117,7 @@ void me_htp_get_me_contacts(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired me_htp_get_me_contacts.");
 
   // get userinfo
-  j_user = get_userinfo(req);
+  j_user = http_get_userinfo(req);
   if(j_user == NULL) {
     http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
     return;
@@ -1339,37 +1337,6 @@ static char* create_public_url(const char* target)
       );
 
   return res;
-}
-
-/**
- * Get userinfo of given request
- * @param req
- * @return
- */
-static json_t* get_userinfo(evhtp_request_t *req)
-{
-  char* token;
-  json_t* j_res;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return NULL;
-  }
-
-  // get token
-  token = http_get_authtoken(req);
-  if(token == NULL) {
-    return NULL;
-  }
-
-  // get user info
-  j_res = user_get_userinfo_by_authtoken(token);
-  sfree(token);
-  if(j_res == NULL) {
-    return NULL;
-  }
-
-  return j_res;
 }
 
 static json_t* get_contacts_info(const json_t* j_user)

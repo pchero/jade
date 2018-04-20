@@ -61,7 +61,8 @@ static char* create_authtoken(const char* username, const char* password, const 
 static bool db_create_userinfo_info(const json_t* j_data);
 static bool db_update_userinfo_info(const json_t* j_data);
 
-static bool create_userinfo(json_t* j_data);
+static bool create_userinfo(const char* uuid, json_t* j_data);
+static bool create_userinfo_without_uuid(json_t* j_data);
 static bool update_userinfo(const char* uuid, json_t* j_data);
 
 static bool create_permission(const char* user_uuid, const char* permission);
@@ -75,7 +76,7 @@ static json_t* get_buddy(const char* uuid);
 static bool update_buddy(const json_t* j_data);
 
 static bool is_user_exist(const char* user_uuid);
-static bool is_user_exsit_by_username(const char* username);
+static bool is_user_exist_by_username(const char* username);
 static bool is_valid_type_target(const char* type, const char* target);
 
 static void cb_user_validate_authtoken(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg);
@@ -102,7 +103,7 @@ bool user_init_handler(void)
 	    "username", "admin",
 	    "password", "admin"
 	    );
-	create_userinfo(j_tmp);
+	create_userinfo_without_uuid(j_tmp);
 	json_decref(j_tmp);
 
 	// create default permission admin
@@ -761,7 +762,7 @@ void user_htp_post_user_users(evhtp_request_t *req, void *data)
   }
 
   // create user
-  ret = create_userinfo(j_data);
+  ret = create_userinfo_without_uuid(j_data);
   json_decref(j_data);
   if(ret == false) {
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
@@ -1277,24 +1278,35 @@ static bool update_contact(const char* uuid, json_t* j_data)
   return true;
 }
 
-/**
- * Create user info.
- * @param j_data
- * @return
- */
-static bool create_userinfo(json_t* j_data)
+bool user_create_userinfo(const char* uuid, json_t* j_data)
 {
-  json_t* j_tmp;
-  char* timestamp;
-  char* uuid;
-  const char* username;
   int ret;
 
-  if(j_data == NULL) {
+  if((uuid == NULL) || (j_data == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
-  slog(LOG_DEBUG, "Fired create_user.");
+
+  ret = create_userinfo(uuid, j_data);
+  if(ret == false) {
+    return false;
+  }
+
+  return true;
+}
+
+static bool create_userinfo(const char* uuid, json_t* j_data)
+{
+  json_t* j_tmp;
+  char* timestamp;
+  const char* username;
+  int ret;
+
+  if((uuid == NULL) || (j_data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired create_userinfo.");
 
   // validate info.
   username = json_string_value(json_object_get(j_data, "username"));
@@ -1304,7 +1316,12 @@ static bool create_userinfo(json_t* j_data)
   }
 
   // check exist
-  ret = is_user_exsit_by_username(username);
+  ret = is_user_exist(uuid);
+  if(ret == true) {
+    slog(LOG_NOTICE, "The given uuid user is already exist. uuid[%s]", uuid);
+    return false;
+  }
+  ret = is_user_exist_by_username(username);
   if(ret == true) {
     slog(LOG_ERR, "The given username is already exist. username[%s]", username);
     return false;
@@ -1312,7 +1329,6 @@ static bool create_userinfo(json_t* j_data)
 
   // create contact info
   timestamp = utils_get_utc_timestamp();
-  uuid = utils_gen_uuid();
   j_tmp = json_pack("{"
       "s:s, "
       "s:s, s:s, "
@@ -1330,11 +1346,37 @@ static bool create_userinfo(json_t* j_data)
       "tm_create",    timestamp
       );
   sfree(timestamp);
-  sfree(uuid);
 
   // create resource
   ret = db_create_userinfo_info(j_tmp);
   json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create user contact info.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Create user info.
+ * @param j_data
+ * @return
+ */
+static bool create_userinfo_without_uuid(json_t* j_data)
+{
+  char* uuid;
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired create_user.");
+
+  uuid = utils_gen_uuid();
+  ret = create_userinfo(uuid, j_data);
+  sfree(uuid);
   if(ret == false) {
     slog(LOG_ERR, "Could not create user contact info.");
     return false;
@@ -1422,7 +1464,7 @@ static bool is_user_exist(const char* user_uuid)
   return true;
 }
 
-static bool is_user_exsit_by_username(const char* username)
+static bool is_user_exist_by_username(const char* username)
 {
   json_t* j_tmp;
 

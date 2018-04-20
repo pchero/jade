@@ -780,6 +780,37 @@ static bool init_https(void)
   return true;
 }
 
+/**
+ * Get userinfo of given request
+ * @param req
+ * @return
+ */
+json_t* http_get_userinfo(evhtp_request_t *req)
+{
+  char* token;
+  json_t* j_res;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  // get token
+  token = http_get_authtoken(req);
+  if(token == NULL) {
+    return NULL;
+  }
+
+  // get user info
+  j_res = user_get_userinfo_by_authtoken(token);
+  sfree(token);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
 void http_simple_response_normal(evhtp_request_t *req, json_t* j_msg)
 {
   char* res;
