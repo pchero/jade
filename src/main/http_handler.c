@@ -75,6 +75,7 @@ static void cb_htp_dp_config(evhtp_request_t *req, void *data);
 // manager
 static void cb_htp_manager_login(evhtp_request_t *req, void *data);
 static void cb_htp_manager_users(evhtp_request_t *req, void *data);
+static void cb_htp_manager_users_detail(evhtp_request_t *req, void *data);
 
 // me
 static void cb_htp_me_buddies(evhtp_request_t *req, void *data);
@@ -248,7 +249,7 @@ bool http_init_handler(void)
 
   // users
   evhtp_set_regex_cb(g_htps, "^/v1/manager/users$", cb_htp_manager_users, NULL);
-
+  evhtp_set_regex_cb(g_htps, "^/v1/manager/users/("DEF_REG_UUID")$", cb_htp_manager_users_detail, NULL);
 
 
 
@@ -6212,6 +6213,62 @@ static void cb_htp_manager_users(evhtp_request_t *req, void *data)
   }
   else if(method == htp_method_POST) {
     manager_htp_post_manager_users(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+
+  return;
+}
+
+/**
+ * http request handler
+ * ^/manager/users/<detail>
+ * @param req
+ * @param data
+ */
+static void cb_htp_manager_users_detail(evhtp_request_t *req, void *data)
+{
+  int method;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_manager_users_detail.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if((method != htp_method_GET) && (method != htp_method_PUT) && (method != htp_method_DELETE)) {
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // fire handlers
+  if(method == htp_method_GET) {
+    manager_htp_get_manager_users_detail(req, data);
+    return;
+  }
+  else if(method == htp_method_PUT) {
+    manager_htp_put_manager_users_detail(req, data);
+    return;
+  }
+  else if(method == htp_method_DELETE) {
+    manager_htp_delete_manager_users_detail(req, data);
     return;
   }
   else {
