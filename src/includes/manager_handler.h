@@ -14,7 +14,11 @@ bool manager_init_handler(void);
 bool manager_term_handler(void);
 bool manager_reload_handler(void);
 
+// http handlers
 void manager_htp_post_manager_login(evhtp_request_t *req, void *data);
+
+void manager_htp_get_manager_users(evhtp_request_t *req, void *data);
+void manager_htp_post_manager_users(evhtp_request_t *req, void *data);
 
 
 #endif /* SRC_INCLUDES_MANAGER_HANDLER_H_ */

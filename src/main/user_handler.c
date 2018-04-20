@@ -66,7 +66,7 @@ static bool create_userinfo_without_uuid(json_t* j_data);
 static bool update_userinfo(const char* uuid, json_t* j_data);
 
 static bool create_permission(const char* user_uuid, const char* permission);
-static bool create_permission_by_json(json_t* j_data);
+static bool create_permission_by_json(const json_t* j_data);
 
 static bool create_contact(const json_t* j_data);
 static bool update_contact(const char* uuid, json_t* j_data);
@@ -77,7 +77,7 @@ static bool update_buddy(const json_t* j_data);
 
 static bool is_user_exist(const char* user_uuid);
 static bool is_user_exist_by_username(const char* username);
-static bool is_valid_type_target(const char* type, const char* target);
+static bool is_valid_target(const char* target);
 
 static void cb_user_validate_authtoken(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg);
 
@@ -1118,7 +1118,7 @@ static char* create_authtoken(const char* username, const char* password, const 
   return token;
 }
 
-static bool create_permission_by_json(json_t* j_data)
+static bool create_permission_by_json(const json_t* j_data)
 {
   const char* user_uuid;
   const char* permission;
@@ -1160,7 +1160,7 @@ static bool create_permission(const char* user_uuid, const char* permission)
       );
   sfree(uuid);
 
-  ret = user_create_permission_info(j_tmp);
+  ret = db_create_permission_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     return false;
@@ -1175,7 +1175,6 @@ static bool create_contact(const json_t* j_data)
   char* timestamp;
   char* uuid;
   const char* user_uuid;
-  const char* type;
   const char* target;
   int ret;
 
@@ -1194,11 +1193,10 @@ static bool create_contact(const json_t* j_data)
   }
 
   // validate type target
-  type = json_string_value(json_object_get(j_data, "type"));
   target = json_string_value(json_object_get(j_data, "target"));
-  ret = is_valid_type_target(type, target);
+  ret = is_valid_target(target);
   if(ret == false) {
-    slog(LOG_NOTICE, "Could not pass the type target validation. type[%s], target[%s]", type?:"", target?:"");
+    slog(LOG_NOTICE, "Could not pass the type target validation. target[%s]", target?:"");
     return false;
   }
 
@@ -1207,14 +1205,13 @@ static bool create_contact(const json_t* j_data)
   uuid = utils_gen_uuid();
   j_tmp = json_pack("{"
       "s:s, s:s, "
-      "s:s, s:s, s:s, s:s, "
+      "s:s, s:s, s:s, "
       "s:s "
       "}",
 
       "uuid",         uuid,
       "user_uuid",    user_uuid,
 
-      "type",         type,
       "target",       target,
       "name",         json_string_value(json_object_get(j_data, "name"))? : "",
       "detail",       json_string_value(json_object_get(j_data, "detail"))? : "",
@@ -1483,47 +1480,21 @@ static bool is_user_exist_by_username(const char* username)
   return true;
 }
 
-static bool is_valid_type_target(const char* type, const char* target)
+static bool is_valid_target(const char* target)
 {
-  json_t* j_tmp;
+  int ret;
 
-  if((type == NULL) || (target == NULL)) {
+  if(target == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
 
-  // validate
-  if(strcmp(type, DEF_USER_CONTACT_TYPE_PEER) == 0) {
-    // peer type
-
-    j_tmp = sip_get_peer_info(target);
-    if(j_tmp == NULL) {
-      return false;
-    }
-
-    json_decref(j_tmp);
-    return true;
-  }
-  else if(strcmp(type, DEF_USER_CONTACT_TYPE_ENDPOINT) == 0) {
-    // pjsip type
-
-    j_tmp = pjsip_get_endpoint_info(target);
-    if(j_tmp == NULL) {
-      return false;
-    }
-
-    json_decref(j_tmp);
-    return true;
-  }
-  else {
-    // wrong type
-
+  ret = pjsip_is_exist_endpoint(target);
+  if(ret == false) {
     return false;
   }
 
-  // should not reach to here
-  slog(LOG_ERR, "Should not reach to here. Something was wrong.");
-  return false;
+  return true;
 }
 
 /**
@@ -2060,7 +2031,7 @@ bool user_create_permission_info(const json_t* j_data)
   }
   slog(LOG_DEBUG, "Fired create_user_permission_info.");
 
-  ret = db_create_permission_info(j_data);
+  ret = create_permission_by_json(j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert user_authtoken.");
     return false;
@@ -2069,11 +2040,37 @@ bool user_create_permission_info(const json_t* j_data)
   return true;
 }
 
+/**
+ * Returns all permissions.
+ * @return
+ */
 json_t* user_get_permissions_all(void)
 {
   json_t* j_res;
 
   j_res = resource_get_file_items(DEF_DB_TABLE_USER_PERMISSION, "*");
+  return j_res;
+}
+
+/**
+ * Returns all permissions of given user uuid.
+ * @param uuid_user
+ * @return
+ */
+json_t* user_get_permissions_by_useruuid(const char* uuid_user)
+{
+  json_t* j_res;
+
+  if(uuid_user == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  j_res = resource_get_file_detail_item_key_string(DEF_DB_TABLE_USER_PERMISSION, "user_uuid", uuid_user);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
   return j_res;
 }
 

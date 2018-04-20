@@ -37,8 +37,9 @@ bool user_update_authtoken_tm_update(const char* uuid);
 bool user_delete_authtoken_info(const char* key);
 
 // permission
-bool user_create_permission_info(const json_t* j_data);
 json_t* user_get_permissions_all(void);
+json_t* user_get_permissions_by_useruuid(const char* uuid_user);
+bool user_create_permission_info(const json_t* j_data);
 json_t* user_get_permission_info_by_useruuid_perm(const char* useruuid, const char* perm);
 bool user_delete_permission_info(const char* key);
 
