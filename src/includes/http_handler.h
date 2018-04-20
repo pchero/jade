@@ -38,6 +38,7 @@ char* http_get_parsed_detail_start(evhtp_request_t* req);
 bool http_get_htp_id_pass(evhtp_request_t* req, char** agent_uuid, char** agent_pass);
 char* http_get_authtoken(evhtp_request_t* req);
 char* http_get_parameter(evhtp_request_t* req, const char* key);
+json_t* http_get_userinfo(evhtp_request_t *req);
 
 bool http_is_request_has_permission(evhtp_request_t *req, enum EN_HTTP_PERMS perm);
 

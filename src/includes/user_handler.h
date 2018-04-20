@@ -24,6 +24,7 @@ json_t* user_get_userinfo_info(const char* key);
 json_t* user_get_userinfo_info_by_username(const char* key);
 json_t* user_get_userinfo_info_by_username_password(const char* username, const char* pass);
 json_t* user_get_userinfo_by_authtoken(const char* authtoken);
+bool user_create_userinfo(const char* uuid, json_t* j_data);
 bool user_update_userinfo_info(const char* uuid_user, const json_t* j_data);
 bool user_delete_userinfo_info(const char* key);
 json_t* user_get_userinfos_all(void);

@@ -31,6 +31,7 @@
 #include "dialplan_handler.h"
 #include "user_handler.h"
 #include "me_handler.h"
+#include "admin_handler.h"
 
 
 #define API_VER "0.1"
@@ -46,6 +47,9 @@ static char* get_data_from_request(evhtp_request_t* req);
 
 // ping
 static void cb_htp_ping(evhtp_request_t *req, void *a);
+
+// admin
+static void cb_htp_admin_login(evhtp_request_t *req, void *data);
 
 // agent
 static void cb_htp_agent_agents(evhtp_request_t *req, void *data);
@@ -187,6 +191,7 @@ bool http_init_handler(void)
 
 
   ///// apis v.1
+  evhtp_set_regex_cb(g_htps, "^/v1/admin/login$", cb_htp_admin_login, NULL);
 
   //// ^/agent/
   // agents
@@ -773,6 +778,37 @@ static bool init_https(void)
   }
 
   return true;
+}
+
+/**
+ * Get userinfo of given request
+ * @param req
+ * @return
+ */
+json_t* http_get_userinfo(evhtp_request_t *req)
+{
+  char* token;
+  json_t* j_res;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  // get token
+  token = http_get_authtoken(req);
+  if(token == NULL) {
+    return NULL;
+  }
+
+  // get user info
+  j_res = user_get_userinfo_by_authtoken(token);
+  sfree(token);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
 }
 
 void http_simple_response_normal(evhtp_request_t *req, json_t* j_msg)
@@ -6026,6 +6062,50 @@ static void cb_htp_me_contacts(evhtp_request_t *req, void *data)
 
   // should not reach to here.
   http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+
+  return;
+}
+
+/**
+ * http request handler.
+ * ^/admin/login
+ * @param req
+ * @param data
+ */
+static void cb_htp_admin_login(evhtp_request_t *req, void *data)
+{
+  int method;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_admin_login.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if((method != htp_method_POST) && (method != htp_method_DELETE)) {
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  if(method == htp_method_POST) {
+    admin_htp_post_admin_login(req, data);
+    return;
+  }
+  else if(method == htp_method_DELETE) {
+    // synonym of delete /user/login
+    user_htp_delete_user_login(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
 
   return;
 }
