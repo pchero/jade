@@ -3407,16 +3407,16 @@ static void ami_event_reload(json_t* j_msg)
 
   // parse module
   // fire reload handler
-  if(strstr(module, "app_queue.so") != NULL) {
+  if(strstr(module, "app_queue") != NULL) {
     ret = queue_reload_handler();
   }
-  else if(strstr(module, "res_parking.so") != NULL) {
+  else if(strstr(module, "res_parking") != NULL) {
     ret = park_reload_handler();
   }
-  else if(strstr(module, "res_pjsip.so") != NULL) {
+  else if(strstr(module, "res_pjsip") != NULL) {
     ret = pjsip_reload_handler();
   }
-  else if(strstr(module, "chan_sip.so") != NULL) {
+  else if(strstr(module, "chan_sip") != NULL) {
     ret = sip_reload_handler();
   }
 

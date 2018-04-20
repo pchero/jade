@@ -15,6 +15,41 @@ bool pjsip_init_handler(void);
 bool pjsip_reload_handler(void);
 bool pjsip_term_handler(void);
 
+// endpoint
+bool pjsip_create_endpoint_info(const json_t* j_data);
+bool pjsip_update_endpoint_info(const json_t* j_data);
+bool pjsip_pjsip_endpoint_info(const char* key);
+json_t* pjsip_get_endpoints_all(void);
+json_t* pjsip_get_endpoint_info(const char* name);
+
+// auth
+bool pjsip_create_auth_info(const json_t* j_data);
+bool pjsip_update_auth_info(const json_t* j_data);
+bool pjsip_delete_auth_info(const char* key);
+json_t* pjsip_get_auths_all(void);
+json_t* pjsip_get_auth_info(const char* key);
+
+// aor
+bool pjsip_create_aor_info(const json_t* j_data);
+bool pjsip_update_aor_info(const json_t* j_data);
+bool pjsip_delete_aor_info(const char* key);
+json_t* pjsip_get_aors_all(void);
+json_t* pjsip_get_aor_info(const char* key);
+
+// contact
+bool pjsip_create_contact_info(const json_t* j_data);
+bool pjsip_update_contact_info(const json_t* j_data);
+bool pjsip_delete_contact_info(const char* key);
+json_t* pjsip_get_contacts_all(void);
+json_t* pjsip_get_contact_info(const char* key);
+
+// target
+bool pjsip_create_target_with_default_setting(const char* target_name);
+bool pjsip_delete_target(const char* target_name);
+
+bool pjsip_is_exist_endpoint(const char* target);
+bool pjsip_reload_config(void);
+
 // https handlers
 // aor
 void pjsip_htp_get_pjsip_aors(evhtp_request_t *req, void *data);
@@ -78,34 +113,5 @@ void pjsip_htp_put_pjsip_settings_detail(evhtp_request_t *req, void *data);
 void pjsip_htp_delete_pjsip_settings_detail(evhtp_request_t *req, void *data);
 void pjsip_htp_get_pjsip_settings(evhtp_request_t *req, void *data);
 void pjsip_htp_post_pjsip_settings(evhtp_request_t *req, void *data);
-
-// endpoint
-bool pjsip_create_endpoint_info(const json_t* j_data);
-bool pjsip_update_endpoint_info(const json_t* j_data);
-bool pjsip_pjsip_endpoint_info(const char* key);
-json_t* pjsip_get_endpoints_all(void);
-json_t* pjsip_get_endpoint_info(const char* name);
-
-// auth
-bool pjsip_create_auth_info(const json_t* j_data);
-bool pjsip_update_auth_info(const json_t* j_data);
-bool pjsip_delete_auth_info(const char* key);
-json_t* pjsip_get_auths_all(void);
-json_t* pjsip_get_auth_info(const char* key);
-
-// aor
-bool pjsip_create_aor_info(const json_t* j_data);
-bool pjsip_update_aor_info(const json_t* j_data);
-bool pjsip_delete_aor_info(const char* key);
-json_t* pjsip_get_aors_all(void);
-json_t* pjsip_get_aor_info(const char* key);
-
-// contact
-bool pjsip_create_contact_info(const json_t* j_data);
-bool pjsip_update_contact_info(const json_t* j_data);
-bool pjsip_delete_contact_info(const char* key);
-json_t* pjsip_get_contacts_all(void);
-json_t* pjsip_get_contact_info(const char* key);
-
 
 #endif /* SRC_PJSIP_HANDLER_H_ */

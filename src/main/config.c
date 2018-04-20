@@ -26,7 +26,7 @@
 #define DEF_GENERAL_AMI_SERV_PORT "5038"
 #define DEF_GENERAL_HTTPS_ADDR "0.0.0.0"
 #define DEF_GENERAL_HTTPS_PORT "8081"
-#define DEF_GENERAL_HTTPS_PEMFILE "./jade.pem"
+#define DEF_GENERAL_HTTPS_PEMFILE "/opt/bin/jade.pem"
 #define DEF_GENERAL_ZMQ_ADDR_PUBLISH "tcp://*:8082"   // zmq address for publish
 #define DEF_GENERAL_WEBSOCK_ADDR "0.0.0.0"
 #define DEF_GENERAL_WEBSOCK_PORT "8083"
@@ -47,6 +47,8 @@
 #define DEF_DIALPLA_DEFAULT_ORIGINATE_TO_DEVICE   "72ebc4b8-ac5e-4863-a7d3-55ffdfef43ee"
 #define DEF_DIALPLA_DEFAULT_ORIGINATE_TO_NUMBER   "a922cf23-c650-426a-9ba0-a35ebc68a464"
 
+#define DEF_PJSIP_CONTEXT           "demo"
+#define DEF_PJSIP_DTLS_CERT_FILE    "/opt/bin/jade.pem"
 
 extern app* g_app;
 static char g_config_filename[1024] = "";
@@ -124,6 +126,7 @@ static bool load_config(void)
 			"},"	// general
       "s:{s:s}, "	            // voicemail
       "s:{s:s, s:s, s:s},"    // ob
+      "s:{s:s, s:s},"         // pjsip
       "s:{s:s, s:s}"          // dialplan
       "}",
       "general",
@@ -158,6 +161,10 @@ static bool load_config(void)
         "dialing_result_filename",  DEF_OB_DIALING_RESULT_FILENAME,
         "dialing_timeout",          DEF_OB_DIALING_TIMEOUT,
         "database_name",            DEF_OB_DATABASE_NAME,
+
+      "pjsip",
+        "context",          DEF_PJSIP_CONTEXT,
+        "dtls_cert_file",   DEF_PJSIP_DTLS_CERT_FILE,
 
       "dialplan",
         "default_dpma_originate_to_device",     DEF_DIALPLA_DEFAULT_ORIGINATE_TO_DEVICE,

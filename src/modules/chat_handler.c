@@ -1022,6 +1022,37 @@ bool chat_delete_userroom(const char* uuid_userroom)
 }
 
 /**
+ * Delete all chat module info related with given user uuid.
+ * @param uuid_user
+ * @return
+ */
+bool chat_delete_info_by_useruuid(const char* uuid_user)
+{
+  int idx;
+  json_t* j_tmps;
+  json_t* j_tmp;
+  const char* uuid_userroom;
+
+  if(uuid_user == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  // get all userroom by given user uuid
+  j_tmps = chat_get_userrooms_by_useruuid(uuid_user);
+
+  // delete all given userroom info
+  json_array_foreach(j_tmps, idx, j_tmp) {
+    uuid_userroom = json_string_value(json_object_get(j_tmp, "uuid"));
+    chat_delete_userroom(uuid_userroom);
+  }
+  json_decref(j_tmps);
+
+  return true;
+}
+
+
+/**
  * Create chat room
  * @param uuid
  * @return

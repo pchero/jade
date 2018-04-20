@@ -55,21 +55,26 @@ static bool db_delete_permission_info(const char* key);
 
 static bool db_create_contact_info(const json_t* j_data);
 static bool db_update_contact_info(const json_t* j_data);
+static bool db_delete_contact_info(const char* key);
 
 static char* create_authtoken(const char* username, const char* password, const char* type);
 
 static bool db_create_userinfo_info(const json_t* j_data);
 static bool db_update_userinfo_info(const json_t* j_data);
+static bool db_delete_userinfo_info(const char* uuid);
 
 static bool create_userinfo(const char* uuid, json_t* j_data);
 static bool create_userinfo_without_uuid(json_t* j_data);
 static bool update_userinfo(const char* uuid, json_t* j_data);
+static bool delete_userinfo(const char* uuid);
 
 static bool create_permission(const char* user_uuid, const char* permission);
-static bool create_permission_by_json(json_t* j_data);
+static bool create_permission_by_json(const json_t* j_data);
+static bool delete_permission(const char* key);
 
 static bool create_contact(const json_t* j_data);
 static bool update_contact(const char* uuid, json_t* j_data);
+static bool delete_contact(const char* uuid);
 
 static bool create_buddy(const char* uuid, const json_t* j_data);
 static json_t* get_buddy(const char* uuid);
@@ -77,7 +82,7 @@ static bool update_buddy(const json_t* j_data);
 
 static bool is_user_exist(const char* user_uuid);
 static bool is_user_exist_by_username(const char* username);
-static bool is_valid_type_target(const char* type, const char* target);
+static bool is_valid_target(const char* target);
 
 static void cb_user_validate_authtoken(__attribute__((unused)) int fd, __attribute__((unused)) short event, __attribute__((unused)) void *arg);
 
@@ -719,7 +724,7 @@ void user_htp_delete_user_contacts_detail(evhtp_request_t *req, void *data)
   }
 
   // delete
-  ret = user_delete_contact_info(detail);
+  ret = delete_contact(detail);
   sfree(detail);
   if(ret == false) {
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
@@ -1060,7 +1065,7 @@ void user_htp_delete_user_permissions_detail(evhtp_request_t *req, void *data)
   }
 
   // delete
-  ret = user_delete_permission_info(detail);
+  ret = delete_permission(detail);
   sfree(detail);
   if(ret == false) {
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
@@ -1118,7 +1123,7 @@ static char* create_authtoken(const char* username, const char* password, const 
   return token;
 }
 
-static bool create_permission_by_json(json_t* j_data)
+static bool create_permission_by_json(const json_t* j_data)
 {
   const char* user_uuid;
   const char* permission;
@@ -1160,7 +1165,7 @@ static bool create_permission(const char* user_uuid, const char* permission)
       );
   sfree(uuid);
 
-  ret = user_create_permission_info(j_tmp);
+  ret = db_create_permission_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     return false;
@@ -1175,7 +1180,6 @@ static bool create_contact(const json_t* j_data)
   char* timestamp;
   char* uuid;
   const char* user_uuid;
-  const char* type;
   const char* target;
   int ret;
 
@@ -1194,11 +1198,10 @@ static bool create_contact(const json_t* j_data)
   }
 
   // validate type target
-  type = json_string_value(json_object_get(j_data, "type"));
   target = json_string_value(json_object_get(j_data, "target"));
-  ret = is_valid_type_target(type, target);
+  ret = is_valid_target(target);
   if(ret == false) {
-    slog(LOG_NOTICE, "Could not pass the type target validation. type[%s], target[%s]", type?:"", target?:"");
+    slog(LOG_NOTICE, "Could not pass the type target validation. target[%s]", target?:"");
     return false;
   }
 
@@ -1207,14 +1210,13 @@ static bool create_contact(const json_t* j_data)
   uuid = utils_gen_uuid();
   j_tmp = json_pack("{"
       "s:s, s:s, "
-      "s:s, s:s, s:s, s:s, "
+      "s:s, s:s, s:s, "
       "s:s "
       "}",
 
       "uuid",         uuid,
       "user_uuid",    user_uuid,
 
-      "type",         type,
       "target",       target,
       "name",         json_string_value(json_object_get(j_data, "name"))? : "",
       "detail",       json_string_value(json_object_get(j_data, "detail"))? : "",
@@ -1483,47 +1485,21 @@ static bool is_user_exist_by_username(const char* username)
   return true;
 }
 
-static bool is_valid_type_target(const char* type, const char* target)
+static bool is_valid_target(const char* target)
 {
-  json_t* j_tmp;
+  int ret;
 
-  if((type == NULL) || (target == NULL)) {
+  if(target == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
 
-  // validate
-  if(strcmp(type, DEF_USER_CONTACT_TYPE_PEER) == 0) {
-    // peer type
-
-    j_tmp = sip_get_peer_info(target);
-    if(j_tmp == NULL) {
-      return false;
-    }
-
-    json_decref(j_tmp);
-    return true;
-  }
-  else if(strcmp(type, DEF_USER_CONTACT_TYPE_ENDPOINT) == 0) {
-    // pjsip type
-
-    j_tmp = pjsip_get_endpoint_info(target);
-    if(j_tmp == NULL) {
-      return false;
-    }
-
-    json_decref(j_tmp);
-    return true;
-  }
-  else {
-    // wrong type
-
+  ret = pjsip_is_exist_endpoint(target);
+  if(ret == false) {
     return false;
   }
 
-  // should not reach to here
-  slog(LOG_ERR, "Should not reach to here. Something was wrong.");
-  return false;
+  return true;
 }
 
 /**
@@ -1720,11 +1696,7 @@ bool user_update_userinfo_info(const char* uuid_user, const json_t* j_data)
   return true;
 }
 
-/**
- * Delete user_userinfo info.
- * @return
- */
-bool user_delete_userinfo_info(const char* key)
+static bool db_delete_userinfo_info(const char* key)
 {
   int ret;
 
@@ -1739,6 +1711,96 @@ bool user_delete_userinfo_info(const char* key)
     slog(LOG_WARNING, "Could not delete dp_dialplan info. key[%s]", key);
     return false;
   }
+
+  return true;
+}
+
+static bool delete_userinfo(const char* uuid)
+{
+  int ret;
+
+  if(uuid == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  ret = db_delete_userinfo_info(uuid);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not delete user info. key[%s]", uuid);
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Delete user_userinfo info.
+ * @return
+ */
+bool user_delete_userinfo_info(const char* key)
+{
+  int ret;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired delete_user_userinfo_info. key[%s]", key);
+
+  ret = delete_userinfo(key);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not delete user info. key[%s]", key);
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Delete all info with all related info.
+ * @param uuid_user
+ * @return
+ */
+bool user_delete_info_by_useruuid(const char* uuid_user)
+{
+  int ret;
+  int idx;
+  json_t* j_tmp;
+  json_t* j_tmps;
+  const char* tmp_const;
+
+  if(uuid_user == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  // delete user info
+  ret = delete_userinfo(uuid_user);
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not delete userinfo.");
+  }
+
+  // delete contacts
+  j_tmps = user_get_contacts_by_user_uuid(uuid_user);
+  json_array_foreach(j_tmps, idx, j_tmp) {
+
+    // delete contact
+    tmp_const = json_string_value(json_object_get(j_tmp, "uuid"));
+    delete_contact(tmp_const);
+
+    // delete related target
+    tmp_const = json_string_value(json_object_get(j_tmp, "target"));
+    pjsip_delete_target(tmp_const);
+  }
+  json_decref(j_tmps);
+
+  // delete permission
+  j_tmps = user_get_permissions_by_useruuid(uuid_user);
+  json_array_foreach(j_tmps, idx, j_tmp) {
+    tmp_const = json_string_value(json_object_get(j_tmp, "uuid"));
+    delete_permission(tmp_const);
+  }
+  json_decref(j_tmps);
 
   return true;
 }
@@ -2060,7 +2122,7 @@ bool user_create_permission_info(const json_t* j_data)
   }
   slog(LOG_DEBUG, "Fired create_user_permission_info.");
 
-  ret = db_create_permission_info(j_data);
+  ret = create_permission_by_json(j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert user_authtoken.");
     return false;
@@ -2069,6 +2131,10 @@ bool user_create_permission_info(const json_t* j_data)
   return true;
 }
 
+/**
+ * Returns all permissions.
+ * @return
+ */
 json_t* user_get_permissions_all(void)
 {
   json_t* j_res;
@@ -2078,11 +2144,76 @@ json_t* user_get_permissions_all(void)
 }
 
 /**
+ * Returns all permissions of given user uuid.
+ * @param uuid_user
+ * @return
+ */
+json_t* user_get_permissions_by_useruuid(const char* uuid_user)
+{
+  json_t* j_res;
+
+  if(uuid_user == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  j_res = resource_get_file_detail_items_key_string(DEF_DB_TABLE_USER_PERMISSION, "user_uuid", uuid_user);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
+/**
+ * Delete all permissions of the given user.
+ * @param uuid_user
+ * @return
+ */
+bool user_delete_permissions_by_useruuid(const char* uuid_user)
+{
+  int ret;
+  int idx;
+  json_t* j_tmps;
+  json_t* j_tmp;
+  const char* tmp_const;
+
+  if(uuid_user == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  // get array of given user's permissions
+  j_tmps = user_get_permissions_by_useruuid(uuid_user);
+  if(j_tmps == NULL) {
+    slog(LOG_NOTICE, "Could not get permissions info of the given user uuid. uuid[%s].", uuid_user);
+    return false;
+  }
+
+  // delete every permissions info
+  json_array_foreach(j_tmps, idx, j_tmp) {
+    tmp_const = json_string_value(json_object_get(j_tmp, "uuid"));
+    if(tmp_const == NULL) {
+      continue;
+    }
+
+    ret = delete_permission(tmp_const);
+    if(ret == false) {
+      slog(LOG_WARNING, "Could not delete permission info. uuid[%s]", tmp_const);
+    }
+  }
+  json_decref(j_tmps);
+
+  return true;
+}
+
+
+/**
  * Delete user_permission info.
  * @param key
  * @return
  */
-bool user_delete_permission_info(const char* key)
+static bool delete_permission(const char* key)
 {
   int ret;
 
@@ -2232,12 +2363,29 @@ static bool db_update_contact_info(const json_t* j_data)
   return true;
 }
 
+static bool delete_contact(const char* uuid)
+{
+  int ret;
+
+  if(uuid == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  ret = db_delete_contact_info(uuid);
+  if(ret == false) {
+    return false;
+  }
+
+  return true;
+}
+
 /**
  * Delete user_contact info.
  * @param key
  * @return
  */
-bool user_delete_contact_info(const char* key)
+static bool db_delete_contact_info(const char* key)
 {
   int ret;
 
