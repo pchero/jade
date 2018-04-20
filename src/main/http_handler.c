@@ -32,7 +32,7 @@
 #include "user_handler.h"
 #include "me_handler.h"
 #include "admin_handler.h"
-
+#include "manager_handler.h"
 
 #define API_VER "0.1"
 
@@ -71,6 +71,9 @@ static void cb_htp_dp_dialplans_detail(evhtp_request_t *req, void *data);
 static void cb_htp_dp_dpmas(evhtp_request_t *req, void *data);
 static void cb_htp_dp_dpmas_detail(evhtp_request_t *req, void *data);
 static void cb_htp_dp_config(evhtp_request_t *req, void *data);
+
+// manager
+static void cb_htp_manager_login(evhtp_request_t *req, void *data);
 
 // me
 static void cb_htp_me_buddies(evhtp_request_t *req, void *data);
@@ -191,7 +194,13 @@ bool http_init_handler(void)
 
 
   ///// apis v.1
+
+
+  //// ^/admin/
+  // login
   evhtp_set_regex_cb(g_htps, "^/v1/admin/login$", cb_htp_admin_login, NULL);
+
+
 
   //// ^/agent/
   // agents
@@ -229,6 +238,12 @@ bool http_init_handler(void)
   // dpmas
   evhtp_set_regex_cb(g_htps, "^/v1/dp/dpmas/(.*)", cb_htp_dp_dpmas_detail, NULL);
   evhtp_set_regex_cb(g_htps, "^/v1/dp/dpmas$", cb_htp_dp_dpmas, NULL);
+
+
+
+  //// ^/manager/
+  // login
+  evhtp_set_regex_cb(g_htps, "^/v1/manager/login$", cb_htp_manager_login, NULL);
 
 
 
@@ -6091,6 +6106,50 @@ static void cb_htp_admin_login(evhtp_request_t *req, void *data)
 
   if(method == htp_method_POST) {
     admin_htp_post_admin_login(req, data);
+    return;
+  }
+  else if(method == htp_method_DELETE) {
+    // synonym of delete /user/login
+    user_htp_delete_user_login(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+
+  return;
+}
+
+/**
+ * http request handler.
+ * ^/manager/login
+ * @param req
+ * @param data
+ */
+static void cb_htp_manager_login(evhtp_request_t *req, void *data)
+{
+  int method;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_manager_login.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if((method != htp_method_POST) && (method != htp_method_DELETE)) {
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  if(method == htp_method_POST) {
+    manager_htp_post_manager_login(req, data);
     return;
   }
   else if(method == htp_method_DELETE) {

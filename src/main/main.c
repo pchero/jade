@@ -32,6 +32,7 @@
 
 #include "me_handler.h"
 #include "admin_handler.h"
+#include "manager_handler.h"
 
 app* g_app;
 
@@ -187,6 +188,8 @@ bool init(void)
     return false;
   }
 
+  ret = manager_init_handler();
+
   return true;
 }
 
@@ -212,6 +215,7 @@ bool terminate(void)
   // terminate modules
   me_term_handler();
   admin_term_handler();
+  manager_term_handler();
 
   event_base_free(g_app->evt_base);
   g_app->evt_base = NULL;
