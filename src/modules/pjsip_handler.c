@@ -24,13 +24,13 @@
 
 #define DEF_PJSIP_CONFNAME  "pjsip.conf"
 
-#define DEF_PJSIP_CONFNAME_AOR            "pjsip.aor.conf"
-#define DEF_PJSIP_CONFNAME_AUTH           "pjsip.auth.conf"
-#define DEF_PJSIP_CONFNAME_CONTACT        "pjsip.contact.conf"
-#define DEF_PJSIP_CONFNAME_ENDPOINT       "pjsip.endpoint.conf"
-#define DEF_PJSIP_CONFNAME_IDENTIFY       "pjsip.identify.conf"
-#define DEF_PJSIP_CONFNAME_REGISTRATION   "pjsip.registration.conf"
-#define DEF_PJSIP_CONFNAME_TRANSPORT      "pjsip.transports.conf"
+#define DEF_PJSIP_CONFNAME_AOR            "jade.pjsip.aor.conf"
+#define DEF_PJSIP_CONFNAME_AUTH           "jade.pjsip.auth.conf"
+#define DEF_PJSIP_CONFNAME_CONTACT        "jade.pjsip.contact.conf"
+#define DEF_PJSIP_CONFNAME_ENDPOINT       "jade.pjsip.endpoint.conf"
+#define DEF_PJSIP_CONFNAME_IDENTIFY       "jade.pjsip.identify.conf"
+#define DEF_PJSIP_CONFNAME_REGISTRATION   "jade.pjsip.registration.conf"
+#define DEF_PJSIP_CONFNAME_TRANSPORT      "jade.pjsip.transports.conf"
 
 #define DEF_DB_TABLE_PJSIP_AOR            "pjsip_aor"
 #define DEF_DB_TABLE_PJSIP_AUTH           "pjsip_auth"
