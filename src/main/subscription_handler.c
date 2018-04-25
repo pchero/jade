@@ -11,6 +11,7 @@
 #include "slog.h"
 #include "user_handler.h"
 #include "me_handler.h"
+#include "manager_handler.h"
 #include "zmq_handler.h"
 #include "websocket_handler.h"
 
@@ -99,6 +100,9 @@ bool subscription_subscribe_topics_client(const char* authtoken, void* zmq_sock)
   }
   else if(strcmp(type, "me") == 0) {
     j_topics = me_get_subscribable_topics_all(j_user);
+  }
+  else if(strcmp(type, "manager") == 0) {
+    j_topics = manager_get_subscribable_topics_all(j_user);
   }
 
   if(j_topics == NULL) {

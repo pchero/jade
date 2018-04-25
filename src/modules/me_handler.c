@@ -2272,6 +2272,11 @@ static json_t* get_users_info_by_username(const char* username)
   return j_res;
 }
 
+/**
+ * Returns all subscribable topics of me module
+ * @param j_user
+ * @return
+ */
 json_t* me_get_subscribable_topics_all(const json_t* j_user)
 {
   char* topic;

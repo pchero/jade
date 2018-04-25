@@ -14,6 +14,8 @@ bool manager_init_handler(void);
 bool manager_term_handler(void);
 bool manager_reload_handler(void);
 
+json_t* manager_get_subscribable_topics_all(const json_t* j_user);
+
 // http handlers
 void manager_htp_post_manager_login(evhtp_request_t *req, void *data);
 
