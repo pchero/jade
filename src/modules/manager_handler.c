@@ -5,6 +5,8 @@
  *      Author: pchero
  */
 
+#define _GNU_SOURCE
+
 #include <evhtp.h>
 
 #include "slog.h"
@@ -711,4 +713,29 @@ static bool update_user_info(const char* uuid_user, const json_t* j_data)
   }
 
   return true;
+}
+
+/**
+ * Returns all subscribable topics of manager module.
+ * @param j_user
+ * @return
+ */
+json_t* manager_get_subscribable_topics_all(const json_t* j_user)
+{
+  char* topic;
+  json_t* j_res;
+
+  if(j_user == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  j_res = json_array();
+
+  // set topics
+  asprintf(&topic, "/manager");
+  json_array_append_new(j_res, json_string(topic));
+  sfree(topic);
+
+  return j_res;
 }
