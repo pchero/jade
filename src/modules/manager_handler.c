@@ -561,7 +561,7 @@ static bool create_user_permission(const char* uuid_user, const json_t* j_data)
 
   // create each permissions
   json_array_foreach(j_permissions, idx, j_permission) {
-    permission = json_string_value(j_permission);
+    permission = json_string_value(json_object_get(j_permission, "permission"));
     if(permission == NULL) {
       continue;
     }
