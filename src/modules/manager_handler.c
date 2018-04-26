@@ -25,6 +25,8 @@
 static json_t* get_users_all(void);
 static json_t* get_user_info(const char* uuid_user);
 
+static json_t* get_manager_info(const json_t* j_user);
+
 static bool create_user_info(const json_t* j_data);
 static bool create_user_contact(const char* uuid_user, const char* target);
 static bool create_user_permission(const char* uuid_user, const json_t* j_data);
@@ -107,6 +109,50 @@ void manager_htp_post_manager_login(evhtp_request_t *req, void *data)
       "authtoken",  authtoken
       );
   sfree(authtoken);
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", j_tmp);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * GET ^/manager/info request handler.
+ * @param req
+ * @param data
+ */
+void manager_htp_get_manager_info(evhtp_request_t *req, void *data)
+{
+  json_t* j_user;
+  json_t* j_res;
+  json_t* j_tmp;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired manager_htp_get_manager_info.");
+
+  // get userinfo
+  j_user = http_get_userinfo(req);
+  if(j_user == NULL) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  // get info
+  j_tmp = get_manager_info(j_user);
+  json_decref(j_user);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get manager info.");
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
 
   // create result
   j_res = http_create_default_result(EVHTP_RES_OK);
@@ -373,6 +419,41 @@ static json_t* get_user_info(const char* uuid_user)
   return j_res;
 }
 
+/**
+ * Get given manager info.
+ * @param authtoken
+ * @return
+ */
+static json_t* get_manager_info(const json_t* j_user)
+{
+  json_t* j_res;
+  const char* uuid_user;
+
+  if(j_user == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_info.");
+
+  uuid_user = json_string_value(json_object_get(j_user, "uuid"));
+  if(uuid_user == NULL) {
+    slog(LOG_NOTICE, "Could not get user uuid info.");
+    return NULL;
+  }
+
+  // get user info
+  j_res = user_get_userinfo_info(uuid_user);
+  if(j_res == NULL) {
+    slog(LOG_NOTICE, "Could not get user info.");
+    return NULL;
+  }
+
+  // remove password object
+  json_object_del(j_res, "password");
+
+  return j_res;
+}
+
 static json_t* get_users_all(void)
 {
   json_t* j_res;
@@ -480,7 +561,7 @@ static bool create_user_permission(const char* uuid_user, const json_t* j_data)
 
   // create each permissions
   json_array_foreach(j_permissions, idx, j_permission) {
-    permission = json_string_value(j_permission);
+    permission = json_string_value(json_object_get(j_permission, "permission"));
     if(permission == NULL) {
       continue;
     }

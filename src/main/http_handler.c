@@ -74,6 +74,7 @@ static void cb_htp_dp_config(evhtp_request_t *req, void *data);
 
 // manager
 static void cb_htp_manager_login(evhtp_request_t *req, void *data);
+static void cb_htp_manager_info(evhtp_request_t *req, void *data);
 static void cb_htp_manager_users(evhtp_request_t *req, void *data);
 static void cb_htp_manager_users_detail(evhtp_request_t *req, void *data);
 
@@ -246,6 +247,9 @@ bool http_init_handler(void)
   //// ^/manager/
   // login
   evhtp_set_regex_cb(g_htps, "^/v1/manager/login$", cb_htp_manager_login, NULL);
+
+  // info
+  evhtp_set_regex_cb(g_htps, "^/v1/manager/info$", cb_htp_manager_info, NULL);
 
   // users
   evhtp_set_regex_cb(g_htps, "^/v1/manager/users$", cb_htp_manager_users, NULL);
@@ -6161,6 +6165,45 @@ static void cb_htp_manager_login(evhtp_request_t *req, void *data)
   else if(method == htp_method_DELETE) {
     // synonym of delete /user/login
     user_htp_delete_user_login(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+
+  return;
+}
+
+/**
+ * http request handler.
+ * ^/manager/info
+ * @param req
+ * @param data
+ */
+static void cb_htp_manager_info(evhtp_request_t *req, void *data)
+{
+  int method;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_manager_info.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if((method != htp_method_GET)) {
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  if(method == htp_method_GET) {
+    manager_htp_get_manager_info(req, data);
     return;
   }
   else {
