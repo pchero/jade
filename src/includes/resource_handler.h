@@ -16,6 +16,13 @@ enum EN_SORT_TYPES {
   EN_SORT_DESC,
 };
 
+enum EN_RESOURCE_UPDATE_TYPES {
+  EN_RESOURCE_CREATE   = 1,
+  EN_RESOURCE_UPDATE   = 2,
+  EN_RESOURCE_DELETE   = 3,
+};
+
+
 
 bool resource_init_handler(void);
 void resource_term_handler(void);

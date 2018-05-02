@@ -27,4 +27,6 @@ typedef enum _E_USE
 extern db_ctx_t* g_db_memory;  ///< sqlite3 database for asterisk.
 extern app* g_app;
 
+
+
 #endif /* BACKEND_SRC_COMMON_H_ */

@@ -32,7 +32,17 @@ extern app* g_app;
 
 #define DEF_AUTHTOKEN_TIMEOUT   3600
 
+#define MAX_CALLBACKS 256
+
+struct st_callback {
+  bool (*callback[MAX_CALLBACKS])(enum EN_RESOURCE_UPDATE_TYPES, json_t*);
+  int count;
+};
+
 static struct event* g_ev_validate_authtoken = NULL;
+
+static struct st_callback* g_callback_userinfo;
+static struct st_callback* g_callback_permission;
 
 static bool init_databases(void);
 static bool init_database_contact(void);
@@ -40,6 +50,12 @@ static bool init_database_permission(void);
 static bool init_database_authtoken(void);
 static bool init_database_userinfo(void);
 static bool init_database_buddy(void);
+
+static bool init_callback(void);
+static bool term_callback(void);
+
+static void execute_callbacks_userinfo(enum EN_RESOURCE_UPDATE_TYPES type, json_t* j_data);
+static void execute_callbacks_permission(enum EN_RESOURCE_UPDATE_TYPES type, json_t* j_data);
 
 static bool db_create_buddy_info(const json_t* j_data);
 static json_t* db_get_buddies_info_by_owneruuid(const char* uuid_user);
@@ -95,9 +111,17 @@ bool user_init_handler(void)
 
 	slog(LOG_INFO, "Fired init_user_handler.");
 
+	// init database
 	ret = init_databases();
 	if(ret == false) {
 	  slog(LOG_ERR, "Could not initate database.");
+	  return false;
+	}
+
+	// init callback
+	ret = init_callback();
+	if(ret == false) {
+	  slog(LOG_ERR, "Could not initiate callback.");
 	  return false;
 	}
 
@@ -131,7 +155,14 @@ bool user_init_handler(void)
 
 void user_term_handler(void)
 {
+  int ret;
+
 	slog(LOG_INFO, "Fired term_user_handler.");
+
+	ret = term_callback();
+	if(ret == false) {
+	  slog(LOG_ERR, "Could not terminate callback info.");
+	}
 
 	event_del(g_ev_validate_authtoken);
 	event_free(g_ev_validate_authtoken);
@@ -1623,6 +1654,8 @@ json_t* user_get_userinfo_by_authtoken(const char* authtoken)
 static bool db_create_userinfo_info(const json_t* j_data)
 {
   int ret;
+  const char* uuid;
+  json_t* j_tmp;
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -1637,12 +1670,32 @@ static bool db_create_userinfo_info(const json_t* j_data)
     return false;
   }
 
+  // get uuid info
+  uuid = json_string_value(json_object_get(j_data, "uuid"));
+  if(uuid == NULL) {
+    slog(LOG_ERR, "Could not get uuid info.");
+    return false;
+  }
+
+  // get created info
+  j_tmp = user_get_userinfo_info(uuid);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get created userinfo.");
+    return false;
+  }
+
+  // execute registered callbacks
+  execute_callbacks_userinfo(EN_RESOURCE_CREATE, j_tmp);
+  json_decref(j_tmp);
+
   return true;
 }
 
 static bool db_update_userinfo_info(const json_t* j_data)
 {
   int ret;
+  const char* uuid;
+  json_t* j_tmp;
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -1650,12 +1703,30 @@ static bool db_update_userinfo_info(const json_t* j_data)
   }
   slog(LOG_DEBUG, "Fired db_update_userinfo_info.");
 
-  // insert userinfo info
+  // update userinfo info
   ret = resource_update_file_item(DEF_DB_TABLE_USER_USERINFO, "uuid", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert user_userinfo.");
     return false;
   }
+
+  // get uuid info
+  uuid = json_string_value(json_object_get(j_data, "uuid"));
+  if(uuid == NULL) {
+    slog(LOG_ERR, "Could not get uuid info.");
+    return false;
+  }
+
+  // get updated info
+  j_tmp = user_get_userinfo_info(uuid);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get updated userinfo.");
+    return false;
+  }
+
+  // execute registered callbacks
+  execute_callbacks_userinfo(EN_RESOURCE_UPDATE, j_tmp);
+  json_decref(j_tmp);
 
   return true;
 }
@@ -1699,6 +1770,7 @@ bool user_update_userinfo_info(const char* uuid_user, const json_t* j_data)
 static bool db_delete_userinfo_info(const char* key)
 {
   int ret;
+  json_t* j_tmp;
 
   if(key == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -1706,11 +1778,24 @@ static bool db_delete_userinfo_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired delete_user_userinfo_info. key[%s]", key);
 
+  // get delete info
+  j_tmp = user_get_userinfo_info(key);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get delete userinfo.");
+    return false;
+  }
+
+  // delete
   ret = resource_delete_file_items_string(DEF_DB_TABLE_USER_USERINFO, "uuid", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete dp_dialplan info. key[%s]", key);
+    json_decref(j_tmp);
     return false;
   }
+
+  // execute registered callbacks
+  execute_callbacks_userinfo(EN_RESOURCE_DELETE, j_tmp);
+  json_decref(j_tmp);
 
   return true;
 }
@@ -1933,6 +2018,8 @@ static bool db_delete_authtoken_info(const char* key)
 static bool db_create_permission_info(const json_t* j_data)
 {
   int ret;
+  const char* uuid;
+  json_t* j_tmp;
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -1947,23 +2034,54 @@ static bool db_create_permission_info(const json_t* j_data)
     return false;
   }
 
+  uuid = json_string_value(json_object_get(j_data, "uuid"));
+  if(uuid == NULL) {
+    slog(LOG_ERR, "Could not get permission uuid info.");
+    return false;
+  }
+
+  // get created info
+  j_tmp = user_get_permission_info(uuid);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get created permission info.");
+    return false;
+  }
+
+  // fire callbacks
+  execute_callbacks_permission(EN_RESOURCE_CREATE, j_tmp);
+  json_decref(j_tmp);
+
   return true;
 }
 
 static bool db_delete_permission_info(const char* key)
 {
   int ret;
+  json_t* j_tmp;
 
   if(key == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
+
+  // get delete info
+  j_tmp = user_get_permission_info(key);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get delete permission info.");
+    return false;
+  }
+
   // delete
   ret = resource_delete_file_items_string(DEF_DB_TABLE_USER_PERMISSION, "uuid", key);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete permission info. uuid[%s]", key);
+    json_decref(j_tmp);
     return false;
   }
+
+  // fire callbacks
+  execute_callbacks_permission(EN_RESOURCE_DELETE, j_tmp);
+  json_decref(j_tmp);
 
   return true;
 }
@@ -2140,6 +2258,23 @@ json_t* user_get_permissions_all(void)
   json_t* j_res;
 
   j_res = resource_get_file_items(DEF_DB_TABLE_USER_PERMISSION, "*");
+  return j_res;
+}
+
+json_t* user_get_permission_info(const char* key)
+{
+  json_t* j_res;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  j_res = resource_get_file_detail_item_key_string(DEF_DB_TABLE_USER_PERMISSION, "uuid", key);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
   return j_res;
 }
 
@@ -2658,6 +2793,13 @@ bool user_is_user_owned_buddy(const char* uuid_owner, const char* uuid_buddy)
   return true;
 }
 
+/**
+ * Create new authtoken info.
+ * @param username
+ * @param password
+ * @param type
+ * @return
+ */
 char* user_create_authtoken(const char* username, const char* password, const char* type)
 {
   char* res;
@@ -2673,5 +2815,150 @@ char* user_create_authtoken(const char* username, const char* password, const ch
   }
 
   return res;
+}
+
+static bool init_callback(void)
+{
+  // userinfo
+  g_callback_userinfo = calloc(1, sizeof(struct st_callback));
+  g_callback_userinfo->count = 0;
+
+  // permission
+  g_callback_permission = calloc(1, sizeof(struct st_callback));
+  g_callback_permission->count = 0;
+
+  return true;
+}
+
+static bool term_callback(void)
+{
+  sfree(g_callback_userinfo);
+  sfree(g_callback_permission);
+
+  return true;
+}
+
+static bool register_callback(struct st_callback* callback, bool (*func)(enum EN_RESOURCE_UPDATE_TYPES, json_t*))
+{
+  int i;
+  int exist;
+
+  if((callback == NULL) || (func == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  // check exist
+  exist = false;
+  for(i = 0; i < callback->count; i++) {
+    if(callback->callback[i] == func) {
+      exist = true;
+      break;
+    }
+  }
+
+  if(exist == true) {
+    // already exist.
+    return true;
+  }
+
+  callback->callback[callback->count] = func;
+  callback->count++;
+
+  return true;
+}
+
+/**
+ * Register callback for userinfo
+ */
+bool user_register_callback_userinfo(bool (*func)(enum EN_RESOURCE_UPDATE_TYPES, json_t*))
+{
+  int ret;
+
+  if(func == NULL) {
+    slog(LOG_WARNING, "Wring input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired user_register_callback_userinfo.");
+
+  ret = register_callback(g_callback_userinfo, func);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not register callback for userinfo.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Register callback for permission
+ */
+bool user_register_callback_permission(bool (*func)(enum EN_RESOURCE_UPDATE_TYPES, json_t*))
+{
+  int ret;
+
+  if(func == NULL) {
+    slog(LOG_WARNING, "Wring input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired user_register_callback_permission.");
+
+  ret = register_callback(g_callback_permission, func);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not register callback for permission.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Execute the registered callbacks for userinfo
+ * @param j_data
+ */
+static void execute_callbacks_userinfo(enum EN_RESOURCE_UPDATE_TYPES type, json_t* j_data)
+{
+  int i;
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+
+  for(i = 0; i < g_callback_userinfo->count; i++) {
+    ret = g_callback_userinfo->callback[i](type, j_data);
+    if(ret == false) {
+      slog(LOG_NOTICE, "Could not execute registered callback correctly. i[%d]", i);
+      continue;
+    }
+  }
+
+  return;
+}
+
+/**
+ * Execute the registered callbacks for permission
+ * @param j_data
+ */
+static void execute_callbacks_permission(enum EN_RESOURCE_UPDATE_TYPES type, json_t* j_data)
+{
+  int i;
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+
+  for(i = 0; i < g_callback_permission->count; i++) {
+    ret = g_callback_permission->callback[i](type, j_data);
+    if(ret == false) {
+      slog(LOG_NOTICE, "Could not execute registered callback correctly. i[%d]", i);
+      continue;
+    }
+  }
+
+  return;
 }
 
