@@ -32,13 +32,6 @@ extern app* g_app;
 
 #define DEF_AUTHTOKEN_TIMEOUT   3600
 
-#define MAX_CALLBACKS 256
-
-struct st_callback {
-  bool (*callback[MAX_CALLBACKS])(enum EN_RESOURCE_UPDATE_TYPES, const json_t*);
-  int count;
-};
-
 static struct event* g_ev_validate_authtoken = NULL;
 
 static struct st_callback* g_callback_userinfo;
@@ -55,7 +48,6 @@ static bool init_database_buddy(void);
 static bool init_callback(void);
 static bool term_callback(void);
 
-static void execute_callbacks(struct st_callback* callbacks, enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
 static void execute_callbacks_userinfo(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
 static void execute_callbacks_permission(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
 static void execute_callbacks_buddy(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
@@ -2877,55 +2869,22 @@ char* user_create_authtoken(const char* username, const char* password, const ch
 static bool init_callback(void)
 {
   // userinfo
-  g_callback_userinfo = calloc(1, sizeof(struct st_callback));
-  g_callback_userinfo->count = 0;
+  g_callback_userinfo = utils_create_callback();
 
   // permission
-  g_callback_permission = calloc(1, sizeof(struct st_callback));
-  g_callback_permission->count = 0;
+  g_callback_permission = utils_create_callback();
 
   // buddy
-  g_callback_buddy = calloc(1, sizeof(struct st_callback));
-  g_callback_buddy->count = 0;
+  g_callback_buddy = utils_create_callback();
 
   return true;
 }
 
 static bool term_callback(void)
 {
-  sfree(g_callback_userinfo);
-  sfree(g_callback_permission);
-  sfree(g_callback_buddy);
-
-  return true;
-}
-
-static bool register_callback(struct st_callback* callback, bool (*func)(enum EN_RESOURCE_UPDATE_TYPES, const json_t*))
-{
-  int i;
-  int exist;
-
-  if((callback == NULL) || (func == NULL)) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return false;
-  }
-
-  // check exist
-  exist = false;
-  for(i = 0; i < callback->count; i++) {
-    if(callback->callback[i] == func) {
-      exist = true;
-      break;
-    }
-  }
-
-  if(exist == true) {
-    // already exist.
-    return true;
-  }
-
-  callback->callback[callback->count] = func;
-  callback->count++;
+  utils_terminiate_callback(g_callback_userinfo);
+  utils_terminiate_callback(g_callback_buddy);
+  utils_terminiate_callback(g_callback_permission);
 
   return true;
 }
@@ -2943,7 +2902,7 @@ bool user_register_callback_userinfo(bool (*func)(enum EN_RESOURCE_UPDATE_TYPES,
   }
   slog(LOG_DEBUG, "Fired user_register_callback_userinfo.");
 
-  ret = register_callback(g_callback_userinfo, func);
+  ret = utils_register_callback(g_callback_userinfo, func);
   if(ret == false) {
     slog(LOG_ERR, "Could not register callback for userinfo.");
     return false;
@@ -2965,7 +2924,7 @@ bool user_register_callback_permission(bool (*func)(enum EN_RESOURCE_UPDATE_TYPE
   }
   slog(LOG_DEBUG, "Fired user_register_callback_permission.");
 
-  ret = register_callback(g_callback_permission, func);
+  ret = utils_register_callback(g_callback_permission, func);
   if(ret == false) {
     slog(LOG_ERR, "Could not register callback for permission.");
     return false;
@@ -2987,34 +2946,13 @@ bool user_reigster_callback_buddy(bool (*func)(enum EN_RESOURCE_UPDATE_TYPES, co
   }
   slog(LOG_DEBUG, "Fired user_reigster_callback_buddy.");
 
-  ret = register_callback(g_callback_buddy, func);
+  ret = utils_register_callback(g_callback_buddy, func);
   if(ret == false) {
     slog(LOG_ERR, "Could not register callback for buddy.");
     return false;
   }
 
   return true;
-}
-
-static void execute_callbacks(struct st_callback* callbacks, enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data)
-{
-  int i;
-  int ret;
-
-  if((callbacks == NULL) || (j_data == NULL)) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-
-  for(i = 0; i < callbacks->count; i++) {
-    ret = callbacks->callback[i](type, j_data);
-    if(ret == false) {
-      slog(LOG_NOTICE, "Could not execute registered callback correctly. i[%d]", i);
-      continue;
-    }
-  }
-
-  return;
 }
 
 /**
@@ -3029,7 +2967,7 @@ static void execute_callbacks_userinfo(enum EN_RESOURCE_UPDATE_TYPES type, const
   }
   slog(LOG_DEBUG, "Fired execute_callbacks_userinfo.");
 
-  execute_callbacks(g_callback_userinfo, type, j_data);
+  utils_execute_callbacks(g_callback_userinfo, type, j_data);
 
   return;
 }
@@ -3046,7 +2984,7 @@ static void execute_callbacks_permission(enum EN_RESOURCE_UPDATE_TYPES type, con
   }
   slog(LOG_DEBUG, "Fired execute_callbacks_permission.");
 
-  execute_callbacks(g_callback_permission, type, j_data);
+  utils_execute_callbacks(g_callback_permission, type, j_data);
 
   return;
 }
@@ -3063,7 +3001,7 @@ static void execute_callbacks_buddy(enum EN_RESOURCE_UPDATE_TYPES type, const js
   }
   slog(LOG_DEBUG, "Fired execute_callbacks_buddy.");
 
-  execute_callbacks(g_callback_buddy, type, j_data);
+  utils_execute_callbacks(g_callback_buddy, type, j_data);
 
   return;
 }

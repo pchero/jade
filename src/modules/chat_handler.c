@@ -25,9 +25,16 @@
 #define DEF_CHAT_NAME "jade chat"
 #define DEF_CHAT_DETAIL "chat"
 
+static struct st_callback* g_callback_room;
+static struct st_callback* g_callback_userroom;
+static struct st_callback* g_callback_message;
+
 static bool init_chat_databases(void);
 static bool init_chat_database_room(void);
 static bool init_chat_database_userroom(void);
+
+static bool init_callbacks(void);
+static bool term_callbacks(void);
 
 static bool db_create_table_chat_message(const char* table_name);
 static bool db_delete_table_chat_message(const char* table_name);
@@ -49,15 +56,17 @@ static bool db_update_chat_userroom_info(const json_t* j_data);
 static bool db_delete_chat_userroom_info(const char* uuid);
 
 static bool db_create_chat_message_info(const char* table_name, const json_t* j_data);
-static json_t* db_get_chat_message_info(const char* table_name, const char* uuid_message);
 static json_t* db_get_chat_messages_info_newest(const char* table_name, const char* timestamp, const unsigned int count);
+
+static void execute_callbacks_room(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
+static void execute_callbacks_userroom(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
+static void execute_callbacks_message(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
 
 static bool create_message(const char* uuid_message, const char* uuid_room, const char* uuid_user, const json_t* j_message);
 
 static bool create_userroom(const json_t* j_data);
 static bool update_userroom(const json_t* j_data);
 static bool delete_userroom(const char* uuid);
-
 
 static bool create_room(const char* uuid, const char* uuid_user, enum EN_CHAT_ROOM_TYPE type, const json_t* j_members);
 static bool create_userroom_foreach_room_members(const char* uuid_room);
@@ -80,9 +89,17 @@ bool chat_init_handler(void)
 
   slog(LOG_DEBUG, "Fired init_chat_handler.");
 
+  // init databases
   ret = init_chat_databases();
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate database.");
+    return false;
+  }
+
+  // init callbacks
+  ret = init_callbacks();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate callback.");
     return false;
   }
 
@@ -91,7 +108,45 @@ bool chat_init_handler(void)
 
 bool chat_term_handler(void)
 {
-  // nothing to do
+  int ret;
+
+  ret = term_callbacks();
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not terminate callbacks.");
+    return false;
+  }
+
+  return true;
+}
+
+static bool init_callbacks(void)
+{
+  g_callback_room = utils_create_callback();
+  if(g_callback_room == NULL) {
+    slog(LOG_ERR, "Could not create room callback.");
+    return false;
+  }
+
+  g_callback_userroom = utils_create_callback();
+  if(g_callback_userroom == NULL) {
+    slog(LOG_ERR, "Could not create userroom callback.");
+    return false;
+  }
+
+  g_callback_message = utils_create_callback();
+  if(g_callback_message == NULL) {
+    slog(LOG_ERR, "Could not create message callback.");
+    return false;
+  }
+
+  return true;
+}
+
+static bool term_callbacks(void)
+{
+  utils_terminiate_callback(g_callback_userroom);
+  utils_terminiate_callback(g_callback_message);
+  utils_terminiate_callback(g_callback_room);
 
   return true;
 }
@@ -217,8 +272,9 @@ static bool db_create_table_chat_message(const char* table_name)
 
       // basic info
       "   uuid              varchar(255),"    // uuid
-
+      "   uuid_room         varchar(255),"    // uuid of room
       "   uuid_owner        varchar(255),"    // message owner's uuid
+
       "   message           text,"            // message
 
       // timestamp. UTC."
@@ -371,6 +427,8 @@ static json_t* db_get_chat_userrooms_info_by_roomuuid(const char* uuid_room)
 static bool db_create_chat_userroom_info(const json_t* j_data)
 {
   int ret;
+  const char* uuid;
+  json_t* j_tmp;
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -384,12 +442,32 @@ static bool db_create_chat_userroom_info(const json_t* j_data)
     return false;
   }
 
+  // get uuid
+  uuid = json_string_value(json_object_get(j_data, "uuid"));
+  if(uuid == NULL) {
+    slog(LOG_NOTICE, "Could not get userroom uuid info.");
+    return false;
+  }
+
+  // get created info
+  j_tmp = chat_get_userroom(uuid);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get created userroom info. uuid[%s]", uuid);
+    return false;
+  }
+
+  // execute callbacks
+  execute_callbacks_userroom(EN_RESOURCE_CREATE, j_tmp);
+  json_decref(j_tmp);
+
   return true;
 }
 
 static bool db_update_chat_userroom_info(const json_t* j_data)
 {
   int ret;
+  const char* uuid;
+  json_t* j_tmp;
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -403,23 +481,55 @@ static bool db_update_chat_userroom_info(const json_t* j_data)
     return false;
   }
 
+  // get uuid
+  uuid = json_string_value(json_object_get(j_data, "uuid"));
+  if(uuid == NULL) {
+    slog(LOG_NOTICE, "Could not get userroom uuid info.");
+    return false;
+  }
+
+  // get updated info
+  j_tmp = chat_get_userroom(uuid);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get updated userroom info. uuid[%s]", uuid);
+    return false;
+  }
+
+  // execute callbacks
+  execute_callbacks_userroom(EN_RESOURCE_UPDATE, j_tmp);
+  json_decref(j_tmp);
+
   return true;
 }
 
 static bool db_delete_chat_userroom_info(const char* uuid)
 {
   int ret;
+  json_t* j_tmp;
 
   if(uuid == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
 
+  // get delete info
+  j_tmp = chat_get_userroom(uuid);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get delete userroom info. uuid[%s]", uuid);
+    return false;
+  }
+
+  // delete
   ret = resource_delete_file_items_string(DEF_DB_TABLE_CHAT_USERROOM, "uuid", uuid);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete chat userroom info. uuid[%s]", uuid);
+    json_decref(j_tmp);
     return false;
   }
+
+  // execute callbacks
+  execute_callbacks_userroom(EN_RESOURCE_DELETE, j_tmp);
+  json_decref(j_tmp);
 
   return true;
 }
@@ -427,6 +537,8 @@ static bool db_delete_chat_userroom_info(const char* uuid)
 static bool db_create_chat_room_info(const json_t* j_data)
 {
   int ret;
+  const char* uuid;
+  json_t* j_tmp;
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -439,6 +551,24 @@ static bool db_create_chat_room_info(const json_t* j_data)
     slog(LOG_ERR, "Could not insert chat_room.");
     return false;
   }
+
+  // get uuid
+  uuid = json_string_value(json_object_get(j_data, "uuid"));
+  if(uuid == NULL) {
+    slog(LOG_NOTICE, "Could not get room uuid info.");
+    return false;
+  }
+
+  // get created info
+  j_tmp = chat_get_room(uuid);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get created room info. uuid[%s]", uuid);
+    return false;
+  }
+
+  // execute callbacks
+  execute_callbacks_room(EN_RESOURCE_CREATE, j_tmp);
+  json_decref(j_tmp);
 
   return true;
 }
@@ -527,6 +657,8 @@ static json_t* db_get_chat_rooms_info_by_useruuid(const char* user_uuid)
 static bool db_update_chat_room_info(json_t* j_data)
 {
   int ret;
+  const char* uuid;
+  json_t* j_tmp;
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -538,23 +670,55 @@ static bool db_update_chat_room_info(json_t* j_data)
     return false;
   }
 
+  // get uuid
+  uuid = json_string_value(json_object_get(j_data, "uuid"));
+  if(uuid == NULL) {
+    slog(LOG_NOTICE, "Could not get room uuid info.");
+    return false;
+  }
+
+  // get updated info
+  j_tmp = chat_get_room(uuid);
+  if(j_tmp == NULL) {
+    slog(LOG_ERR, "Could not get updated room info. uuid[%s]", uuid);
+    return false;
+  }
+
+  // execute callbacks
+  execute_callbacks_room(EN_RESOURCE_UPDATE, j_tmp);
+  json_decref(j_tmp);
+
+
   return true;
 }
 
 static bool db_delete_chat_room_info(const char* uuid)
 {
   int ret;
+  json_t* j_tmp;
 
   if(uuid == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
 
+  // get delete info
+  j_tmp = chat_get_room(uuid);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get delete room info. uuid[%s]", uuid);
+    return false;
+  }
+
   ret = resource_delete_file_items_string(DEF_DB_TABLE_CHAT_ROOM, "uuid", uuid);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete chat room info. uuid[%s]", uuid);
+    json_decref(j_tmp);
     return false;
   }
+
+  // execute callbacks
+  execute_callbacks_room(EN_RESOURCE_DELETE, j_tmp);
+  json_decref(j_tmp);
 
   return true;
 }
@@ -1273,12 +1437,15 @@ static bool create_message(const char* uuid_message, const char* uuid_room, cons
   // create data info
   timestamp = utils_get_utc_timestamp();
   j_data = json_pack("{"
-      "s:s, s:s, s:O, "
+      "s:s, s:s, s:s, "
+      "s:O, "
       "s:s "
       "}",
 
       "uuid",         uuid_message,
       "uuid_owner",   uuid_user,
+      "uuid_room",    uuid_room,
+
       "message",      j_message,
 
       "tm_create",    timestamp
@@ -1450,7 +1617,7 @@ char* chat_get_uuidroom_by_uuiduserroom(const char* uuid_userroom)
   return res;
 }
 
-json_t* chat_get_userroom_message(const char* uuid_message, const char* uuid_userroom)
+json_t* chat_get_message_info_by_userroom(const char* uuid_message, const char* uuid_userroom)
 {
   json_t* j_res;
   char* table_name;
@@ -1468,7 +1635,7 @@ json_t* chat_get_userroom_message(const char* uuid_message, const char* uuid_use
   }
 
   // get message
-  j_res = db_get_chat_message_info(table_name, uuid_message);
+  j_res = chat_get_message_info(table_name, uuid_message);
   sfree(table_name);
   if(j_res == NULL) {
     return NULL;
@@ -1484,7 +1651,7 @@ json_t* chat_get_userroom_message(const char* uuid_message, const char* uuid_use
  * @param count
  * @return
  */
-json_t* chat_get_room_messages_newest(const char* uuid_room, const char* timestamp, const unsigned int count)
+json_t* chat_get_messages_newest_of_room(const char* uuid_room, const char* timestamp, const unsigned int count)
 {
   int ret;
   json_t* j_room;
@@ -1493,6 +1660,7 @@ json_t* chat_get_room_messages_newest(const char* uuid_room, const char* timesta
 
   if((uuid_room == NULL) || (timestamp == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
   }
 
   // check existence
@@ -1516,6 +1684,32 @@ json_t* chat_get_room_messages_newest(const char* uuid_room, const char* timesta
   json_decref(j_room);
   if(j_res == NULL) {
     slog(LOG_ERR, "Could not get chat messages. uuid[%s]", uuid_room);
+    return NULL;
+  }
+
+  return j_res;
+}
+
+/**
+ * Get chat messages.
+ * Order by newest first of given timestamp.
+ * @param uuid
+ * @param count
+ * @return
+ */
+json_t* chat_get_message_info(const char* table_name, const char* uuid)
+{
+  json_t* j_res;
+
+  if((table_name == NULL) || (uuid == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  // get info
+  j_res = resource_get_file_detail_item_key_string(table_name, "uuid", uuid);
+  if(j_res == NULL) {
+    slog(LOG_NOTICE, "Could not get message info.");
     return NULL;
   }
 
@@ -1555,7 +1749,7 @@ json_t* chat_get_userroom_messages_newest(const char* uuid_userroom, const char*
   }
 
   // get messages from chat_room
-  j_res = chat_get_room_messages_newest(uuid_room, timestamp, count);
+  j_res = chat_get_messages_newest_of_room(uuid_room, timestamp, count);
   json_decref(j_userroom);
   if(j_res == NULL) {
     slog(LOG_WARNING, "Could not get chat room messages info.");
@@ -1568,6 +1762,8 @@ json_t* chat_get_userroom_messages_newest(const char* uuid_userroom, const char*
 static bool db_create_chat_message_info(const char* table_name, const json_t* j_data)
 {
   int ret;
+  const char* uuid;
+  json_t* j_tmp;
 
   if((table_name == NULL) || (j_data == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -1583,30 +1779,25 @@ static bool db_create_chat_message_info(const char* table_name, const json_t* j_
     return false;
   }
 
+  // get uuid
+  uuid = json_string_value(json_object_get(j_data, "uuid"));
+  if(uuid == NULL) {
+    slog(LOG_NOTICE, "Could not get message uuid info.");
+    return false;
+  }
+
+  // get created info
+  j_tmp = chat_get_message_info(table_name, uuid);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get created message info.");
+    return false;
+  }
+
+  // execute callbacks
+  execute_callbacks_message(EN_RESOURCE_CREATE, j_tmp);
+  json_decref(j_tmp);
+
   return true;
-}
-
-/**
- * Return chat message of given info.
- * @param table_name
- * @param uuid_message
- * @return
- */
-static json_t* db_get_chat_message_info(const char* table_name, const char* uuid_message)
-{
-  json_t* j_res;
-
-  if((table_name == NULL) || (uuid_message == NULL)) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return NULL;
-  }
-
-  j_res = resource_get_file_detail_item_key_string(table_name, "uuid", uuid_message);
-  if(j_res == NULL) {
-    return NULL;
-  }
-
-  return j_res;
 }
 
 /**
@@ -1968,5 +2159,122 @@ static char* get_message_table_by_userroom(const char* uuid_userroom)
   json_decref(j_room);
 
   return res;
+}
+
+/**
+ * Execute the registered callbacks for room
+ * @param j_data
+ */
+static void execute_callbacks_room(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data)
+{
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired execute_callbacks_room.");
+
+  utils_execute_callbacks(g_callback_room, type, j_data);
+
+  return;
+}
+
+/**
+ * Register the callback for room
+ */
+bool chat_register_callback_room(bool (*func)(enum EN_RESOURCE_UPDATE_TYPES, const json_t*))
+{
+  int ret;
+
+  if(func == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired chat_reigster_callback_room.");
+
+  ret = utils_register_callback(g_callback_room, func);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not register callback for room.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Register the callback for userroom
+ */
+bool chat_register_callback_userroom(bool (*func)(enum EN_RESOURCE_UPDATE_TYPES, const json_t*))
+{
+  int ret;
+
+  if(func == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired chat_reigster_callback_userroom.");
+
+  ret = utils_register_callback(g_callback_userroom, func);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not register callback for userroom.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Register the callback for message
+ */
+bool chat_register_callback_message(bool (*func)(enum EN_RESOURCE_UPDATE_TYPES, const json_t*))
+{
+  int ret;
+
+  if(func == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired chat_reigster_callback_message.");
+
+  ret = utils_register_callback(g_callback_message, func);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not register callback for message.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Execute the registered callbacks for userroom
+ * @param j_data
+ */
+static void execute_callbacks_userroom(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data)
+{
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired execute_callbacks_userroom.");
+
+  utils_execute_callbacks(g_callback_userroom, type, j_data);
+
+  return;
+}
+
+/**
+ * Execute the registered callbacks for message
+ * @param j_data
+ */
+static void execute_callbacks_message(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data)
+{
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired execute_callbacks_message.");
+
+  utils_execute_callbacks(g_callback_message, type, j_data);
+
+  return;
 }
 

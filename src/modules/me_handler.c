@@ -52,6 +52,7 @@ static bool update_me_info(const json_t* j_user, const json_t* j_data);
 
 static json_t* get_chats_info(const json_t* j_user);
 static json_t* get_chatroom_info(const json_t* j_user, const char* uuid_userroom);
+static json_t* get_chatroom_info_by_useruuid(const char* uuid_user, const char* uuid_userroom);
 static bool create_chatroom_info(json_t* j_user, json_t* j_data);
 static bool update_chatroom_info(json_t* j_user, const char* uuid_userroom, json_t* j_data);
 static bool delete_chatroom_info(json_t* j_user, const char* uuid_userroom);
@@ -76,11 +77,13 @@ static json_t* get_users_info_by_username(const char* username);
 static bool add_subscription_to_useruuid(const char* uuid_user, const char* topic);
 static bool add_subscription_to_useruuid_chatroom(const char* uuid_user, const char* uuid_room);
 
-static bool publish_event_me_chat_message(enum EN_PUBLISH_TYPES type, const char* uuid_user, json_t* j_data);
-static bool publish_event_me_chat_room(enum EN_PUBLISH_TYPES type, const char* uuid_user, json_t* j_data);
+static bool remove_subscription_to_useruuid(const char* uuid_user, const char* topic);
+static bool remove_subscription_to_useruuid_chatroom(const char* uuid_user, const char* uuid_room);
 
 static bool cb_resource_handler_user_buddy(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
 static bool cb_resource_handler_user_userinfo(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
+static bool cb_resource_handler_chat_userroom(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
+static bool cb_resource_handler_chat_message(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
 
 
 bool me_init_handler(void)
@@ -90,6 +93,9 @@ bool me_init_handler(void)
   // register callback
   user_reigster_callback_buddy(&cb_resource_handler_user_buddy);
   user_register_callback_userinfo(&cb_resource_handler_user_userinfo);
+
+  chat_register_callback_userroom(&cb_resource_handler_chat_userroom);
+  chat_register_callback_message(cb_resource_handler_chat_message);
 
   return true;
 }
@@ -1445,28 +1451,16 @@ static json_t* get_chats_info(const json_t* j_user)
   return j_res;
 }
 
-/**
- *
- * @param j_user
- * @return
- */
-static json_t* get_chatroom_info(const json_t* j_user, const char* uuid_userroom)
+static json_t* get_chatroom_info_by_useruuid(const char* uuid_user, const char* uuid_userroom)
 {
-  int ret;
   json_t* j_res;
   json_t* j_room;
-  const char* uuid;
-  const char* uuid_user;
+  const char* uuid_owner;
   const char* uuid_room;
+  int ret;
 
-  if((j_user == NULL) || (uuid_userroom == NULL)) {
+  if((uuid_user == NULL) || (uuid_userroom == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
-    return NULL;
-  }
-
-  uuid = json_string_value(json_object_get(j_user, "uuid"));
-  if(uuid == NULL) {
-    slog(LOG_ERR, "Could not get uuid info.");
     return NULL;
   }
 
@@ -1478,7 +1472,7 @@ static json_t* get_chatroom_info(const json_t* j_user, const char* uuid_userroom
   }
 
   // get owner uuid.
-  uuid_user = json_string_value(json_object_get(j_res, "uuid_user"));
+  uuid_owner = json_string_value(json_object_get(j_res, "uuid_user"));
   if(uuid_user == NULL) {
     slog(LOG_ERR, "Could not check permission.");
     json_decref(j_res);
@@ -1486,7 +1480,7 @@ static json_t* get_chatroom_info(const json_t* j_user, const char* uuid_userroom
   }
 
   // check permission
-  ret = strcmp(uuid, uuid_user);
+  ret = strcmp(uuid_owner, uuid_user);
   if(ret != 0) {
     slog(LOG_NOTICE, "The given user has no permission.");
     json_decref(j_res);
@@ -1518,6 +1512,32 @@ static json_t* get_chatroom_info(const json_t* j_user, const char* uuid_userroom
 }
 
 /**
+ *
+ * @param j_user
+ * @return
+ */
+static json_t* get_chatroom_info(const json_t* j_user, const char* uuid_userroom)
+{
+  json_t* j_res;
+  const char* uuid;
+
+  if((j_user == NULL) || (uuid_userroom == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  uuid = json_string_value(json_object_get(j_user, "uuid"));
+  if(uuid == NULL) {
+    slog(LOG_ERR, "Could not get uuid info.");
+    return NULL;
+  }
+
+  j_res = get_chatroom_info_by_useruuid(uuid, uuid_userroom);
+
+  return j_res;
+}
+
+/**
  * Create given user's chatroom(userroom)
  * @param j_user
  * @return
@@ -1526,14 +1546,7 @@ static bool create_chatroom_info(json_t* j_user, json_t* j_data)
 {
   int ret;
   char* uuid_room;
-  const char* tmp_uuid_userroom;
-  const char* tmp_uuid_user;
   const char* uuid_user;
-  int idx;
-  json_t* j_userrooms;
-  json_t* j_userroom;
-  json_t* j_tmp;
-  json_t* j_tmp_user;
 
   if(j_user == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -1555,51 +1568,11 @@ static bool create_chatroom_info(json_t* j_user, json_t* j_data)
 
   // create chat room
   ret = chat_create_room_with_foreach_userroom(uuid_room, uuid_user, j_data);
+  sfree(uuid_room);
   if(ret == false) {
     slog(LOG_ERR, "Could not create chat room info.");
-    sfree(uuid_room);
     return false;
   }
-
-  // get all userrooms
-  j_userrooms = chat_get_userrooms_by_roomuuid(uuid_room);
-  if(j_userrooms == NULL) {
-    slog(LOG_ERR, "Could not get created userrooms info.");
-    sfree(uuid_room);
-    return false;
-  }
-
-  // publish/subscribe event foreach
-  json_array_foreach(j_userrooms, idx, j_userroom) {
-    tmp_uuid_user = json_string_value(json_object_get(j_userroom, "uuid_user"));
-    tmp_uuid_userroom = json_string_value(json_object_get(j_userroom, "uuid"));
-
-    // add subscribe
-    ret = add_subscription_to_useruuid_chatroom(tmp_uuid_user, uuid_room);
-    if(ret == false) {
-      slog(LOG_ERR, "Could not add subscription for created chatroom.");
-      continue;
-    }
-
-    // get room info
-    j_tmp_user = user_get_userinfo_info(tmp_uuid_user);
-    j_tmp = get_chatroom_info(j_tmp_user, tmp_uuid_userroom);
-    json_decref(j_tmp_user);
-    if(j_tmp == NULL) {
-      slog(LOG_NOTICE, "Could not create chatroom info for event publish.");
-      continue;
-    }
-
-    // publish event
-    ret = publish_event_me_chat_room(EN_PUBLISH_CREATE, tmp_uuid_user, j_tmp);
-    json_decref(j_tmp);
-    if(ret == false) {
-      slog(LOG_ERR, "Could not publish event.");
-      continue;
-    }
-  }
-  json_decref(j_userrooms);
-  sfree(uuid_room);
 
   return true;
 }
@@ -1608,7 +1581,6 @@ static bool update_chatroom_info(json_t* j_user, const char* uuid_userroom, json
 {
   int ret;
   const char* uuid_user;
-  json_t* j_tmp;
 
   if((j_user == NULL) || (uuid_userroom == NULL) || (j_data == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -1635,20 +1607,6 @@ static bool update_chatroom_info(json_t* j_user, const char* uuid_userroom, json
     return false;
   }
 
-  // get updated userroom info
-  j_tmp = get_chatroom_info(j_user, uuid_userroom);
-  if(j_tmp == NULL) {
-    slog(LOG_WARNING, "Could not get updated userroom info.");
-    return false;
-  }
-
-  // publish event
-  ret = publish_event_me_chat_room(EN_PUBLISH_UPDATE, uuid_user, j_tmp);
-  json_decref(j_tmp);
-  if(ret == false) {
-    return false;
-  }
-
   return true;
 }
 
@@ -1656,7 +1614,6 @@ static bool delete_chatroom_info(json_t* j_user, const char* uuid_userroom)
 {
   int ret;
   const char* uuid_user;
-  json_t* j_userroom;
 
   if((j_user == NULL) || (uuid_userroom == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -1676,24 +1633,9 @@ static bool delete_chatroom_info(json_t* j_user, const char* uuid_userroom)
     return NULL;
   }
 
-  // get chatroom info
-  j_userroom = get_chatroom_info(j_user, uuid_userroom);
-  if(j_userroom == NULL) {
-    slog(LOG_WARNING, "Could not get delete userroom info.");
-    return false;
-  }
-
   ret = chat_delete_userroom(uuid_userroom);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete chatroom.");
-    json_decref(j_userroom);
-    return false;
-  }
-
-  // publish event
-  ret = publish_event_me_chat_room(EN_PUBLISH_DELETE, uuid_user, j_userroom);
-  json_decref(j_userroom);
-  if(ret == false) {
     return false;
   }
 
@@ -1747,8 +1689,6 @@ static bool create_chatmessage_info(json_t* j_user, const char* uuid_userroom, j
   int ret;
   const char* uuid_user;
   char* uuid_message;
-  char* uuid_room;
-  json_t* j_message;
 
   if((j_user == NULL) || (uuid_userroom == NULL) || (j_data == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -1778,37 +1718,9 @@ static bool create_chatmessage_info(json_t* j_user, const char* uuid_userroom, j
 
   // create message
   ret = chat_create_message_to_userroom(uuid_message, uuid_userroom, uuid_user, j_data);
+  sfree(uuid_message);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not create chat message.");
-    sfree(uuid_message);
-    return false;
-  }
-
-  // get created message
-  j_message = chat_get_userroom_message(uuid_message, uuid_userroom);
-  sfree(uuid_message);
-  if(j_message == NULL) {
-    slog(LOG_ERR, "Could not get created message. uuid_userroom[%s]", uuid_userroom);
-    return false;
-  }
-
-  // get room uuid
-  uuid_room = chat_get_uuidroom_by_uuiduserroom(uuid_userroom);
-  if(uuid_room == NULL) {
-    slog(LOG_ERR, "Could not get room uuid info.");
-    json_decref(j_message);
-    return false;
-  }
-
-  // add uuid_room
-  json_object_set_new(j_message, "uuid_room", json_string(uuid_room));
-
-  // publish event
-  ret = publish_event_me_chat_message(EN_PUBLISH_CREATE, uuid_room, j_message);
-  json_decref(j_message);
-  sfree(uuid_room);
-  if(ret == false) {
-    slog(LOG_WARNING, "Could not publish chat message notification. ");
     return false;
   }
 
@@ -2290,6 +2202,30 @@ static bool add_subscription_to_useruuid_chatroom(const char* uuid_user, const c
   ret = add_subscription_to_useruuid(uuid_user, topic);
   sfree(topic);
   if(ret == false) {
+    slog(LOG_NOTICE, "Could not subscribe the topic.");
+    return false;
+  }
+
+  return true;
+}
+
+static bool remove_subscription_to_useruuid_chatroom(const char* uuid_user, const char* uuid_room)
+{
+  int ret;
+  char* topic;
+
+  if((uuid_user == NULL) || (uuid_room == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  // create topic
+  asprintf(&topic, "%s/%s", DEF_PUBLISH_TOPIC_PREFIX_ME_CHATROOM_MESSAGE, uuid_room);
+
+  ret = remove_subscription_to_useruuid(uuid_user, topic);
+  sfree(topic);
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not unsubscribe the topic.");
     return false;
   }
 
@@ -2342,65 +2278,46 @@ static bool add_subscription_to_useruuid(const char* uuid_user, const char* topi
 }
 
 /**
- * Publish event.
- * me.chats.message.<type>
- * @param type
- * @param j_data
+ * Remove the subscription to given topic of all given user's authtoken
+ * @param uuid_user
+ * @param topic
  * @return
  */
-static bool publish_event_me_chat_message(enum EN_PUBLISH_TYPES type, const char* uuid_room, json_t* j_data)
+static bool remove_subscription_to_useruuid(const char* uuid_user, const char* topic)
 {
-  char* topic;
   int ret;
+  int idx;
+  json_t* j_tokens;
+  json_t* j_token;
+  const char* authtoken;
 
-  if((uuid_room == NULL) || (j_data == NULL)){
+  if((uuid_user == NULL) || (topic == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
-  slog(LOG_DEBUG, "Fired publish_event_me_chat_message.");
+  slog(LOG_DEBUG, "Fired remove_subscription_to_useruuid. uuid_user[%s], topic[%s]", uuid_user, topic);
 
-  // create topic
-  asprintf(&topic, "%s/%s", DEF_PUBLISH_TOPIC_PREFIX_ME_CHATROOM_MESSAGE, uuid_room);
-
-  // publish event
-  ret = publication_publish_event(topic, DEF_PUB_EVENT_PREFIX_ME_CHATROOM_MESSAGE, type, j_data);
-  sfree(topic);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not publish event.");
+  // get all authtokens
+  j_tokens = user_get_authtokens_user_type(uuid_user, DEF_ME_AUTHTOKEN_TYPE);
+  if(j_tokens == NULL) {
+    slog(LOG_ERR, "Could not get authtoken info.");
     return false;
   }
 
-  return true;
-}
+  json_array_foreach(j_tokens, idx, j_token) {
+    authtoken = json_string_value(json_object_get(j_token, "uuid"));
+    if(authtoken == NULL) {
+      continue;
+    }
 
-/**
- * Publish event.
- * me.chats.room.<type>
- * @param type
- * @param j_data
- * @return
- */
-static bool publish_event_me_chat_room(enum EN_PUBLISH_TYPES type, const char* uuid_user, json_t* j_data)
-{
-  char* topic;
-  int ret;
-
-  if((uuid_user == NULL) || (j_data == NULL)){
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return false;
+    // remove subscription
+    ret = subscription_unsubscribe_topic(authtoken, topic);
+    if(ret == false) {
+      slog(LOG_NOTICE, "Could not remove subscribe topic.");
+      continue;
+    }
   }
-  slog(LOG_DEBUG, "Fired publish_event_me_chat_room.");
-
-  // create topic
-  asprintf(&topic, "%s/%s", DEF_PUBLISH_TOPIC_PREFIX_ME_INFO, uuid_user);
-
-  // publish event
-  ret = publication_publish_event(topic, DEF_PUB_EVENT_PREFIX_ME_CHATROOM, type, j_data);
-  sfree(topic);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not publish event.");
-    return false;
-  }
+  json_decref(j_tokens);
 
   return true;
 }
@@ -2499,3 +2416,171 @@ static bool cb_resource_handler_user_userinfo(enum EN_RESOURCE_UPDATE_TYPES type
 
   return true;
 }
+
+/**
+ * Callback handler.
+ * publish event.
+ * @param type
+ * @param j_data
+ * @return
+ */
+static bool cb_resource_handler_chat_userroom(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data)
+{
+  int ret;
+  char* topic;
+  const char* uuid_user;
+  const char* uuid_userroom;
+  const char* uuid_room;
+  json_t* j_tmp;
+
+  if((j_data == NULL)){
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired cb_resource_handler_chat_userroom.");
+
+
+  uuid_userroom = json_string_value(json_object_get(j_data, "uuid"));
+  uuid_user = json_string_value(json_object_get(j_data, "uuid_user"));
+  uuid_room = json_string_value(json_object_get(j_data, "uuid_room"));
+
+  if(type == EN_RESOURCE_CREATE) {
+
+    // add subscribe
+    ret = add_subscription_to_useruuid_chatroom(uuid_user, uuid_room);
+    if(ret == false) {
+      slog(LOG_ERR, "Could not add subscription for created chatroom.");
+      return false;
+    }
+
+    // create publish message
+    j_tmp = get_chatroom_info_by_useruuid(uuid_user, uuid_userroom);
+    if(j_tmp == NULL) {
+      slog(LOG_NOTICE, "Could not create chatroom info for event publish.");
+      return false;
+    }
+
+    // create topic
+    asprintf(&topic, "%s/%s", DEF_PUBLISH_TOPIC_PREFIX_ME_INFO, uuid_user);
+
+    // publish event
+    ret = publication_publish_event(topic, DEF_PUB_EVENT_PREFIX_ME_CHATROOM, EN_PUBLISH_CREATE, j_tmp);
+    sfree(topic);
+    json_decref(j_tmp);
+    if(ret == false) {
+      slog(LOG_ERR, "Could not publish event.");
+      return false;
+    }
+
+    return true;
+  }
+  else if(type == EN_RESOURCE_UPDATE) {
+
+    // create publish message
+    j_tmp = get_chatroom_info_by_useruuid(uuid_user, uuid_userroom);
+    if(j_tmp == NULL) {
+      slog(LOG_NOTICE, "Could not create chatroom info for event publish.");
+      return false;
+    }
+
+    // create topic
+    asprintf(&topic, "%s/%s", DEF_PUBLISH_TOPIC_PREFIX_ME_INFO, uuid_user);
+
+    // publish event
+    ret = publication_publish_event(topic, DEF_PUB_EVENT_PREFIX_ME_CHATROOM, EN_PUBLISH_UPDATE, j_tmp);
+    sfree(topic);
+    json_decref(j_tmp);
+    if(ret == false) {
+      slog(LOG_ERR, "Could not publish event.");
+      return false;
+    }
+
+    return true;
+  }
+  else if(type == EN_RESOURCE_DELETE) {
+    // delete subscribe
+    ret = remove_subscription_to_useruuid_chatroom(uuid_user, uuid_room);
+    if(ret == false) {
+      slog(LOG_ERR, "Could not unsubscribe for deleted chatroom.");
+      return false;
+    }
+
+    // create publish message
+    j_tmp = json_deep_copy(j_data);
+
+    // create topic
+    asprintf(&topic, "%s/%s", DEF_PUBLISH_TOPIC_PREFIX_ME_INFO, uuid_user);
+
+    // publish event
+    ret = publication_publish_event(topic, DEF_PUB_EVENT_PREFIX_ME_CHATROOM, EN_PUBLISH_DELETE, j_tmp);
+    sfree(topic);
+    json_decref(j_tmp);
+    if(ret == false) {
+      slog(LOG_ERR, "Could not publish event.");
+      return false;
+    }
+
+    return true;
+  }
+  else {
+    // should not get to here
+    slog(LOG_ERR, "Something was wrong. Should not get to here.");
+    return false;
+  }
+
+  // should not get to here
+  slog(LOG_ERR, "Something was wrong. Should not get to here.");
+  return false;
+}
+
+/**
+ * Callback handler.
+ * publish event.
+ * @param type
+ * @param j_data
+ * @return
+ */
+static bool cb_resource_handler_chat_message(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data)
+{
+  int ret;
+  char* topic;
+  const char* uuid_room;
+
+  if((j_data == NULL)){
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired cb_resource_handler_chat_message.");
+
+  uuid_room = json_string_value(json_object_get(j_data, "uuid_room"));
+  if(uuid_room == NULL) {
+    slog(LOG_NOTICE, "Could not get uuid_room info.");
+    return false;
+  }
+
+  // create topic
+  asprintf(&topic, "%s/%s", DEF_PUBLISH_TOPIC_PREFIX_ME_CHATROOM_MESSAGE, uuid_room);
+
+  if(type == EN_RESOURCE_CREATE) {
+    // publish event
+    ret = publication_publish_event(topic, DEF_PUB_EVENT_PREFIX_ME_CHATROOM_MESSAGE, EN_PUBLISH_CREATE, j_data);
+    sfree(topic);
+    if(ret == false) {
+      slog(LOG_ERR, "Could not publish event.");
+      return false;
+    }
+
+    return true;
+  }
+  else {
+    // should not reach to here
+
+    slog(LOG_ERR, "Something was wrong. Should not get to here.");
+    return false;
+  }
+
+  // should not reach to here
+  return false;
+}
+
+

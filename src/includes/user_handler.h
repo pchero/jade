@@ -11,6 +11,7 @@
 #include <stdbool.h>
 #include <evhtp.h>
 #include "resource_handler.h"
+#include "utils.h"
 
 
 #define DEF_USER_CONTACT_TYPE_PEER       "sip_peer"

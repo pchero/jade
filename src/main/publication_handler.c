@@ -13,7 +13,7 @@
 
 #include <publication_handler.h>
 
-static bool publish_event(const char* topic, const char* event_name, json_t* j_data);
+static bool publish_event(const char* topic, const char* event_name, const json_t* j_data);
 
 /**
  * Publish event
@@ -22,9 +22,10 @@ static bool publish_event(const char* topic, const char* event_name, json_t* j_d
  * @param j_data
  * @return
  */
-static bool publish_event(const char* topic, const char* event_name, json_t* j_data)
+static bool publish_event(const char* topic, const char* event_name, const json_t* j_data)
 {
   json_t* j_pub;
+  json_t* j_tmp;
 
   if((topic == NULL) || (event_name == NULL) || (j_data == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -33,7 +34,8 @@ static bool publish_event(const char* topic, const char* event_name, json_t* j_d
 
   // create pub
   j_pub = json_object();
-  json_object_set(j_pub, event_name, j_data);
+  j_tmp = json_deep_copy(j_data);
+  json_object_set_new(j_pub, event_name, j_tmp);
 
   // event publish
   zmq_publish_message(topic, j_pub);
@@ -722,7 +724,7 @@ bool publication_publish_event_dp_dialplan(const char* type, json_t* j_data)
  * @param j_data
  * @return
  */
-bool publication_publish_event(const char* topic, const char* event_prefix, enum EN_PUBLISH_TYPES type, json_t* j_data)
+bool publication_publish_event(const char* topic, const char* event_prefix, enum EN_PUBLISH_TYPES type, const json_t* j_data)
 {
   char* event;
   int ret;
