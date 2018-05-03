@@ -75,15 +75,21 @@ static json_t* get_users_info_by_username(const char* username);
 static bool add_subscription_to_useruuid(const char* uuid_user, const char* topic);
 static bool add_subscription_to_useruuid_chatroom(const char* uuid_user, const char* uuid_room);
 
-static bool publish_event_me_buddy(enum EN_PUBLISH_TYPES type, const char* uuid_user, json_t* j_data);
+//static bool publish_event_me_buddy(enum EN_PUBLISH_TYPES type, const char* uuid_user, json_t* j_data);
 static bool publish_event_me_chat_message(enum EN_PUBLISH_TYPES type, const char* uuid_user, json_t* j_data);
 static bool publish_event_me_chat_room(enum EN_PUBLISH_TYPES type, const char* uuid_user, json_t* j_data);
 static bool publish_event_me_info(enum EN_PUBLISH_TYPES type, const char* uuid_user, json_t* j_data);
+
+static bool cb_resource_handler_user_buddy(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
 
 
 bool me_init_handler(void)
 {
   slog(LOG_DEBUG, "Fired init_me_handler.");
+
+  // register callback
+  user_reigster_callback_buddy(&cb_resource_handler_user_buddy);
+
   return true;
 }
 
@@ -1920,24 +1926,6 @@ static bool create_buddy_info(const json_t* j_user, const json_t* j_data)
     return false;
   }
 
-  // get created buddy info
-  j_tmp = user_get_buddy_info(uuid);
-  sfree(uuid);
-  if(j_tmp == NULL) {
-    slog(LOG_WARNING, "Could not get created buddy info.");
-    return false;
-  }
-
-  json_object_del(j_tmp, "uuid_owner");
-
-  // publish event
-  ret = publish_event_me_buddy(EN_PUBLISH_CREATE, uuid_owner, j_tmp);
-  json_decref(j_tmp);
-  if(ret == false) {
-    slog(LOG_WARNING, "Could not publish the event.");
-    return false;
-  }
-
   return true;
 }
 
@@ -1977,23 +1965,6 @@ static bool update_buddy_info(const json_t* j_user, const char* detail, const js
     return false;
   }
 
-  // get updated buddy info
-  j_tmp = user_get_buddy_info(detail);
-  if(j_tmp == NULL) {
-    slog(LOG_WARNING, "Could not get updated buddy info.");
-    return false;
-  }
-
-  json_object_del(j_tmp, "uuid_owner");
-
-  // publish event
-  ret = publish_event_me_buddy(EN_PUBLISH_UPDATE, uuid_owner, j_tmp);
-  json_decref(j_tmp);
-  if(ret == false) {
-    slog(LOG_WARNING, "Could not publish the event.");
-    return false;
-  }
-
   return true;
 }
 
@@ -2001,12 +1972,6 @@ static bool delete_buddy_info(const json_t* j_user, const char* detail)
 {
   int ret;
   const char* uuid_owner;
-  json_t* j_tmp;
-
-  if((j_user == NULL) || (detail == NULL)) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return false;
-  }
 
   if((j_user == NULL) || (detail == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -2026,25 +1991,10 @@ static bool delete_buddy_info(const json_t* j_user, const char* detail)
     return false;
   }
 
-  // get deleted buddy info
-  j_tmp = get_buddy_info(j_user, detail);
-  if(j_tmp == NULL) {
-    slog(LOG_WARNING, "Could not get deleted buddy info.");
-    return false;
-  }
-
   // delete
   ret = user_delete_buddy_info(detail);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete buddy info.");
-    json_decref(j_tmp);
-    return false;
-  }
-
-  // publish event
-  ret = publish_event_me_buddy(EN_PUBLISH_DELETE, uuid_owner, j_tmp);
-  json_decref(j_tmp);
-  if(ret == false) {
     return false;
   }
 
@@ -2388,38 +2338,6 @@ static bool add_subscription_to_useruuid(const char* uuid_user, const char* topi
 
 /**
  * Publish event.
- * me.buddies.<type>
- * @param type
- * @param j_data
- * @return
- */
-static bool publish_event_me_buddy(enum EN_PUBLISH_TYPES type, const char* uuid_user, json_t* j_data)
-{
-  char* topic;
-  int ret;
-
-  if((uuid_user == NULL) || (j_data == NULL)){
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return false;
-  }
-  slog(LOG_DEBUG, "Fired publish_event_me_buddy.");
-
-  // create topic
-  asprintf(&topic, "%s/%s", DEF_PUBLISH_TOPIC_PREFIX_ME_INFO, uuid_user);
-
-  // publish event
-  ret = publication_publish_event(topic, DEF_PUB_EVENT_PREFIX_ME_BUDDY, type, j_data);
-  sfree(topic);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not publish event.");
-    return false;
-  }
-
-  return true;
-}
-
-/**
- * Publish event.
  * me.chats.message.<type>
  * @param type
  * @param j_data
@@ -2506,6 +2424,49 @@ static bool publish_event_me_info(enum EN_PUBLISH_TYPES type, const char* uuid_u
   // publish event
   ret = publication_publish_event(topic, DEF_PUB_EVENT_PREFIX_ME_INFO, type, j_data);
   sfree(topic);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Callback handler.
+ * publish event.
+ * @param type
+ * @param j_data
+ * @return
+ */
+static bool cb_resource_handler_user_buddy(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data)
+{
+  char* topic;
+  int ret;
+  const char* uuid_owner;
+  json_t* j_tmp;
+  enum EN_PUBLISH_TYPES pub_type;
+
+  if((j_data == NULL)){
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired cb_resource_handler_user_buddy.");
+
+  // create publish data
+  uuid_owner = json_string_value(json_object_get(j_data, "uuid_owner"));
+  j_tmp = json_deep_copy(j_data);
+  json_object_del(j_tmp, "uuid_owner");
+
+  pub_type = (enum EN_PUBLISH_TYPES)type;
+
+  // create topic
+  asprintf(&topic, "%s/%s", DEF_PUBLISH_TOPIC_PREFIX_ME_INFO, uuid_owner);
+
+  // publish event
+  ret = publication_publish_event(topic, DEF_PUB_EVENT_PREFIX_ME_BUDDY, pub_type, j_tmp);
+  sfree(topic);
+  json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not publish event.");
     return false;

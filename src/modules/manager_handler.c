@@ -44,8 +44,8 @@ static bool update_user_info(const char* uuid_user, const json_t* j_data);
 static bool update_user_permission(const char* uuid_user, const json_t* j_data);
 static bool update_user_user(const char* uuid_user, const json_t* j_data);
 
-static bool cb_resource_handler_user_userinfo(enum EN_RESOURCE_UPDATE_TYPES type, json_t* j_data);
-static bool cb_resource_handler_user_permission(enum EN_RESOURCE_UPDATE_TYPES type, json_t* j_data);
+static bool cb_resource_handler_user_userinfo(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
+static bool cb_resource_handler_user_permission(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
 
 
 bool manager_init_handler(void)
@@ -842,7 +842,7 @@ json_t* manager_get_subscribable_topics_all(const json_t* j_user)
  * @param j_data
  * @return
  */
-static bool cb_resource_handler_user_userinfo(enum EN_RESOURCE_UPDATE_TYPES type, json_t* j_data)
+static bool cb_resource_handler_user_userinfo(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data)
 {
   char* topic;
   int ret;
@@ -891,7 +891,7 @@ static bool cb_resource_handler_user_userinfo(enum EN_RESOURCE_UPDATE_TYPES type
  * @param j_data
  * @return
  */
-static bool cb_resource_handler_user_permission(enum EN_RESOURCE_UPDATE_TYPES type, json_t* j_data)
+static bool cb_resource_handler_user_permission(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data)
 {
   char* topic;
   int ret;

@@ -20,9 +20,10 @@ bool user_init_handler(void);
 void user_term_handler(void);
 bool user_reload_handler(void);
 
-// callbacks
-bool user_register_callback_userinfo(bool (*func)(enum EN_RESOURCE_UPDATE_TYPES, json_t*));
-bool user_register_callback_permission(bool (*func)(enum EN_RESOURCE_UPDATE_TYPES, json_t*));
+// callback register
+bool user_register_callback_userinfo(bool (*func)(enum EN_RESOURCE_UPDATE_TYPES, const json_t*));
+bool user_register_callback_permission(bool (*func)(enum EN_RESOURCE_UPDATE_TYPES, const json_t*));
+bool user_reigster_callback_buddy(bool (*func)(enum EN_RESOURCE_UPDATE_TYPES, const json_t*));
 
 // userinfo
 json_t* user_get_userinfo_info(const char* key);
