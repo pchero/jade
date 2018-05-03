@@ -18,6 +18,7 @@
 #include "subscription_handler.h"
 
 static bool subscribe_topic(void* zmq_sock, const char* topic);
+static bool unsubscribe_topic(void* zmq_sock, const char* topic);
 
 
 bool subscription_init_handler(void)
@@ -147,6 +148,25 @@ static bool subscribe_topic(void* zmq_sock, const char* topic)
   return true;
 }
 
+static bool unsubscribe_topic(void* zmq_sock, const char* topic)
+{
+  int ret;
+
+  if((zmq_sock == NULL) || (topic == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired unsubscribe_topic. topic[%s]", topic);
+
+  ret = zmq_setsockopt(zmq_sock, ZMQ_UNSUBSCRIBE, topic, strlen(topic));
+  if(ret != 0) {
+    slog(LOG_ERR, "Could not unsubscribe topic. topic[%s], err[%d:%s]", topic, errno, strerror(errno));
+    return false;
+  }
+
+  return true;
+}
+
 bool subscription_subscribe_topic(const char* authtoken, const char* topic)
 {
   int ret;
@@ -172,3 +192,30 @@ bool subscription_subscribe_topic(const char* authtoken, const char* topic)
 
   return true;
 }
+
+bool subscription_unsubscribe_topic(const char* authtoken, const char* topic)
+{
+  int ret;
+  void* sock;
+
+  if((authtoken == NULL) || (topic == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired subscription_unsubscribe_topic. authtoken[%s], topic[%s]", authtoken, topic);
+
+  sock = websocket_get_subscription_socket(authtoken);
+  if(sock == NULL) {
+    slog(LOG_NOTICE, "Could not get subscription socket.");
+    return false;
+  }
+
+  // unsubscribe topic
+  ret = unsubscribe_topic(sock, topic);
+  if(ret == false) {
+    return false;
+  }
+
+  return true;
+}
+

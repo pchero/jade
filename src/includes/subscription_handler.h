@@ -18,6 +18,7 @@ bool subscription_reload_handler(void);
 bool subscription_subscribe_topics_client(const char* authtoken, void* zmq_sock);
 bool subscription_subscribe_topic(const char* authtoken, const char* topic);
 
+bool subscription_unsubscribe_topic(const char* authtoken, const char* topic);
 
 
 #endif /* SRC_INCLUDES_SUBSCRIPTION_HANDLER_H_ */

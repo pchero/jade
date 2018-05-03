@@ -20,6 +20,10 @@ enum EN_CHAT_ROOM_TYPE {
 bool chat_init_handler(void);
 bool chat_term_handler(void);
 
+bool chat_register_callback_room(bool (*func)(enum EN_RESOURCE_UPDATE_TYPES, const json_t*));
+bool chat_register_callback_userroom(bool (*func)(enum EN_RESOURCE_UPDATE_TYPES, const json_t*));
+bool chat_register_callback_message(bool (*func)(enum EN_RESOURCE_UPDATE_TYPES, const json_t*));
+
 json_t* chat_get_room(const char* uuid);
 json_t* chat_get_rooms_by_useruuid(const char* user_uuid);
 bool chat_create_room_with_foreach_userroom(const char* uuid, const char* uuid_user, const json_t* j_data);
@@ -38,8 +42,10 @@ bool chat_delete_userroom(const char* uuid_userroom);
 bool chat_create_message_to_userroom(const char* uuid_message, const char* uuid_userroom, const char* uuid_user, const json_t* message);
 json_t* chat_get_userroom_messages_newest(const char* uuid_userroom, const char* timestamp, const unsigned int count);
 
-json_t* chat_get_room_messages_newest(const char* uuid, const char* timestamp, const unsigned int count);
-json_t* chat_get_userroom_message(const char* uuid_message, const char* uuid_userroom);
+json_t* chat_get_messages_newest_of_room(const char* uuid_room, const char* timestamp, const unsigned int count);
+json_t* chat_get_message_info_by_userroom(const char* uuid_message, const char* uuid_userroom);
+json_t* chat_get_message_info(const char* table_name, const char* uuid);
+
 char* chat_get_uuidroom_by_uuiduserroom(const char* uuid_userroom);
 json_t* chat_get_members_by_userroom(const char* uuid_userroom);
 

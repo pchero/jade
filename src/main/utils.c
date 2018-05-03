@@ -549,3 +549,79 @@ char* utils_string_replace_char(const char* str, const char org, const char targ
   tmp[j] = '\0';
   return tmp;
 }
+
+struct st_callback* utils_create_callback(void)
+{
+  struct st_callback* callback;
+
+
+  callback = calloc(1, sizeof(struct st_callback));
+  callback->count = 0;
+
+  return callback;
+}
+
+void utils_terminiate_callback(struct st_callback* callback)
+{
+  if(callback == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+
+  sfree(callback);
+
+  return;
+}
+
+bool utils_register_callback(struct st_callback* callback, bool (*func)(enum EN_RESOURCE_UPDATE_TYPES, const json_t*))
+{
+  int i;
+  int exist;
+
+  if((callback == NULL) || (func == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  // check exist
+  exist = false;
+  for(i = 0; i < callback->count; i++) {
+    if(callback->callback[i] == func) {
+      exist = true;
+      break;
+    }
+  }
+
+  if(exist == true) {
+    // already exist.
+    return true;
+  }
+
+  callback->callback[callback->count] = func;
+  callback->count++;
+
+  return true;
+}
+
+void utils_execute_callbacks(struct st_callback* callbacks, enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data)
+{
+  int i;
+  int ret;
+
+  if((callbacks == NULL) || (j_data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+
+  for(i = 0; i < callbacks->count; i++) {
+    ret = callbacks->callback[i](type, j_data);
+    if(ret == false) {
+      slog(LOG_NOTICE, "Could not execute registered callback correctly. i[%d]", i);
+      continue;
+    }
+  }
+
+  return;
+}
+
+

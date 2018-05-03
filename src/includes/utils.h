@@ -10,8 +10,24 @@
 
 #include <time.h>
 #include <stdbool.h>
+#include <jansson.h>
 
 #define sfree(p) { if(p != NULL) free(p); p=NULL; }
+
+#define DEF_UTILS_MAX_CALLBACKS 256
+
+
+enum EN_RESOURCE_UPDATE_TYPES {
+  EN_RESOURCE_CREATE   = 1,
+  EN_RESOURCE_UPDATE   = 2,
+  EN_RESOURCE_DELETE   = 3,
+};
+
+struct st_callback {
+  bool (*callback[DEF_UTILS_MAX_CALLBACKS])(enum EN_RESOURCE_UPDATE_TYPES, const json_t*);
+  int count;
+};
+
 
 void utils_trim(char * s);
 
@@ -37,5 +53,11 @@ bool utils_append_string_to_file_end(const char* filename, const char* str);
 bool utils_create_empty_file(const char* filename);
 
 char* utils_string_replace_char(const char* str, const char org, const char target);
+
+bool utils_register_callback(struct st_callback* callback, bool (*func)(enum EN_RESOURCE_UPDATE_TYPES, const json_t*));
+struct st_callback* utils_create_callback(void);
+void utils_terminiate_callback(struct st_callback* callback);
+
+void utils_execute_callbacks(struct st_callback* callbacks, enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
 
 #endif /* BACKEND_SRC_UTILS_H_ */

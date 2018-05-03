@@ -17,10 +17,15 @@
 #include "user_handler.h"
 #include "pjsip_handler.h"
 #include "chat_handler.h"
+#include "publication_handler.h"
 
 #include "manager_handler.h"
 
-#define DEF_MANAGER_AUTHTOKEN_TYPE       "manager"
+#define DEF_MANAGER_AUTHTOKEN_TYPE          "manager"
+
+#define DEF_PUBLISH_TOPIC_PREFIX_MANAGER     "/manager"
+
+#define DEF_PUB_EVENT_PREFIX_MANAGER_USER    "manager.user"             // topic: DEF_PUBLISH_TOPIC_PREFIX_ME_INFO
 
 static json_t* get_users_all(void);
 static json_t* get_user_info(const char* uuid_user);
@@ -39,9 +44,17 @@ static bool update_user_info(const char* uuid_user, const json_t* j_data);
 static bool update_user_permission(const char* uuid_user, const json_t* j_data);
 static bool update_user_user(const char* uuid_user, const json_t* j_data);
 
+static bool cb_resource_handler_user_userinfo(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
+static bool cb_resource_handler_user_permission(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
+
 
 bool manager_init_handler(void)
 {
+
+  // register callback
+  user_register_callback_userinfo(&cb_resource_handler_user_userinfo);
+  user_register_callback_permission(&cb_resource_handler_user_permission);
+
   return true;
 }
 
@@ -814,9 +827,107 @@ json_t* manager_get_subscribable_topics_all(const json_t* j_user)
   j_res = json_array();
 
   // set topics
-  asprintf(&topic, "/manager");
+  asprintf(&topic, "%s", DEF_PUBLISH_TOPIC_PREFIX_MANAGER);
   json_array_append_new(j_res, json_string(topic));
   sfree(topic);
 
   return j_res;
+}
+
+/**
+ * Callback handler.
+ * publish event.
+ * manager.user.<type>
+ * @param type
+ * @param j_data
+ * @return
+ */
+static bool cb_resource_handler_user_userinfo(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data)
+{
+  char* topic;
+  int ret;
+  const char* uuid;
+  json_t* j_tmp;
+  enum EN_PUBLISH_TYPES pub_type;
+
+  if((j_data == NULL)){
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired cb_handler_user_userinfo.");
+
+  // get userinfo
+  uuid = json_string_value(json_object_get(j_data, "uuid"));
+  if(uuid == NULL) {
+    return false;
+  }
+
+  j_tmp = get_user_info(uuid);
+  if(j_tmp == NULL) {
+    return false;
+  }
+
+  // create topic
+  asprintf(&topic, "%s", DEF_PUBLISH_TOPIC_PREFIX_MANAGER);
+
+  // publish event
+  pub_type = type;
+  ret = publication_publish_event(topic, DEF_PUB_EVENT_PREFIX_MANAGER_USER, pub_type, j_tmp);
+  sfree(topic);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Callback handler.
+ * publish event.
+ * manager.user.<type>
+ * @param type
+ * @param j_data
+ * @return
+ */
+static bool cb_resource_handler_user_permission(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data)
+{
+  char* topic;
+  int ret;
+  const char* uuid;
+  json_t* j_tmp;
+
+  if((j_data == NULL)){
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired cb_resource_handler_user_permission.");
+
+  // get userinfo
+  uuid = json_string_value(json_object_get(j_data, "user_uuid"));
+  if(uuid == NULL) {
+    slog(LOG_NOTICE, "Could not get user_uuid info.");
+    return false;
+  }
+
+  j_tmp = get_user_info(uuid);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get user info.");
+    return false;
+  }
+
+  // create topic
+  asprintf(&topic, "%s", DEF_PUBLISH_TOPIC_PREFIX_MANAGER);
+
+  // publish event
+  ret = publication_publish_event(topic, DEF_PUB_EVENT_PREFIX_MANAGER_USER, EN_PUBLISH_UPDATE, j_tmp);
+  sfree(topic);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
+  return true;
 }

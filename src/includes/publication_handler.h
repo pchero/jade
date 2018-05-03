@@ -21,7 +21,7 @@ enum EN_PUBLISH_TYPES {
   EN_PUBLISH_DELETE   = 3,
 };
 
-bool publication_publish_event(const char* topic, const char* event_prefix, enum EN_PUBLISH_TYPES type, json_t* j_data);
+bool publication_publish_event(const char* topic, const char* event_prefix, enum EN_PUBLISH_TYPES type, const json_t* j_data);
 
 bool publication_publish_event_core_channel(const char* type, json_t* j_data);
 bool publication_publish_event_core_agi(const char* type, json_t* j_data);
