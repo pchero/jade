@@ -46,7 +46,8 @@ static json_t* get_contacts_info(const json_t* j_user);
 static json_t* get_contact_info(const json_t* j_user_contact);
 static json_t* get_contact_info_pjsip(const char* target);
 
-static json_t* get_me_info(const json_t* j_user);
+static json_t* get_me_info_by_user(const json_t* j_user);
+static json_t* get_me_info(const char* uuid);
 static bool update_me_info(const json_t* j_user, const json_t* j_data);
 
 static json_t* get_chats_info(const json_t* j_user);
@@ -75,12 +76,11 @@ static json_t* get_users_info_by_username(const char* username);
 static bool add_subscription_to_useruuid(const char* uuid_user, const char* topic);
 static bool add_subscription_to_useruuid_chatroom(const char* uuid_user, const char* uuid_room);
 
-//static bool publish_event_me_buddy(enum EN_PUBLISH_TYPES type, const char* uuid_user, json_t* j_data);
 static bool publish_event_me_chat_message(enum EN_PUBLISH_TYPES type, const char* uuid_user, json_t* j_data);
 static bool publish_event_me_chat_room(enum EN_PUBLISH_TYPES type, const char* uuid_user, json_t* j_data);
-static bool publish_event_me_info(enum EN_PUBLISH_TYPES type, const char* uuid_user, json_t* j_data);
 
 static bool cb_resource_handler_user_buddy(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
+static bool cb_resource_handler_user_userinfo(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
 
 
 bool me_init_handler(void)
@@ -89,6 +89,7 @@ bool me_init_handler(void)
 
   // register callback
   user_reigster_callback_buddy(&cb_resource_handler_user_buddy);
+  user_register_callback_userinfo(&cb_resource_handler_user_userinfo);
 
   return true;
 }
@@ -135,7 +136,7 @@ void me_htp_get_me_info(evhtp_request_t *req, void *data)
   }
 
   // get info
-  j_tmp = get_me_info(j_user);
+  j_tmp = get_me_info_by_user(j_user);
   json_decref(j_user);
   if(j_tmp == NULL) {
     slog(LOG_NOTICE, "Could not get me info.");
@@ -1151,11 +1152,11 @@ void me_htp_get_me_contacts(evhtp_request_t *req, void *data)
 }
 
 /**
- * Get given authtoken's me info.
+ * Get given me info.
  * @param authtoken
  * @return
  */
-static json_t* get_me_info(const json_t* j_user)
+static json_t* get_me_info_by_user(const json_t* j_user)
 {
   json_t* j_res;
   const char* uuid_user;
@@ -1173,7 +1174,26 @@ static json_t* get_me_info(const json_t* j_user)
   }
 
   // get user info
-  j_res = user_get_userinfo_info(uuid_user);
+  j_res = get_me_info(uuid_user);
+  if(j_res == NULL) {
+    slog(LOG_NOTICE, "Could not get user info.");
+    return NULL;
+  }
+
+  return j_res;
+}
+
+static json_t* get_me_info(const char* uuid)
+{
+  json_t* j_res;
+
+  if(uuid == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  // get user info
+  j_res = user_get_userinfo_info(uuid);
   if(j_res == NULL) {
     slog(LOG_NOTICE, "Could not get user info.");
     return NULL;
@@ -1194,7 +1214,7 @@ static bool update_me_info(const json_t* j_user, const json_t* j_data)
 {
   int ret;
   const char* uuid_user;
-  json_t* j_tmp;
+//  json_t* j_tmp;
 
   if((j_user == NULL) || (j_data == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -1214,21 +1234,6 @@ static bool update_me_info(const json_t* j_user, const json_t* j_data)
     slog(LOG_NOTICE, "Could not update me info.");
     return false;
   }
-
-  // get updated info
-  j_tmp = get_me_info(j_user);
-  if(j_tmp == NULL) {
-    slog(LOG_WARNING, "Could not get updated me info.");
-    return false;
-  }
-
-  // publish event
-  ret = publish_event_me_info(EN_PUBLISH_UPDATE, uuid_user, j_tmp);
-  json_decref(j_tmp);
-  if(ret == false) {
-    return false;
-  }
-
 
   return true;
 }
@@ -2401,38 +2406,6 @@ static bool publish_event_me_chat_room(enum EN_PUBLISH_TYPES type, const char* u
 }
 
 /**
- * Publish event.
- * me.info.<type>
- * @param type
- * @param j_data
- * @return
- */
-static bool publish_event_me_info(enum EN_PUBLISH_TYPES type, const char* uuid_user, json_t* j_data)
-{
-  char* topic;
-  int ret;
-
-  if((uuid_user == NULL) || (j_data == NULL)){
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return false;
-  }
-  slog(LOG_DEBUG, "Fired publish_event_me_info.");
-
-  // create topic
-  asprintf(&topic, "%s/%s", DEF_PUBLISH_TOPIC_PREFIX_ME_INFO, uuid_user);
-
-  // publish event
-  ret = publication_publish_event(topic, DEF_PUB_EVENT_PREFIX_ME_INFO, type, j_data);
-  sfree(topic);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not publish event.");
-    return false;
-  }
-
-  return true;
-}
-
-/**
  * Callback handler.
  * publish event.
  * @param type
@@ -2475,3 +2448,54 @@ static bool cb_resource_handler_user_buddy(enum EN_RESOURCE_UPDATE_TYPES type, c
   return true;
 }
 
+/**
+ * Callback handler.
+ * publish event.
+ * @param type
+ * @param j_data
+ * @return
+ */
+static bool cb_resource_handler_user_userinfo(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data)
+{
+  char* topic;
+  int ret;
+  const char* uuid;
+  json_t* j_tmp;
+  enum EN_PUBLISH_TYPES pub_type;
+
+  if((j_data == NULL)){
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired cb_resource_handler_user_userinfo.");
+
+  // get uuid
+  uuid = json_string_value(json_object_get(j_data, "uuid"));
+  if(uuid == NULL) {
+    slog(LOG_ERR, "Could not get user uuid info.");
+    return false;
+  }
+
+  // create publish data
+  j_tmp = get_me_info(uuid);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get userinfo.");
+    return false;
+  }
+
+  pub_type = (enum EN_PUBLISH_TYPES)type;
+
+  // create topic
+  asprintf(&topic, "%s/%s", DEF_PUBLISH_TOPIC_PREFIX_ME_INFO, uuid);
+
+  // publish event
+  ret = publication_publish_event(topic, DEF_PUB_EVENT_PREFIX_ME_INFO, pub_type, j_tmp);
+  sfree(topic);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
+  return true;
+}
