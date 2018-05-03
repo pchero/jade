@@ -835,9 +835,7 @@ json_t* manager_get_subscribable_topics_all(const json_t* j_user)
 }
 
 /**
- * Callback handler.
- * publish event.
- * manager.user.<type>
+ * Callback handler for user_userinfo.
  * @param type
  * @param j_data
  * @return
@@ -846,9 +844,9 @@ static bool cb_resource_handler_user_userinfo(enum EN_RESOURCE_UPDATE_TYPES type
 {
   char* topic;
   int ret;
-  const char* uuid;
-  json_t* j_tmp;
-  enum EN_PUBLISH_TYPES pub_type;
+  const char* tmp_const;
+  json_t* j_event;
+  enum EN_PUBLISH_TYPES event_type;
 
   if((j_data == NULL)){
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -856,14 +854,52 @@ static bool cb_resource_handler_user_userinfo(enum EN_RESOURCE_UPDATE_TYPES type
   }
   slog(LOG_DEBUG, "Fired cb_handler_user_userinfo.");
 
-  // get userinfo
-  uuid = json_string_value(json_object_get(j_data, "uuid"));
-  if(uuid == NULL) {
-    return false;
-  }
+  // create event depends on type
+  if(type == EN_RESOURCE_CREATE) {
+    // set event type
+    event_type = EN_PUBLISH_CREATE;
 
-  j_tmp = get_user_info(uuid);
-  if(j_tmp == NULL) {
+    // get userinfo
+    tmp_const = json_string_value(json_object_get(j_data, "uuid"));
+    if(tmp_const == NULL) {
+      slog(LOG_NOTICE, "Could not get user uuid.");
+      return false;
+    }
+
+    // create event
+    j_event = get_user_info(tmp_const);
+    if(j_event == NULL) {
+      slog(LOG_NOTICE, "Could not create event user info.");
+      return false;
+    }
+  }
+  else if(type == EN_RESOURCE_UPDATE) {
+    // set event type
+    event_type = EN_PUBLISH_UPDATE;
+
+    // get userinfo
+    tmp_const = json_string_value(json_object_get(j_data, "uuid"));
+    if(tmp_const == NULL) {
+      return false;
+    }
+
+    // create event
+    j_event = get_user_info(tmp_const);
+    if(j_event == NULL) {
+      slog(LOG_NOTICE, "Could not create event user info.");
+      return false;
+    }
+  }
+  else if(type == EN_RESOURCE_DELETE) {
+    // set event type
+    event_type = EN_PUBLISH_DELETE;
+
+    // create event
+    j_event = json_deep_copy(j_data);
+  }
+  else {
+    // something was wrong
+    slog(LOG_ERR, "Unsupported resource update type. type[%d]", type);
     return false;
   }
 
@@ -871,10 +907,9 @@ static bool cb_resource_handler_user_userinfo(enum EN_RESOURCE_UPDATE_TYPES type
   asprintf(&topic, "%s", DEF_PUBLISH_TOPIC_PREFIX_MANAGER);
 
   // publish event
-  pub_type = type;
-  ret = publication_publish_event(topic, DEF_PUB_EVENT_PREFIX_MANAGER_USER, pub_type, j_tmp);
+  ret = publication_publish_event(topic, DEF_PUB_EVENT_PREFIX_MANAGER_USER, event_type, j_event);
   sfree(topic);
-  json_decref(j_tmp);
+  json_decref(j_event);
   if(ret == false) {
     slog(LOG_ERR, "Could not publish event.");
     return false;
@@ -913,7 +948,8 @@ static bool cb_resource_handler_user_permission(enum EN_RESOURCE_UPDATE_TYPES ty
 
   j_tmp = get_user_info(uuid);
   if(j_tmp == NULL) {
-    slog(LOG_NOTICE, "Could not get user info.");
+    // may already user removed.
+    // skip the print log
     return false;
   }
 

@@ -1837,9 +1837,9 @@ static bool create_buddy_info(const json_t* j_user, const json_t* j_data)
   // create
   uuid = utils_gen_uuid();
   ret = user_create_buddy_info(uuid, j_tmp);
+  sfree(uuid);
   json_decref(j_tmp);
   if(ret == false) {
-    sfree(uuid);
     return false;
   }
 
@@ -2334,8 +2334,8 @@ static bool cb_resource_handler_user_buddy(enum EN_RESOURCE_UPDATE_TYPES type, c
   char* topic;
   int ret;
   const char* uuid_owner;
-  json_t* j_tmp;
-  enum EN_PUBLISH_TYPES pub_type;
+  json_t* j_event;
+  enum EN_PUBLISH_TYPES event_type;
 
   if((j_data == NULL)){
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -2343,20 +2343,42 @@ static bool cb_resource_handler_user_buddy(enum EN_RESOURCE_UPDATE_TYPES type, c
   }
   slog(LOG_DEBUG, "Fired cb_resource_handler_user_buddy.");
 
-  // create publish data
   uuid_owner = json_string_value(json_object_get(j_data, "uuid_owner"));
-  j_tmp = json_deep_copy(j_data);
-  json_object_del(j_tmp, "uuid_owner");
+  if(uuid_owner == NULL) {
+    slog(LOG_ERR, "Could not get owner uuid info.");
+    return false;
+  }
 
-  pub_type = (enum EN_PUBLISH_TYPES)type;
+  if(type == EN_RESOURCE_CREATE) {
+    event_type = EN_PUBLISH_CREATE;
+
+    j_event = json_deep_copy(j_data);
+    json_object_del(j_event, "uuid_owner");
+  }
+  else if(type == EN_RESOURCE_UPDATE) {
+    event_type = EN_PUBLISH_UPDATE;
+
+    j_event = json_deep_copy(j_data);
+    json_object_del(j_event, "uuid_owner");
+  }
+  else if(type == EN_RESOURCE_DELETE) {
+    event_type = EN_PUBLISH_DELETE;
+
+    j_event = json_deep_copy(j_data);
+    json_object_del(j_event, "uuid_owner");
+  }
+  else {
+    slog(LOG_NOTICE, "Unsupported update type.");
+    return false;
+  }
 
   // create topic
   asprintf(&topic, "%s/%s", DEF_PUBLISH_TOPIC_PREFIX_ME_INFO, uuid_owner);
 
   // publish event
-  ret = publication_publish_event(topic, DEF_PUB_EVENT_PREFIX_ME_BUDDY, pub_type, j_tmp);
+  ret = publication_publish_event(topic, DEF_PUB_EVENT_PREFIX_ME_BUDDY, event_type, j_event);
   sfree(topic);
-  json_decref(j_tmp);
+  json_decref(j_event);
   if(ret == false) {
     slog(LOG_ERR, "Could not publish event.");
     return false;
@@ -2377,8 +2399,8 @@ static bool cb_resource_handler_user_userinfo(enum EN_RESOURCE_UPDATE_TYPES type
   char* topic;
   int ret;
   const char* uuid;
-  json_t* j_tmp;
-  enum EN_PUBLISH_TYPES pub_type;
+  json_t* j_event;
+  enum EN_PUBLISH_TYPES event_type;
 
   if((j_data == NULL)){
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -2393,22 +2415,28 @@ static bool cb_resource_handler_user_userinfo(enum EN_RESOURCE_UPDATE_TYPES type
     return false;
   }
 
-  // create publish data
-  j_tmp = get_me_info(uuid);
-  if(j_tmp == NULL) {
-    slog(LOG_NOTICE, "Could not get userinfo.");
+  if(type == EN_RESOURCE_UPDATE) {
+    event_type = EN_PUBLISH_UPDATE;
+
+    // create event
+    j_event = get_me_info(uuid);
+    if(j_event == NULL) {
+      slog(LOG_NOTICE, "Could not get userinfo.");
+      return false;
+    }
+  }
+  else {
+    slog(LOG_NOTICE, "Unsupported reource update type.");
     return false;
   }
-
-  pub_type = (enum EN_PUBLISH_TYPES)type;
 
   // create topic
   asprintf(&topic, "%s/%s", DEF_PUBLISH_TOPIC_PREFIX_ME_INFO, uuid);
 
   // publish event
-  ret = publication_publish_event(topic, DEF_PUB_EVENT_PREFIX_ME_INFO, pub_type, j_tmp);
+  ret = publication_publish_event(topic, DEF_PUB_EVENT_PREFIX_ME_INFO, event_type, j_event);
   sfree(topic);
-  json_decref(j_tmp);
+  json_decref(j_event);
   if(ret == false) {
     slog(LOG_ERR, "Could not publish event.");
     return false;
@@ -2431,7 +2459,8 @@ static bool cb_resource_handler_chat_userroom(enum EN_RESOURCE_UPDATE_TYPES type
   const char* uuid_user;
   const char* uuid_userroom;
   const char* uuid_room;
-  json_t* j_tmp;
+  json_t* j_event;
+  enum EN_PUBLISH_TYPES event_type;
 
   if((j_data == NULL)){
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -2445,6 +2474,7 @@ static bool cb_resource_handler_chat_userroom(enum EN_RESOURCE_UPDATE_TYPES type
   uuid_room = json_string_value(json_object_get(j_data, "uuid_room"));
 
   if(type == EN_RESOURCE_CREATE) {
+    event_type = EN_RESOURCE_CREATE;
 
     // add subscribe
     ret = add_subscription_to_useruuid_chatroom(uuid_user, uuid_room);
@@ -2454,50 +2484,25 @@ static bool cb_resource_handler_chat_userroom(enum EN_RESOURCE_UPDATE_TYPES type
     }
 
     // create publish message
-    j_tmp = get_chatroom_info_by_useruuid(uuid_user, uuid_userroom);
-    if(j_tmp == NULL) {
+    j_event = get_chatroom_info_by_useruuid(uuid_user, uuid_userroom);
+    if(j_event == NULL) {
       slog(LOG_NOTICE, "Could not create chatroom info for event publish.");
       return false;
     }
-
-    // create topic
-    asprintf(&topic, "%s/%s", DEF_PUBLISH_TOPIC_PREFIX_ME_INFO, uuid_user);
-
-    // publish event
-    ret = publication_publish_event(topic, DEF_PUB_EVENT_PREFIX_ME_CHATROOM, EN_PUBLISH_CREATE, j_tmp);
-    sfree(topic);
-    json_decref(j_tmp);
-    if(ret == false) {
-      slog(LOG_ERR, "Could not publish event.");
-      return false;
-    }
-
-    return true;
   }
   else if(type == EN_RESOURCE_UPDATE) {
+    event_type = EN_RESOURCE_UPDATE;
 
     // create publish message
-    j_tmp = get_chatroom_info_by_useruuid(uuid_user, uuid_userroom);
-    if(j_tmp == NULL) {
+    j_event = get_chatroom_info_by_useruuid(uuid_user, uuid_userroom);
+    if(j_event == NULL) {
       slog(LOG_NOTICE, "Could not create chatroom info for event publish.");
       return false;
     }
-
-    // create topic
-    asprintf(&topic, "%s/%s", DEF_PUBLISH_TOPIC_PREFIX_ME_INFO, uuid_user);
-
-    // publish event
-    ret = publication_publish_event(topic, DEF_PUB_EVENT_PREFIX_ME_CHATROOM, EN_PUBLISH_UPDATE, j_tmp);
-    sfree(topic);
-    json_decref(j_tmp);
-    if(ret == false) {
-      slog(LOG_ERR, "Could not publish event.");
-      return false;
-    }
-
-    return true;
   }
   else if(type == EN_RESOURCE_DELETE) {
+    event_type = EN_PUBLISH_DELETE;
+
     // delete subscribe
     ret = remove_subscription_to_useruuid_chatroom(uuid_user, uuid_room);
     if(ret == false) {
@@ -2505,32 +2510,28 @@ static bool cb_resource_handler_chat_userroom(enum EN_RESOURCE_UPDATE_TYPES type
       return false;
     }
 
-    // create publish message
-    j_tmp = json_deep_copy(j_data);
-
-    // create topic
-    asprintf(&topic, "%s/%s", DEF_PUBLISH_TOPIC_PREFIX_ME_INFO, uuid_user);
-
-    // publish event
-    ret = publication_publish_event(topic, DEF_PUB_EVENT_PREFIX_ME_CHATROOM, EN_PUBLISH_DELETE, j_tmp);
-    sfree(topic);
-    json_decref(j_tmp);
-    if(ret == false) {
-      slog(LOG_ERR, "Could not publish event.");
-      return false;
-    }
-
-    return true;
+    // create event
+    j_event = json_deep_copy(j_data);
   }
   else {
     // should not get to here
-    slog(LOG_ERR, "Something was wrong. Should not get to here.");
+    slog(LOG_ERR, "Unsupported resource update type. type[%d]", type);
     return false;
   }
 
-  // should not get to here
-  slog(LOG_ERR, "Something was wrong. Should not get to here.");
-  return false;
+  // create topic
+  asprintf(&topic, "%s/%s", DEF_PUBLISH_TOPIC_PREFIX_ME_INFO, uuid_user);
+
+  // publish event
+  ret = publication_publish_event(topic, DEF_PUB_EVENT_PREFIX_ME_CHATROOM, event_type, j_event);
+  sfree(topic);
+  json_decref(j_event);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
+  return true;
 }
 
 /**
@@ -2545,6 +2546,8 @@ static bool cb_resource_handler_chat_message(enum EN_RESOURCE_UPDATE_TYPES type,
   int ret;
   char* topic;
   const char* uuid_room;
+  json_t* j_event;
+  enum EN_PUBLISH_TYPES event_type;
 
   if((j_data == NULL)){
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -2558,29 +2561,31 @@ static bool cb_resource_handler_chat_message(enum EN_RESOURCE_UPDATE_TYPES type,
     return false;
   }
 
-  // create topic
-  asprintf(&topic, "%s/%s", DEF_PUBLISH_TOPIC_PREFIX_ME_CHATROOM_MESSAGE, uuid_room);
-
   if(type == EN_RESOURCE_CREATE) {
-    // publish event
-    ret = publication_publish_event(topic, DEF_PUB_EVENT_PREFIX_ME_CHATROOM_MESSAGE, EN_PUBLISH_CREATE, j_data);
-    sfree(topic);
-    if(ret == false) {
-      slog(LOG_ERR, "Could not publish event.");
-      return false;
-    }
+    event_type = EN_PUBLISH_CREATE;
 
-    return true;
+    // create event
+    j_event = json_deep_copy(j_data);
   }
   else {
     // should not reach to here
-
-    slog(LOG_ERR, "Something was wrong. Should not get to here.");
+    slog(LOG_INFO, "Unsupported reource update type. type[%d]", type);
     return false;
   }
 
-  // should not reach to here
-  return false;
+  // create topic
+  asprintf(&topic, "%s/%s", DEF_PUBLISH_TOPIC_PREFIX_ME_CHATROOM_MESSAGE, uuid_room);
+
+  // publish event
+  ret = publication_publish_event(topic, DEF_PUB_EVENT_PREFIX_ME_CHATROOM_MESSAGE, event_type, j_event);
+  sfree(topic);
+  json_decref(j_event);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
+  return true;
 }
 
 
