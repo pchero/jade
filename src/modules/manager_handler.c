@@ -31,6 +31,7 @@ static json_t* get_users_all(void);
 static json_t* get_user_info(const char* uuid_user);
 
 static json_t* get_manager_info(const json_t* j_user);
+static bool update_manager_info(const json_t* j_user, const json_t* j_data);
 
 static bool create_user_info(const json_t* j_data);
 static bool create_user_contact(const char* uuid_user, const char* target);
@@ -170,6 +171,58 @@ void manager_htp_get_manager_info(evhtp_request_t *req, void *data)
   // create result
   j_res = http_create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", j_tmp);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * PUT ^/manager/info request handler.
+ * @param req
+ * @param data
+ */
+void manager_htp_put_manager_info(evhtp_request_t *req, void *data)
+{
+  int ret;
+  json_t* j_res;
+  json_t* j_data;
+  json_t* j_user;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired manager_htp_put_manager_users.");
+
+  // get userinfo
+  j_user = http_get_userinfo(req);
+  if(j_user == NULL) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  // get data
+  j_data = http_get_json_from_request_data(req);
+  if(j_data == NULL) {
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    json_decref(j_user);
+    return;
+  }
+
+  // update info
+  ret = update_manager_info(j_user, j_data);
+  json_decref(j_data);
+  json_decref(j_user);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
 
   // response
   http_simple_response_normal(req, j_res);
@@ -465,6 +518,39 @@ static json_t* get_manager_info(const json_t* j_user)
   json_object_del(j_res, "password");
 
   return j_res;
+}
+
+/**
+ * Update given manager info.
+ * @param j_user
+ * @param j_data
+ * @return
+ */
+static bool update_manager_info(const json_t* j_user, const json_t* j_data)
+{
+  int ret;
+  const char* uuid;
+
+  if((j_user == NULL) || (j_data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired update_manager_info.");
+
+  uuid = json_string_value(json_object_get(j_user, "uuid"));
+  if(uuid == NULL) {
+    slog(LOG_NOTICE, "Could not get user uuid info.");
+    return false;
+  }
+
+  // update
+  ret = user_update_userinfo_info(uuid, j_data);
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not update userinfo.");
+    return false;
+  }
+
+  return true;
 }
 
 static json_t* get_users_all(void)

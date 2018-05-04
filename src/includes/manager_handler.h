@@ -20,6 +20,7 @@ json_t* manager_get_subscribable_topics_all(const json_t* j_user);
 void manager_htp_post_manager_login(evhtp_request_t *req, void *data);
 
 void manager_htp_get_manager_info(evhtp_request_t *req, void *data);
+void manager_htp_put_manager_info(evhtp_request_t *req, void *data);
 
 void manager_htp_get_manager_users(evhtp_request_t *req, void *data);
 void manager_htp_post_manager_users(evhtp_request_t *req, void *data);

@@ -6197,13 +6197,17 @@ static void cb_htp_manager_info(evhtp_request_t *req, void *data)
 
   // method check
   method = evhtp_request_get_method(req);
-  if((method != htp_method_GET)) {
+  if((method != htp_method_GET) && (method != htp_method_PUT)) {
     http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
 
   if(method == htp_method_GET) {
     manager_htp_get_manager_info(req, data);
+    return;
+  }
+  else if(method == htp_method_PUT) {
+    manager_htp_put_manager_info(req, data);
     return;
   }
   else {
