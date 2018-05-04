@@ -97,7 +97,22 @@ static bool create_config_aor_with_default_setting(const char* name);
 static bool create_config_auth_with_default_setting(const char* name);
 static bool create_config_endpoint_with_default_setting(const char* name);
 
+// db handlers
+static bool db_create_aor_info(const json_t* j_data);
+static bool db_update_aor_info(const json_t* j_data);
+static bool db_delete_aor_info(const char* key);
 
+static bool db_create_endpoint_info(const json_t* j_data);
+static bool db_update_endpoint_info(const json_t* j_data);
+static bool db_delete_endpoint_info(const char* key);
+
+static bool db_create_auth_info(const json_t* j_data);
+static bool db_update_auth_info(const json_t* j_data);
+static bool db_delete_auth_info(const char* key);
+
+static bool db_create_contact_info(const json_t* j_data);
+static bool db_update_contact_info(const json_t* j_data);
+static bool db_delete_contact_info(const char* key);
 
 bool pjsip_init_handler(void)
 {
@@ -2451,6 +2466,64 @@ json_t* pjsip_get_contact_info(const char* key)
   return j_res;
 }
 
+static bool db_create_endpoint_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired db_create_endpoint_info.");
+
+  // insert queue info
+  ret = resource_insert_mem_item(DEF_DB_TABLE_PJSIP_ENDPOINT, j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert pjsip endpoint.");
+    return false;
+  }
+
+  return true;
+}
+
+static bool db_update_endpoint_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired db_update_endpoint_info.");
+
+  ret = resource_update_mem_item(DEF_DB_TABLE_PJSIP_ENDPOINT, "object_name", j_data);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not update pjsip endpoint info.");
+    return false;
+  }
+
+  return true;
+}
+
+static bool db_delete_endpoint_info(const char* key)
+{
+  int ret;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired db_delete_endpoint_info. key[%s]", key);
+
+  // delete info
+  ret = resource_delete_mem_items_string(DEF_DB_TABLE_PJSIP_ENDPOINT, "object_name", key);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not delete pjsip_endpoint info. key[%s]", key);
+    return false;
+  }
+
+  return true;
+}
 
 /**
  * Create pjsip endpoint info.
@@ -2469,8 +2542,8 @@ bool pjsip_create_endpoint_info(const json_t* j_data)
   }
   slog(LOG_DEBUG, "Fired create_pjsip_endpoint_info.");
 
-  // insert queue info
-  ret = resource_insert_mem_item(DEF_DB_TABLE_PJSIP_ENDPOINT, j_data);
+  // create info
+  ret = db_create_endpoint_info(j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert pjsip endpoint.");
     return false;
@@ -2513,7 +2586,7 @@ bool pjsip_update_endpoint_info(const json_t* j_data)
   }
   slog(LOG_DEBUG, "Fired update_pjsip_endpoint_info.");
 
-  ret = resource_update_mem_item(DEF_DB_TABLE_PJSIP_ENDPOINT, "object_name", j_data);
+  ret = db_update_endpoint_info(j_data);
   if(ret == false) {
     slog(LOG_WARNING, "Could not update pjsip endpoint info.");
     return false;
@@ -2543,7 +2616,7 @@ bool pjsip_update_endpoint_info(const json_t* j_data)
  * delete pjsip endpoint info.
  * @return
  */
-bool pjsip_pjsip_endpoint_info(const char* key)
+bool pjsip_delete_endpoint_info(const char* key)
 {
   int ret;
   json_t* j_tmp;
@@ -2562,7 +2635,7 @@ bool pjsip_pjsip_endpoint_info(const char* key)
   }
 
   // delete info
-  ret = resource_delete_mem_items_string(DEF_DB_TABLE_PJSIP_ENDPOINT, "object_name", key);
+  ret = db_delete_endpoint_info(key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete pjsip_endpoint info. key[%s]", key);
     json_decref(j_tmp);
@@ -2580,6 +2653,66 @@ bool pjsip_pjsip_endpoint_info(const char* key)
 
   return true;
 }
+
+static bool db_create_auth_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired db_create_auth_info.");
+
+  // insert queue info
+  ret = resource_insert_mem_item(DEF_DB_TABLE_PJSIP_AUTH, j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert pjsip auth.");
+    return false;
+  }
+
+  return true;
+}
+
+static bool db_update_auth_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired db_update_auth_info.");
+
+  // update
+  ret = resource_update_mem_item(DEF_DB_TABLE_PJSIP_AUTH, "object_name", j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update pjsip_auth info.");
+    return false;
+  }
+
+  return true;
+}
+
+static bool db_delete_auth_info(const char* key)
+{
+  int ret;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired db_delete_auth_info. key[%s]", key);
+
+  ret = resource_delete_mem_items_string(DEF_DB_TABLE_PJSIP_AUTH, "object_name", key);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not delete pjsip_auth info. key[%s]", key);
+    return false;
+  }
+
+  return true;
+}
+
 
 /**
  * Create pjsip auth info.
@@ -2599,7 +2732,7 @@ bool pjsip_create_auth_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired create_pjsip_auth_info.");
 
   // insert queue info
-  ret = resource_insert_mem_item(DEF_DB_TABLE_PJSIP_AUTH, j_data);
+  ret = db_create_auth_info(j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert pjsip auth.");
     return false;
@@ -2643,7 +2776,7 @@ bool pjsip_update_auth_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired update_pjsip_auth_info.");
 
   // update
-  ret = resource_update_mem_item(DEF_DB_TABLE_PJSIP_AUTH, "object_name", j_data);
+  ret = db_update_auth_info(j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update pjsip_auth info.");
     return false;
@@ -2691,7 +2824,8 @@ bool pjsip_delete_auth_info(const char* key)
     return false;
   }
 
-  ret = resource_delete_mem_items_string(DEF_DB_TABLE_PJSIP_AUTH, "object_name", key);
+  // delete
+  ret = db_delete_auth_info(key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete pjsip_auth info. key[%s]", key);
     json_decref(j_tmp);
@@ -2704,6 +2838,64 @@ bool pjsip_delete_auth_info(const char* key)
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
+  return true;
+}
+
+static bool db_create_aor_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired db_create_aor_info.");
+
+  // insert info
+  ret = resource_insert_mem_item(DEF_DB_TABLE_PJSIP_AOR, j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert pjsip aor.");
+    return false;
+  }
+
+  return true;
+}
+
+static bool db_update_aor_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired db_update_aor_info.");
+
+  // update
+  ret = resource_update_mem_item(DEF_DB_TABLE_PJSIP_AOR, "object_name", j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update pjsip_aor info.");
+    return false;
+  }
+
+  return true;
+}
+
+static bool db_delete_aor_info(const char* key)
+{
+  int ret;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  ret = resource_delete_mem_items_string(DEF_DB_TABLE_PJSIP_AOR, "object_name", key);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not delete pjsip_aor info. key[%s]", key);
     return false;
   }
 
@@ -2727,8 +2919,8 @@ bool pjsip_create_aor_info(const json_t* j_data)
   }
   slog(LOG_DEBUG, "Fired create_pjsip_aor_info.");
 
-  // insert queue info
-  ret = resource_insert_mem_item(DEF_DB_TABLE_PJSIP_AOR, j_data);
+  // create
+  ret = db_create_aor_info(j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert pjsip aor.");
     return false;
@@ -2772,7 +2964,7 @@ bool pjsip_update_aor_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired update_pjsip_aor_info.");
 
   // update
-  ret = resource_update_mem_item(DEF_DB_TABLE_PJSIP_AOR, "object_name", j_data);
+  ret = db_update_aor_info(j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update pjsip_aor info.");
     return false;
@@ -2794,7 +2986,6 @@ bool pjsip_update_aor_info(const json_t* j_data)
     slog(LOG_ERR, "Could not publish event.");
     return false;
   }
-
 
   return true;
 }
@@ -2822,7 +3013,8 @@ bool pjsip_delete_aor_info(const char* key)
     return false;
   }
 
-  ret = resource_delete_mem_items_string(DEF_DB_TABLE_PJSIP_AOR, "object_name", key);
+  // delete
+  ret = db_delete_aor_info(key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete pjsip_aor info. key[%s]", key);
     return false;
@@ -2833,6 +3025,65 @@ bool pjsip_delete_aor_info(const char* key)
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
+  return true;
+}
+
+static bool db_create_contact_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired db_create_contact_info.");
+
+  // insert info
+  ret = resource_insert_mem_item(DEF_DB_TABLE_PJSIP_CONTACT, j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert pjsip contact.");
+    return false;
+  }
+
+  return true;
+}
+
+static bool db_update_contact_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired db_update_contact_info.");
+
+  // update
+  ret = resource_update_mem_item(DEF_DB_TABLE_PJSIP_CONTACT, "uri", j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update pjsip_contact info.");
+    return false;
+  }
+
+  return true;
+}
+
+static bool db_delete_contact_info(const char* key)
+{
+  int ret;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired db_delete_contact_info. key[%s]", key);
+
+  ret = resource_delete_mem_items_string(DEF_DB_TABLE_PJSIP_CONTACT, "uri", key);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not delete pjsip_contact info. key[%s]", key);
     return false;
   }
 
@@ -2857,7 +3108,7 @@ bool pjsip_create_contact_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired create_pjsip_contact_info.");
 
   // insert info
-  ret = resource_insert_mem_item(DEF_DB_TABLE_PJSIP_CONTACT, j_data);
+  ret = db_create_contact_info(j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert pjsip contact.");
     return false;
@@ -2901,7 +3152,7 @@ bool pjsip_update_contact_info(const json_t* j_data)
   slog(LOG_DEBUG, "Fired update_pjsip_contact_info.");
 
   // update
-  ret = resource_update_mem_item(DEF_DB_TABLE_PJSIP_CONTACT, "uri", j_data);
+  ret = db_update_contact_info(j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update pjsip_contact info.");
     return false;
@@ -2949,7 +3200,7 @@ bool pjsip_delete_contact_info(const char* key)
     return false;
   }
 
-  ret = resource_delete_mem_items_string(DEF_DB_TABLE_PJSIP_CONTACT, "uri", key);
+  ret = db_delete_contact_info(key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete pjsip_contact info. key[%s]", key);
     json_decref(j_tmp);

@@ -18,7 +18,7 @@ bool pjsip_term_handler(void);
 // endpoint
 bool pjsip_create_endpoint_info(const json_t* j_data);
 bool pjsip_update_endpoint_info(const json_t* j_data);
-bool pjsip_pjsip_endpoint_info(const char* key);
+bool pjsip_delete_endpoint_info(const char* key);
 json_t* pjsip_get_endpoints_all(void);
 json_t* pjsip_get_endpoint_info(const char* name);
 
