@@ -34,7 +34,7 @@ json_t* user_get_userinfo_by_authtoken(const char* authtoken);
 bool user_create_userinfo(const char* uuid, json_t* j_data);
 bool user_update_userinfo_info(const char* uuid_user, const json_t* j_data);
 bool user_delete_userinfo_info(const char* key);
-bool user_delete_info_by_useruuid(const char* uuid_user);
+bool user_delete_related_info_by_useruuid(const char* uuid_user);
 json_t* user_get_userinfos_all(void);
 
 // authtoken

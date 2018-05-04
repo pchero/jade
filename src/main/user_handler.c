@@ -1841,7 +1841,7 @@ bool user_delete_userinfo_info(const char* key)
  * @param uuid_user
  * @return
  */
-bool user_delete_info_by_useruuid(const char* uuid_user)
+bool user_delete_related_info_by_useruuid(const char* uuid_user)
 {
   int ret;
   int idx;
@@ -2547,6 +2547,11 @@ static bool db_update_contact_info(const json_t* j_data)
   return true;
 }
 
+/**
+ * Delete the given contact info.
+ * @param uuid
+ * @return
+ */
 static bool delete_contact(const char* uuid)
 {
   int ret;
