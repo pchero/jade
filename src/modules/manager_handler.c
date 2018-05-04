@@ -697,7 +697,7 @@ static bool delete_user_info(const char* uuid)
   }
 
   // delete userinfo
-  ret = user_delete_info_by_useruuid(uuid);
+  ret = user_delete_related_info_by_useruuid(uuid);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not delete user info. uuid[%s]", uuid);
     return false;
