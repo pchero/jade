@@ -946,7 +946,7 @@ static bool init_sip_info_peeraccount(void)
   char* timestamp;
   const char* key;
 
-  j_conf = conf_get_ast_current_config_info(DEF_SIP_CONFNAME);
+  j_conf = conf_get_ast_current_config_info_object(DEF_SIP_CONFNAME);
   if(j_conf == NULL) {
     slog(LOG_ERR, "Could not load sip config info.");
     return false;

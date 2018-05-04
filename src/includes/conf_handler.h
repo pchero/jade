@@ -13,7 +13,8 @@
 
 bool conf_init_handler(void);
 
-json_t* conf_get_ast_current_config_info(const char* filename);
+json_t* conf_get_ast_current_config_info_object(const char* filename);
+json_t* conf_get_ast_current_config_info_array(const char* filename);
 char* conf_get_ast_current_config_info_text(const char* filename);
 
 bool conf_update_ast_current_config_info(const char* filename, json_t* j_conf);

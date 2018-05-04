@@ -4625,7 +4625,7 @@ bool pjsip_is_exist_endpoint(const char* target)
   json_decref(j_tmp);
 
   // check config
-  j_tmp = conf_get_ast_current_config_info(DEF_PJSIP_CONFNAME_ENDPOINT);
+  j_tmp = conf_get_ast_current_config_info_object(DEF_PJSIP_CONFNAME_ENDPOINT);
   if(json_object_get(j_tmp, target) != NULL) {
     json_decref(j_tmp);
     return true;

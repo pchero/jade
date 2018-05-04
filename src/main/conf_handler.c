@@ -30,11 +30,15 @@ static bool write_ast_config_info_raw(const char* filename, const char* data);
 
 static char* get_ast_backup_conf_dir(void);
 static json_t* get_ast_backup_filenames(const char* filename);
-static int ast_conf_handler(const mTCHAR *section, const mTCHAR *key, const mTCHAR *value, void *data);
+
+static int parse_ast_conf_handler_as_object(const mTCHAR *section, const mTCHAR *key, const mTCHAR *value, void *data);
+static int parse_ast_conf_handler_as_array(const mTCHAR *section, const mTCHAR *key, const mTCHAR *value, void *data);
+
 static int backup_ast_config_info(const char* filename);
 static bool create_lib_dirs(void);
 
-static json_t* get_ast_config_info(const char* filename);
+static json_t* get_ast_config_info_object(const char* filename);
+static json_t* get_ast_config_info_array(const char* filename);
 static char* get_ast_config_info_text(const char* filename);
 
 static int remove_ast_backup_config_info(const char* filename);
@@ -191,7 +195,14 @@ static json_t* get_ast_backup_filenames(const char* filename)
   return j_res;
 }
 
-static int ast_conf_handler(const mTCHAR *section, const mTCHAR *key, const mTCHAR *value, void *data)
+/**
+ * @param section
+ * @param key
+ * @param value
+ * @param data
+ * @return
+ */
+static int parse_ast_conf_handler_as_object(const mTCHAR *section, const mTCHAR *key, const mTCHAR *value, void *data)
 {
   json_t* j_res;
   json_t* j_sec;
@@ -213,7 +224,6 @@ static int ast_conf_handler(const mTCHAR *section, const mTCHAR *key, const mTCH
     // there is no key. section only
     return 1;
   }
-
 
   // check item existence.
   // if there's key already, add it as a array.
@@ -240,6 +250,46 @@ static int ast_conf_handler(const mTCHAR *section, const mTCHAR *key, const mTCH
 
   return 1;
 }
+
+/**
+ * @param section
+ * @param key
+ * @param value
+ * @param data
+ * @return
+ */
+static int parse_ast_conf_handler_as_array(const mTCHAR *section, const mTCHAR *key, const mTCHAR *value, void *data)
+{
+  json_t* j_res;
+  json_t* j_sec;
+  json_t* j_tmp;
+
+  j_res = (json_t*)data;
+
+  // check section.
+  // if not exist, create new one.
+  j_sec = json_object_get(j_res, section);
+  if(j_sec == NULL) {
+    json_object_set_new(j_res, section, json_array());
+    j_sec = json_object_get(j_res, section);
+  }
+
+  if(key == NULL) {
+    // there is no key. section only
+    return 1;
+  }
+
+  // create item
+  j_tmp = json_pack("{s:s}",
+      key, value
+      );
+
+  // append item
+  json_array_append_new(j_sec, j_tmp);
+
+  return 1;
+}
+
 
 /**
  * backup the given asterisk configuration file.
@@ -313,7 +363,7 @@ static bool create_lib_dirs(void)
  * @param filename
  * @return
  */
-static json_t* get_ast_config_info(const char* filename)
+static json_t* get_ast_config_info_object(const char* filename)
 {
   json_t* j_res;
   int ret;
@@ -325,7 +375,7 @@ static json_t* get_ast_config_info(const char* filename)
   slog(LOG_DEBUG, "Fired get_ast_current_config_info. filename[%s]", filename);
 
   j_res = json_object();
-  ret = ini_browse(ast_conf_handler, j_res, filename);
+  ret = ini_browse(parse_ast_conf_handler_as_object, j_res, filename);
   if(ret == 0) {
     json_decref(j_res);
     slog(LOG_ERR, "Could not get asterisk config.");
@@ -334,6 +384,34 @@ static json_t* get_ast_config_info(const char* filename)
 
   return j_res;
 }
+
+/**
+ * Get current configuration info of given filename.
+ * @param filename
+ * @return
+ */
+static json_t* get_ast_config_info_array(const char* filename)
+{
+  json_t* j_res;
+  int ret;
+
+  if(filename == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_ast_config_info_array. filename[%s]", filename);
+
+  j_res = json_object();
+  ret = ini_browse(parse_ast_conf_handler_as_array, j_res, filename);
+  if(ret == 0) {
+    json_decref(j_res);
+    slog(LOG_ERR, "Could not get asterisk config.");
+    return NULL;
+  }
+
+  return j_res;
+}
+
 
 /**
  * Get config file in a raw format
@@ -374,10 +452,17 @@ static char* get_ast_config_info_text(const char* filename)
 
 /**
  * Get current config info from given filename.
+ * {
+ *   "section": {
+ *     "key": "value",
+ *     ...
+ *   },
+ *   ...
+ * }
  * @param filename
  * @return
  */
-json_t* conf_get_ast_current_config_info(const char* filename)
+json_t* conf_get_ast_current_config_info_object(const char* filename)
 {
   json_t* j_conf;
   const char* dir;
@@ -392,12 +477,50 @@ json_t* conf_get_ast_current_config_info(const char* filename)
   dir = json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "directory_conf"));
   asprintf(&target, "%s/%s", dir, filename);
 
-  j_conf = get_ast_config_info(target);
+  j_conf = get_ast_config_info_object(target);
   sfree(target);
   if(j_conf == NULL) {
     slog(LOG_ERR, "Could not get config file info.");
     return NULL;
   }
+
+  return j_conf;
+}
+
+/**
+ * Get current config info from given filename.
+ * {
+ *   "section": [
+ *     {"key": "value"},
+ *     ...
+ *   ],
+ *   ...
+ * }
+ * @param filename
+ * @return
+ */
+json_t* conf_get_ast_current_config_info_array(const char* filename)
+{
+  json_t* j_conf;
+  const char* dir;
+  char* target;
+
+  if(filename == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired conf_get_ast_current_config_info_array.");
+
+  dir = json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "directory_conf"));
+  asprintf(&target, "%s/%s", dir, filename);
+
+  j_conf = get_ast_config_info_array(target);
+  sfree(target);
+  if(j_conf == NULL) {
+    slog(LOG_ERR, "Could not get config file info.");
+    return NULL;
+  }
+
   return j_conf;
 }
 
@@ -546,7 +669,7 @@ json_t* conf_get_ast_backup_config_info_json(const char* filename)
   asprintf(&full_filename, "%s/%s", tmp, filename);
   sfree(tmp);
 
-  j_conf = get_ast_config_info(full_filename);
+  j_conf = get_ast_config_info_object(full_filename);
   sfree(full_filename);
   if(j_conf == NULL) {
     slog(LOG_ERR, "Could not get config file info.");
@@ -760,7 +883,7 @@ bool conf_update_ast_current_config_content(const char* filename, const char* se
   }
 
   // get config
-  j_conf = conf_get_ast_current_config_info(filename);
+  j_conf = conf_get_ast_current_config_info_object(filename);
   if(j_conf == NULL) {
     slog(LOG_ERR, "Could not get config info.");
     return false;
@@ -807,7 +930,7 @@ bool conf_create_ast_current_config_content(const char* filename, const char* se
   }
 
   // get config
-  j_conf = conf_get_ast_current_config_info(filename);
+  j_conf = conf_get_ast_current_config_info_object(filename);
   if(j_conf == NULL) {
     slog(LOG_ERR, "Could not get config info.");
     return false;
@@ -860,7 +983,7 @@ bool conf_delete_ast_current_config_content(const char* filename, const char* se
   }
 
   // get config
-  j_conf = conf_get_ast_current_config_info(filename);
+  j_conf = conf_get_ast_current_config_info_object(filename);
   if(j_conf == NULL) {
     slog(LOG_ERR, "Could not get config info.");
     return false;
@@ -900,7 +1023,7 @@ static bool create_ast_current_config_section_data(const char* filename, const c
   }
 
   // get config
-  j_conf = conf_get_ast_current_config_info(filename);
+  j_conf = conf_get_ast_current_config_info_object(filename);
   if(j_conf == NULL) {
     slog(LOG_ERR, "Could not get config info.");
     return false;
@@ -950,7 +1073,7 @@ static bool update_ast_current_config_section_data(const char* filename, const c
   slog(LOG_DEBUG, "Fired update_ast_current_config_section_data. filename[%s]", filename);
 
   // get config
-  j_conf = conf_get_ast_current_config_info(filename);
+  j_conf = conf_get_ast_current_config_info_object(filename);
   if(j_conf == NULL) {
     slog(LOG_ERR, "Could not get config info.");
     return false;
@@ -998,7 +1121,7 @@ static bool delete_ast_current_config_section(const char* filename, const char* 
   slog(LOG_DEBUG, "Fired delete_ast_current_config_section. filename[%s], section[%s]", filename, section);
 
   // get config
-  j_conf = conf_get_ast_current_config_info(filename);
+  j_conf = conf_get_ast_current_config_info_object(filename);
   if(j_conf == NULL) {
     slog(LOG_ERR, "Could not get config info.");
     return false;
@@ -1058,7 +1181,7 @@ json_t* conf_get_ast_settings_all(const char* filename)
 		return NULL;
 	}
 
-	j_conf = conf_get_ast_current_config_info(filename);
+	j_conf = conf_get_ast_current_config_info_object(filename);
 	if(j_conf == NULL) {
 		slog(LOG_ERR, "Could not get setting info.");
 		return NULL;
@@ -1098,7 +1221,7 @@ json_t* conf_get_ast_setting(const char* filename, const char* name)
 		return NULL;
 	}
 
-	j_conf = conf_get_ast_current_config_info(filename);
+	j_conf = conf_get_ast_current_config_info_object(filename);
 	j_setting = json_object_get(j_conf, name);
 	j_res = json_deep_copy(j_setting);
 	json_decref(j_conf);
