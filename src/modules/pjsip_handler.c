@@ -93,7 +93,6 @@ static bool update_config_pjsip_identify(const char* name, const json_t* j_data)
 static bool update_config_pjsip_registration(const char* name, const json_t* j_data);
 static bool update_config_pjsip_transport(const char* name, const json_t* j_data);
 
-static bool delete_config_pjsip_aor(const char* name);
 static bool delete_config_pjsip_auth(const char* name);
 static bool delete_config_pjsip_contact(const char* name);
 static bool delete_config_pjsip_endpoint(const char* name);
@@ -131,8 +130,6 @@ static bool db_update_registration_outbound_info(const json_t* j_data);
 static bool db_delete_registration_outbound_info(const char* key);
 
 // cfg handlers
-static void cfg_delete_item_from_all(const char* name);
-
 static bool cfg_create_aor_info(const char* name, const json_t* j_data);
 static bool cfg_update_aor_info(const char* name, const json_t* j_data);
 static bool cfg_delete_aor_info(const char* name);
@@ -160,9 +157,6 @@ static bool cfg_delete_registration_info(const char* name);
 static bool cfg_create_transport_info(const char* name, const json_t* j_data);
 static bool cfg_update_transport_info(const char* name, const json_t* j_data);
 static bool cfg_delete_transport_info(const char* name);
-
-
-static bool is_exist_cfg_item_from_any(const char* name);
 
 
 bool pjsip_init_handler(void)
@@ -1414,7 +1408,7 @@ void pjsip_htp_delete_pjsip_aors_detail(evhtp_request_t *req, void *data)
   }
 
   // delete
-  ret = delete_config_pjsip_aor(detail);
+  ret = pjsip_cfg_delete_aor_info(detail);
   sfree(detail);
   if(ret == false) {
     slog(LOG_ERR, "Could not update pjsip aor info.");
@@ -4028,7 +4022,7 @@ static bool update_config_pjsip_transport(const char* name, const json_t* j_data
  * @param j_data
  * @return
  */
-static bool delete_config_pjsip_aor(const char* name)
+bool pjsip_cfg_delete_aor_info(const char* name)
 {
   int ret;
 
@@ -5099,7 +5093,7 @@ bool pjsip_delete_target(const char* target_name)
   slog(LOG_DEBUG, "Fired pjsip_delete_target_all. target[%s]", target_name);
 
   // delete aor
-  ret = delete_config_pjsip_aor(target_name);
+  ret = pjsip_cfg_delete_aor_info(target_name);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not delete aor info.");
     return false;
@@ -5285,99 +5279,16 @@ json_t* pjsip_cfg_get_transport_info(const char* name)
   return j_res;
 }
 
-static void cfg_delete_item_from_all(const char* name)
-{
-  cfg_delete_aor_info(name);
-  cfg_delete_auth_info(name);
-  cfg_delete_contact_info(name);
-  cfg_delete_endpoint_info(name);
-  cfg_delete_identify_info(name);
-  cfg_delete_registration_info(name);
-  cfg_delete_transport_info(name);
-
-  return;
-}
-
-/**
- * Return true, if the given name is exist in any configuration files.
- * @param name
- * @return
- */
-static bool is_exist_cfg_item_from_any(const char* name)
-{
-  json_t* j_tmp;
-
-  j_tmp = pjsip_cfg_get_aor_info(name);
-  if(j_tmp != NULL) {
-    json_decref(j_tmp);
-    return true;
-  }
-
-  j_tmp = pjsip_cfg_get_auth_info(name);
-  if(j_tmp != NULL) {
-    json_decref(j_tmp);
-    return true;
-  }
-
-  j_tmp = pjsip_cfg_get_contact_info(name);
-  if(j_tmp != NULL) {
-    json_decref(j_tmp);
-    return true;
-  }
-
-  j_tmp = pjsip_cfg_get_endpoint_info(name);
-  if(j_tmp != NULL) {
-    json_decref(j_tmp);
-    return true;
-  }
-
-  j_tmp = pjsip_cfg_get_identify_info(name);
-  if(j_tmp != NULL) {
-    json_decref(j_tmp);
-    return true;
-  }
-
-  j_tmp = pjsip_cfg_get_registration_info(name);
-  if(j_tmp != NULL) {
-    json_decref(j_tmp);
-    return true;
-  }
-
-  j_tmp = pjsip_cfg_get_transport_info(name);
-  if(j_tmp != NULL) {
-    json_decref(j_tmp);
-    return true;
-  }
-
-  return false;
-}
-
-bool pjsip_create_trunk(const json_t* j_data)
+bool pjsip_cfg_create_registration_with_default_info(const char* name, const char* server_uri, const char* client_uri)
 {
   int ret;
   json_t* j_tmp;
-  const char* name;
 
-  if(j_data == NULL) {
+  if((name == NULL) || (server_uri == NULL) || (client_uri == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
 
-  // get name
-  name = json_string_value(json_object_get(j_data, "name"));
-  if(name == NULL) {
-    slog(LOG_NOTICE, "Could not get name info.");
-    return false;
-  }
-
-  // check exist
-  ret = is_exist_cfg_item_from_any(name);
-  if(ret == true) {
-    slog(LOG_NOTICE, "The given trunk name is already exist. name[%s]", name);
-    return false;
-  }
-
-  // create registration
   j_tmp = json_pack("{"
       "s:s, s:s, s:s, "
       "s:s, "
@@ -5385,8 +5296,8 @@ bool pjsip_create_trunk(const json_t* j_data)
       "}",
 
       "outbound_auth",  name,
-      "server_uri",   json_string_value(json_object_get(j_data, "server_uri"))? : "",
-      "client_uri",   json_string_value(json_object_get(j_data, "client_uri"))? : "",
+      "server_uri",   server_uri,
+      "client_uri",   client_uri,
 
       "retry_interval", "60"
 
@@ -5398,44 +5309,78 @@ bool pjsip_create_trunk(const json_t* j_data)
   ret = cfg_create_registration_info(name, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
-    slog(LOG_NOTICE, "Could not create registration info.");
-    cfg_delete_item_from_all(name);
+    slog(LOG_NOTICE, "Could not create registration with default info.");
+    return false;
+  }
+
+  return true;
+}
+
+bool pjsip_cfg_create_auth_info(const char* name, const char* username, const char* password)
+{
+  int ret;
+  json_t* j_tmp;
+
+  if((name == NULL) || (username == NULL) || (password == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
 
   // create auth
   j_tmp = json_pack("{s:s, s:s, s:s}",
       "auth_type",    "userpass",
-      "username",     json_string_value(json_object_get(j_data, "username"))? : "",
-      "password",     json_string_value(json_object_get(j_data, "password"))? : ""
+      "username",     username,
+      "password",     password
       );
 
   ret = cfg_create_auth_info(name, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not create auth info.");
-    cfg_delete_item_from_all(name);
     return false;
   }
 
-  // create aor
+  return true;
+}
+
+bool pjsip_cfg_create_aor_info(const char* name, const char* contact)
+{
+  int ret;
+  json_t* j_tmp;
+
+  if((name == NULL) || (contact == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
   j_tmp = json_pack("{s:s}",
-      "contact",  json_string_value(json_object_get(j_data, "username"))? : ""
+      "contact", contact
       );
 
   ret = cfg_create_aor_info(name, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not create aor info.");
-    cfg_delete_item_from_all(name);
     return false;
   }
 
-  // create endpoint
+  return true;
+}
+
+bool pjsip_cfg_create_endpoint_with_default_info(const char* name, const char* context)
+{
+  int ret;
+  json_t* j_tmp;
+
+  if((name == NULL) || (context == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
   j_tmp = json_pack("{s:s, s:s, s:s, s:s}",
       "outbound_auth",  name,
       "aors",           name,
-      "context",        json_string_value(json_object_get(j_data, "context"))? : "",
+      "context",        context,
       "allow",          "ulaw"
       );
 
@@ -5443,23 +5388,34 @@ bool pjsip_create_trunk(const json_t* j_data)
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not create endpoint info.");
-    cfg_delete_item_from_all(name);
     return false;
   }
 
-  // create identify
+  return true;
+}
+
+bool pjsip_cfg_create_identify_info(const char* name, const char* match)
+{
+  int ret;
+  json_t* j_tmp;
+
+  if((name == NULL) || (match == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
   j_tmp = json_pack("{s:s, s:s}",
-      "endpoint",   name,
-      "match",      json_string_value(json_object_get(j_data, "match"))? : ""
+      "endpoint",     name,
+      "match",        match
       );
 
   ret = cfg_create_identify_info(name, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not create identify info.");
-    cfg_delete_item_from_all(name);
     return false;
   }
 
   return true;
 }
+
