@@ -43,6 +43,16 @@ bool pjsip_delete_contact_info(const char* key);
 json_t* pjsip_get_contacts_all(void);
 json_t* pjsip_get_contact_info(const char* key);
 
+// registration_inbound
+bool pjsip_create_registration_inbound_info(const json_t* j_data);
+bool pjsip_update_registration_inbound_info(const json_t* j_data);
+bool pjsip_delete_registration_inbound_info(const char* key);
+
+// registration outbound
+bool pjsip_create_registration_outbound_info(const json_t* j_data);
+bool pjsip_update_registration_outbound_info(const json_t* j_data);
+bool pjsip_delete_registration_outbound_info(const char* key);
+
 // target
 bool pjsip_create_target_with_default_setting(const char* target_name);
 bool pjsip_delete_target(const char* target_name);
