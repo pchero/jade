@@ -23,7 +23,10 @@
 #include "dialplan_handler.h"
 
 
-#define DEF_DIALPLAN_CONFNAME   "extensions.conf"
+#define DEF_AST_DIALPLAN_CONFNAME   "extensions.conf"
+
+#define DEF_JADE_DIALPLAN_CONFNAME  "jade.extensions.conf"
+
 
 #define DEF_DB_TABLE_DP_DIALPLANMASTER    "dp_dpma"
 #define DEF_DB_TABLE_DP_DIALPLAN          "dp_dialplan"
@@ -264,7 +267,7 @@ void dialplan_htp_get_dp_config(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_dp_config.");
 
   // get info
-  tmp = conf_get_ast_current_config_info_text(DEF_DIALPLAN_CONFNAME);
+  tmp = conf_get_ast_current_config_info_text(DEF_AST_DIALPLAN_CONFNAME);
   if(tmp == NULL) {
     slog(LOG_ERR, "Could not get dialplan conf.");
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
@@ -308,7 +311,7 @@ void dialplan_htp_put_dp_config(evhtp_request_t *req, void *data)
   }
 
   // update config
-  ret = conf_update_ast_current_config_info_text(DEF_DIALPLAN_CONFNAME, tmp);
+  ret = conf_update_ast_current_config_info_text(DEF_AST_DIALPLAN_CONFNAME, tmp);
   sfree(tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not update dialplan config info.");
