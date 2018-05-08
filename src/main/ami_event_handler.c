@@ -47,10 +47,12 @@ static void ami_event_dialend(json_t* j_msg);
 static void ami_event_endpointdetail(json_t* j_msg);
 static void ami_event_endpointlist(json_t* j_msg);
 static void ami_event_hangup(json_t* j_msg);
+static void ami_event_inboundregisterationdetail(json_t* j_msg);
 static void ami_event_newchannel(json_t* j_msg);
 static void ami_event_newexten(json_t* j_msg);
 static void ami_event_newstate(json_t* j_msg);
 static void ami_event_originateresponse(json_t* j_msg);
+static void ami_event_outboundregisterationdetail(json_t* j_msg);
 static void ami_event_parkedcall(json_t* j_msg);
 static void ami_event_parkedcallgiveup(json_t* j_msg);
 static void ami_event_parkedcallswap(json_t* j_msg);
@@ -176,6 +178,9 @@ void ami_message_handler(const char* msg)
   else if(strcasecmp(event, "Hangup") == 0) {
     ami_event_hangup(j_msg);
   }
+  else if(strcasecmp(event, "InboundRegistrationDetail") == 0) {
+    ami_event_inboundregisterationdetail(j_msg);
+  }
   else if(strcasecmp(event, "NewChannel") == 0) {
     ami_event_newchannel(j_msg);
   }
@@ -187,6 +192,9 @@ void ami_message_handler(const char* msg)
   }
   else if(strcasecmp(event, "OriginateResponse") == 0) {
     ami_event_originateresponse(j_msg);
+  }
+  else if(strcasecmp(event, "OutboundRegistrationDetail") == 0) {
+    ami_event_outboundregisterationdetail(j_msg);
   }
   else if(strcasecmp(event, "ParkedCall") == 0) {
     ami_event_parkedcall(j_msg);
@@ -1235,6 +1243,81 @@ static void ami_event_originateresponse(json_t* j_msg)
 
 /**
  * AMI event handler.
+ * Event: OutboundRegistrationDetail
+ * @param j_msg
+ */
+static void ami_event_outboundregisterationdetail(json_t* j_msg)
+{
+  int ret;
+  char* timestamp;
+  json_t* j_tmp;
+
+  if(j_msg == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired ami_event_outboundregisterationdetail.");
+
+  // create info
+  timestamp = utils_get_utc_timestamp();
+  j_tmp = json_pack("{"
+      "s:s, s:s, "
+      "s:s, "
+      "s:s, s:s, "
+
+      "s:i, s:i, s:i, s:i, "
+      "s:s, s:s, s:i, "
+      "s:s, s:s, s:s, s:s, "
+
+      "s:s, s:s, "
+      "s:i, "
+
+      "s:s "
+      "}",
+
+      "object_type",    json_string_value(json_object_get(j_msg, "ObjectType"))? : "",
+      "object_name",    json_string_value(json_object_get(j_msg, "ObjectName"))? : "",
+
+      "status",     json_string_value(json_object_get(j_msg, "Status"))? : "",
+
+      "server_uri",   json_string_value(json_object_get(j_msg, "ServerUri"))? : "",
+      "client_uri",   json_string_value(json_object_get(j_msg, "ClientUri"))? : "",
+
+      "max_retries",              json_string_value(json_object_get(j_msg, "MaxRetries"))? atoi(json_string_value(json_object_get(j_msg, "MaxRetries"))): 0,
+      "retry_interval",           json_string_value(json_object_get(j_msg, "RetryInterval"))? atoi(json_string_value(json_object_get(j_msg, "RetryInterval"))): 0,
+      "fatal_retry_interval",     json_string_value(json_object_get(j_msg, "FatalRetryInterval"))? atoi(json_string_value(json_object_get(j_msg, "FatalRetryInterval"))): 0,
+      "forbidden_retry_interval", json_string_value(json_object_get(j_msg, "ForbiddenRetryInterval"))? atoi(json_string_value(json_object_get(j_msg, "ForbiddenRetryInterval"))): 0,
+
+      "auth_rejection_permanent", json_string_value(json_object_get(j_msg, "AuthRejectionPermanent"))? : "",
+      "support_path",             json_string_value(json_object_get(j_msg, "SupportPath"))? : "",
+      "expiration",               json_string_value(json_object_get(j_msg, "Expiration"))? atoi(json_string_value(json_object_get(j_msg, "Expiration"))): 0,
+
+      "line",           json_string_value(json_object_get(j_msg, "Line"))? : "",
+      "transport",      json_string_value(json_object_get(j_msg, "Transport"))? : "",
+      "contact_user",   json_string_value(json_object_get(j_msg, "ContactUser"))? : "",
+      "endpoint",       json_string_value(json_object_get(j_msg, "Endpoint"))? : "",
+
+      "outbound_auth",    json_string_value(json_object_get(j_msg, "OutboundAuth"))? : "",
+      "outbound_proxy",   json_string_value(json_object_get(j_msg, "OutboundProxy"))? : "",
+
+      "next_reg",   json_string_value(json_object_get(j_msg, "NextReg"))? atoi(json_string_value(json_object_get(j_msg, "NextReg"))): 0,
+
+      "tm_update",  timestamp
+      );
+  sfree(timestamp);
+
+  ret = pjsip_create_registration_outbound_info(j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not create pjsip registration oubound info.");
+    return;
+  }
+
+  return;
+}
+
+/**
+ * AMI event handler.
  * Event: Hangup
  * @param j_msg
  */
@@ -1320,6 +1403,78 @@ static void ami_event_hangup(json_t* j_msg)
 
   // update ob_dialing channel
   ob_update_dialing_hangup(unique_id, hangup, hangup_detail);
+
+  return;
+}
+
+/**
+ * AMI event handler.
+ * Event: InboundRegistrationDetail
+ * @param j_msg
+ */
+static void ami_event_inboundregisterationdetail(json_t* j_msg)
+{
+  int ret;
+  char* timestamp;
+  json_t* j_tmp;
+
+  if(j_msg == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired ami_event_inboundregisterationdetail.");
+
+  // create info
+  timestamp = utils_get_utc_timestamp();
+  j_tmp = json_pack("{"
+      "s:s, s:s, "
+      "s:i, s:i, s:i, "
+
+      "s:s, s:f, s:i, "
+      "s:s, s:s, s:s, "
+      "s:i, s:s, s:s, "
+
+
+      "s:s, s:s, "
+
+      "s:s "
+      "}",
+
+      "object_type",  json_string_value(json_object_get(j_msg, "ObjectType"))? : "",
+      "object_name",  json_string_value(json_object_get(j_msg, "ObjectName"))? : "",
+
+      "minimum_expiration",   json_string_value(json_object_get(j_msg, "MinimumExpiration"))? atoi(json_string_value(json_object_get(j_msg, "MinimumExpiration"))): 0,
+      "maximum_expiration",   json_string_value(json_object_get(j_msg, "MaximumExpiration"))? atoi(json_string_value(json_object_get(j_msg, "MaximumExpiration"))): 0,
+      "default_expiration",   json_string_value(json_object_get(j_msg, "DefaultExpiration"))? atoi(json_string_value(json_object_get(j_msg, "DefaultExpiration"))): 0,
+
+
+      "authenticate_qualify",   json_string_value(json_object_get(j_msg, "AuthenticateQualify"))? : "",
+      "qualify_timeout",        json_string_value(json_object_get(j_msg, "QualifyTimeout"))? atof(json_string_value(json_object_get(j_msg, "QualifyTimeout"))): 0.0,
+      "qualify_frequency",      json_string_value(json_object_get(j_msg, "QualifyFrequency"))? atoi(json_string_value(json_object_get(j_msg, "QualifyFrequency"))): 0,
+
+      "mailboxes",            json_string_value(json_object_get(j_msg, "Mailboxes"))? : "",
+      "support_path",         json_string_value(json_object_get(j_msg, "SupportPath"))? : "",
+      "voicemail_extension",  json_string_value(json_object_get(j_msg, "VoicemailExtension"))? : "",
+
+      "max_contacts",   json_string_value(json_object_get(j_msg, "MaxContacts"))? atoi(json_string_value(json_object_get(j_msg, "MaxContacts"))): 0,
+      "contact",        json_string_value(json_object_get(j_msg, "Contact"))? : "",
+      "contacts",       json_string_value(json_object_get(j_msg, "Contacts"))? : "",
+
+
+      "remove_existing",    json_string_value(json_object_get(j_msg, "RemoveExisting"))? : "",
+      "outbound_proxy",     json_string_value(json_object_get(j_msg, "OutboundProxy"))? : "",
+
+
+      "tm_update",  timestamp
+      );
+  sfree(timestamp);
+
+  ret = pjsip_create_registration_inbound_info(j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not create pjsip registration inbound info.");
+    return;
+  }
 
   return;
 }

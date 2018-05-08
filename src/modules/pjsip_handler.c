@@ -829,22 +829,22 @@ static bool init_pjsip_database_registration_inbound(void)
     "   object_name         varchar(1023),"
 
     "   minimum_expiration      int,"
-    "   maximum_expiration        int,"
+    "   maximum_expiration      int,"
     "   default_expiration      int,"
 
-    "   authenticate_qualify      boolean,"
-    "   qualify_timeout         real,"
+    "   authenticate_qualify      varchar(255),"
+    "   qualify_timeout           real,"
     "   qualify_frequency         int,"
 
     "   mailboxes               varchar(255),"
-    "   support_path            boolean,"
+    "   support_path            varchar(255),"
     "   voicemail_extension     varchar(255),"
 
     "   max_contacts              int,"
     "   contact                   varchar(255),"
     "   contacts                  varchar(255),"
 
-    "   remove_existing           boolean,"
+    "   remove_existing           varchar(255),"
     "   outbound_proxy            varchar(255),"
 
     // timestamp. UTC."
@@ -893,11 +893,11 @@ static bool init_pjsip_database_registration_outbound(void)
     "   fatal_retry_interval        int,"
     "   forbidden_retry_interval    int,"
 
-    "   auth_rejection_permanent    boolean,"
-    "   support_path                boolean,"
+    "   auth_rejection_permanent    varchar(255),"
+    "   support_path                varchar(255),"
     "   expiration                  int,"
 
-    "   line          boolean,"
+    "   line          varchar(255),"
     "   transport     varchar(255),"
     "   contact_user  varchar(255),"
     "   endpoint      varchar(255),"
