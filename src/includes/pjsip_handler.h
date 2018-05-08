@@ -60,6 +60,18 @@ bool pjsip_delete_target(const char* target_name);
 bool pjsip_is_exist_endpoint(const char* target);
 bool pjsip_reload_config(void);
 
+// trunk
+bool pjsip_create_trunk(const json_t* j_data);
+
+json_t* pjsip_cfg_get_aor_info(const char* name);
+json_t* pjsip_cfg_get_auth_info(const char* name);
+json_t* pjsip_cfg_get_contact_info(const char* name);
+json_t* pjsip_cfg_get_endpoint_info(const char* name);
+json_t* pjsip_cfg_get_identify_info(const char* name);
+json_t* pjsip_cfg_get_registration_info(const char* name);
+json_t* pjsip_cfg_get_transport_info(const char* name);
+
+
 // https handlers
 // aor
 void pjsip_htp_get_pjsip_aors(evhtp_request_t *req, void *data);
