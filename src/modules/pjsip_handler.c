@@ -40,6 +40,9 @@
 #define DEF_DB_TABLE_PJSIP_INDENTIFY      "pjsip_identify"
 #define DEF_DB_TABLE_PJSIP_REGISTRATION   "pjsip_registration"
 #define DEF_DB_TABLE_PJSIP_TRANSPORT      "pjsip_transport"
+#define DEF_DB_TABLE_PJSIP_REGISTRATION_INBOUND         "pjsip_registration_inbound"
+#define DEF_DB_TABLE_PJSIP_REGISTRATION_OUTBOUND        "pjsip_registration_outbound"
+
 
 enum EN_OBJ_TYPES {
   EN_TYPE_AOR            = 1,
@@ -54,14 +57,18 @@ enum EN_OBJ_TYPES {
 extern app* g_app;
 
 
-static bool init_pjsip_databases(void);
+static bool init_databases(void);
 static bool init_pjsip_database_aor(void);
 static bool init_pjsip_database_auth(void);
 static bool init_pjsip_database_contact(void);
 static bool init_pjsip_database_endpoint(void);
+static bool init_pjsip_database_registration_inbound(void);
+static bool init_pjsip_database_registration_outbound(void);
 
-static bool init_pjsip_config(void);
-static bool init_pjsip_config_file(const char* filename);
+static bool init_configs(void);
+static bool init_config_file(const char* filename);
+
+static bool init_resources(void);
 
 static bool term_pjsip_databases(void);
 
@@ -111,6 +118,14 @@ static bool db_create_contact_info(const json_t* j_data);
 static bool db_update_contact_info(const json_t* j_data);
 static bool db_delete_contact_info(const char* key);
 
+static bool db_create_registration_inbound_info(const json_t* j_data);
+static bool db_update_registration_inbound_info(const json_t* j_data);
+static bool db_delete_registration_inbound_info(const char* key);
+
+static bool db_create_registration_outbound_info(const json_t* j_data);
+static bool db_update_registration_outbound_info(const json_t* j_data);
+static bool db_delete_registration_outbound_info(const char* key);
+
 // cfg handlers
 static bool cfg_create_aor_info(const char* name, const json_t* j_data);
 static bool cfg_update_aor_info(const char* name, const json_t* j_data);
@@ -143,32 +158,27 @@ static bool cfg_delete_transport_info(const char* name);
 bool pjsip_init_handler(void)
 {
   int ret;
-  json_t* j_tmp;
 
   slog(LOG_DEBUG, "Fired init_pjsip_handler.");
 
   // init config
-  ret = init_pjsip_config();
+  ret = init_configs();
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate pjsip config.");
     return false;
   }
 
   // init database
-  ret = init_pjsip_databases();
+  ret = init_databases();
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate pjsip database.");
     return false;
   }
 
-  // send pjsip initiate request
-  j_tmp = json_pack("{s:s}",
-      "Action", "PJSIPShowEndpoints"
-      );
-  ret = ami_send_cmd(j_tmp);
-  json_decref(j_tmp);
+  // init resources
+  ret = init_resources();
   if(ret == false) {
-    slog(LOG_ERR, "Could not send ami action. action[%s]", "PJSIPShowEndpoints");
+    slog(LOG_ERR, "Could not initiate resources.");
     return false;
   }
 
@@ -213,7 +223,7 @@ bool pjsip_reload_handler(void)
  * @param filename
  * @return
  */
-static bool init_pjsip_config_file(const char* filename)
+static bool init_config_file(const char* filename)
 {
   char* conf;
   char* str_include;
@@ -271,56 +281,97 @@ static bool init_pjsip_config_file(const char* filename)
  * Initiate pjsip config file.
  * @return
  */
-static bool init_pjsip_config(void)
+static bool init_configs(void)
 {
   int ret;
 
   // aor
-  ret = init_pjsip_config_file(DEF_PJSIP_CONFNAME_AOR);
+  ret = init_config_file(DEF_PJSIP_CONFNAME_AOR);
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate aor config.");
     return false;
   }
 
   // auth
-  ret = init_pjsip_config_file(DEF_PJSIP_CONFNAME_AUTH);
+  ret = init_config_file(DEF_PJSIP_CONFNAME_AUTH);
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate auth config.");
     return false;
   }
 
   // contact
-  ret = init_pjsip_config_file(DEF_PJSIP_CONFNAME_CONTACT);
+  ret = init_config_file(DEF_PJSIP_CONFNAME_CONTACT);
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate contact config.");
     return false;
   }
 
   // endpoint
-  ret = init_pjsip_config_file(DEF_PJSIP_CONFNAME_ENDPOINT);
+  ret = init_config_file(DEF_PJSIP_CONFNAME_ENDPOINT);
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate endpoint config.");
     return false;
   }
 
   // identify
-  ret = init_pjsip_config_file(DEF_PJSIP_CONFNAME_IDENTIFY);
+  ret = init_config_file(DEF_PJSIP_CONFNAME_IDENTIFY);
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate identify config.");
     return false;
   }
 
   // registration
-  ret = init_pjsip_config_file(DEF_PJSIP_CONFNAME_REGISTRATION);
+  ret = init_config_file(DEF_PJSIP_CONFNAME_REGISTRATION);
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate registration config.");
     return false;
   }
 
   // transport
-  ret = init_pjsip_config_file(DEF_PJSIP_CONFNAME_TRANSPORT);
+  ret = init_config_file(DEF_PJSIP_CONFNAME_TRANSPORT);
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate transport config.");
+    return false;
+  }
+
+  return true;
+}
+
+static bool init_resources(void)
+{
+  int ret;
+  json_t* j_tmp;
+
+  // send PJSIPShowEndpoints
+  j_tmp = json_pack("{s:s}",
+      "Action", "PJSIPShowEndpoints"
+      );
+  ret = ami_send_cmd(j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not send ami action. action[%s]", "PJSIPShowEndpoints");
+    return false;
+  }
+
+  // send PJSIPShowRegistrationsOutbound
+  j_tmp = json_pack("{s:s}",
+      "Action", "PJSIPShowRegistrationsOutbound"
+      );
+  ret = ami_send_cmd(j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not send ami action. action[%s]", "PJSIPShowRegistrationsOutbound");
+    return false;
+  }
+
+  // send PJSIPShowRegistrationsInbound
+  j_tmp = json_pack("{s:s}",
+      "Action", "PJSIPShowRegistrationsInbound"
+      );
+  ret = ami_send_cmd(j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not send ami action. action[%s]", "PJSIPShowRegistrationsInbound");
     return false;
   }
 
@@ -331,7 +382,7 @@ static bool init_pjsip_config(void)
  * Initiate pjsip database.
  * @return
  */
-static bool init_pjsip_databases(void)
+static bool init_databases(void)
 {
   int ret;
 
@@ -360,6 +411,20 @@ static bool init_pjsip_databases(void)
   ret = init_pjsip_database_endpoint();
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate endpoint database.");
+    return false;
+  }
+
+  // registration_inbound
+  ret = init_pjsip_database_registration_inbound();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate registration_inbound database.");
+    return false;
+  }
+
+  // registration_outbound
+  ret = init_pjsip_database_registration_outbound();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate registration_outbound database.");
     return false;
   }
 
@@ -745,6 +810,120 @@ static bool init_pjsip_database_endpoint(void)
   return true;
 }
 
+/**
+ * Initiate registration_inbound database.
+ * @return
+ */
+static bool init_pjsip_database_registration_inbound(void)
+{
+  int ret;
+  const char* drop_table;
+  const char* create_table;
+
+  drop_table = "drop table if exists " DEF_DB_TABLE_PJSIP_REGISTRATION_INBOUND;
+
+  create_table =
+    "create table " DEF_DB_TABLE_PJSIP_REGISTRATION_INBOUND " ("
+
+    "   object_type         varchar(255),"
+    "   object_name         varchar(1023),"
+
+    "   minimum_expiration      int,"
+    "   maximum_expiration        int,"
+    "   default_expiration      int,"
+
+    "   authenticate_qualify      boolean,"
+    "   qualify_timeout         real,"
+    "   qualify_frequency         int,"
+
+    "   mailboxes               varchar(255),"
+    "   support_path            boolean,"
+    "   voicemail_extension     varchar(255),"
+
+    "   max_contacts              int,"
+    "   contact                   varchar(255),"
+    "   contacts                  varchar(255),"
+
+    "   remove_existing           boolean,"
+    "   outbound_proxy            varchar(255),"
+
+    // timestamp. UTC."
+    "   tm_update         datetime(6),"   // update time."
+
+    "   primary key(object_name)"
+
+    ");";
+
+  // execute
+  resource_exec_mem_sql(drop_table);
+  ret = resource_exec_mem_sql(create_table);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate database. database[%s]", DEF_DB_TABLE_PJSIP_REGISTRATION_INBOUND);
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Initiate registration_outbound database.
+ * @return
+ */
+static bool init_pjsip_database_registration_outbound(void)
+{
+  int ret;
+  const char* drop_table;
+  const char* create_table;
+
+  drop_table = "drop table if exists " DEF_DB_TABLE_PJSIP_REGISTRATION_OUTBOUND;
+
+  create_table =
+    "create table " DEF_DB_TABLE_PJSIP_REGISTRATION_OUTBOUND " ("
+
+    "   object_type         varchar(255),"
+    "   object_name         varchar(1023),"
+
+    "   status        varchar(255),"
+
+    "   server_uri    varchar(255),"
+    "   client_uri    varchar(255),"
+
+    "   max_retries                 int,"
+    "   retry_interval              int,"
+    "   fatal_retry_interval        int,"
+    "   forbidden_retry_interval    int,"
+
+    "   auth_rejection_permanent    boolean,"
+    "   support_path                boolean,"
+    "   expiration                  int,"
+
+    "   line          boolean,"
+    "   transport     varchar(255),"
+    "   contact_user  varchar(255),"
+    "   endpoint      varchar(255),"
+
+    "   outbound_auth     varchar(255),"
+    "   outbound_proxy    varchar(255),"
+
+    "   next_reg    int,"
+
+    // timestamp. UTC."
+    "   tm_update         datetime(6),"   // update time."
+
+    "   primary key(object_name)"
+
+    ");";
+
+  // execute
+  resource_exec_mem_sql(drop_table);
+  ret = resource_exec_mem_sql(create_table);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate database. database[%s]", DEF_DB_TABLE_PJSIP_REGISTRATION_INBOUND);
+    return false;
+  }
+
+  return true;
+}
 
 /**
  * htp request handler.
@@ -3057,6 +3236,272 @@ bool pjsip_delete_aor_info(const char* key)
   return true;
 }
 
+static bool db_create_registration_inbound_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired db_create_registration_inbound_info.");
+
+  // insert info
+  ret = resource_insert_mem_item(DEF_DB_TABLE_PJSIP_REGISTRATION_INBOUND, j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert pjsip registration_inbound.");
+    return false;
+  }
+
+  return true;
+}
+
+static bool db_update_registration_inbound_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired db_update_registration_inbound_info.");
+
+  // update
+  ret = resource_update_mem_item(DEF_DB_TABLE_PJSIP_REGISTRATION_INBOUND, "object_name", j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update pjsip_registration_inbound info.");
+    return false;
+  }
+
+  return true;
+}
+
+static bool db_delete_registration_inbound_info(const char* key)
+{
+  int ret;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired db_delete_registration_inbound_info. key[%s]", key);
+
+  ret = resource_delete_mem_items_string(DEF_DB_TABLE_PJSIP_REGISTRATION_INBOUND, "object_name", key);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not delete pjsip_registration_inbound info. key[%s]", key);
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Create pjsip registration_inbound info.
+ * @param j_data
+ * @return
+ */
+bool pjsip_create_registration_inbound_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired pjsip_create_registration_inbound_info.");
+
+  // create
+  ret = db_create_registration_inbound_info(j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert pjsip registration_inbound.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Update pjsip registration_inbound info.
+ * @param j_data
+ * @return
+ */
+bool pjsip_update_registration_inbound_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired pjsip_update_registration_inbound_info.");
+
+  // update
+  ret = db_update_registration_inbound_info(j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update pjsip_contact info.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * delete pjsip registration_inbound info.
+ * @return
+ */
+bool pjsip_delete_registration_inbound_info(const char* key)
+{
+  int ret;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired pjsip_delete_registration_inbound_info. key[%s]", key);
+
+  // delete
+  ret = db_delete_registration_inbound_info(key);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not delete pjsip_registration_inbound info. key[%s]", key);
+    return false;
+  }
+
+  return true;
+}
+
+static bool db_create_registration_outbound_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired db_create_registration_outbound_info.");
+
+  // insert info
+  ret = resource_insert_mem_item(DEF_DB_TABLE_PJSIP_REGISTRATION_OUTBOUND, j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert pjsip registration_outbound.");
+    return false;
+  }
+
+  return true;
+}
+
+static bool db_update_registration_outbound_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired db_update_registration_outbound_info.");
+
+  // update
+  ret = resource_update_mem_item(DEF_DB_TABLE_PJSIP_REGISTRATION_OUTBOUND, "object_name", j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update pjsip_registration_outbound info.");
+    return false;
+  }
+
+  return true;
+}
+
+static bool db_delete_registration_outbound_info(const char* key)
+{
+  int ret;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired db_delete_registration_outbound_info. key[%s]", key);
+
+  ret = resource_delete_mem_items_string(DEF_DB_TABLE_PJSIP_REGISTRATION_OUTBOUND, "object_name", key);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not delete pjsip_registration_outbound info. key[%s]", key);
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Create pjsip registration_outbound info.
+ * @param j_data
+ * @return
+ */
+bool pjsip_create_registration_outbound_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired pjsip_create_registration_outbound_info.");
+
+  // create
+  ret = db_create_registration_outbound_info(j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not insert pjsip registration_outbound.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Update pjsip registration_outbound info.
+ * @param j_data
+ * @return
+ */
+bool pjsip_update_registration_outbound_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired pjsip_update_registration_outbound_info.");
+
+  // update
+  ret = db_update_registration_outbound_info(j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update pjsip registration_outbound info.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * delete pjsip registration_outbound info.
+ * @return
+ */
+bool pjsip_delete_registration_outbound_info(const char* key)
+{
+  int ret;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired pjsip_delete_registration_outbound_info. key[%s]", key);
+
+  // delete
+  ret = db_delete_registration_outbound_info(key);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not delete pjsip_registration_outbound info. key[%s]", key);
+    return false;
+  }
+
+  return true;
+}
+
 static bool db_create_contact_info(const json_t* j_data)
 {
   int ret;
@@ -3241,7 +3686,6 @@ bool pjsip_delete_contact_info(const char* key)
     slog(LOG_ERR, "Could not publish event.");
     return false;
   }
-
 
   return true;
 }
