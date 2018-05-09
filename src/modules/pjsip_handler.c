@@ -93,13 +93,6 @@ static bool update_config_pjsip_identify(const char* name, const json_t* j_data)
 static bool update_config_pjsip_registration(const char* name, const json_t* j_data);
 static bool update_config_pjsip_transport(const char* name, const json_t* j_data);
 
-static bool delete_config_pjsip_auth(const char* name);
-static bool delete_config_pjsip_contact(const char* name);
-static bool delete_config_pjsip_endpoint(const char* name);
-static bool delete_config_pjsip_identify(const char* name);
-static bool delete_config_pjsip_registration(const char* name);
-static bool delete_config_pjsip_transport(const char* name);
-
 static bool create_config_aor_with_default_setting(const char* name);
 static bool create_config_auth_with_default_setting(const char* name);
 static bool create_config_endpoint_with_default_setting(const char* name);
@@ -1191,7 +1184,7 @@ void pjsip_htp_delete_pjsip_endpoints_detail(evhtp_request_t *req, void *data)
   }
 
   // delete
-  ret = delete_config_pjsip_endpoint(detail);
+  ret = pjsip_cfg_delete_endpoint_info(detail);
   sfree(detail);
   if(ret == false) {
     slog(LOG_ERR, "Could not update pjsip endpoint info.");
@@ -1625,7 +1618,7 @@ void pjsip_htp_delete_pjsip_auths_detail(evhtp_request_t *req, void *data)
   }
 
   // delete
-  ret = delete_config_pjsip_auth(detail);
+  ret = pjsip_cfg_delete_auth_info(detail);
   sfree(detail);
   if(ret == false) {
     slog(LOG_ERR, "Could not update pjsip auth info.");
@@ -1843,7 +1836,7 @@ void pjsip_htp_delete_pjsip_contacts_detail(evhtp_request_t *req, void *data)
   }
 
   // delete
-  ret = delete_config_pjsip_contact(detail);
+  ret = pjsip_cfg_delete_contact_info(detail);
   sfree(detail);
   if(ret == false) {
     slog(LOG_ERR, "Could not update pjsip contact info.");
@@ -1985,7 +1978,7 @@ void pjsip_htp_delete_pjsip_identifies_detail(evhtp_request_t *req, void *data)
   }
 
   // delete
-  ret = delete_config_pjsip_identify(detail);
+  ret = pjsip_cfg_delete_identify_info(detail);
   sfree(detail);
   if(ret == false) {
     slog(LOG_ERR, "Could not update pjsip identify info.");
@@ -2127,7 +2120,7 @@ void pjsip_htp_delete_pjsip_registrations_detail(evhtp_request_t *req, void *dat
   }
 
   // delete
-  ret = delete_config_pjsip_registration(detail);
+  ret = pjsip_cfg_delete_registration_info(detail);
   sfree(detail);
   if(ret == false) {
     slog(LOG_ERR, "Could not update pjsip registration info.");
@@ -2270,7 +2263,7 @@ void pjsip_htp_delete_pjsip_transports_detail(evhtp_request_t *req, void *data)
   }
 
   // delete
-  ret = delete_config_pjsip_transport(detail);
+  ret = pjsip_cfg_delete_transport_info(detail);
   sfree(detail);
   if(ret == false) {
     slog(LOG_ERR, "Could not update pjsip transport info.");
@@ -4047,7 +4040,7 @@ bool pjsip_cfg_delete_aor_info(const char* name)
  * @param j_data
  * @return
  */
-static bool delete_config_pjsip_auth(const char* name)
+bool pjsip_cfg_delete_auth_info(const char* name)
 {
   int ret;
 
@@ -4072,7 +4065,7 @@ static bool delete_config_pjsip_auth(const char* name)
  * @param j_data
  * @return
  */
-static bool delete_config_pjsip_contact(const char* name)
+bool pjsip_cfg_delete_contact_info(const char* name)
 {
   int ret;
 
@@ -4097,7 +4090,7 @@ static bool delete_config_pjsip_contact(const char* name)
  * @param j_data
  * @return
  */
-static bool delete_config_pjsip_endpoint(const char* name)
+bool pjsip_cfg_delete_endpoint_info(const char* name)
 {
   int ret;
 
@@ -4122,7 +4115,7 @@ static bool delete_config_pjsip_endpoint(const char* name)
  * @param j_data
  * @return
  */
-static bool delete_config_pjsip_identify(const char* name)
+bool pjsip_cfg_delete_identify_info(const char* name)
 {
   int ret;
 
@@ -4147,7 +4140,7 @@ static bool delete_config_pjsip_identify(const char* name)
  * @param j_data
  * @return
  */
-static bool delete_config_pjsip_registration(const char* name)
+bool pjsip_cfg_delete_registration_info(const char* name)
 {
   int ret;
 
@@ -4172,7 +4165,7 @@ static bool delete_config_pjsip_registration(const char* name)
  * @param j_data
  * @return
  */
-static bool delete_config_pjsip_transport(const char* name)
+bool pjsip_cfg_delete_transport_info(const char* name)
 {
   int ret;
 
@@ -5100,14 +5093,14 @@ bool pjsip_delete_target(const char* target_name)
   }
 
   // delete auth
-  ret = delete_config_pjsip_auth(target_name);
+  ret = pjsip_cfg_delete_auth_info(target_name);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not delete auth info.");
     return false;
   }
 
   // delete endpoint
-  ret = delete_config_pjsip_endpoint(target_name);
+  ret = pjsip_cfg_delete_endpoint_info(target_name);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not delete endpoint info.");
     return false;
@@ -5238,6 +5231,18 @@ json_t* pjsip_cfg_get_identify_info(const char* name)
   }
 
   j_res = conf_get_ast_setting(DEF_PJSIP_CONFNAME_IDENTIFY, name);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
+json_t* pjsip_cfg_get_registrations_all(void)
+{
+  json_t* j_res;
+
+  j_res = conf_get_ast_settings_all(DEF_PJSIP_CONFNAME_REGISTRATION);
   if(j_res == NULL) {
     return NULL;
   }
