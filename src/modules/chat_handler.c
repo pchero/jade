@@ -22,9 +22,6 @@
 #define DEF_DB_TABLE_CHAT_ROOM  "chat_room"
 #define DEF_DB_TABLE_CHAT_USERROOM  "chat_userroom"
 
-#define DEF_CHAT_NAME "jade chat"
-#define DEF_CHAT_DETAIL "chat"
-
 static struct st_callback* g_callback_room;
 static struct st_callback* g_callback_userroom;
 static struct st_callback* g_callback_message;
@@ -72,6 +69,8 @@ static bool create_room(const char* uuid, const char* uuid_user, enum EN_CHAT_RO
 static bool create_userroom_foreach_room_members(const char* uuid_room);
 static json_t* get_room_by_type_members(enum EN_CHAT_ROOM_TYPE type, json_t* j_members);
 static bool delete_room_member(const char* uuid_room, const char* uuid_user);
+
+static char* create_default_chatroom_name(const json_t* j_data);
 
 static char* get_room_uuid_by_type_members(enum EN_CHAT_ROOM_TYPE type, json_t* j_members);
 static char* get_message_table_by_userroom(const char* uuid_userroom);
@@ -274,6 +273,9 @@ static bool db_create_table_chat_message(const char* table_name)
       "   uuid              varchar(255),"    // uuid
       "   uuid_room         varchar(255),"    // uuid of room
       "   uuid_owner        varchar(255),"    // message owner's uuid
+
+      "   username          varchar(255),"
+      "   name              varchar(255),"
 
       "   message           text,"            // message
 
@@ -761,6 +763,58 @@ bool chat_create_room_with_foreach_userroom(const char* uuid, const char* uuid_u
   return true;
 }
 
+/**
+ * Create default chatroom name.
+ * @param j_data
+ * @return
+ */
+static char* create_default_chatroom_name(const json_t* j_data)
+{
+  int idx;
+  const char* uuid;
+  json_t* j_user;
+  json_t* j_members;
+  json_t* j_member;
+  char* res;
+  char* tmp;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  asprintf(&res, "Chatting with");
+
+  // get
+  j_members = json_deep_copy(j_data);
+  json_array_foreach(j_members, idx, j_member) {
+    // get user info
+    uuid = json_string_value(j_member);
+    if(uuid == NULL) {
+      continue;
+    }
+
+    j_user = user_get_userinfo_info(uuid);
+    if(j_user == NULL) {
+      continue;
+    }
+
+    asprintf(&tmp, "%s %s,",
+        res,
+        json_string_value(json_object_get(j_user, "name"))? : ""
+        );
+    json_decref(j_user);
+    sfree(res);
+    res = tmp;
+  }
+  json_decref(j_members);
+
+  // replace the last , to .
+  res[strlen(res) - 1] = '.';
+
+  return res;
+}
+
 static bool create_userroom_foreach_room_members(const char* uuid_room)
 {
   int ret;
@@ -771,6 +825,7 @@ static bool create_userroom_foreach_room_members(const char* uuid_room)
   json_t* j_tmp;
   char* uuid;
   const char* uuid_user;
+  char* room_name;
 
   if(uuid_room == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -791,6 +846,9 @@ static bool create_userroom_foreach_room_members(const char* uuid_room)
     return false;
   }
 
+  // create default room name
+  room_name = create_default_chatroom_name(j_members);
+
   // create
   json_array_foreach(j_members, idx, j_member) {
     uuid_user = json_string_value(j_member);
@@ -810,8 +868,8 @@ static bool create_userroom_foreach_room_members(const char* uuid_room)
         "uuid_room",    uuid_room,
         "uuid_user",    uuid_user,
 
-        "name",   DEF_CHAT_NAME,
-        "detail", DEF_CHAT_DETAIL
+        "name",   room_name,
+        "detail", ""
         );
     sfree(uuid);
 
@@ -823,6 +881,7 @@ static bool create_userroom_foreach_room_members(const char* uuid_room)
     }
   }
   json_decref(j_room);
+  sfree(room_name);
 
   return true;
 }
@@ -1383,6 +1442,9 @@ static bool create_message(const char* uuid_message, const char* uuid_room, cons
 {
   int ret;
   char* timestamp;
+  const char* username;
+  const char* name;
+  json_t* j_user;
   json_t* j_room;
   json_t* j_data;
   const char* message_table;
@@ -1434,10 +1496,20 @@ static bool create_message(const char* uuid_message, const char* uuid_room, cons
     return false;
   }
 
+  // get user info
+  j_user = user_get_userinfo_info(uuid_user);
+  if(j_user == NULL) {
+    slog(LOG_NOTICE, "Could not get user info.");
+    json_decref(j_room);
+    return false;
+  }
+  username = json_string_value(json_object_get(j_user, "username"));
+  name = json_string_value(json_object_get(j_user, "name"));
+
   // create data info
   timestamp = utils_get_utc_timestamp();
   j_data = json_pack("{"
-      "s:s, s:s, s:s, "
+      "s:s, s:s, s:s, s:s, s:s, "
       "s:O, "
       "s:s "
       "}",
@@ -1445,6 +1517,8 @@ static bool create_message(const char* uuid_message, const char* uuid_room, cons
       "uuid",         uuid_message,
       "uuid_owner",   uuid_user,
       "uuid_room",    uuid_room,
+      "username",     username? : "",
+      "name",         name? : "",
 
       "message",      j_message,
 
@@ -1455,6 +1529,7 @@ static bool create_message(const char* uuid_message, const char* uuid_room, cons
   // create message
   ret = db_create_chat_message_info(message_table, j_data);
   json_decref(j_room);
+  json_decref(j_user);
   json_decref(j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not create message info.");
