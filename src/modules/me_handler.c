@@ -50,6 +50,8 @@ static json_t* get_me_info_by_user(const json_t* j_user);
 static json_t* get_me_info(const char* uuid);
 static bool update_me_info(const json_t* j_user, const json_t* j_data);
 
+static json_t* get_room_info(const char* uuid_room);
+
 static json_t* get_chats_info(const json_t* j_user);
 static json_t* get_chatroom_info(const json_t* j_user, const char* uuid_userroom);
 static json_t* get_chatroom_info_by_useruuid(const char* uuid_user, const char* uuid_userroom);
@@ -1451,6 +1453,56 @@ static json_t* get_chats_info(const json_t* j_user)
   return j_res;
 }
 
+static json_t* get_room_info(const char* uuid_room)
+{
+  json_t* j_res;
+  json_t* j_members;
+  json_t* j_member;
+  json_t* j_members_org;
+  json_t* j_member_org;
+  int idx;
+  const char* uuid;
+  json_t* j_user;
+
+  if(uuid_room == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  j_res = chat_get_room(uuid_room);
+  if(j_res == NULL) {
+    slog(LOG_NOTICE, "Could not get chat room info.");
+    return NULL;
+  }
+
+  j_members = json_array();
+  j_members_org = json_object_get(j_res, "members");
+  json_array_foreach(j_members_org, idx, j_member_org) {
+    uuid = json_string_value(j_member_org);
+    if(uuid == NULL) {
+      continue;
+    }
+
+    j_user = user_get_userinfo_info(uuid);
+    if(j_user == NULL) {
+      continue;
+    }
+
+    j_member = json_pack("{s:s, s:s, s:s}",
+        "uuid",       json_string_value(json_object_get(j_user, "uuid"))? : "",
+        "username",   json_string_value(json_object_get(j_user, "username"))? : "",
+        "name",       json_string_value(json_object_get(j_user, "name"))? : ""
+        );
+    json_decref(j_user);
+
+    json_array_append_new(j_members, j_member);
+  }
+
+  json_object_set_new(j_res, "members", j_members);
+
+  return j_res;
+}
+
 static json_t* get_chatroom_info_by_useruuid(const char* uuid_user, const char* uuid_userroom)
 {
   json_t* j_res;
@@ -1495,7 +1547,7 @@ static json_t* get_chatroom_info_by_useruuid(const char* uuid_user, const char* 
     return NULL;
   }
 
-  j_room = chat_get_room(uuid_room);
+  j_room = get_room_info(uuid_room);
   json_object_del(j_res, "uuid_room");
   json_object_del(j_res, "uuid_user");
   if(j_room == NULL) {
