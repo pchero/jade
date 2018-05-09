@@ -45,6 +45,13 @@ static bool update_user_info(const char* uuid_user, const json_t* j_data);
 static bool update_user_permission(const char* uuid_user, const json_t* j_data);
 static bool update_user_user(const char* uuid_user, const json_t* j_data);
 
+static json_t* get_trunks_all(void);
+static json_t* get_trunk_info(const char* name);
+static bool create_trunk_info(const json_t* j_data);
+static void delete_trunk_info(const char* name);
+
+static bool is_exist_trunk(const char* name);
+
 static bool cb_resource_handler_user_userinfo(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
 static bool cb_resource_handler_user_permission(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
 
@@ -450,6 +457,85 @@ void manager_htp_put_manager_users_detail(evhtp_request_t *req, void *data)
 
   return;
 }
+
+/**
+ * POST ^/manager/trunks request handler.
+ * @param req
+ * @param data
+ */
+void manager_htp_post_manager_trunks(evhtp_request_t *req, void *data)
+{
+  int ret;
+  json_t* j_res;
+  json_t* j_data;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired manager_htp_post_manager_trunks.");
+
+  // get data
+  j_data = http_get_json_from_request_data(req);
+  if(j_data == NULL) {
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // create info
+  ret = create_trunk_info(j_data);
+  json_decref(j_data);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * GET ^/manager/trunks request handler.
+ * @param req
+ * @param data
+ */
+void manager_htp_get_manager_trunks(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired manager_htp_get_manager_trunks.");
+
+  // get info
+  j_tmp = get_trunks_all();
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get users info.");
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", json_object());
+  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
 
 static json_t* get_user_info(const char* uuid_user)
 {
@@ -1053,3 +1139,249 @@ static bool cb_resource_handler_user_permission(enum EN_RESOURCE_UPDATE_TYPES ty
 
   return true;
 }
+
+static json_t* get_trunk_info(const char* name)
+{
+  json_t* j_tmp;
+  json_t* j_res;
+
+  if(name == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  j_res = json_object();
+  json_object_set_new(j_res, "name", json_string(name));
+
+  // get registration
+  j_tmp = pjsip_cfg_get_registration_info(name);
+  if(j_tmp  == NULL) {
+    slog(LOG_NOTICE, "No registration info. name[%s]", name);
+    json_decref(j_res);
+    return NULL;
+  }
+  json_object_set(j_res, "server_uri", json_object_get(j_tmp, "server_uri"));
+  json_object_set(j_res, "client_uri", json_object_get(j_tmp, "client_uri"));
+  json_decref(j_tmp);
+
+  // get auth
+  j_tmp = pjsip_cfg_get_auth_info(name);
+  json_object_set(j_res, "username", json_object_get(j_tmp, "username"));
+  json_object_set(j_res, "password", json_object_get(j_tmp, "password"));
+  json_decref(j_tmp);
+
+  // get aor
+  j_tmp = pjsip_cfg_get_aor_info(name);
+  json_object_set(j_res, "contact", json_object_get(j_tmp, "contact"));
+  json_decref(j_tmp);
+
+  // get endpoint
+  j_tmp = pjsip_cfg_get_endpoint_info(name);
+  json_object_set(j_res, "context", json_object_get(j_tmp, "context"));
+  json_decref(j_tmp);
+
+  // get identify
+  j_tmp = pjsip_cfg_get_identify_info(name);
+  json_object_set(j_res, "hostname", json_object_get(j_tmp, "match"));
+  json_decref(j_tmp);
+
+  return j_res;
+}
+
+static json_t* get_trunks_all(void)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+  json_t* j_regs;
+  json_t* j_reg;
+  const char* name;
+  int idx;
+
+  j_regs = pjsip_cfg_get_registrations_all();
+  if(j_regs == NULL) {
+    slog(LOG_ERR, "Could not get pjsip cfg registrations info.");
+    return NULL;
+  }
+
+  j_res = json_array();
+  json_array_foreach(j_regs, idx, j_reg) {
+    name = json_string_value(json_object_get(j_reg, "name"));
+    if(name == NULL) {
+      continue;
+    }
+
+    j_tmp = get_trunk_info(name);
+    if(j_tmp == NULL) {
+      continue;
+    }
+
+    json_array_append_new(j_res, j_tmp);
+  }
+  json_decref(j_regs);
+
+  return j_res;
+}
+
+/**
+ * Create trunk info with default setting.
+ * @param j_data
+ * @return
+ */
+static bool create_trunk_info(const json_t* j_data)
+{
+  int ret;
+  const char* name;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  // get name
+  name = json_string_value(json_object_get(j_data, "name"));
+  if(name == NULL) {
+    slog(LOG_NOTICE, "Could not get name info.");
+    return false;
+  }
+
+  // check exist
+  ret = is_exist_trunk(name);
+  if(ret == true) {
+    slog(LOG_NOTICE, "The given trunk name is already exist. name[%s]", name);
+    return false;
+  }
+
+  // create registration
+  ret = pjsip_cfg_create_registration_with_default_info(
+      name,
+      json_string_value(json_object_get(j_data, "server_uri"))? : "",
+      json_string_value(json_object_get(j_data, "client_uri"))? : ""
+      );
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not create registration info.");
+    delete_trunk_info(name);
+    return false;
+  }
+
+  // create auth
+  ret = pjsip_cfg_create_auth_info(
+      name,
+      json_string_value(json_object_get(j_data, "username"))? : "",
+      json_string_value(json_object_get(j_data, "password"))? : ""
+      );
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not create auth info.");
+    delete_trunk_info(name);
+    return false;
+  }
+
+  // create aor
+  ret = pjsip_cfg_create_aor_info(
+      name,
+      json_string_value(json_object_get(j_data, "contact"))? : ""
+      );
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not create aor info.");
+    delete_trunk_info(name);
+    return false;
+  }
+
+  // create endpoint
+  ret = pjsip_cfg_create_endpoint_with_default_info(
+      name,
+      json_string_value(json_object_get(j_data, "context"))? : ""
+      );
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not create endpoint info.");
+    delete_trunk_info(name);
+    return false;
+  }
+
+  // create identify
+  ret = pjsip_cfg_create_identify_info(
+      name,
+      json_string_value(json_object_get(j_data, "hostname"))? : ""
+      );
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not create identify info.");
+    delete_trunk_info(name);
+    return false;
+  }
+
+  // reload pjsip config
+  ret = pjsip_reload_config();
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not reload pjsip_handler.");
+    return false;
+  }
+
+  return true;
+}
+
+static void delete_trunk_info(const char* name)
+{
+  pjsip_cfg_delete_aor_info(name);
+  pjsip_cfg_delete_auth_info(name);
+  pjsip_cfg_delete_contact_info(name);
+  pjsip_cfg_delete_endpoint_info(name);
+  pjsip_cfg_delete_identify_info(name);
+  pjsip_cfg_delete_registration_info(name);
+  return;
+}
+
+/**
+ * Return true, if the given name is exist in any configuration files.
+ * @param name
+ * @return
+ */
+static bool is_exist_trunk(const char* name)
+{
+  json_t* j_tmp;
+
+  j_tmp = pjsip_cfg_get_aor_info(name);
+  if(j_tmp != NULL) {
+    json_decref(j_tmp);
+    return true;
+  }
+
+  j_tmp = pjsip_cfg_get_auth_info(name);
+  if(j_tmp != NULL) {
+    json_decref(j_tmp);
+    return true;
+  }
+
+  j_tmp = pjsip_cfg_get_contact_info(name);
+  if(j_tmp != NULL) {
+    json_decref(j_tmp);
+    return true;
+  }
+
+  j_tmp = pjsip_cfg_get_endpoint_info(name);
+  if(j_tmp != NULL) {
+    json_decref(j_tmp);
+    return true;
+  }
+
+  j_tmp = pjsip_cfg_get_identify_info(name);
+  if(j_tmp != NULL) {
+    json_decref(j_tmp);
+    return true;
+  }
+
+  j_tmp = pjsip_cfg_get_registration_info(name);
+  if(j_tmp != NULL) {
+    json_decref(j_tmp);
+    return true;
+  }
+
+  j_tmp = pjsip_cfg_get_transport_info(name);
+  if(j_tmp != NULL) {
+    json_decref(j_tmp);
+    return true;
+  }
+
+  return false;
+}
+
+
+

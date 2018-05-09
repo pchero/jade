@@ -43,6 +43,10 @@
 #define DEF_DB_TABLE_PJSIP_REGISTRATION_INBOUND         "pjsip_registration_inbound"
 #define DEF_DB_TABLE_PJSIP_REGISTRATION_OUTBOUND        "pjsip_registration_outbound"
 
+#define DEF_TRANSPORT_NAME_UDP   "jade-transport-udp"
+#define DEF_TRANSPORT_NAME_TCP   "jade-transport-tcp"
+#define DEF_TRANSPORT_NAME_WSS   "jade-transport-wss"
+
 
 enum EN_OBJ_TYPES {
   EN_TYPE_AOR            = 1,
@@ -67,6 +71,7 @@ static bool init_pjsip_database_registration_outbound(void);
 
 static bool init_configs(void);
 static bool init_config_file(const char* filename);
+static bool init_config_default_info(void);
 
 static bool init_resources(void);
 
@@ -87,15 +92,6 @@ static bool update_config_pjsip_endpoint(const char* name, const json_t* j_data)
 static bool update_config_pjsip_identify(const char* name, const json_t* j_data);
 static bool update_config_pjsip_registration(const char* name, const json_t* j_data);
 static bool update_config_pjsip_transport(const char* name, const json_t* j_data);
-
-static bool delete_config_pjsip_aor(const char* name);
-static bool delete_config_pjsip_auth(const char* name);
-static bool delete_config_pjsip_contact(const char* name);
-static bool delete_config_pjsip_endpoint(const char* name);
-static bool delete_config_pjsip_identify(const char* name);
-static bool delete_config_pjsip_registration(const char* name);
-static bool delete_config_pjsip_transport(const char* name);
-
 
 static bool create_config_aor_with_default_setting(const char* name);
 static bool create_config_auth_with_default_setting(const char* name);
@@ -154,6 +150,7 @@ static bool cfg_delete_registration_info(const char* name);
 static bool cfg_create_transport_info(const char* name, const json_t* j_data);
 static bool cfg_update_transport_info(const char* name, const json_t* j_data);
 static bool cfg_delete_transport_info(const char* name);
+
 
 bool pjsip_init_handler(void)
 {
@@ -332,6 +329,76 @@ static bool init_configs(void)
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate transport config.");
     return false;
+  }
+
+  // initiate default info
+  ret = init_config_default_info();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate default config info.");
+    return false;
+  }
+
+  return true;
+}
+
+static bool init_config_default_info(void)
+{
+  int ret;
+  json_t* j_tmp;
+  json_t* j_data;
+
+  // create default transport udp
+  j_tmp = pjsip_cfg_get_transport_info(DEF_TRANSPORT_NAME_UDP);
+  if(j_tmp != NULL) {
+    json_decref(j_tmp);
+  }
+  else {
+    j_data = json_pack("{s:s, s:s}",
+        "protocol",   "udp",
+        "bind",       "0.0.0.0"
+        );
+    ret = cfg_create_transport_info(DEF_TRANSPORT_NAME_UDP, j_data);
+    json_decref(j_data);
+    if(ret == false) {
+      slog(LOG_ERR, "Could not create default config info.");
+      return false;
+    }
+  }
+
+  // create default transport tcp
+  j_tmp = pjsip_cfg_get_transport_info(DEF_TRANSPORT_NAME_TCP);
+  if(j_tmp != NULL) {
+    json_decref(j_tmp);
+  }
+  else  {
+    j_data = json_pack("{s:s, s:s}",
+        "protocol",   "tcp",
+        "bind",       "0.0.0.0"
+        );
+    ret = cfg_create_transport_info(DEF_TRANSPORT_NAME_TCP, j_data);
+    json_decref(j_data);
+    if(ret == false) {
+      slog(LOG_ERR, "Could not create default config info.");
+      return false;
+    }
+  }
+
+  // create default transport wss
+  j_tmp = pjsip_cfg_get_transport_info(DEF_TRANSPORT_NAME_WSS);
+  if(j_tmp != NULL) {
+    json_decref(j_tmp);
+  }
+  else {
+    j_data = json_pack("{s:s, s:s}",
+        "protocol",   "wss",
+        "bind",       "0.0.0.0"
+        );
+    ret = cfg_create_transport_info(DEF_TRANSPORT_NAME_WSS, j_data);
+    json_decref(j_data);
+    if(ret == false) {
+      slog(LOG_ERR, "Could not create default config info.");
+      return false;
+    }
   }
 
   return true;
@@ -1126,7 +1193,7 @@ void pjsip_htp_delete_pjsip_endpoints_detail(evhtp_request_t *req, void *data)
   }
 
   // delete
-  ret = delete_config_pjsip_endpoint(detail);
+  ret = pjsip_cfg_delete_endpoint_info(detail);
   sfree(detail);
   if(ret == false) {
     slog(LOG_ERR, "Could not update pjsip endpoint info.");
@@ -1343,7 +1410,7 @@ void pjsip_htp_delete_pjsip_aors_detail(evhtp_request_t *req, void *data)
   }
 
   // delete
-  ret = delete_config_pjsip_aor(detail);
+  ret = pjsip_cfg_delete_aor_info(detail);
   sfree(detail);
   if(ret == false) {
     slog(LOG_ERR, "Could not update pjsip aor info.");
@@ -1560,7 +1627,7 @@ void pjsip_htp_delete_pjsip_auths_detail(evhtp_request_t *req, void *data)
   }
 
   // delete
-  ret = delete_config_pjsip_auth(detail);
+  ret = pjsip_cfg_delete_auth_info(detail);
   sfree(detail);
   if(ret == false) {
     slog(LOG_ERR, "Could not update pjsip auth info.");
@@ -1778,7 +1845,7 @@ void pjsip_htp_delete_pjsip_contacts_detail(evhtp_request_t *req, void *data)
   }
 
   // delete
-  ret = delete_config_pjsip_contact(detail);
+  ret = pjsip_cfg_delete_contact_info(detail);
   sfree(detail);
   if(ret == false) {
     slog(LOG_ERR, "Could not update pjsip contact info.");
@@ -1920,7 +1987,7 @@ void pjsip_htp_delete_pjsip_identifies_detail(evhtp_request_t *req, void *data)
   }
 
   // delete
-  ret = delete_config_pjsip_identify(detail);
+  ret = pjsip_cfg_delete_identify_info(detail);
   sfree(detail);
   if(ret == false) {
     slog(LOG_ERR, "Could not update pjsip identify info.");
@@ -2062,7 +2129,7 @@ void pjsip_htp_delete_pjsip_registrations_detail(evhtp_request_t *req, void *dat
   }
 
   // delete
-  ret = delete_config_pjsip_registration(detail);
+  ret = pjsip_cfg_delete_registration_info(detail);
   sfree(detail);
   if(ret == false) {
     slog(LOG_ERR, "Could not update pjsip registration info.");
@@ -2205,7 +2272,7 @@ void pjsip_htp_delete_pjsip_transports_detail(evhtp_request_t *req, void *data)
   }
 
   // delete
-  ret = delete_config_pjsip_transport(detail);
+  ret = pjsip_cfg_delete_transport_info(detail);
   sfree(detail);
   if(ret == false) {
     slog(LOG_ERR, "Could not update pjsip transport info.");
@@ -3957,7 +4024,7 @@ static bool update_config_pjsip_transport(const char* name, const json_t* j_data
  * @param j_data
  * @return
  */
-static bool delete_config_pjsip_aor(const char* name)
+bool pjsip_cfg_delete_aor_info(const char* name)
 {
   int ret;
 
@@ -3982,7 +4049,7 @@ static bool delete_config_pjsip_aor(const char* name)
  * @param j_data
  * @return
  */
-static bool delete_config_pjsip_auth(const char* name)
+bool pjsip_cfg_delete_auth_info(const char* name)
 {
   int ret;
 
@@ -4007,7 +4074,7 @@ static bool delete_config_pjsip_auth(const char* name)
  * @param j_data
  * @return
  */
-static bool delete_config_pjsip_contact(const char* name)
+bool pjsip_cfg_delete_contact_info(const char* name)
 {
   int ret;
 
@@ -4032,7 +4099,7 @@ static bool delete_config_pjsip_contact(const char* name)
  * @param j_data
  * @return
  */
-static bool delete_config_pjsip_endpoint(const char* name)
+bool pjsip_cfg_delete_endpoint_info(const char* name)
 {
   int ret;
 
@@ -4057,7 +4124,7 @@ static bool delete_config_pjsip_endpoint(const char* name)
  * @param j_data
  * @return
  */
-static bool delete_config_pjsip_identify(const char* name)
+bool pjsip_cfg_delete_identify_info(const char* name)
 {
   int ret;
 
@@ -4082,7 +4149,7 @@ static bool delete_config_pjsip_identify(const char* name)
  * @param j_data
  * @return
  */
-static bool delete_config_pjsip_registration(const char* name)
+bool pjsip_cfg_delete_registration_info(const char* name)
 {
   int ret;
 
@@ -4107,7 +4174,7 @@ static bool delete_config_pjsip_registration(const char* name)
  * @param j_data
  * @return
  */
-static bool delete_config_pjsip_transport(const char* name)
+bool pjsip_cfg_delete_transport_info(const char* name)
 {
   int ret;
 
@@ -5028,21 +5095,21 @@ bool pjsip_delete_target(const char* target_name)
   slog(LOG_DEBUG, "Fired pjsip_delete_target_all. target[%s]", target_name);
 
   // delete aor
-  ret = delete_config_pjsip_aor(target_name);
+  ret = pjsip_cfg_delete_aor_info(target_name);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not delete aor info.");
     return false;
   }
 
   // delete auth
-  ret = delete_config_pjsip_auth(target_name);
+  ret = pjsip_cfg_delete_auth_info(target_name);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not delete auth info.");
     return false;
   }
 
   // delete endpoint
-  ret = delete_config_pjsip_endpoint(target_name);
+  ret = pjsip_cfg_delete_endpoint_info(target_name);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not delete endpoint info.");
     return false;
@@ -5094,3 +5161,275 @@ bool pjsip_reload_config(void)
 
   return true;
 }
+
+json_t* pjsip_cfg_get_aor_info(const char* name)
+{
+  json_t* j_res;
+
+  if(name == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  j_res = conf_get_ast_setting(DEF_PJSIP_CONFNAME_AOR, name);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
+json_t* pjsip_cfg_get_auth_info(const char* name)
+{
+  json_t* j_res;
+
+  if(name == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  j_res = conf_get_ast_setting(DEF_PJSIP_CONFNAME_AUTH, name);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
+json_t* pjsip_cfg_get_contact_info(const char* name)
+{
+  json_t* j_res;
+
+  if(name == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  j_res = conf_get_ast_setting(DEF_PJSIP_CONFNAME_CONTACT, name);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
+json_t* pjsip_cfg_get_endpoint_info(const char* name)
+{
+  json_t* j_res;
+
+  if(name == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  j_res = conf_get_ast_setting(DEF_PJSIP_CONFNAME_ENDPOINT, name);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
+json_t* pjsip_cfg_get_identify_info(const char* name)
+{
+  json_t* j_res;
+
+  if(name == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  j_res = conf_get_ast_setting(DEF_PJSIP_CONFNAME_IDENTIFY, name);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
+json_t* pjsip_cfg_get_registrations_all(void)
+{
+  json_t* j_res;
+
+  j_res = conf_get_ast_settings_all(DEF_PJSIP_CONFNAME_REGISTRATION);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
+json_t* pjsip_cfg_get_registration_info(const char* name)
+{
+  json_t* j_res;
+
+  if(name == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  j_res = conf_get_ast_setting(DEF_PJSIP_CONFNAME_REGISTRATION, name);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
+json_t* pjsip_cfg_get_transport_info(const char* name)
+{
+  json_t* j_res;
+
+  if(name == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  j_res = conf_get_ast_setting(DEF_PJSIP_CONFNAME_TRANSPORT, name);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
+bool pjsip_cfg_create_registration_with_default_info(const char* name, const char* server_uri, const char* client_uri)
+{
+  int ret;
+  json_t* j_tmp;
+
+  if((name == NULL) || (server_uri == NULL) || (client_uri == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  j_tmp = json_pack("{"
+      "s:s, s:s, s:s, "
+      "s:s, "
+      "s:s, s:s, s:s "
+      "}",
+
+      "outbound_auth",  name,
+      "server_uri",   server_uri,
+      "client_uri",   client_uri,
+
+      "retry_interval", "60",
+
+      "line",       "yes",
+      "endpoint",   name,
+      "transport",  DEF_TRANSPORT_NAME_UDP
+      );
+
+  ret = cfg_create_registration_info(name, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not create registration with default info.");
+    return false;
+  }
+
+  return true;
+}
+
+bool pjsip_cfg_create_auth_info(const char* name, const char* username, const char* password)
+{
+  int ret;
+  json_t* j_tmp;
+
+  if((name == NULL) || (username == NULL) || (password == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  // create auth
+  j_tmp = json_pack("{s:s, s:s, s:s}",
+      "auth_type",    "userpass",
+      "username",     username,
+      "password",     password
+      );
+
+  ret = cfg_create_auth_info(name, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not create auth info.");
+    return false;
+  }
+
+  return true;
+}
+
+bool pjsip_cfg_create_aor_info(const char* name, const char* contact)
+{
+  int ret;
+  json_t* j_tmp;
+
+  if((name == NULL) || (contact == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  j_tmp = json_pack("{s:s}",
+      "contact", contact
+      );
+
+  ret = cfg_create_aor_info(name, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not create aor info.");
+    return false;
+  }
+
+  return true;
+}
+
+bool pjsip_cfg_create_endpoint_with_default_info(const char* name, const char* context)
+{
+  int ret;
+  json_t* j_tmp;
+
+  if((name == NULL) || (context == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  j_tmp = json_pack("{s:s, s:s, s:s, s:s}",
+      "outbound_auth",  name,
+      "aors",           name,
+      "context",        context,
+      "allow",          "ulaw"
+      );
+
+  ret = cfg_create_endpoint_info(name, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not create endpoint info.");
+    return false;
+  }
+
+  return true;
+}
+
+bool pjsip_cfg_create_identify_info(const char* name, const char* match)
+{
+  int ret;
+  json_t* j_tmp;
+
+  if((name == NULL) || (match == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  j_tmp = json_pack("{s:s, s:s}",
+      "endpoint",     name,
+      "match",        match
+      );
+
+  ret = cfg_create_identify_info(name, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not create identify info.");
+    return false;
+  }
+
+  return true;
+}
+

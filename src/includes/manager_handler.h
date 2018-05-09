@@ -9,6 +9,7 @@
 #define SRC_INCLUDES_MANAGER_HANDLER_H_
 
 #include <stdbool.h>
+#include <evhtp.h>
 
 bool manager_init_handler(void);
 bool manager_term_handler(void);
@@ -29,5 +30,7 @@ void manager_htp_get_manager_users_detail(evhtp_request_t *req, void *data);
 void manager_htp_put_manager_users_detail(evhtp_request_t *req, void *data);
 void manager_htp_delete_manager_users_detail(evhtp_request_t *req, void *data);
 
+void manager_htp_post_manager_trunks(evhtp_request_t *req, void *data);
+void manager_htp_get_manager_trunks(evhtp_request_t *req, void *data);
 
 #endif /* SRC_INCLUDES_MANAGER_HANDLER_H_ */
