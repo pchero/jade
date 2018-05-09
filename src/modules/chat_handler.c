@@ -275,6 +275,9 @@ static bool db_create_table_chat_message(const char* table_name)
       "   uuid_room         varchar(255),"    // uuid of room
       "   uuid_owner        varchar(255),"    // message owner's uuid
 
+      "   username          varchar(255),"
+      "   name              varchar(255),"
+
       "   message           text,"            // message
 
       // timestamp. UTC."
@@ -1383,6 +1386,9 @@ static bool create_message(const char* uuid_message, const char* uuid_room, cons
 {
   int ret;
   char* timestamp;
+  const char* username;
+  const char* name;
+  json_t* j_user;
   json_t* j_room;
   json_t* j_data;
   const char* message_table;
@@ -1434,10 +1440,20 @@ static bool create_message(const char* uuid_message, const char* uuid_room, cons
     return false;
   }
 
+  // get user info
+  j_user = user_get_userinfo_info(uuid_user);
+  if(j_user == NULL) {
+    slog(LOG_NOTICE, "Could not get user info.");
+    json_decref(j_room);
+    return false;
+  }
+  username = json_string_value(json_object_get(j_user, "username"));
+  name = json_string_value(json_object_get(j_user, "name"));
+
   // create data info
   timestamp = utils_get_utc_timestamp();
   j_data = json_pack("{"
-      "s:s, s:s, s:s, "
+      "s:s, s:s, s:s, s:s, s:s, "
       "s:O, "
       "s:s "
       "}",
@@ -1445,6 +1461,8 @@ static bool create_message(const char* uuid_message, const char* uuid_room, cons
       "uuid",         uuid_message,
       "uuid_owner",   uuid_user,
       "uuid_room",    uuid_room,
+      "username",     username? : "",
+      "name",         name? : "",
 
       "message",      j_message,
 
@@ -1455,6 +1473,7 @@ static bool create_message(const char* uuid_message, const char* uuid_room, cons
   // create message
   ret = db_create_chat_message_info(message_table, j_data);
   json_decref(j_room);
+  json_decref(j_user);
   json_decref(j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not create message info.");
