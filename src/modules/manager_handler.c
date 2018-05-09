@@ -1194,7 +1194,6 @@ static json_t* get_trunks_all(void)
   json_t* j_tmp;
   json_t* j_regs;
   json_t* j_reg;
-  void* iter;
   const char* name;
   int idx;
 
@@ -1206,13 +1205,11 @@ static json_t* get_trunks_all(void)
 
   j_res = json_array();
   json_array_foreach(j_regs, idx, j_reg) {
-    iter = json_object_iter(j_reg);
-    if(iter == NULL) {
-      slog(LOG_ERR, "Could not get iterator of json.");
+    name = json_string_value(json_object_get(j_reg, "name"));
+    if(name == NULL) {
       continue;
     }
 
-    name = json_object_iter_key(iter);
     j_tmp = get_trunk_info(name);
     if(j_tmp == NULL) {
       continue;
@@ -1308,6 +1305,13 @@ static bool create_trunk_info(const json_t* j_data)
   if(ret == false) {
     slog(LOG_NOTICE, "Could not create identify info.");
     delete_trunk_info(name);
+    return false;
+  }
+
+  // reload pjsip config
+  ret = pjsip_reload_config();
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not reload pjsip_handler.");
     return false;
   }
 

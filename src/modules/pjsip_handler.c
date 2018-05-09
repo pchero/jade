@@ -349,7 +349,10 @@ static bool init_config_default_info(void)
 
   // create default transport udp
   j_tmp = pjsip_cfg_get_transport_info(DEF_TRANSPORT_NAME_UDP);
-  if(j_tmp == NULL) {
+  if(j_tmp != NULL) {
+    json_decref(j_tmp);
+  }
+  else {
     j_data = json_pack("{s:s, s:s}",
         "protocol",   "udp",
         "bind",       "0.0.0.0"
@@ -364,7 +367,10 @@ static bool init_config_default_info(void)
 
   // create default transport tcp
   j_tmp = pjsip_cfg_get_transport_info(DEF_TRANSPORT_NAME_TCP);
-  if(j_tmp == NULL) {
+  if(j_tmp != NULL) {
+    json_decref(j_tmp);
+  }
+  else  {
     j_data = json_pack("{s:s, s:s}",
         "protocol",   "tcp",
         "bind",       "0.0.0.0"
@@ -379,7 +385,10 @@ static bool init_config_default_info(void)
 
   // create default transport wss
   j_tmp = pjsip_cfg_get_transport_info(DEF_TRANSPORT_NAME_WSS);
-  if(j_tmp == NULL) {
+  if(j_tmp != NULL) {
+    json_decref(j_tmp);
+  }
+  else {
     j_data = json_pack("{s:s, s:s}",
         "protocol",   "wss",
         "bind",       "0.0.0.0"
@@ -5304,7 +5313,7 @@ bool pjsip_cfg_create_registration_with_default_info(const char* name, const cha
       "server_uri",   server_uri,
       "client_uri",   client_uri,
 
-      "retry_interval", "60"
+      "retry_interval", "60",
 
       "line",       "yes",
       "endpoint",   name,
