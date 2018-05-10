@@ -15,6 +15,9 @@ bool pjsip_init_handler(void);
 bool pjsip_reload_handler(void);
 bool pjsip_term_handler(void);
 
+bool pjsip_register_callback_mod(bool (*func)(enum EN_RESOURCE_UPDATE_TYPES, const json_t*));
+bool pjsip_register_callback_registration_outbound(bool (*func)(enum EN_RESOURCE_UPDATE_TYPES, const json_t*));
+
 // endpoint
 bool pjsip_create_endpoint_info(const json_t* j_data);
 bool pjsip_update_endpoint_info(const json_t* j_data);
@@ -49,6 +52,7 @@ bool pjsip_update_registration_inbound_info(const json_t* j_data);
 bool pjsip_delete_registration_inbound_info(const char* key);
 
 // registration outbound
+json_t* pjsip_get_registration_outbound_info(const char* key);
 bool pjsip_create_registration_outbound_info(const json_t* j_data);
 bool pjsip_update_registration_outbound_info(const json_t* j_data);
 bool pjsip_delete_registration_outbound_info(const char* key);

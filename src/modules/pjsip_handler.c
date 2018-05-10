@@ -60,6 +60,13 @@ enum EN_OBJ_TYPES {
 
 extern app* g_app;
 
+static struct st_callback* g_callback_mod;
+
+static struct st_callback* g_callback_registration_outbound;
+
+
+static bool init_callbacks(void);
+static bool term_callbacks(void);
 
 static bool init_databases(void);
 static bool init_pjsip_database_aor(void);
@@ -151,6 +158,9 @@ static bool cfg_create_transport_info(const char* name, const json_t* j_data);
 static bool cfg_update_transport_info(const char* name, const json_t* j_data);
 static bool cfg_delete_transport_info(const char* name);
 
+static void execute_callbacks_mod(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
+static void execute_callbacks_registration_outbound(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
+
 
 bool pjsip_init_handler(void)
 {
@@ -172,6 +182,12 @@ bool pjsip_init_handler(void)
     return false;
   }
 
+  ret = init_callbacks();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate callbacks.");
+    return false;
+  }
+
   // init resources
   ret = init_resources();
   if(ret == false) {
@@ -185,10 +201,26 @@ bool pjsip_init_handler(void)
 bool pjsip_term_handler(void)
 {
   int ret;
+  char* timestamp;
+  json_t* j_tmp;
+
+  // execute pjsip unload callback
+  timestamp = utils_get_utc_timestamp();
+  j_tmp = json_pack("{s:s}", "timestamp", timestamp);
+  sfree(timestamp);
+
+  execute_callbacks_mod(EN_RESOURCE_UNLOAD, j_tmp);
+  json_decref(j_tmp);
 
   ret = term_pjsip_databases();
   if(ret == false) {
     slog(LOG_ERR, "Could not clear pjsip info.");
+    return false;
+  }
+
+  ret = term_callbacks();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not terminate callbacks.");
     return false;
   }
 
@@ -198,14 +230,35 @@ bool pjsip_term_handler(void)
 bool pjsip_reload_handler(void)
 {
   int ret;
+  json_t* j_tmp;
+  char* timestamp;
 
-  ret = pjsip_term_handler();
+  // execute pjsip reload callback
+  timestamp = utils_get_utc_timestamp();
+  j_tmp = json_pack("{s:s}", "timestamp", timestamp);
+  sfree(timestamp);
+
+  execute_callbacks_mod(EN_RESOURCE_RELOAD, j_tmp);
+  json_decref(j_tmp);
+
+  // init config
+  ret = init_configs();
   if(ret == false) {
+    slog(LOG_ERR, "Could not initiate pjsip config.");
     return false;
   }
 
-  ret = pjsip_init_handler();
+  // init database
+  ret = init_databases();
   if(ret == false) {
+    slog(LOG_ERR, "Could not initiate pjsip database.");
+    return false;
+  }
+
+  // init resources
+  ret = init_resources();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate resources.");
     return false;
   }
 
@@ -441,6 +494,23 @@ static bool init_resources(void)
     slog(LOG_ERR, "Could not send ami action. action[%s]", "PJSIPShowRegistrationsInbound");
     return false;
   }
+
+  return true;
+}
+
+static bool init_callbacks(void)
+{
+  // registration_outbound
+  g_callback_registration_outbound = utils_create_callback();
+  g_callback_mod = utils_create_callback();
+
+  return true;
+}
+
+static bool term_callbacks(void)
+{
+  utils_terminate_callback(g_callback_registration_outbound);
+  utils_terminate_callback(g_callback_mod);
 
   return true;
 }
@@ -3439,6 +3509,8 @@ bool pjsip_delete_registration_inbound_info(const char* key)
 static bool db_create_registration_outbound_info(const json_t* j_data)
 {
   int ret;
+  json_t* j_tmp;
+  const char* key;
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -3453,12 +3525,32 @@ static bool db_create_registration_outbound_info(const json_t* j_data)
     return false;
   }
 
+  // get key
+  key = json_string_value(json_object_get(j_data, "object_name"));
+  if(key == NULL) {
+    slog(LOG_NOTICE, "Could not get object_name info.");
+    return false;
+  }
+
+  // get created info
+  j_tmp = pjsip_get_registration_outbound_info(key);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get created registration outbound info.");
+    return false;
+  }
+
+  // execute registered callbacks
+  execute_callbacks_registration_outbound(EN_RESOURCE_CREATE, j_tmp);
+  json_decref(j_tmp);
+
   return true;
 }
 
 static bool db_update_registration_outbound_info(const json_t* j_data)
 {
   int ret;
+  const char* key;
+  json_t* j_tmp;
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -3473,12 +3565,31 @@ static bool db_update_registration_outbound_info(const json_t* j_data)
     return false;
   }
 
+  // get key
+  key = json_string_value(json_object_get(j_data, "object_name"));
+  if(key == NULL) {
+    slog(LOG_NOTICE, "Could not get object_name info.");
+    return false;
+  }
+
+  // get updated info
+  j_tmp = pjsip_get_registration_outbound_info(key);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get created registration outbound info.");
+    return false;
+  }
+
+  // execute registered callbacks
+  execute_callbacks_registration_outbound(EN_RESOURCE_UPDATE, j_tmp);
+  json_decref(j_tmp);
+
   return true;
 }
 
 static bool db_delete_registration_outbound_info(const char* key)
 {
   int ret;
+  json_t* j_tmp;
 
   if(key == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -3486,13 +3597,47 @@ static bool db_delete_registration_outbound_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired db_delete_registration_outbound_info. key[%s]", key);
 
-  ret = resource_delete_mem_items_string(DEF_DB_TABLE_PJSIP_REGISTRATION_OUTBOUND, "object_name", key);
-  if(ret == false) {
-    slog(LOG_WARNING, "Could not delete pjsip_registration_outbound info. key[%s]", key);
+  // get delete info
+  j_tmp = pjsip_get_registration_outbound_info(key);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "No delete info.");
     return false;
   }
 
+  ret = resource_delete_mem_items_string(DEF_DB_TABLE_PJSIP_REGISTRATION_OUTBOUND, "object_name", key);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not delete pjsip_registration_outbound info. key[%s]", key);
+    json_decref(j_tmp);
+    return false;
+  }
+
+  // execute registered callbacks
+  execute_callbacks_registration_outbound(EN_RESOURCE_DELETE, j_tmp);
+  json_decref(j_tmp);
+
   return true;
+}
+
+/**
+ * Return the given registraion_outbound info.
+ * @param key
+ * @return
+ */
+json_t* pjsip_get_registration_outbound_info(const char* key)
+{
+  json_t* j_res;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  j_res = resource_get_mem_detail_item_key_string(DEF_DB_TABLE_PJSIP_REGISTRATION_OUTBOUND, "object_name", key);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
 }
 
 /**
@@ -5431,5 +5576,85 @@ bool pjsip_cfg_create_identify_info(const char* name, const char* match)
   }
 
   return true;
+}
+
+/**
+ * Register the callback for pjsip reload
+ */
+bool pjsip_register_callback_mod(bool (*func)(enum EN_RESOURCE_UPDATE_TYPES, const json_t*))
+{
+  int ret;
+
+  if(func == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired pjsip_register_callback_reload.");
+
+  ret = utils_register_callback(g_callback_mod, func);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not register callback for registration_outbound.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Execute the registered callbacks for this module
+ * @param j_data
+ */
+static void execute_callbacks_mod(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data)
+{
+  slog(LOG_DEBUG, "Fired execute_callbacks_reload.");
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+
+  utils_execute_callbacks(g_callback_mod, type, j_data);
+
+  return;
+}
+
+
+/**
+ * Register callback for registration_outbound
+ */
+bool pjsip_register_callback_registration_outbound(bool (*func)(enum EN_RESOURCE_UPDATE_TYPES, const json_t*))
+{
+  int ret;
+
+  if(func == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired pjsip_register_callback_registration_outbound.");
+
+  ret = utils_register_callback(g_callback_registration_outbound, func);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not register callback for registration_outbound.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Execute the registered callbacks for registration_outbound
+ * @param j_data
+ */
+static void execute_callbacks_registration_outbound(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data)
+{
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired execute_callbacks_registration_outbound.");
+
+  utils_execute_callbacks(g_callback_registration_outbound, type, j_data);
+
+  return;
 }
 

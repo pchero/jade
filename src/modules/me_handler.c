@@ -2045,6 +2045,7 @@ static char* get_callable_contact_from_useruuid(const char* uuid_user)
     slog(LOG_WARNING, "Wrong input parameter.");
     return NULL;
   }
+  slog(LOG_DEBUG, "Fired get_callable_contact_from_useruuid. uuid[%s]", uuid_user);
 
   // get user's contacts
   j_contacts = user_get_contacts_by_user_uuid(uuid_user);
@@ -2111,6 +2112,11 @@ static bool create_call_to_user(const json_t* j_user, const json_t* j_data)
   const char* tmp_const;
   char* source;
   char* destination;
+
+  if((j_user == NULL) || (j_data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
 
   // get source
   tmp_const = json_string_value(json_object_get(j_user, "uuid"));

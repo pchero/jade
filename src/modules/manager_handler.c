@@ -23,9 +23,11 @@
 
 #define DEF_MANAGER_AUTHTOKEN_TYPE          "manager"
 
-#define DEF_PUBLISH_TOPIC_PREFIX_MANAGER     "/manager"
+#define DEF_PUBLISH_TOPIC_PREFIX_MANAGER     "/manager"   // topic: DEF_PUBLISH_TOPIC_PREFIX_MANAGER_INFO
 
-#define DEF_PUB_EVENT_PREFIX_MANAGER_USER    "manager.user"             // topic: DEF_PUBLISH_TOPIC_PREFIX_ME_INFO
+#define DEF_PUB_EVENT_PREFIX_MANAGER_NOTICE   "manager.notice"
+#define DEF_PUB_EVENT_PREFIX_MANAGER_USER     "manager.user"
+#define DEF_PUB_EVENT_PREFIX_MANAGER_TRUNK    "manager.trunk"
 
 static json_t* get_users_all(void);
 static json_t* get_user_info(const char* uuid_user);
@@ -55,6 +57,9 @@ static bool is_exist_trunk(const char* name);
 static bool cb_resource_handler_user_userinfo(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
 static bool cb_resource_handler_user_permission(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
 
+static bool cb_resource_handler_pjsip_mod(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
+static bool cb_resource_handler_pjsip_registration_outbound(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
+
 
 bool manager_init_handler(void)
 {
@@ -62,6 +67,9 @@ bool manager_init_handler(void)
   // register callback
   user_register_callback_userinfo(&cb_resource_handler_user_userinfo);
   user_register_callback_permission(&cb_resource_handler_user_permission);
+
+  pjsip_register_callback_mod(&cb_resource_handler_pjsip_mod);
+  pjsip_register_callback_registration_outbound(&cb_resource_handler_pjsip_registration_outbound);
 
   return true;
 }
@@ -1140,6 +1148,136 @@ static bool cb_resource_handler_user_permission(enum EN_RESOURCE_UPDATE_TYPES ty
   return true;
 }
 
+/**
+ * Callback handler for pjsip_registration_outbound.
+ * @param type
+ * @param j_data
+ * @return
+ */
+static bool cb_resource_handler_pjsip_registration_outbound(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data)
+{
+  char* topic;
+  int ret;
+  const char* tmp_const;
+  json_t* j_event;
+  enum EN_PUBLISH_TYPES event_type;
+
+  if((j_data == NULL)){
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired cb_resource_handler_pjsip_registration_outbound.");
+
+  // create event depends on type
+  if(type == EN_RESOURCE_CREATE) {
+    // set event type
+
+    // not create. it's update
+    // because of, when the pjsip_registration_outbound has been updated, it's already
+    // after the configuration item created.
+    event_type = EN_PUBLISH_UPDATE;
+
+    // get info
+    tmp_const = json_string_value(json_object_get(j_data, "object_name"));
+    if(tmp_const == NULL) {
+      slog(LOG_NOTICE, "Could not get registration outbound object_name.");
+      return false;
+    }
+
+    // create event
+    j_event = get_trunk_info(tmp_const);
+    if(j_event == NULL) {
+      slog(LOG_NOTICE, "Could not create event trunk info.");
+      return false;
+    }
+  }
+  else if(type == EN_RESOURCE_UPDATE) {
+    // set event type
+    event_type = EN_PUBLISH_UPDATE;
+
+    // get info
+    tmp_const = json_string_value(json_object_get(j_data, "object_name"));
+    if(tmp_const == NULL) {
+      slog(LOG_NOTICE, "Could not get registration outbound object_name.");
+      return false;
+    }
+
+    // create event
+    j_event = get_trunk_info(tmp_const);
+    if(j_event == NULL) {
+      slog(LOG_NOTICE, "Could not create event trunk info.");
+      return false;
+    }
+  }
+  else {
+    slog(LOG_ERR, "Unsupported resource update type. type[%d]", type);
+    return false;
+  }
+
+  // create topic
+  asprintf(&topic, "%s", DEF_PUBLISH_TOPIC_PREFIX_MANAGER);
+
+  // publish event
+  ret = publication_publish_event(topic, DEF_PUB_EVENT_PREFIX_MANAGER_TRUNK, event_type, j_event);
+  sfree(topic);
+  json_decref(j_event);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Callback handler for pjsip module
+ * @param type
+ * @param j_data
+ * @return
+ */
+static bool cb_resource_handler_pjsip_mod(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data)
+{
+  char* topic;
+  int ret;
+  json_t* j_event;
+  enum EN_PUBLISH_TYPES event_type;
+
+  if((j_data == NULL)){
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired cb_resource_handler_pjsip_mod.");
+
+  if(type == EN_RESOURCE_RELOAD) {
+    event_type = EN_PUBLISH_CREATE;
+
+    j_event = json_pack("{s:s, s[{s:s}]}",
+        "type",       "reload",
+        "modules",
+          "name", "trunk"
+        );
+  }
+  else {
+    // something was wrong
+    slog(LOG_ERR, "Unsupported resource update type. type[%d]", type);
+    return false;
+  }
+
+  // create topic
+  asprintf(&topic, "%s", DEF_PUBLISH_TOPIC_PREFIX_MANAGER);
+
+  // publish event
+  ret = publication_publish_event(topic, DEF_PUB_EVENT_PREFIX_MANAGER_NOTICE, event_type, j_event);
+  sfree(topic);
+  json_decref(j_event);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
+  return true;
+}
+
 static json_t* get_trunk_info(const char* name)
 {
   json_t* j_tmp;
@@ -1153,7 +1291,7 @@ static json_t* get_trunk_info(const char* name)
   j_res = json_object();
   json_object_set_new(j_res, "name", json_string(name));
 
-  // get registration
+  // get cfg registration
   j_tmp = pjsip_cfg_get_registration_info(name);
   if(j_tmp  == NULL) {
     slog(LOG_NOTICE, "No registration info. name[%s]", name);
@@ -1164,25 +1302,35 @@ static json_t* get_trunk_info(const char* name)
   json_object_set(j_res, "client_uri", json_object_get(j_tmp, "client_uri"));
   json_decref(j_tmp);
 
-  // get auth
+  // get cfg auth
   j_tmp = pjsip_cfg_get_auth_info(name);
   json_object_set(j_res, "username", json_object_get(j_tmp, "username"));
   json_object_set(j_res, "password", json_object_get(j_tmp, "password"));
   json_decref(j_tmp);
 
-  // get aor
+  // get cfg aor
   j_tmp = pjsip_cfg_get_aor_info(name);
   json_object_set(j_res, "contact", json_object_get(j_tmp, "contact"));
   json_decref(j_tmp);
 
-  // get endpoint
+  // get cfg endpoint
   j_tmp = pjsip_cfg_get_endpoint_info(name);
   json_object_set(j_res, "context", json_object_get(j_tmp, "context"));
   json_decref(j_tmp);
 
-  // get identify
+  // get cfg identify
   j_tmp = pjsip_cfg_get_identify_info(name);
-  json_object_set(j_res, "hostname", json_object_get(j_tmp, "match"));
+  json_object_set_new(j_res, "hostname", json_object_get(j_tmp, "match")? json_incref(json_object_get(j_tmp, "match")) : json_string(""));
+  json_decref(j_tmp);
+
+  // get registration_outbound
+  j_tmp = pjsip_get_registration_outbound_info(name);
+  if(j_tmp != NULL) {
+    json_object_set(j_res, "status", json_object_get(j_tmp, "status"));
+  }
+  else {
+    json_object_set_new(j_res, "status", json_string("Unregistered"));
+  }
   json_decref(j_tmp);
 
   return j_res;

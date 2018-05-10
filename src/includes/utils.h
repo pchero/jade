@@ -21,6 +21,10 @@ enum EN_RESOURCE_UPDATE_TYPES {
   EN_RESOURCE_CREATE   = 1,
   EN_RESOURCE_UPDATE   = 2,
   EN_RESOURCE_DELETE   = 3,
+
+  EN_RESOURCE_LOAD    = 10,
+  EN_RESOURCE_UNLOAD  = 11,
+  EN_RESOURCE_RELOAD  = 12,
 };
 
 struct st_callback {
@@ -56,7 +60,7 @@ char* utils_string_replace_char(const char* str, const char org, const char targ
 
 bool utils_register_callback(struct st_callback* callback, bool (*func)(enum EN_RESOURCE_UPDATE_TYPES, const json_t*));
 struct st_callback* utils_create_callback(void);
-void utils_terminiate_callback(struct st_callback* callback);
+void utils_terminate_callback(struct st_callback* callback);
 
 void utils_execute_callbacks(struct st_callback* callbacks, enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
 

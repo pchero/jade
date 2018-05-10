@@ -143,9 +143,9 @@ static bool init_callbacks(void)
 
 static bool term_callbacks(void)
 {
-  utils_terminiate_callback(g_callback_userroom);
-  utils_terminiate_callback(g_callback_message);
-  utils_terminiate_callback(g_callback_room);
+  utils_terminate_callback(g_callback_userroom);
+  utils_terminate_callback(g_callback_message);
+  utils_terminate_callback(g_callback_room);
 
   return true;
 }

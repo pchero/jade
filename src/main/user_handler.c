@@ -2887,9 +2887,9 @@ static bool init_callback(void)
 
 static bool term_callback(void)
 {
-  utils_terminiate_callback(g_callback_userinfo);
-  utils_terminiate_callback(g_callback_buddy);
-  utils_terminiate_callback(g_callback_permission);
+  utils_terminate_callback(g_callback_userinfo);
+  utils_terminate_callback(g_callback_buddy);
+  utils_terminate_callback(g_callback_permission);
 
   return true;
 }

@@ -614,6 +614,7 @@ static json_t* get_detail_items_by_obj(db_ctx_t* ctx, const char* table, json_t*
 
   sql_cond = db_ctx_get_condition_str(j_obj);
   if(sql_cond == NULL) {
+    slog(LOG_WARNING, "Could not get condition string.");
     return NULL;
   }
 

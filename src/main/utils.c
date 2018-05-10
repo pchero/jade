@@ -561,7 +561,7 @@ struct st_callback* utils_create_callback(void)
   return callback;
 }
 
-void utils_terminiate_callback(struct st_callback* callback)
+void utils_terminate_callback(struct st_callback* callback)
 {
   if(callback == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
