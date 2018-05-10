@@ -66,10 +66,12 @@ bool pjsip_reload_config(void);
 
 json_t* pjsip_cfg_get_aor_info(const char* name);
 bool pjsip_cfg_create_aor_info(const char* name, const char* contact);
+bool pjsip_cfg_update_aor_info(const char* name, const json_t* j_data);
 bool pjsip_cfg_delete_aor_info(const char* name);
 
 json_t* pjsip_cfg_get_auth_info(const char* name);
 bool pjsip_cfg_create_auth_info(const char* name, const char* username, const char* password);
+bool pjsip_cfg_update_auth_info(const char* name, const json_t* j_data);
 bool pjsip_cfg_delete_auth_info(const char* name);
 
 json_t* pjsip_cfg_get_contact_info(const char* name);
@@ -77,15 +79,18 @@ bool pjsip_cfg_delete_contact_info(const char* name);
 
 json_t* pjsip_cfg_get_endpoint_info(const char* name);
 bool pjsip_cfg_create_endpoint_with_default_info(const char* name, const char* context);
+bool pjsip_cfg_update_endpoint_info(const char* name, const json_t* j_data);
 bool pjsip_cfg_delete_endpoint_info(const char* name);
 
 json_t* pjsip_cfg_get_identify_info(const char* name);
 bool pjsip_cfg_create_identify_info(const char* name, const char* match);
+bool pjsip_cfg_update_identify_info(const char* name, const json_t* j_data);
 bool pjsip_cfg_delete_identify_info(const char* name);
 
 json_t* pjsip_cfg_get_registrations_all(void);
 json_t* pjsip_cfg_get_registration_info(const char* name);
 bool pjsip_cfg_create_registration_with_default_info(const char* name, const char* server_uri, const char* client_uri);
+bool pjsip_cfg_update_registration_info(const char* name, const json_t* j_data);
 bool pjsip_cfg_delete_registration_info(const char* name);
 
 json_t* pjsip_cfg_get_transport_info(const char* name);

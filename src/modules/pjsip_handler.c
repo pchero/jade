@@ -5475,6 +5475,25 @@ bool pjsip_cfg_create_registration_with_default_info(const char* name, const cha
   return true;
 }
 
+bool pjsip_cfg_update_registration_info(const char* name, const json_t* j_data)
+{
+  int ret;
+
+  if((name == NULL) || (j_data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired pjsip_cfg_update_registration_info. name[%s]", name);
+
+  ret = cfg_update_registration_info(name, j_data);
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not update registration info.");
+    return false;
+  }
+
+  return true;
+}
+
 bool pjsip_cfg_create_auth_info(const char* name, const char* username, const char* password)
 {
   int ret;
@@ -5502,6 +5521,25 @@ bool pjsip_cfg_create_auth_info(const char* name, const char* username, const ch
   return true;
 }
 
+bool pjsip_cfg_update_auth_info(const char* name, const json_t* j_data)
+{
+  int ret;
+
+  if((name == NULL) || (j_data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired pjsip_cfg_update_auth_info. name[%s]", name);
+
+  ret = cfg_update_auth_info(name, j_data);
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not update auth info.");
+    return false;
+  }
+
+  return true;
+}
+
 bool pjsip_cfg_create_aor_info(const char* name, const char* contact)
 {
   int ret;
@@ -5520,6 +5558,25 @@ bool pjsip_cfg_create_aor_info(const char* name, const char* contact)
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not create aor info.");
+    return false;
+  }
+
+  return true;
+}
+
+bool pjsip_cfg_update_aor_info(const char* name, const json_t* j_data)
+{
+  int ret;
+
+  if((name == NULL) || (j_data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired pjsip_cfg_update_aor_info. name[%s]", name);
+
+  ret = cfg_update_aor_info(name, j_data);
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not update aor info.");
     return false;
   }
 
@@ -5553,6 +5610,25 @@ bool pjsip_cfg_create_endpoint_with_default_info(const char* name, const char* c
   return true;
 }
 
+bool pjsip_cfg_update_endpoint_info(const char* name, const json_t* j_data)
+{
+  int ret;
+
+  if((name == NULL) || (j_data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired pjsip_cfg_update_endpoint_info. name[%s]", name);
+
+  ret = cfg_update_endpoint_info(name, j_data);
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not update endpoint info.");
+    return false;
+  }
+
+  return true;
+}
+
 bool pjsip_cfg_create_identify_info(const char* name, const char* match)
 {
   int ret;
@@ -5572,6 +5648,25 @@ bool pjsip_cfg_create_identify_info(const char* name, const char* match)
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not create identify info.");
+    return false;
+  }
+
+  return true;
+}
+
+bool pjsip_cfg_update_identify_info(const char* name, const json_t* j_data)
+{
+  int ret;
+
+  if((name == NULL) || (j_data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired pjsip_cfg_update_identify_info. name[%s]", name);
+
+  ret = cfg_update_identify_info(name, j_data);
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not update identify info.");
     return false;
   }
 

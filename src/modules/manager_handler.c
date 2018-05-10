@@ -50,7 +50,8 @@ static bool update_user_user(const char* uuid_user, const json_t* j_data);
 static json_t* get_trunks_all(void);
 static json_t* get_trunk_info(const char* name);
 static bool create_trunk_info(const json_t* j_data);
-static void delete_trunk_info(const char* name);
+static bool update_trunk_info(const char* name, const json_t* j_data);
+static bool delete_trunk_info(const char* name);
 
 static bool is_exist_trunk(const char* name);
 
@@ -536,6 +537,148 @@ void manager_htp_get_manager_trunks(evhtp_request_t *req, void *data)
   j_res = http_create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", json_object());
   json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * GET ^/manager/trunks/<detail> request handler.
+ * @param req
+ * @param data
+ */
+void manager_htp_get_manager_trunks_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+  char* detail;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired manager_htp_get_manager_trunks_detail.");
+
+  // detail parse
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // get user info
+  j_tmp = get_trunk_info(detail);
+  sfree(detail);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get manager trunk info.");
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", j_tmp);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * DELETE ^/manager/trunks/<detail> request handler.
+ * @param req
+ * @param data
+ */
+void manager_htp_delete_manager_trunks_detail(evhtp_request_t *req, void *data)
+{
+  int ret;
+  json_t* j_res;
+  char* detail;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired manager_htp_delete_manager_trunks_detail.");
+
+  // detail parse
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // delete user info
+  ret = delete_trunk_info(detail);
+  sfree(detail);
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not delete manager trunk info.");
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * PUT ^/manager/trunks/<detail> request handler.
+ * @param req
+ * @param data
+ */
+void manager_htp_put_manager_trunks_detail(evhtp_request_t *req, void *data)
+{
+  int ret;
+  char* detail;
+  json_t* j_res;
+  json_t* j_data;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired manager_htp_put_manager_trunks_detail.");
+
+  // get detail
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // get data
+  j_data = http_get_json_from_request_data(req);
+  if(j_data == NULL) {
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    sfree(detail);
+    return;
+  }
+
+  // update info
+  ret = update_trunk_info(detail, j_data);
+  json_decref(j_data);
+  sfree(detail);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
 
   // response
   http_simple_response_normal(req, j_res);
@@ -1466,15 +1609,145 @@ static bool create_trunk_info(const json_t* j_data)
   return true;
 }
 
-static void delete_trunk_info(const char* name)
+static bool delete_trunk_info(const char* name)
 {
+  int ret;
+
+  if(name == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired delete_trunk_info");
+
   pjsip_cfg_delete_aor_info(name);
   pjsip_cfg_delete_auth_info(name);
   pjsip_cfg_delete_contact_info(name);
   pjsip_cfg_delete_endpoint_info(name);
   pjsip_cfg_delete_identify_info(name);
   pjsip_cfg_delete_registration_info(name);
-  return;
+
+  ret = pjsip_reload_config();
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not reload pjsip config.");
+    return false;
+  }
+
+  return true;
+}
+
+static bool update_trunk_info(const char* name, const json_t* j_data)
+{
+  int ret;
+  json_t* j_tmp;
+
+  if((name == NULL) || (j_data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired update_trunk_info.");
+
+
+  // check exist
+  ret = is_exist_trunk(name);
+  if(ret == false) {
+    slog(LOG_NOTICE, "The given trunk name is not exist. name[%s]", name);
+    return false;
+  }
+
+  // update registration
+  j_tmp = pjsip_cfg_get_registration_info(name);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get cfg registration info. name[%s]", name);
+    return false;
+  }
+  json_object_set_new(j_tmp, "server_uri",
+      json_object_get(j_data, "server_uri")? json_incref(json_object_get(j_data, "server_uri")) : json_string("")
+      );
+  json_object_set_new(j_tmp, "client_uri",
+      json_object_get(j_data, "client_uri")? json_incref(json_object_get(j_data, "client_uri")) : json_string("")
+      );
+  ret = pjsip_cfg_update_registration_info(name, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not update registration info.");
+    return false;
+  }
+
+  // update auth
+  j_tmp = pjsip_cfg_get_auth_info(name);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get cfg auth info. name[%s]", name);
+    return false;
+  }
+  json_object_set_new(j_tmp, "username",
+      json_object_get(j_data, "username")? json_incref(json_object_get(j_data, "username")) : json_string("")
+      );
+  json_object_set_new(j_tmp, "password",
+      json_object_get(j_data, "password")? json_incref(json_object_get(j_data, "password")) : json_string("")
+      );
+  ret = pjsip_cfg_update_auth_info(name, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not update registration info.");
+    return false;
+  }
+
+  // update aor
+  j_tmp = pjsip_cfg_get_aor_info(name);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get cfg aor info. name[%s]", name);
+    return false;
+  }
+  json_object_set_new(j_tmp, "contact",
+      json_object_get(j_data, "contact")? json_incref(json_object_get(j_data, "contact")) : json_string("")
+      );
+  ret = pjsip_cfg_update_aor_info(name, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not update aor info.");
+    return false;
+  }
+
+  // update endpoint
+  j_tmp = pjsip_cfg_get_endpoint_info(name);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get cfg endpoint info. name[%s]", name);
+    return false;
+  }
+  json_object_set_new(j_tmp, "context",
+      json_object_get(j_data, "context")? json_incref(json_object_get(j_data, "context")) : json_string("")
+      );
+  ret = pjsip_cfg_update_endpoint_info(name, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not update endpoint info.");
+    return false;
+  }
+
+  // update identify
+  j_tmp = pjsip_cfg_get_identify_info(name);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get cfg identify info. name[%s]", name);
+    return false;
+  }
+  json_object_set_new(j_tmp, "match",
+      json_object_get(j_data, "hostname")? json_incref(json_object_get(j_data, "hostname")) : json_string("")
+      );
+  ret = pjsip_cfg_update_identify_info(name, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not update identify info.");
+    return false;
+  }
+
+  // reload pjsip config
+  ret = pjsip_reload_config();
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not reload pjsip_handler.");
+    return false;
+  }
+
+  return true;
 }
 
 /**
