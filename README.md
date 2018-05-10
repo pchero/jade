@@ -31,7 +31,8 @@ Or may be used by either companies who wish to make calls on their own behalf, o
   * SIP
 
 * Chat
-  * Live chat.
+
+* Buddy
 
 * SMS(WIP)
 * Mail(WIP)
@@ -42,13 +43,23 @@ Or may be used by either companies who wish to make calls on their own behalf, o
 * https://rawgit.com/pchero/jade/master/doc/build/html/index.html
 
 ## Related project
+* jade-manager(https://github.com/pchero/jade-manager)
+  * Angular based simple web application for jade manager.
+  * Provide simplized of resource handling.
+  * Easy to add/modify/delete the resources such as user, trunk.
+  
 * jade-admin(https://github.com/pchero/jade-admin)
-  * Angular based simple web application for jade.
-  * Administrator tools for jade.
-* jade-agent(https://github.com/pchero/jade-agent) - WIP
+  * Angular based simple web application for jade adminstrator.
+  * Provide micro level of resource handling.
+  
+* jade-me(https://github.com/pchero/jade-me)
+  * Angular based simple web application for jade user.
+  * Provide chat, buddy, call services.
+  * Minor version of skype/wechat/facebook-messenger.
+  
+* jade-agent(https://github.com/pchero/jade-agent)
   * Angular based simple web application for jade.
   * Agent tools for jade.
-  * WebRTC support
 
 ## Demo
 * jade
@@ -59,10 +70,19 @@ Or may be used by either companies who wish to make calls on their own behalf, o
   * https://github.com/pchero/jade-me
   * Simple user tool for jade.
   * You can try jade-me web application at here.
+  * ID/Password
+  * test1/test1, test2/test2, ...
+  * https://project.pchero21.com:8202
+  * ![Screen Preview](https://raw.githubusercontent.com/pchero/jade-me/master/jade-me.png)
+
+* jade-manager
+  * https://github.com/pchero/jade-manager
+  * Simple manager tool for jade.
+  * You can try jade-admin web application at here.
   * ID: admin
   * Password: admin
-  * https://project.pchero21.com/jade-me/
-  * ![Screen Preview](https://raw.githubusercontent.com/pchero/jade-me/master/jade-me.png)
+  * https://project.pchero21.com:8203
+  * ![Screen Preview](https://raw.githubusercontent.com/pchero/jade-manager/master/jade-manager.png)
 
 * jade-admin
   * https://github.com/pchero/jade-admin
@@ -70,16 +90,16 @@ Or may be used by either companies who wish to make calls on their own behalf, o
   * You can try jade-admin web application at here.
   * ID: admin
   * Password: admin
-  * https://project.pchero21.com/jade-admin/
+  * https://project.pchero21.com:8200
   * ![Screen Preview](https://raw.githubusercontent.com/pchero/jade-admin/master/jade-admin.png)
-  
+
 * jade-agent
   * https://github.com/pchero/jade-agent
   * Simple agent tool for jade.
   * Webrtc(jssip) support.
-  * ID: admin
+  * ID: test1
   * Password: admin
-  * https://project.pchero21.com/jade-agent/
+  * https://project.pchero21.com:8201
   * ![Screen Preview](https://raw.githubusercontent.com/pchero/jade-agent/master/jade-agent.png)
 
 ## Library issue
