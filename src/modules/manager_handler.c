@@ -18,6 +18,7 @@
 #include "pjsip_handler.h"
 #include "chat_handler.h"
 #include "publication_handler.h"
+#include "dialplan_handler.h"
 
 #include "manager_handler.h"
 
@@ -29,12 +30,13 @@
 #define DEF_PUB_EVENT_PREFIX_MANAGER_USER     "manager.user"
 #define DEF_PUB_EVENT_PREFIX_MANAGER_TRUNK    "manager.trunk"
 
-static json_t* get_users_all(void);
-static json_t* get_user_info(const char* uuid_user);
-
+// info
 static json_t* get_manager_info(const json_t* j_user);
 static bool update_manager_info(const json_t* j_user, const json_t* j_data);
 
+// user
+static json_t* get_users_all(void);
+static json_t* get_user_info(const char* uuid_user);
 static bool create_user_info(const json_t* j_data);
 static bool create_user_contact(const char* uuid_user, const char* target);
 static bool create_user_permission(const char* uuid_user, const json_t* j_data);
@@ -47,6 +49,7 @@ static bool update_user_info(const char* uuid_user, const json_t* j_data);
 static bool update_user_permission(const char* uuid_user, const json_t* j_data);
 static bool update_user_user(const char* uuid_user, const json_t* j_data);
 
+// trunk
 static json_t* get_trunks_all(void);
 static json_t* get_trunk_info(const char* name);
 static bool create_trunk_info(const json_t* j_data);
@@ -55,6 +58,13 @@ static bool delete_trunk_info(const char* name);
 
 static bool is_exist_trunk(const char* name);
 
+
+// sdialplan
+static json_t* get_sdialplans_all(void);
+static bool create_sdialplan_info(const json_t* j_data);
+
+
+// callback
 static bool cb_resource_handler_user_userinfo(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
 static bool cb_resource_handler_user_permission(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
 
@@ -672,6 +682,84 @@ void manager_htp_put_manager_trunks_detail(evhtp_request_t *req, void *data)
   ret = update_trunk_info(detail, j_data);
   json_decref(j_data);
   sfree(detail);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * GET ^/manager/sdialplans request handler.
+ * @param req
+ * @param data
+ */
+void manager_htp_get_manager_sdialplans(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired manager_htp_get_manager_sdialplans.");
+
+  // get info
+  j_tmp = get_sdialplans_all();
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get sdialplan info.");
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", json_object());
+  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * POST ^/manager/sdialplans request handler.
+ * @param req
+ * @param data
+ */
+void manager_htp_post_manager_sdialplans(evhtp_request_t *req, void *data)
+{
+  int ret;
+  json_t* j_res;
+  json_t* j_data;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired manager_htp_post_manager_sdialplans.");
+
+  // get data
+  j_data = http_get_json_from_request_data(req);
+  if(j_data == NULL) {
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // create info
+  ret = create_sdialplan_info(j_data);
+  json_decref(j_data);
   if(ret == false) {
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
@@ -1804,5 +1892,48 @@ static bool is_exist_trunk(const char* name)
   return false;
 }
 
+static json_t* get_sdialplans_all(void)
+{
+  json_t* j_res;
 
+  j_res = dialplan_get_sdialplans_all();
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
+static bool create_sdialplan_info(const json_t* j_data)
+{
+  int ret;
+  void* iter;
+  const char* name;
+  json_t* j_sdialplan;
+  json_t* j_tmp;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  j_tmp = json_deep_copy(j_data);
+  iter = json_object_iter(j_tmp);
+  if(iter == NULL) {
+    slog(LOG_NOTICE, "Could not get iterator.");
+    return false;
+  }
+
+  name = json_object_iter_key(iter);
+  j_sdialplan = json_object_get(j_tmp, name);
+
+  ret = dialplan_create_sdialplan_info(name, j_sdialplan);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not create sdialplan info.");
+    return false;
+  }
+
+  return true;
+}
 

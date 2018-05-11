@@ -77,6 +77,7 @@ static void cb_htp_manager_login(evhtp_request_t *req, void *data);
 static void cb_htp_manager_info(evhtp_request_t *req, void *data);
 static void cb_htp_manager_users(evhtp_request_t *req, void *data);
 static void cb_htp_manager_users_detail(evhtp_request_t *req, void *data);
+static void cb_htp_manager_sdialplans(evhtp_request_t *req, void *data);
 static void cb_htp_manager_trunks(evhtp_request_t *req, void *data);
 static void cb_htp_manager_trunks_detail(evhtp_request_t *req, void *data);
 
@@ -252,6 +253,9 @@ bool http_init_handler(void)
 
   // info
   evhtp_set_regex_cb(g_htps, "^/v1/manager/info$", cb_htp_manager_info, NULL);
+
+  // sdialplans
+  evhtp_set_regex_cb(g_htps, "^/v1/manager/sdialplans$", cb_htp_manager_sdialplans, NULL);
 
   // trunks
   evhtp_set_regex_cb(g_htps, "^/v1/manager/trunks$", cb_htp_manager_trunks, NULL);
@@ -6443,3 +6447,54 @@ static void cb_htp_manager_trunks_detail(evhtp_request_t *req, void *data)
   return;
 }
 
+/**
+ * http request handler
+ * ^/manager/sdialplans$
+ * @param req
+ * @param data
+ */
+static void cb_htp_manager_sdialplans(evhtp_request_t *req, void *data)
+{
+  int method;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_manager_sdialplans.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if((method != htp_method_GET) && (method != htp_method_POST)) {
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // fire handlers
+  if(method == htp_method_GET) {
+    manager_htp_get_manager_sdialplans(req, data);
+    return;
+  }
+  else if(method == htp_method_POST) {
+    manager_htp_post_manager_sdialplans(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+
+  return;
+}
