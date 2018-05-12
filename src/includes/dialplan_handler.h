@@ -15,6 +15,8 @@ bool dialplan_init_handler(void);
 bool dialplan_term_handler(void);
 bool dialplan_reload_handler(void);
 
+bool dialplan_reload_asterisk(void);
+
 
 // dpma
 json_t* dialplan_get_dpmas_all(void);
@@ -38,6 +40,7 @@ char* dialplan_get_default_dpma_originate_to_device(void);
 
 // static dialplan
 json_t* dialplan_get_sdialplans_all(void);
+json_t* dialplan_get_sdialplan_info(const char* name);
 bool dialplan_create_sdialplan_info(const char* name, const json_t* j_data);
 bool dialplan_update_sdialplan_info(const char* name, const json_t* j_data);
 bool dialplan_delete_sdialplan_info(const char* name);

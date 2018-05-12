@@ -61,7 +61,10 @@ static bool is_exist_trunk(const char* name);
 
 // sdialplan
 static json_t* get_sdialplans_all(void);
+static json_t* get_sdialplan_info(const char* name);
 static bool create_sdialplan_info(const json_t* j_data);
+static bool update_sdialplan_info(const char* name, const json_t* j_data);
+static bool delete_sdialplan_info(const char* name);
 
 
 // callback
@@ -775,6 +778,147 @@ void manager_htp_post_manager_sdialplans(evhtp_request_t *req, void *data)
   return;
 }
 
+/**
+ * GET ^/manager/sdialplans/<detail> request handler.
+ * @param req
+ * @param data
+ */
+void manager_htp_get_manager_sdialplans_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+  char* detail;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired manager_htp_get_manager_sdialplans_detail.");
+
+  // detail parse
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // get info
+  j_tmp = get_sdialplan_info(detail);
+  sfree(detail);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get manager sdialplan info.");
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", j_tmp);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * DELETE ^/manager/sdialplans/<detail> request handler.
+ * @param req
+ * @param data
+ */
+void manager_htp_delete_manager_sdialplans_detail(evhtp_request_t *req, void *data)
+{
+  int ret;
+  json_t* j_res;
+  char* detail;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired manager_htp_delete_manager_sdialplans_detail.");
+
+  // detail parse
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // delete info
+  ret = delete_sdialplan_info(detail);
+  sfree(detail);
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not delete manager sdialplan info.");
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * PUT ^/manager/sdialplans/<detail> request handler.
+ * @param req
+ * @param data
+ */
+void manager_htp_put_manager_sdialplans_detail(evhtp_request_t *req, void *data)
+{
+  int ret;
+  char* detail;
+  json_t* j_res;
+  json_t* j_data;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired manager_htp_put_manager_sdialplans_detail.");
+
+  // get detail
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // get data
+  j_data = http_get_json_from_request_data(req);
+  if(j_data == NULL) {
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    sfree(detail);
+    return;
+  }
+
+  // update info
+  ret = update_sdialplan_info(detail, j_data);
+  json_decref(j_data);
+  sfree(detail);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
 
 static json_t* get_user_info(const char* uuid_user)
 {
@@ -1904,36 +2048,114 @@ static json_t* get_sdialplans_all(void)
   return j_res;
 }
 
+static json_t* get_sdialplan_info(const char* name)
+{
+  json_t* j_res;
+
+  if(name == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_sdialplan_info. name[%s]", name);
+
+  j_res = dialplan_get_sdialplan_info(name);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
 static bool create_sdialplan_info(const json_t* j_data)
 {
   int ret;
-  void* iter;
   const char* name;
-  json_t* j_sdialplan;
-  json_t* j_tmp;
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
 
-  j_tmp = json_deep_copy(j_data);
-  iter = json_object_iter(j_tmp);
-  if(iter == NULL) {
-    slog(LOG_NOTICE, "Could not get iterator.");
-    return false;
+  name = json_string_value(json_object_get(j_data, "name"));
+  if(name == NULL) {
+    slog(LOG_NOTICE, "Could not get name info.");
   }
 
-  name = json_object_iter_key(iter);
-  j_sdialplan = json_object_get(j_tmp, name);
-
-  ret = dialplan_create_sdialplan_info(name, j_sdialplan);
-  json_decref(j_tmp);
+  ret = dialplan_create_sdialplan_info(name, j_data);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not create sdialplan info.");
     return false;
   }
 
+  ret = dialplan_reload_asterisk();
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not reload dialplan asterisk module.");
+    return false;
+  }
+
   return true;
 }
+
+/**
+ * Update the given sdialplan info.
+ * @param name
+ * @param j_data
+ * @return
+ */
+static bool update_sdialplan_info(const char* name, const json_t* j_data)
+{
+  int ret;
+
+  if((name == NULL) || (j_data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired update_sdialplan_info. name[%s]", name);
+
+  ret = dialplan_update_sdialplan_info(name, j_data);
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not update sdialplan info. name[%s]", name);
+    return false;
+  }
+
+  ret = dialplan_reload_asterisk();
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not reload dialplan asterisk module.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Delete the given sdialplan info.
+ * @param name
+ * @param j_data
+ * @return
+ */
+static bool delete_sdialplan_info(const char* name)
+{
+  int ret;
+
+  if(name == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired delete_sdialplan_info. name[%s]", name);
+
+  ret = dialplan_delete_sdialplan_info(name);
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not delete sdialplan info. name[%s]", name);
+    return false;
+  }
+
+  ret = dialplan_reload_asterisk();
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not reload dialplan asterisk module.");
+    return false;
+  }
+
+  return true;
+}
+
 

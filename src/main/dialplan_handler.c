@@ -57,6 +57,7 @@ static bool is_exist_dialplan_info_uuid(const char* uuid);
 static bool cfg_create_sdialplan_info(const char* name, const json_t* j_data);
 static bool cfg_update_sdialplan_info(const char* name, const json_t* j_data);
 static bool cfg_delete_sdialplan_info(const char* name);
+static bool is_exist_sdialplan(const char* name);
 
 static bool send_setvar_for_agi_call(const char* agi_uuid);
 
@@ -1765,6 +1766,12 @@ static bool cfg_create_sdialplan_info(const char* name, const json_t* j_data)
   }
   slog(LOG_DEBUG, "Fired cfg_create_sdialplan_info. name[%s]", name);
 
+  ret = is_exist_sdialplan(name);
+  if(ret == true) {
+    slog(LOG_NOTICE, "Already exist sdialplan. name[%s]", name);
+    return false;
+  }
+
   ret = conf_create_ast_section_array(DEF_JADE_DIALPLAN_CONFNAME, name, j_data);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not create config for pjsip aor.");
@@ -1827,11 +1834,50 @@ json_t* dialplan_get_sdialplans_all(void)
 
   j_res = json_array();
   json_object_foreach(j_confs, tmp_const, j_conf) {
-    j_tmp = json_object();
-
-    json_object_set(j_tmp, tmp_const, j_conf);
-    json_array_append(j_res, j_tmp);
+    j_tmp = json_pack("{s:s, s:O}",
+        "name",       tmp_const,
+        "contents",   j_conf
+        );
+    json_array_append_new(j_res, j_tmp);
   }
+  json_decref(j_confs);
+
+  return j_res;
+}
+
+/**
+ * Returns given name of static dialplan info.
+ * @param name
+ * @return
+ */
+json_t* dialplan_get_sdialplan_info(const char* name)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+  json_t* j_confs;
+
+  if(name == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  // get config info
+  j_confs = conf_get_ast_current_config_info_array(DEF_JADE_DIALPLAN_CONFNAME);
+  if(j_confs == NULL) {
+    slog(LOG_NOTICE, "Could not get config info.");
+    return NULL;
+  }
+
+  j_tmp = json_object_get(j_confs, name);
+  if(j_tmp == NULL) {
+    json_decref(j_confs);
+    return NULL;
+  }
+
+  j_res = json_pack("{s:s, s:O}",
+      "name",     name,
+      "contents", j_tmp
+      );
   json_decref(j_confs);
 
   return j_res;
@@ -1845,6 +1891,7 @@ json_t* dialplan_get_sdialplans_all(void)
 bool dialplan_create_sdialplan_info(const char* name, const json_t* j_data)
 {
   int ret;
+  json_t* j_contents;
 
   if((name == NULL) || (j_data == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -1852,12 +1899,13 @@ bool dialplan_create_sdialplan_info(const char* name, const json_t* j_data)
   }
   slog(LOG_DEBUG, "Fired dialplan_create_sdialplan_info. name[%s]", name);
 
-  if(json_is_array(j_data) == false) {
-    slog(LOG_WARNING, "The given data is not array.");
+  j_contents = json_object_get(j_data, "contents");
+  if((j_contents == NULL) || (json_is_array(j_contents) == false)) {
+    slog(LOG_NOTICE, "Could not get correct contents info.");
     return false;
   }
 
-  ret = cfg_create_sdialplan_info(name, j_data);
+  ret = cfg_create_sdialplan_info(name, j_contents);
   if(ret == false) {
     return false;
   }
@@ -1873,6 +1921,7 @@ bool dialplan_create_sdialplan_info(const char* name, const json_t* j_data)
 bool dialplan_update_sdialplan_info(const char* name, const json_t* j_data)
 {
   int ret;
+  json_t* j_contents;
 
   if((name == NULL) || (j_data == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -1880,13 +1929,17 @@ bool dialplan_update_sdialplan_info(const char* name, const json_t* j_data)
   }
   slog(LOG_DEBUG, "Fired dialplan_update_sdialplan_info. name[%s]", name);
 
-  if(json_is_array(j_data) == false) {
-    slog(LOG_WARNING, "The given data is not array.");
+  // get contents
+  j_contents = json_object_get(j_data, "contents");
+  if(j_contents == NULL) {
+    slog(LOG_NOTICE, "Could not get contents info.");
     return false;
   }
 
-  ret = cfg_update_sdialplan_info(name, j_data);
+  // update
+  ret = cfg_update_sdialplan_info(name, j_contents);
   if(ret == false) {
+    slog(LOG_NOTICE, "Could not update sdialplan info.");
     return false;
   }
 
@@ -1916,6 +1969,66 @@ bool dialplan_delete_sdialplan_info(const char* name)
   return true;
 }
 
+/**
+ * Return true if the given sdialplan name is already exsit.
+ * @param name
+ * @return
+ */
+static bool is_exist_sdialplan(const char* name)
+{
+  int ret;
+  json_t* j_sdialplans;
+  json_t* j_sdialplan;
+  int idx;
+  const char* tmp_const;
+  bool found;
 
+  if(name == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  j_sdialplans = dialplan_get_sdialplans_all();
+  if(j_sdialplans == NULL) {
+    return NULL;
+  }
+
+  found = false;
+  json_array_foreach(j_sdialplans, idx, j_sdialplan) {
+    tmp_const = json_string_value(json_object_get(j_sdialplan, "name"));
+    if(tmp_const == NULL) {
+      continue;
+    }
+
+    ret = strcmp(tmp_const, name);
+    if(ret == 0) {
+      found = true;
+      break;
+    }
+  }
+  json_decref(j_sdialplans);
+
+  if(found == false) {
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Reload asterisk dialplan module
+ * @return
+ */
+bool dialplan_reload_asterisk(void)
+{
+  int ret;
+
+  ret = ami_action_moduleload("pbx_config", "reload");
+  if(ret == false) {
+    return false;
+  }
+
+  return true;
+}
 
 
