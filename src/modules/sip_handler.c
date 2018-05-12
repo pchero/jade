@@ -636,7 +636,7 @@ void sip_htp_get_sip_settings(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_sip_settings.");
 
   // get info
-  j_tmp = conf_get_ast_settings_all(DEF_SIP_CONFNAME);
+  j_tmp = conf_get_ast_sections_all(DEF_SIP_CONFNAME);
 
   // create result
   j_res = http_create_default_result(EVHTP_RES_OK);
@@ -692,7 +692,7 @@ void sip_htp_post_sip_settings(evhtp_request_t *req, void *data)
     return;
   }
 
-  ret = conf_create_ast_setting(DEF_SIP_CONFNAME, name, j_setting);
+  ret = conf_create_ast_section(DEF_SIP_CONFNAME, name, j_setting);
   json_decref(j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not create sip setting.");
@@ -737,7 +737,7 @@ void sip_htp_get_sip_settings_detail(evhtp_request_t *req, void *data)
   }
 
   // get setting
-  j_tmp = conf_get_ast_setting(DEF_SIP_CONFNAME, detail);
+  j_tmp = conf_get_ast_section(DEF_SIP_CONFNAME, detail);
   sfree(detail);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get sip setting.");
@@ -793,7 +793,7 @@ void sip_htp_put_sip_settings_detail(evhtp_request_t *req, void *data)
   }
 
   // update setting
-  ret = conf_update_ast_setting(DEF_SIP_CONFNAME, detail, j_data);
+  ret = conf_update_ast_section(DEF_SIP_CONFNAME, detail, j_data);
   sfree(detail);
   json_decref(j_data);
   if(ret == false) {
@@ -839,7 +839,7 @@ void htp_delete_sip_settings_detail(evhtp_request_t *req, void *data)
   }
 
   // delete setting
-  ret = conf_remove_ast_setting(DEF_SIP_CONFNAME, detail);
+  ret = conf_delete_ast_section(DEF_SIP_CONFNAME, detail);
   sfree(detail);
   if(ret == false) {
     slog(LOG_ERR, "Could not remove sip setting.");
@@ -946,7 +946,7 @@ static bool init_sip_info_peeraccount(void)
   char* timestamp;
   const char* key;
 
-  j_conf = conf_get_ast_current_config_info_object(DEF_SIP_CONFNAME);
+  j_conf = conf_get_ast_current_config_info(DEF_SIP_CONFNAME);
   if(j_conf == NULL) {
     slog(LOG_ERR, "Could not load sip config info.");
     return false;

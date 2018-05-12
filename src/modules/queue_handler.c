@@ -764,7 +764,7 @@ void queue_htp_get_queue_settings(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_queue_settings.");
 
   // get info
-  j_tmp = conf_get_ast_settings_all(DEF_QUEUE_CONFNAME);
+  j_tmp = conf_get_ast_sections_all(DEF_QUEUE_CONFNAME);
 
   // create result
   j_res = http_create_default_result(EVHTP_RES_OK);
@@ -820,7 +820,7 @@ void queue_htp_post_queue_settings(evhtp_request_t *req, void *data)
     return;
   }
 
-  ret = conf_create_ast_setting(DEF_QUEUE_CONFNAME, name, j_setting);
+  ret = conf_create_ast_section(DEF_QUEUE_CONFNAME, name, j_setting);
   json_decref(j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not create queue setting.");
@@ -865,7 +865,7 @@ void queue_htp_get_queue_settings_detail(evhtp_request_t *req, void *data)
   }
 
   // get setting
-  j_tmp = conf_get_ast_setting(DEF_QUEUE_CONFNAME, detail);
+  j_tmp = conf_get_ast_section(DEF_QUEUE_CONFNAME, detail);
   sfree(detail);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get queue setting.");
@@ -921,7 +921,7 @@ void queue_htp_put_queue_settings_detail(evhtp_request_t *req, void *data)
   }
 
   // update setting
-  ret = conf_update_ast_setting(DEF_QUEUE_CONFNAME, detail, j_data);
+  ret = conf_update_ast_section(DEF_QUEUE_CONFNAME, detail, j_data);
   sfree(detail);
   json_decref(j_data);
   if(ret == false) {
@@ -967,7 +967,7 @@ void queue_htp_delete_queue_settings_detail(evhtp_request_t *req, void *data)
   }
 
   // delete setting
-  ret = conf_remove_ast_setting(DEF_QUEUE_CONFNAME, detail);
+  ret = conf_delete_ast_section(DEF_QUEUE_CONFNAME, detail);
   sfree(detail);
   if(ret == false) {
     slog(LOG_ERR, "Could not remove queue setting.");
@@ -1023,7 +1023,7 @@ static bool create_queue_info(json_t* j_data)
   }
 
   // create queue info
-  ret = conf_create_ast_setting(DEF_QUEUE_CONFNAME, name, j_tmp);
+  ret = conf_create_ast_section(DEF_QUEUE_CONFNAME, name, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not create queue info.");
@@ -1064,7 +1064,7 @@ static bool update_queue_info(const char* name, json_t* j_data)
   }
 
   // update queue info
-  ret = conf_update_ast_setting(DEF_QUEUE_CONFNAME, name, j_tmp);
+  ret = conf_update_ast_section(DEF_QUEUE_CONFNAME, name, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not update queue info.");
@@ -1097,7 +1097,7 @@ static bool delete_queue_info(const char* name)
   }
 
   // delete queue info
-  ret = conf_remove_ast_setting(DEF_QUEUE_CONFNAME, name);
+  ret = conf_delete_ast_section(DEF_QUEUE_CONFNAME, name);
   if(ret == false) {
     slog(LOG_ERR, "Could not update queue info.");
     return false;

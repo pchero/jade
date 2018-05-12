@@ -25,8 +25,9 @@ extern app* g_app;
 
 #define MAX_CONF_BUF    1048576   // 10 Mb(1024 * 1024)
 
-static int write_ast_config_info(const char* filename, json_t* j_conf);
+static bool write_ast_config_info(const char* filename, json_t* j_conf);
 static bool write_ast_config_info_raw(const char* filename, const char* data);
+static bool write_ast_config_info_array(const char* filename, json_t* j_conf);
 
 static char* get_ast_backup_conf_dir(void);
 static json_t* get_ast_backup_filenames(const char* filename);
@@ -47,6 +48,11 @@ static bool create_ast_current_config_section_data(const char* filename, const c
 static bool update_ast_current_config_section_data(const char* filename, const char* section, const json_t* j_data);
 static bool delete_ast_current_config_section(const char* filename, const char* section);
 
+static bool create_ast_current_config_section_data_array(const char* filename, const char* section, const json_t* j_data);
+static bool update_ast_current_config_section_data_array(const char* filename, const char* section, const json_t* j_data);
+static bool delete_ast_current_config_section_array(const char* filename, const char* section);
+
+
 bool conf_init_handler(void)
 {
   int ret;
@@ -60,7 +66,7 @@ bool conf_init_handler(void)
   return true;
 }
 
-static int write_ast_config_info(const char* filename, json_t* j_conf)
+static bool write_ast_config_info(const char* filename, json_t* j_conf)
 {
   const char* section;
   const char* key;
@@ -107,6 +113,59 @@ static int write_ast_config_info(const char* filename, json_t* j_conf)
 
   return true;
 }
+
+static bool write_ast_config_info_array(const char* filename, json_t* j_conf)
+{
+  const char* section;
+  const char* key;
+  json_t* j_item;
+  json_t* j_items;
+  json_t* j_val;
+  FILE *fp;
+  int idx;
+  void* iter;
+  int ret;
+
+  if((j_conf == NULL) || (filename == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired write_ast_config_info_array. filename[%s]", filename);
+
+  fp = fopen(filename, "w+");
+  if(fp == NULL) {
+    slog(LOG_ERR, "Could not open the conf file. filename[%s], err[%d:%s]", filename, errno, strerror(errno));
+    return false;
+  }
+
+  // write config
+  json_object_foreach(j_conf, section, j_items) {
+    slog(LOG_DEBUG, "Writing section info. section[%s]", section);
+    fprintf(fp, "\n[%s]\n", section);
+
+    ret = json_is_array(j_items);
+    if(ret == false) {
+      continue;
+    }
+
+    json_array_foreach(j_items, idx, j_item) {
+
+      if(j_item == NULL) {
+        continue;
+      }
+
+      iter = json_object_iter(j_item);
+      key = json_object_iter_key(iter);
+      j_val = json_object_iter_value(iter);
+
+      fprintf(fp, "%s=%s\n", key, json_string_value(j_val));
+    }
+  }
+  fclose(fp);
+
+  return true;
+}
+
 
 static bool write_ast_config_info_raw(const char* filename, const char* data)
 {
@@ -462,7 +521,7 @@ static char* get_ast_config_info_text(const char* filename)
  * @param filename
  * @return
  */
-json_t* conf_get_ast_current_config_info_object(const char* filename)
+json_t* conf_get_ast_current_config_info(const char* filename)
 {
   json_t* j_conf;
   const char* dir;
@@ -648,11 +707,58 @@ bool conf_update_ast_current_config_info_text(const char* filename, const char* 
 }
 
 /**
+ * Update asterisk configuration file info.
+ * @param j_conf
+ * @param filename
+ * @return
+ */
+bool conf_update_ast_current_config_info_array(const char* filename, json_t* j_conf)
+{
+  int ret;
+  char* target;
+  const char* conf_dir;
+
+  if((j_conf == NULL) || (filename == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  // create target
+  conf_dir = json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "directory_conf"));
+  if(conf_dir == NULL) {
+    slog(LOG_ERR, "Could not get conf directory info.");
+    return false;
+  }
+  asprintf(&target, "%s/%s", conf_dir, filename);
+
+  // backup current config
+  ret = backup_ast_config_info(target);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not backup current config file. filename[%s]", filename);
+    sfree(target);
+    return false;
+  }
+
+  // overwrite data
+  ret = write_ast_config_info_array(target, j_conf);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update config. filename[%s]", filename);
+    sfree(target);
+    return false;
+  }
+
+  sfree(target);
+
+  return true;
+}
+
+
+/**
  * Get config info from given filename.
  * @param filename
  * @return
  */
-json_t* conf_get_ast_backup_config_info_json(const char* filename)
+json_t* conf_get_ast_backup_config_info(const char* filename)
 {
   char* tmp;
   char* full_filename;
@@ -883,7 +989,7 @@ bool conf_update_ast_current_config_content(const char* filename, const char* se
   }
 
   // get config
-  j_conf = conf_get_ast_current_config_info_object(filename);
+  j_conf = conf_get_ast_current_config_info(filename);
   if(j_conf == NULL) {
     slog(LOG_ERR, "Could not get config info.");
     return false;
@@ -930,7 +1036,7 @@ bool conf_create_ast_current_config_content(const char* filename, const char* se
   }
 
   // get config
-  j_conf = conf_get_ast_current_config_info_object(filename);
+  j_conf = conf_get_ast_current_config_info(filename);
   if(j_conf == NULL) {
     slog(LOG_ERR, "Could not get config info.");
     return false;
@@ -983,7 +1089,7 @@ bool conf_delete_ast_current_config_content(const char* filename, const char* se
   }
 
   // get config
-  j_conf = conf_get_ast_current_config_info_object(filename);
+  j_conf = conf_get_ast_current_config_info(filename);
   if(j_conf == NULL) {
     slog(LOG_ERR, "Could not get config info.");
     return false;
@@ -1023,7 +1129,7 @@ static bool create_ast_current_config_section_data(const char* filename, const c
   }
 
   // get config
-  j_conf = conf_get_ast_current_config_info_object(filename);
+  j_conf = conf_get_ast_current_config_info(filename);
   if(j_conf == NULL) {
     slog(LOG_ERR, "Could not get config info.");
     return false;
@@ -1073,7 +1179,7 @@ static bool update_ast_current_config_section_data(const char* filename, const c
   slog(LOG_DEBUG, "Fired update_ast_current_config_section_data. filename[%s]", filename);
 
   // get config
-  j_conf = conf_get_ast_current_config_info_object(filename);
+  j_conf = conf_get_ast_current_config_info(filename);
   if(j_conf == NULL) {
     slog(LOG_ERR, "Could not get config info.");
     return false;
@@ -1121,7 +1227,7 @@ static bool delete_ast_current_config_section(const char* filename, const char* 
   slog(LOG_DEBUG, "Fired delete_ast_current_config_section. filename[%s], section[%s]", filename, section);
 
   // get config
-  j_conf = conf_get_ast_current_config_info_object(filename);
+  j_conf = conf_get_ast_current_config_info(filename);
   if(j_conf == NULL) {
     slog(LOG_ERR, "Could not get config info.");
     return false;
@@ -1142,11 +1248,226 @@ static bool delete_ast_current_config_section(const char* filename, const char* 
 }
 
 /**
+ * Create asterisk configuration file section with given data.
+ * If already exist, return false.
+ * @param j_conf
+ * @param filename
+ * @return
+ */
+static bool create_ast_current_config_section_data_array(const char* filename, const char* section, const json_t* j_data)
+{
+  int ret;
+  json_t* j_conf;
+  json_t* j_section;
+  json_t* j_data_tmp;
+
+  if((filename == NULL) || (section == NULL) || (j_data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  if(json_is_array(j_data) == false) {
+    slog(LOG_WARNING, "The given data is not array.");
+    return false;
+  }
+
+  // get config
+  j_conf = conf_get_ast_current_config_info_array(filename);
+  if(j_conf == NULL) {
+    slog(LOG_ERR, "Could not get config info.");
+    return false;
+  }
+
+  // get section, if exists return false
+  j_section = json_object_get(j_conf, section);
+  if(j_section != NULL) {
+    slog(LOG_ERR, "Section is already exist.");
+    json_decref(j_conf);
+    return false;
+  }
+
+  // set data
+  j_data_tmp = json_deep_copy(j_data);
+  json_object_set_new(j_conf, section, j_data_tmp);
+
+  // update conf
+  ret = conf_update_ast_current_config_info_array(filename, j_conf);
+  json_decref(j_conf);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update current ast config info.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Update asterisk configuration file section with given data.
+ * If already exist, return false.
+ * @param j_conf
+ * @param filename
+ * @return
+ */
+static bool update_ast_current_config_section_data_array(const char* filename, const char* section, const json_t* j_data)
+{
+  int ret;
+  json_t* j_conf;
+  json_t* j_data_tmp;
+  json_t* j_section;
+
+  if((filename == NULL) || (section == NULL) || (j_data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired update_ast_current_config_section_data. filename[%s]", filename);
+
+  if(json_is_array(j_data) == false) {
+    slog(LOG_WARNING, "The given data is not array.");
+    return false;
+  }
+
+  // get config
+  j_conf = conf_get_ast_current_config_info_array(filename);
+  if(j_conf == NULL) {
+    slog(LOG_ERR, "Could not get config info.");
+    return false;
+  }
+
+  // get section, if not exists return false
+  j_section = json_object_get(j_conf, section);
+  if(j_section == NULL) {
+    slog(LOG_ERR, "Section is not exist.");
+    json_decref(j_conf);
+    return false;
+  }
+
+  // set data
+  j_data_tmp = json_deep_copy(j_data);
+  json_object_set_new(j_conf, section, j_data_tmp);
+
+  // update conf
+  ret = conf_update_ast_current_config_info_array(filename, j_conf);
+  json_decref(j_conf);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update current ast config info.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Delete asterisk configuration file section.
+ * If not exist, return true.
+ * @param j_conf
+ * @param filename
+ * @return
+ */
+static bool delete_ast_current_config_section_array(const char* filename, const char* section)
+{
+  int ret;
+  json_t* j_conf;
+
+  if((filename == NULL) || (section == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired delete_ast_current_config_section_array. filename[%s], section[%s]", filename, section);
+
+  // get config
+  j_conf = conf_get_ast_current_config_info_array(filename);
+  if(j_conf == NULL) {
+    slog(LOG_ERR, "Could not get config info.");
+    return false;
+  }
+
+  // delete section
+  json_object_del(j_conf, section);
+
+  // update conf
+  ret = conf_update_ast_current_config_info_array(filename, j_conf);
+  json_decref(j_conf);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update current ast config info.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
  * Create given setting
  * @param filename
  * @return
  */
-bool conf_create_ast_setting(const char* filename, const char* name, const json_t* j_data)
+bool conf_create_ast_section_array(const char* filename, const char* name, const json_t* j_data)
+{
+  int ret;
+
+  if((filename == NULL) || (name == NULL) || (j_data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  ret = create_ast_current_config_section_data_array(filename, name, j_data);
+  if(ret == false) {
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Update given setting
+ * @param filename
+ * @return
+ */
+bool conf_update_ast_section_array(const char* filename, const char* name, const json_t* j_data)
+{
+  int ret;
+
+  if((filename == NULL) || (name == NULL) || (j_data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  ret = update_ast_current_config_section_data_array(filename, name, j_data);
+  if(ret == false) {
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Remove given setting
+ * @param filename
+ * @return
+ */
+bool conf_delete_ast_section_array(const char* filename, const char* name)
+{
+  int ret;
+
+  if((filename == NULL) || (name == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  ret = delete_ast_current_config_section_array(filename, name);
+  if(ret == false) {
+    return false;
+  }
+
+  return true;
+}
+
+
+/**
+ * Create given setting
+ * @param filename
+ * @return
+ */
+bool conf_create_ast_section(const char* filename, const char* name, const json_t* j_data)
 {
 	int ret;
 
@@ -1168,7 +1489,7 @@ bool conf_create_ast_setting(const char* filename, const char* name, const json_
  * @param filename
  * @return
  */
-json_t* conf_get_ast_settings_all(const char* filename)
+json_t* conf_get_ast_sections_all(const char* filename)
 {
 	json_t* j_res;
 	json_t* j_conf;
@@ -1181,7 +1502,7 @@ json_t* conf_get_ast_settings_all(const char* filename)
 		return NULL;
 	}
 
-	j_conf = conf_get_ast_current_config_info_object(filename);
+	j_conf = conf_get_ast_current_config_info(filename);
 	if(j_conf == NULL) {
 		slog(LOG_ERR, "Could not get setting info.");
 		return NULL;
@@ -1210,7 +1531,7 @@ json_t* conf_get_ast_settings_all(const char* filename)
  * @param filename
  * @return
  */
-json_t* conf_get_ast_setting(const char* filename, const char* name)
+json_t* conf_get_ast_section(const char* filename, const char* name)
 {
 	json_t* j_res;
 	json_t* j_setting;
@@ -1221,7 +1542,7 @@ json_t* conf_get_ast_setting(const char* filename, const char* name)
 		return NULL;
 	}
 
-	j_conf = conf_get_ast_current_config_info_object(filename);
+	j_conf = conf_get_ast_current_config_info(filename);
 	j_setting = json_object_get(j_conf, name);
 	j_res = json_deep_copy(j_setting);
 	json_decref(j_conf);
@@ -1234,7 +1555,7 @@ json_t* conf_get_ast_setting(const char* filename, const char* name)
  * @param filename
  * @return
  */
-bool conf_remove_ast_setting(const char* filename, const char* name)
+bool conf_delete_ast_section(const char* filename, const char* name)
 {
 	int ret;
 
@@ -1256,7 +1577,7 @@ bool conf_remove_ast_setting(const char* filename, const char* name)
  * @param filename
  * @return
  */
-bool conf_update_ast_setting(const char* filename, const char* name, const json_t* j_data)
+bool conf_update_ast_section(const char* filename, const char* name, const json_t* j_data)
 {
 	int ret;
 
@@ -1273,4 +1594,65 @@ bool conf_update_ast_setting(const char* filename, const char* name, const json_
 	return true;
 }
 
+/**
+ * Add the given external_filename to the given filename as include file.
+ * Checks the include of the given external_filename in the filename config file.
+ * If not exist, append it at the EOF.
+ * Create empty given external config filename if not exist.
+ * @param filename
+ * @return
+ */
+bool conf_add_external_config_file(const char* filename, const char* external_filename)
+{
+  char* conf;
+  char* str_include;
+  char* tmp;
+  int ret;
+
+  if((filename == NULL) || (external_filename == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired conf_add_external_config_file. filename[%s], external[%s]", filename, external_filename);
+
+  // create target filename
+  asprintf(&conf, "%s/%s",
+      json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "directory_conf")),
+      filename
+      );
+
+  // check include exist
+  asprintf(&str_include, "#include \"%s\"", external_filename);
+  ret = utils_is_string_exist_in_file(conf, str_include);
+  if(ret == true) {
+    sfree(conf);
+    sfree(str_include);
+    return true;
+  }
+
+  // if not exist, append it at the EOF
+  ret = utils_append_string_to_file_end(conf, str_include);
+  sfree(conf);
+  sfree(str_include);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not append include string to the config file.");
+    return false;
+  }
+
+  // create filename
+  asprintf(&tmp, "%s/%s",
+      json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "directory_conf")),
+      external_filename
+      );
+
+  // create empty file
+  ret = utils_create_empty_file(tmp);
+  sfree(tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create external empty file. external_filename[%s]", external_filename);
+    return false;
+  }
+
+  return true;
+}
 
