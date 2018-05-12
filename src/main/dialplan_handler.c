@@ -1784,6 +1784,11 @@ static bool cfg_create_sdialplan_info(const char* name, const json_t* j_data)
 static bool cfg_update_sdialplan_info(const char* name, const json_t* j_data)
 {
   int ret;
+  json_t* j_contents;
+  json_t* j_content;
+  json_t* j_dialplans;
+  json_t* j_tmp;
+  int idx;
 
   if((name == NULL) || (j_data == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -1791,7 +1796,24 @@ static bool cfg_update_sdialplan_info(const char* name, const json_t* j_data)
   }
   slog(LOG_DEBUG, "Fired cfg_update_sdialplan_info. name[%s]", name);
 
-  ret = conf_update_ast_section_array(DEF_JADE_DIALPLAN_CONFNAME, name, j_data);
+  j_contents = json_object_get(j_data, "contents");
+  if(j_contents == NULL) {
+    slog(LOG_NOTICE, "Could not get contents info.");
+    return false;
+  }
+
+  j_dialplans = json_array();
+  json_array_foreach(j_contents, idx, j_content) {
+    j_tmp = json_pack("{s:s}",
+        json_string_value(json_object_get(j_content, "type")),
+        json_string_value(json_object_get(j_content, "content"))
+        );
+
+    json_array_append_new(j_dialplans, j_tmp);
+  }
+
+  ret = conf_update_ast_section_array(DEF_JADE_DIALPLAN_CONFNAME, name, j_dialplans);
+  json_decref(j_dialplans);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not update config for pjsip aor.");
     return false;
@@ -1921,7 +1943,6 @@ bool dialplan_create_sdialplan_info(const char* name, const json_t* j_data)
 bool dialplan_update_sdialplan_info(const char* name, const json_t* j_data)
 {
   int ret;
-  json_t* j_contents;
 
   if((name == NULL) || (j_data == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -1929,15 +1950,8 @@ bool dialplan_update_sdialplan_info(const char* name, const json_t* j_data)
   }
   slog(LOG_DEBUG, "Fired dialplan_update_sdialplan_info. name[%s]", name);
 
-  // get contents
-  j_contents = json_object_get(j_data, "contents");
-  if(j_contents == NULL) {
-    slog(LOG_NOTICE, "Could not get contents info.");
-    return false;
-  }
-
   // update
-  ret = cfg_update_sdialplan_info(name, j_contents);
+  ret = cfg_update_sdialplan_info(name, j_data);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not update sdialplan info.");
     return false;
