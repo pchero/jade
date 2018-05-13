@@ -27,6 +27,8 @@
 
 #define DEF_JADE_DIALPLAN_CONFNAME  "jade.extensions.conf"
 
+#define DEF_JADE_DEMO_CONTEXT       "jade_demo"
+
 
 #define DEF_DB_TABLE_DP_DIALPLANMASTER    "dp_dpma"
 #define DEF_DB_TABLE_DP_DIALPLAN          "dp_dialplan"
@@ -119,10 +121,39 @@ bool dialplan_reload_handler(void)
 static bool init_configs(void)
 {
   int ret;
+  json_t* j_tmp;
+
+  // check config file
+  ret = conf_is_exist_config_file(DEF_JADE_DIALPLAN_CONFNAME);
+  if(ret == true) {
+    return true;
+  }
 
   ret = conf_add_external_config_file(DEF_AST_DIALPLAN_CONFNAME, DEF_JADE_DIALPLAN_CONFNAME);
   if(ret == false) {
     slog(LOG_ERR, "Could not add the external config file. filename[%s], external[%s]", DEF_AST_DIALPLAN_CONFNAME, DEF_JADE_DIALPLAN_CONFNAME);
+    return false;
+  }
+
+  // add default context
+  j_tmp = json_pack("["
+        "{s:s}, "
+        "{s:s}"
+      "]",
+
+      "exten",  "> _X.,1,BackGround(demo-congrats)",
+      "same",   "> n,Hangup()"
+      );
+  ret = cfg_create_sdialplan_info(DEF_JADE_DEMO_CONTEXT, j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create default jade demo context.");
+    return false;
+  }
+
+  ret = dialplan_reload_asterisk();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not reload dialplan asterisk.");
     return false;
   }
 

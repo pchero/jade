@@ -1867,10 +1867,6 @@ bool user_delete_related_info_by_useruuid(const char* uuid_user)
     // delete contact
     tmp_const = json_string_value(json_object_get(j_tmp, "uuid"));
     delete_contact(tmp_const);
-
-    // delete related target
-    tmp_const = json_string_value(json_object_get(j_tmp, "target"));
-    pjsip_delete_target(tmp_const);
   }
   json_decref(j_tmps);
 

@@ -57,9 +57,9 @@ bool pjsip_create_registration_outbound_info(const json_t* j_data);
 bool pjsip_update_registration_outbound_info(const json_t* j_data);
 bool pjsip_delete_registration_outbound_info(const char* key);
 
-// target
-bool pjsip_create_target_with_default_setting(const char* target_name);
-bool pjsip_delete_target(const char* target_name);
+// account(aor, auth, endpoint)
+bool pjsip_create_account_with_default_setting(const char* target, const char* context);
+bool pjsip_delete_account(const char* target_name);
 
 bool pjsip_is_exist_endpoint(const char* target);
 bool pjsip_reload_config(void);

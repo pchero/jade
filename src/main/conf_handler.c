@@ -11,6 +11,7 @@
 #include <errno.h>
 #include <string.h>
 #include <dirent.h>
+#include <unistd.h>
 
 #include "slog.h"
 #include "common.h"
@@ -1595,6 +1596,37 @@ bool conf_update_ast_section(const char* filename, const char* name, const json_
 }
 
 /**
+ * Return true if the given filename is exist in config directory.
+ * @param filename
+ * @param external_filename
+ * @return
+ */
+bool conf_is_exist_config_file(const char* filename)
+{
+  char* conf;
+  int ret;
+
+  if(filename == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  // create target filename
+  asprintf(&conf, "%s/%s",
+      json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "directory_conf")),
+      filename
+      );
+
+  ret = access(conf, F_OK);
+  sfree(conf);
+  if(ret != 0) {
+    return false;
+  }
+
+  return true;
+}
+
+/**
  * Add the given external_filename to the given filename as include file.
  * Checks the include of the given external_filename in the filename config file.
  * If not exist, append it at the EOF.
@@ -1608,6 +1640,7 @@ bool conf_add_external_config_file(const char* filename, const char* external_fi
   char* str_include;
   char* tmp;
   int ret;
+  int ret2;
 
   if((filename == NULL) || (external_filename == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -1624,20 +1657,17 @@ bool conf_add_external_config_file(const char* filename, const char* external_fi
   // check include exist
   asprintf(&str_include, "#include \"%s\"", external_filename);
   ret = utils_is_string_exist_in_file(conf, str_include);
-  if(ret == true) {
-    sfree(conf);
-    sfree(str_include);
-    return true;
+  if(ret == false) {
+    ret2 = utils_append_string_to_file_end(conf, str_include);
+    if(ret2 == false) {
+      slog(LOG_NOTICE, "Could not add the include string to config file.");
+      sfree(conf);
+      sfree(str_include);
+      return false;
+    }
   }
-
-  // if not exist, append it at the EOF
-  ret = utils_append_string_to_file_end(conf, str_include);
   sfree(conf);
   sfree(str_include);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not append include string to the config file.");
-    return false;
-  }
 
   // create filename
   asprintf(&tmp, "%s/%s",

@@ -101,7 +101,7 @@ static bool update_config_pjsip_transport(const char* name, const json_t* j_data
 
 static bool create_config_aor_with_default_setting(const char* name);
 static bool create_config_auth_with_default_setting(const char* name);
-static bool create_config_endpoint_with_default_setting(const char* name);
+static bool create_config_endpoint_with_default_setting(const char* name, const char* context);
 
 // db handlers
 static bool db_create_aor_info(const json_t* j_data);
@@ -5073,21 +5073,19 @@ static bool create_config_auth_with_default_setting(const char* name)
   return true;
 }
 
-static bool create_config_endpoint_with_default_setting(const char* name)
+static bool create_config_endpoint_with_default_setting(const char* name, const char* context)
 {
   int ret;
   json_t* j_tmp;
   const char* cert_file;
-  const char* context;
 
   if(name == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
-  slog(LOG_DEBUG, "Fired create_config_endpoint_with_default_setting. name[%s]", name);
+  slog(LOG_DEBUG, "Fired create_config_endpoint_with_default_setting. name[%s], context[%s]", name, context);
 
   cert_file = json_string_value(json_object_get(json_object_get(g_app->j_conf, "pjsip"), "dtls_cert_file"));
-  context = json_string_value(json_object_get(json_object_get(g_app->j_conf, "pjsip"), "context"));
 
   j_tmp = json_pack("{"
       "s:s, s:s, "
@@ -5136,11 +5134,17 @@ static bool create_config_endpoint_with_default_setting(const char* name)
   return true;
 }
 
-bool pjsip_create_target_with_default_setting(const char* target)
+/**
+ * Create pjsip account(aor, auth, endpoint) with default settings.
+ * @param target
+ * @param context
+ * @return
+ */
+bool pjsip_create_account_with_default_setting(const char* target, const char* context)
 {
   int ret;
 
-  if(target == NULL) {
+  if((target == NULL) || (context == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
@@ -5158,7 +5162,7 @@ bool pjsip_create_target_with_default_setting(const char* target)
   }
 
   // create endpoint
-  ret = create_config_endpoint_with_default_setting(target);
+  ret = create_config_endpoint_with_default_setting(target, context);
   if(ret == false) {
     return false;
   }
@@ -5166,32 +5170,37 @@ bool pjsip_create_target_with_default_setting(const char* target)
   return ret;
 }
 
-bool pjsip_delete_target(const char* target_name)
+/**
+ * Delete pjsip account(aor, auth, endpoint).
+ * @param target_name
+ * @return
+ */
+bool pjsip_delete_account(const char* account)
 {
   int ret;
 
-  if(target_name == NULL) {
+  if(account == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
-  slog(LOG_DEBUG, "Fired pjsip_delete_target_all. target[%s]", target_name);
+  slog(LOG_DEBUG, "Fired pjsip_delete_target_all. account[%s]", account);
 
   // delete aor
-  ret = pjsip_cfg_delete_aor_info(target_name);
+  ret = pjsip_cfg_delete_aor_info(account);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not delete aor info.");
     return false;
   }
 
   // delete auth
-  ret = pjsip_cfg_delete_auth_info(target_name);
+  ret = pjsip_cfg_delete_auth_info(account);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not delete auth info.");
     return false;
   }
 
   // delete endpoint
-  ret = pjsip_cfg_delete_endpoint_info(target_name);
+  ret = pjsip_cfg_delete_endpoint_info(account);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not delete endpoint info.");
     return false;
