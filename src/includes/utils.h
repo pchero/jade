@@ -32,7 +32,6 @@ struct st_callback {
   int count;
 };
 
-
 void utils_trim(char * s);
 
 char* utils_gen_uuid(void);

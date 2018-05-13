@@ -72,22 +72,22 @@ static bool delete_sdialplan_info(const char* name);
 
 
 // callback
-static bool cb_resource_handler_user_userinfo(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
-static bool cb_resource_handler_user_permission(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
+static bool cb_resource_handler_user_db_userinfo(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
+static bool cb_resource_handler_user_db_permission(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
 
-static bool cb_resource_handler_pjsip_mod(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
-static bool cb_resource_handler_pjsip_registration_outbound(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
+static bool cb_resource_handler_pjsip_module(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
+static bool cb_resource_handler_pjsip_db_registration_outbound(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
 
 
 bool manager_init_handler(void)
 {
 
   // register callback
-  user_register_callback_userinfo(&cb_resource_handler_user_userinfo);
-  user_register_callback_permission(&cb_resource_handler_user_permission);
+  user_register_callback_db_userinfo(&cb_resource_handler_user_db_userinfo);
+  user_register_callback_db_permission(&cb_resource_handler_user_db_permission);
 
-  pjsip_register_callback_mod(&cb_resource_handler_pjsip_mod);
-  pjsip_register_callback_registration_outbound(&cb_resource_handler_pjsip_registration_outbound);
+  pjsip_register_callback_module(&cb_resource_handler_pjsip_module);
+  pjsip_register_callback_db_registration_outbound(&cb_resource_handler_pjsip_db_registration_outbound);
 
   return true;
 }
@@ -1599,7 +1599,7 @@ json_t* manager_get_subscribable_topics_all(const json_t* j_user)
  * @param j_data
  * @return
  */
-static bool cb_resource_handler_user_userinfo(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data)
+static bool cb_resource_handler_user_db_userinfo(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data)
 {
   char* topic;
   int ret;
@@ -1685,7 +1685,7 @@ static bool cb_resource_handler_user_userinfo(enum EN_RESOURCE_UPDATE_TYPES type
  * @param j_data
  * @return
  */
-static bool cb_resource_handler_user_permission(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data)
+static bool cb_resource_handler_user_db_permission(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data)
 {
   char* topic;
   int ret;
@@ -1733,7 +1733,7 @@ static bool cb_resource_handler_user_permission(enum EN_RESOURCE_UPDATE_TYPES ty
  * @param j_data
  * @return
  */
-static bool cb_resource_handler_pjsip_registration_outbound(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data)
+static bool cb_resource_handler_pjsip_db_registration_outbound(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data)
 {
   char* topic;
   int ret;
@@ -1814,7 +1814,7 @@ static bool cb_resource_handler_pjsip_registration_outbound(enum EN_RESOURCE_UPD
  * @param j_data
  * @return
  */
-static bool cb_resource_handler_pjsip_mod(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data)
+static bool cb_resource_handler_pjsip_module(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data)
 {
   char* topic;
   int ret;
@@ -1830,10 +1830,11 @@ static bool cb_resource_handler_pjsip_mod(enum EN_RESOURCE_UPDATE_TYPES type, co
   if(type == EN_RESOURCE_RELOAD) {
     event_type = EN_PUBLISH_CREATE;
 
-    j_event = json_pack("{s:s, s[{s:s}]}",
+    j_event = json_pack("{s:s, s[{s:s}, {s:s}]}",
         "type",       "reload",
         "modules",
-          "name", "trunk"
+          "name", "trunk",
+          "name", "user"
         );
   }
   else {

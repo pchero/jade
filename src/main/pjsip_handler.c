@@ -60,10 +60,10 @@ enum EN_OBJ_TYPES {
 
 extern app* g_app;
 
-static struct st_callback* g_callback_mod;
+static struct st_callback* g_callback_module;
 
-static struct st_callback* g_callback_registration_outbound;
-
+static struct st_callback* g_callback_db_registration_outbound;
+static struct st_callback* g_callback_cfg_endpoint;
 
 static bool init_callbacks(void);
 static bool term_callbacks(void);
@@ -157,8 +157,9 @@ static bool cfg_create_transport_info(const char* name, const json_t* j_data);
 static bool cfg_update_transport_info(const char* name, const json_t* j_data);
 static bool cfg_delete_transport_info(const char* name);
 
-static void execute_callbacks_mod(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
-static void execute_callbacks_registration_outbound(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
+static void execute_callbacks_module(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
+static void execute_callbacks_db_registration_outbound(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
+static void execute_callbacks_cfg_endpoint(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
 
 
 bool pjsip_init_handler(void)
@@ -208,7 +209,7 @@ bool pjsip_term_handler(void)
   j_tmp = json_pack("{s:s}", "timestamp", timestamp);
   sfree(timestamp);
 
-  execute_callbacks_mod(EN_RESOURCE_UNLOAD, j_tmp);
+  execute_callbacks_module(EN_RESOURCE_UNLOAD, j_tmp);
   json_decref(j_tmp);
 
   ret = term_pjsip_databases();
@@ -237,7 +238,7 @@ bool pjsip_reload_handler(void)
   j_tmp = json_pack("{s:s}", "timestamp", timestamp);
   sfree(timestamp);
 
-  execute_callbacks_mod(EN_RESOURCE_RELOAD, j_tmp);
+  execute_callbacks_module(EN_RESOURCE_RELOAD, j_tmp);
   json_decref(j_tmp);
 
   // init config
@@ -438,16 +439,18 @@ static bool init_resources(void)
 static bool init_callbacks(void)
 {
   // registration_outbound
-  g_callback_registration_outbound = utils_create_callback();
-  g_callback_mod = utils_create_callback();
+  g_callback_module = utils_create_callback();
+  g_callback_db_registration_outbound = utils_create_callback();
+  g_callback_cfg_endpoint = utils_create_callback();
 
   return true;
 }
 
 static bool term_callbacks(void)
 {
-  utils_terminate_callback(g_callback_registration_outbound);
-  utils_terminate_callback(g_callback_mod);
+  utils_terminate_callback(g_callback_module);
+  utils_terminate_callback(g_callback_db_registration_outbound);
+  utils_terminate_callback(g_callback_cfg_endpoint);
 
   return true;
 }
@@ -3477,7 +3480,7 @@ static bool db_create_registration_outbound_info(const json_t* j_data)
   }
 
   // execute registered callbacks
-  execute_callbacks_registration_outbound(EN_RESOURCE_CREATE, j_tmp);
+  execute_callbacks_db_registration_outbound(EN_RESOURCE_CREATE, j_tmp);
   json_decref(j_tmp);
 
   return true;
@@ -3517,7 +3520,7 @@ static bool db_update_registration_outbound_info(const json_t* j_data)
   }
 
   // execute registered callbacks
-  execute_callbacks_registration_outbound(EN_RESOURCE_UPDATE, j_tmp);
+  execute_callbacks_db_registration_outbound(EN_RESOURCE_UPDATE, j_tmp);
   json_decref(j_tmp);
 
   return true;
@@ -3549,7 +3552,7 @@ static bool db_delete_registration_outbound_info(const char* key)
   }
 
   // execute registered callbacks
-  execute_callbacks_registration_outbound(EN_RESOURCE_DELETE, j_tmp);
+  execute_callbacks_db_registration_outbound(EN_RESOURCE_DELETE, j_tmp);
   json_decref(j_tmp);
 
   return true;
@@ -4480,6 +4483,7 @@ static bool cfg_create_endpoint_info(const char* name, const json_t* j_data)
 {
   int ret;
   json_t* j_tmp;
+  json_t* j_cb_data;
 
   if((name == NULL) || (j_data == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -4497,6 +4501,22 @@ static bool cfg_create_endpoint_info(const char* name, const json_t* j_data)
     return false;
   }
 
+  // get created data
+  j_tmp = pjsip_cfg_get_endpoint_info(name);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get created cfg endpoint info.");
+    return false;
+  }
+
+  j_cb_data = json_pack("{s:s, s:o}",
+      "name", name,
+      "data", j_tmp
+      );
+
+  // execute
+  execute_callbacks_cfg_endpoint(EN_RESOURCE_CREATE, j_cb_data);
+  json_decref(j_cb_data);
+
   return true;
 }
 
@@ -4504,6 +4524,7 @@ static bool cfg_update_endpoint_info(const char* name, const json_t* j_data)
 {
   int ret;
   json_t* j_tmp;
+  json_t* j_cb_data;
 
   if((name == NULL) || (j_data == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -4521,12 +4542,29 @@ static bool cfg_update_endpoint_info(const char* name, const json_t* j_data)
     return false;
   }
 
+  // get updated data
+  j_tmp = pjsip_cfg_get_endpoint_info(name);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get updated cfg endpoint info.");
+    return false;
+  }
+
+  j_cb_data = json_pack("{s:s, s:o}",
+      "name", name,
+      "data", j_tmp
+      );
+
+  execute_callbacks_cfg_endpoint(EN_RESOURCE_UPDATE, j_cb_data);
+  json_decref(j_cb_data);
+
   return true;
 }
 
 static bool cfg_delete_endpoint_info(const char* name)
 {
   int ret;
+  json_t* j_tmp;
+  json_t* j_cb_data;
 
   if((name == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -4534,11 +4572,27 @@ static bool cfg_delete_endpoint_info(const char* name)
   }
   slog(LOG_DEBUG, "Fired cfg_delete_endpoint_info. name[%s]", name);
 
+  // get delete info
+  j_tmp = pjsip_cfg_get_endpoint_info(name);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get delete cfg endpoint info.");
+    return false;
+  }
+
   ret = conf_delete_ast_section(DEF_PJSIP_CONFNAME_ENDPOINT, name);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not update config for pjsip endpoint.");
+    json_decref(j_tmp);
     return false;
   }
+
+  j_cb_data = json_pack("{s:s, s:o}",
+      "name", name,
+      "data", j_tmp
+      );
+
+  execute_callbacks_cfg_endpoint(EN_RESOURCE_DELETE, j_cb_data);
+  json_decref(j_cb_data);
 
   return true;
 }
@@ -5622,7 +5676,7 @@ bool pjsip_cfg_update_identify_info(const char* name, const json_t* j_data)
 /**
  * Register the callback for pjsip reload
  */
-bool pjsip_register_callback_mod(bool (*func)(enum EN_RESOURCE_UPDATE_TYPES, const json_t*))
+bool pjsip_register_callback_module(bool (*func)(enum EN_RESOURCE_UPDATE_TYPES, const json_t*))
 {
   int ret;
 
@@ -5632,7 +5686,7 @@ bool pjsip_register_callback_mod(bool (*func)(enum EN_RESOURCE_UPDATE_TYPES, con
   }
   slog(LOG_DEBUG, "Fired pjsip_register_callback_reload.");
 
-  ret = utils_register_callback(g_callback_mod, func);
+  ret = utils_register_callback(g_callback_module, func);
   if(ret == false) {
     slog(LOG_ERR, "Could not register callback for registration_outbound.");
     return false;
@@ -5645,7 +5699,7 @@ bool pjsip_register_callback_mod(bool (*func)(enum EN_RESOURCE_UPDATE_TYPES, con
  * Execute the registered callbacks for this module
  * @param j_data
  */
-static void execute_callbacks_mod(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data)
+static void execute_callbacks_module(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data)
 {
   slog(LOG_DEBUG, "Fired execute_callbacks_reload.");
 
@@ -5654,7 +5708,7 @@ static void execute_callbacks_mod(enum EN_RESOURCE_UPDATE_TYPES type, const json
     return;
   }
 
-  utils_execute_callbacks(g_callback_mod, type, j_data);
+  utils_execute_callbacks(g_callback_module, type, j_data);
 
   return;
 }
@@ -5663,7 +5717,7 @@ static void execute_callbacks_mod(enum EN_RESOURCE_UPDATE_TYPES type, const json
 /**
  * Register callback for registration_outbound
  */
-bool pjsip_register_callback_registration_outbound(bool (*func)(enum EN_RESOURCE_UPDATE_TYPES, const json_t*))
+bool pjsip_register_callback_db_registration_outbound(bool (*func)(enum EN_RESOURCE_UPDATE_TYPES, const json_t*))
 {
   int ret;
 
@@ -5673,7 +5727,7 @@ bool pjsip_register_callback_registration_outbound(bool (*func)(enum EN_RESOURCE
   }
   slog(LOG_DEBUG, "Fired pjsip_register_callback_registration_outbound.");
 
-  ret = utils_register_callback(g_callback_registration_outbound, func);
+  ret = utils_register_callback(g_callback_db_registration_outbound, func);
   if(ret == false) {
     slog(LOG_ERR, "Could not register callback for registration_outbound.");
     return false;
@@ -5686,7 +5740,7 @@ bool pjsip_register_callback_registration_outbound(bool (*func)(enum EN_RESOURCE
  * Execute the registered callbacks for registration_outbound
  * @param j_data
  */
-static void execute_callbacks_registration_outbound(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data)
+static void execute_callbacks_db_registration_outbound(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data)
 {
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -5694,7 +5748,46 @@ static void execute_callbacks_registration_outbound(enum EN_RESOURCE_UPDATE_TYPE
   }
   slog(LOG_DEBUG, "Fired execute_callbacks_registration_outbound.");
 
-  utils_execute_callbacks(g_callback_registration_outbound, type, j_data);
+  utils_execute_callbacks(g_callback_db_registration_outbound, type, j_data);
+
+  return;
+}
+
+/**
+ * Register callback for config endpoint
+ */
+bool pjsip_register_callback_cfg_endpoint(bool (*func)(enum EN_RESOURCE_UPDATE_TYPES, const json_t*))
+{
+  int ret;
+
+  if(func == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired pjsip_register_callback_cfg_endpoint.");
+
+  ret = utils_register_callback(g_callback_cfg_endpoint, func);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not register callback for registration_outbound.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Execute the registered callbacks for config endpoint
+ * @param j_data
+ */
+static void execute_callbacks_cfg_endpoint(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data)
+{
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired execute_callbacks_cfg_endpoint.");
+
+  utils_execute_callbacks(g_callback_cfg_endpoint, type, j_data);
 
   return;
 }
