@@ -74,9 +74,9 @@ static bool db_create_userinfo_info(const json_t* j_data);
 static bool db_update_userinfo_info(const json_t* j_data);
 static bool db_delete_userinfo_info(const char* uuid);
 
-static bool create_userinfo(const char* uuid, json_t* j_data);
-static bool create_userinfo_without_uuid(json_t* j_data);
-static bool update_userinfo(const char* uuid, json_t* j_data);
+static bool create_userinfo(const char* uuid, const json_t* j_data);
+static bool create_userinfo_without_uuid(const json_t* j_data);
+static bool update_userinfo(const char* uuid, const json_t* j_data);
 static bool delete_userinfo(const char* uuid);
 
 static bool create_permission(const char* user_uuid, const char* permission);
@@ -1306,7 +1306,7 @@ static bool update_contact(const char* uuid, json_t* j_data)
   return true;
 }
 
-bool user_create_userinfo(const char* uuid, json_t* j_data)
+bool user_create_userinfo(const char* uuid, const json_t* j_data)
 {
   int ret;
 
@@ -1323,7 +1323,7 @@ bool user_create_userinfo(const char* uuid, json_t* j_data)
   return true;
 }
 
-static bool create_userinfo(const char* uuid, json_t* j_data)
+static bool create_userinfo(const char* uuid, const json_t* j_data)
 {
   json_t* j_tmp;
   char* timestamp;
@@ -1391,7 +1391,7 @@ static bool create_userinfo(const char* uuid, json_t* j_data)
  * @param j_data
  * @return
  */
-static bool create_userinfo_without_uuid(json_t* j_data)
+static bool create_userinfo_without_uuid(const json_t* j_data)
 {
   char* uuid;
   int ret;
@@ -1419,7 +1419,7 @@ static bool create_userinfo_without_uuid(json_t* j_data)
  * @param j_data
  * @return
  */
-static bool update_userinfo(const char* uuid, json_t* j_data)
+static bool update_userinfo(const char* uuid, const json_t* j_data)
 {
   json_t* j_tmp;
   char* timestamp;

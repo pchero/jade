@@ -50,6 +50,8 @@ static void cb_htp_ping(evhtp_request_t *req, void *a);
 
 // admin
 static void cb_htp_admin_login(evhtp_request_t *req, void *data);
+static void cb_htp_admin_user_users(evhtp_request_t *req, void *data);
+static void cb_htp_admin_user_users_detail(evhtp_request_t *req, void *data);
 
 // agent
 static void cb_htp_agent_agents(evhtp_request_t *req, void *data);
@@ -206,6 +208,10 @@ bool http_init_handler(void)
   //// ^/admin/
   // login
   evhtp_set_regex_cb(g_htps, "^/v1/admin/login$", cb_htp_admin_login, NULL);
+
+  // user
+  evhtp_set_regex_cb(g_htps, "^/v1/admin/user/users$", cb_htp_admin_user_users, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/admin/user/users/(.*)", cb_htp_admin_user_users_detail, NULL);
 
 
 
@@ -6142,6 +6148,113 @@ static void cb_htp_admin_login(evhtp_request_t *req, void *data)
 
   // should not reach to here.
   http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+
+  return;
+}
+
+/**
+ * http request handler
+ * ^/admin/users$
+ * @param req
+ * @param data
+ */
+static void cb_htp_admin_user_users(evhtp_request_t *req, void *data)
+{
+  int method;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_admin_users.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if((method != htp_method_GET) && (method != htp_method_POST)) {
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // fire handlers
+  if(method == htp_method_GET) {
+    admin_htp_get_admin_user_users(req, data);
+    return;
+  }
+  else if(method == htp_method_POST) {
+    admin_htp_post_admin_user_users(req, data);
+  }
+  else {
+    // should not reach to here.
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+
+  return;
+}
+
+/**
+ * http request handler
+ * ^/admin/user/users/<detail>$
+ * @param req
+ * @param data
+ */
+static void cb_htp_admin_user_users_detail(evhtp_request_t *req, void *data)
+{
+  int method;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_admin_user_users_detail.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if((method != htp_method_GET) && (method != htp_method_PUT) && (method != htp_method_DELETE)) {
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // fire handlers
+  if(method == htp_method_GET) {
+    admin_htp_get_admin_user_users_detail(req, data);
+    return;
+  }
+  else if(method == htp_method_PUT) {
+    admin_htp_put_admin_user_users_detail(req, data);
+    return;
+  }
+  else if(method == htp_method_DELETE) {
+    admin_htp_delete_admin_user_users_detail(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
 
   return;
 }
