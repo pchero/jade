@@ -48,5 +48,6 @@ char* conf_get_ast_backup_config_info_text_valid(const char* filename, const cha
 
 // etc
 bool conf_add_external_config_file(const char* filename, const char* external_filename);
+bool conf_is_exist_config_file(const char* filename);
 
 #endif /* SRC_CONF_HANDLER_H_ */

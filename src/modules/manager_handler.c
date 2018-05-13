@@ -1128,14 +1128,15 @@ static bool update_user_pjsip_account(const char* uuid_user, const json_t* j_dat
   // to change user's context,
   // we need to change endpoint configurations
   j_endpoint = pjsip_cfg_get_endpoint_info(account);
-  sfree(account);
   if(j_endpoint == NULL) {
     slog(LOG_NOTICE, "Could not get endpoint info.");
+    sfree(account);
     return false;
   }
 
   json_object_set_new(j_endpoint, "context", json_string(context));
   ret = pjsip_cfg_update_endpoint_info(account, j_endpoint);
+  sfree(account);
   json_decref(j_endpoint);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not update endpoint info.");
