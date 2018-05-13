@@ -561,6 +561,7 @@ struct st_callback* utils_create_callback(void)
   return callback;
 }
 
+
 void utils_terminate_callback(struct st_callback* callback)
 {
   if(callback == NULL) {
@@ -616,12 +617,10 @@ void utils_execute_callbacks(struct st_callback* callbacks, enum EN_RESOURCE_UPD
   for(i = 0; i < callbacks->count; i++) {
     ret = callbacks->callback[i](type, j_data);
     if(ret == false) {
-      slog(LOG_NOTICE, "Could not execute registered callback correctly. i[%d]", i);
+      slog(LOG_NOTICE, "Could not execute registered callback db correctly. i[%d]", i);
       continue;
     }
   }
 
   return;
 }
-
-

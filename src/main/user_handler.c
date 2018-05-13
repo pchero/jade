@@ -34,9 +34,9 @@ extern app* g_app;
 
 static struct event* g_ev_validate_authtoken = NULL;
 
-static struct st_callback* g_callback_userinfo;
-static struct st_callback* g_callback_permission;
-static struct st_callback* g_callback_buddy;
+static struct st_callback* g_callback_db_userinfo;
+static struct st_callback* g_callback_db_permission;
+static struct st_callback* g_callback_db_buddy;
 
 static bool init_databases(void);
 static bool init_database_contact(void);
@@ -48,9 +48,9 @@ static bool init_database_buddy(void);
 static bool init_callback(void);
 static bool term_callback(void);
 
-static void execute_callbacks_userinfo(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
-static void execute_callbacks_permission(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
-static void execute_callbacks_buddy(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
+static void execute_callbacks_db_userinfo(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
+static void execute_callbacks_db_permission(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
+static void execute_callbacks_db_buddy(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
 
 static bool db_create_buddy_info(const json_t* j_data);
 static json_t* db_get_buddies_info_by_owneruuid(const char* uuid_user);
@@ -1680,7 +1680,7 @@ static bool db_create_userinfo_info(const json_t* j_data)
   }
 
   // execute registered callbacks
-  execute_callbacks_userinfo(EN_RESOURCE_CREATE, j_tmp);
+  execute_callbacks_db_userinfo(EN_RESOURCE_CREATE, j_tmp);
   json_decref(j_tmp);
 
   return true;
@@ -1720,7 +1720,7 @@ static bool db_update_userinfo_info(const json_t* j_data)
   }
 
   // execute registered callbacks
-  execute_callbacks_userinfo(EN_RESOURCE_UPDATE, j_tmp);
+  execute_callbacks_db_userinfo(EN_RESOURCE_UPDATE, j_tmp);
   json_decref(j_tmp);
 
   return true;
@@ -1789,7 +1789,7 @@ static bool db_delete_userinfo_info(const char* key)
   }
 
   // execute registered callbacks
-  execute_callbacks_userinfo(EN_RESOURCE_DELETE, j_tmp);
+  execute_callbacks_db_userinfo(EN_RESOURCE_DELETE, j_tmp);
   json_decref(j_tmp);
 
   return true;
@@ -2039,7 +2039,7 @@ static bool db_create_permission_info(const json_t* j_data)
   }
 
   // fire callbacks
-  execute_callbacks_permission(EN_RESOURCE_CREATE, j_tmp);
+  execute_callbacks_db_permission(EN_RESOURCE_CREATE, j_tmp);
   json_decref(j_tmp);
 
   return true;
@@ -2071,7 +2071,7 @@ static bool db_delete_permission_info(const char* key)
   }
 
   // fire callbacks
-  execute_callbacks_permission(EN_RESOURCE_DELETE, j_tmp);
+  execute_callbacks_db_permission(EN_RESOURCE_DELETE, j_tmp);
   json_decref(j_tmp);
 
   return true;
@@ -2145,7 +2145,7 @@ static bool db_create_buddy_info(const json_t* j_data)
   }
 
   // execute callbacks
-  execute_callbacks_buddy(EN_RESOURCE_CREATE, j_tmp);
+  execute_callbacks_db_buddy(EN_RESOURCE_CREATE, j_tmp);
   json_decref(j_tmp);
 
   return true;
@@ -2176,7 +2176,7 @@ static bool db_delete_buddy_info(const char* uuid)
   }
 
   // execute callbacks
-  execute_callbacks_buddy(EN_RESOURCE_DELETE, j_tmp);
+  execute_callbacks_db_buddy(EN_RESOURCE_DELETE, j_tmp);
   json_decref(j_tmp);
 
   return true;
@@ -2214,7 +2214,7 @@ static bool db_update_buddy_info(const json_t* j_data)
   }
 
   // execute callbacks
-  execute_callbacks_buddy(EN_RESOURCE_UPDATE, j_tmp);
+  execute_callbacks_db_buddy(EN_RESOURCE_UPDATE, j_tmp);
   json_decref(j_tmp);
 
   return true;
@@ -2870,22 +2870,22 @@ char* user_create_authtoken(const char* username, const char* password, const ch
 static bool init_callback(void)
 {
   // userinfo
-  g_callback_userinfo = utils_create_callback();
+  g_callback_db_userinfo = utils_create_callback();
 
   // permission
-  g_callback_permission = utils_create_callback();
+  g_callback_db_permission = utils_create_callback();
 
   // buddy
-  g_callback_buddy = utils_create_callback();
+  g_callback_db_buddy = utils_create_callback();
 
   return true;
 }
 
 static bool term_callback(void)
 {
-  utils_terminate_callback(g_callback_userinfo);
-  utils_terminate_callback(g_callback_buddy);
-  utils_terminate_callback(g_callback_permission);
+  utils_terminate_callback(g_callback_db_userinfo);
+  utils_terminate_callback(g_callback_db_buddy);
+  utils_terminate_callback(g_callback_db_permission);
 
   return true;
 }
@@ -2893,7 +2893,7 @@ static bool term_callback(void)
 /**
  * Register callback for userinfo
  */
-bool user_register_callback_userinfo(bool (*func)(enum EN_RESOURCE_UPDATE_TYPES, const json_t*))
+bool user_register_callback_db_userinfo(bool (*func)(enum EN_RESOURCE_UPDATE_TYPES, const json_t*))
 {
   int ret;
 
@@ -2903,7 +2903,7 @@ bool user_register_callback_userinfo(bool (*func)(enum EN_RESOURCE_UPDATE_TYPES,
   }
   slog(LOG_DEBUG, "Fired user_register_callback_userinfo.");
 
-  ret = utils_register_callback(g_callback_userinfo, func);
+  ret = utils_register_callback(g_callback_db_userinfo, func);
   if(ret == false) {
     slog(LOG_ERR, "Could not register callback for userinfo.");
     return false;
@@ -2915,7 +2915,7 @@ bool user_register_callback_userinfo(bool (*func)(enum EN_RESOURCE_UPDATE_TYPES,
 /**
  * Register callback for permission
  */
-bool user_register_callback_permission(bool (*func)(enum EN_RESOURCE_UPDATE_TYPES, const json_t*))
+bool user_register_callback_db_permission(bool (*func)(enum EN_RESOURCE_UPDATE_TYPES, const json_t*))
 {
   int ret;
 
@@ -2923,9 +2923,9 @@ bool user_register_callback_permission(bool (*func)(enum EN_RESOURCE_UPDATE_TYPE
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
-  slog(LOG_DEBUG, "Fired user_register_callback_permission.");
+  slog(LOG_DEBUG, "Fired user_register_callback_db_permission.");
 
-  ret = utils_register_callback(g_callback_permission, func);
+  ret = utils_register_callback(g_callback_db_permission, func);
   if(ret == false) {
     slog(LOG_ERR, "Could not register callback for permission.");
     return false;
@@ -2937,7 +2937,7 @@ bool user_register_callback_permission(bool (*func)(enum EN_RESOURCE_UPDATE_TYPE
 /**
  * Register the callback for buddy
  */
-bool user_reigster_callback_buddy(bool (*func)(enum EN_RESOURCE_UPDATE_TYPES, const json_t*))
+bool user_reigster_callback_db_buddy(bool (*func)(enum EN_RESOURCE_UPDATE_TYPES, const json_t*))
 {
   int ret;
 
@@ -2947,7 +2947,7 @@ bool user_reigster_callback_buddy(bool (*func)(enum EN_RESOURCE_UPDATE_TYPES, co
   }
   slog(LOG_DEBUG, "Fired user_reigster_callback_buddy.");
 
-  ret = utils_register_callback(g_callback_buddy, func);
+  ret = utils_register_callback(g_callback_db_buddy, func);
   if(ret == false) {
     slog(LOG_ERR, "Could not register callback for buddy.");
     return false;
@@ -2960,7 +2960,7 @@ bool user_reigster_callback_buddy(bool (*func)(enum EN_RESOURCE_UPDATE_TYPES, co
  * Execute the registered callbacks for userinfo
  * @param j_data
  */
-static void execute_callbacks_userinfo(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data)
+static void execute_callbacks_db_userinfo(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data)
 {
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -2968,7 +2968,7 @@ static void execute_callbacks_userinfo(enum EN_RESOURCE_UPDATE_TYPES type, const
   }
   slog(LOG_DEBUG, "Fired execute_callbacks_userinfo.");
 
-  utils_execute_callbacks(g_callback_userinfo, type, j_data);
+  utils_execute_callbacks(g_callback_db_userinfo, type, j_data);
 
   return;
 }
@@ -2977,7 +2977,7 @@ static void execute_callbacks_userinfo(enum EN_RESOURCE_UPDATE_TYPES type, const
  * Execute the registered callbacks for permission
  * @param j_data
  */
-static void execute_callbacks_permission(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data)
+static void execute_callbacks_db_permission(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data)
 {
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -2985,7 +2985,7 @@ static void execute_callbacks_permission(enum EN_RESOURCE_UPDATE_TYPES type, con
   }
   slog(LOG_DEBUG, "Fired execute_callbacks_permission.");
 
-  utils_execute_callbacks(g_callback_permission, type, j_data);
+  utils_execute_callbacks(g_callback_db_permission, type, j_data);
 
   return;
 }
@@ -2994,7 +2994,7 @@ static void execute_callbacks_permission(enum EN_RESOURCE_UPDATE_TYPES type, con
  * Execute the registered callbacks for buddy
  * @param j_data
  */
-static void execute_callbacks_buddy(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data)
+static void execute_callbacks_db_buddy(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data)
 {
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -3002,7 +3002,7 @@ static void execute_callbacks_buddy(enum EN_RESOURCE_UPDATE_TYPES type, const js
   }
   slog(LOG_DEBUG, "Fired execute_callbacks_buddy.");
 
-  utils_execute_callbacks(g_callback_buddy, type, j_data);
+  utils_execute_callbacks(g_callback_db_buddy, type, j_data);
 
   return;
 }

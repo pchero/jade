@@ -93,8 +93,8 @@ bool me_init_handler(void)
   slog(LOG_DEBUG, "Fired init_me_handler.");
 
   // register callback
-  user_reigster_callback_buddy(&cb_resource_handler_user_buddy);
-  user_register_callback_userinfo(&cb_resource_handler_user_userinfo);
+  user_reigster_callback_db_buddy(&cb_resource_handler_user_buddy);
+  user_register_callback_db_userinfo(&cb_resource_handler_user_userinfo);
 
   chat_register_callback_userroom(&cb_resource_handler_chat_userroom);
   chat_register_callback_message(cb_resource_handler_chat_message);
