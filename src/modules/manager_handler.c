@@ -38,14 +38,18 @@ static bool update_manager_info(const json_t* j_user, const json_t* j_data);
 static json_t* get_users_all(void);
 static json_t* get_user_info(const char* uuid_user);
 static bool create_user_info(const json_t* j_data);
-static bool create_user_contact(const char* uuid_user, const char* target);
-static bool create_user_permission(const char* uuid_user, const json_t* j_data);
-static bool create_user_user(const char* uuid_user, const json_t* j_data);
-static bool create_user_target(const char* target);
-
+static bool update_user_info(const char* uuid_user, const json_t* j_data);
 static bool delete_user_info(const char* uuid);
 
-static bool update_user_info(const char* uuid_user, const json_t* j_data);
+static char* get_user_pjsip_account(const char* uuid_user);
+static bool create_user_pjsip_account(const char* target, const json_t* j_data);
+static bool update_user_pjsip_account(const char* uuid_user, const json_t* j_data);
+
+static char* get_user_context(const char* uuid_user);
+static bool create_user_contact(const char* uuid_user, const char* target);
+static bool create_user_permission(const char* uuid_user, const json_t* j_data);
+static bool create_user_userinfo(const char* uuid_user, const json_t* j_data);
+
 static bool update_user_permission(const char* uuid_user, const json_t* j_data);
 static bool update_user_user(const char* uuid_user, const json_t* j_data);
 
@@ -926,6 +930,7 @@ static json_t* get_user_info(const char* uuid_user)
   json_t* j_perms;
   json_t* j_perm;
   int idx;
+  char* context;
 
   if(uuid_user == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -950,6 +955,11 @@ static json_t* get_user_info(const char* uuid_user)
 
     json_object_set_new(j_res, "permissions", j_perms);
   }
+
+  // get context info
+  context = get_user_context(uuid_user);
+  json_object_set_new(j_res, "context", context? json_string(context) : json_string(""));
+  sfree(context);
 
   return j_res;
 }
@@ -1052,25 +1062,131 @@ static json_t* get_users_all(void)
   return j_res;
 }
 
-static bool create_user_target(const char* target)
+static bool create_user_pjsip_account(const char* target, const json_t* j_data)
 {
   int ret;
+  const char* context;
 
-  if(target == NULL) {
+  if((target == NULL) || (j_data == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
 
-  ret = pjsip_create_target_with_default_setting(target);
+  context = json_string_value(json_object_get(j_data, "context"));
+  if(context == NULL) {
+    slog(LOG_NOTICE, "Could not get context info.");
+    return false;
+  }
+
+  ret = pjsip_create_account_with_default_setting(target, context);
   if(ret == false) {
     slog(LOG_WARNING, "Could not create pjsip target info.");
+    return false;
+  }
+
+  // reload pjsip config
+  ret = pjsip_reload_config();
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not reload pjsip_handler.");
     return false;
   }
 
   return true;
 }
 
-static bool create_user_user(const char* uuid_user, const json_t* j_data)
+/**
+ * Update user's account info.
+ * @param uuid_user
+ * @param j_data
+ * @return
+ */
+static bool update_user_pjsip_account(const char* uuid_user, const json_t* j_data)
+{
+  int ret;
+  const char* context;
+  char* account;
+  json_t* j_endpoint;
+
+  if((uuid_user == NULL) || (j_data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  context = json_string_value(json_object_get(j_data, "context"));
+  if(context == NULL) {
+    slog(LOG_NOTICE, "Could not get context info.");
+    return false;
+  }
+
+  // get account
+  account = get_user_pjsip_account(uuid_user);
+  if(account == NULL) {
+    slog(LOG_NOTICE, "Could not get account info. user_uuid[%s]", uuid_user);
+    return false;
+  }
+
+  // to change user's context,
+  // we need to change endpoint configurations
+  j_endpoint = pjsip_cfg_get_endpoint_info(account);
+  sfree(account);
+  if(j_endpoint == NULL) {
+    slog(LOG_NOTICE, "Could not get endpoint info.");
+    return false;
+  }
+
+  json_object_set_new(j_endpoint, "context", json_string(context));
+  ret = pjsip_cfg_update_endpoint_info(account, j_endpoint);
+  json_decref(j_endpoint);
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not update endpoint info.");
+    return false;
+  }
+
+  // reload pjsip config
+  ret = pjsip_reload_config();
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not reload pjsip_handler.");
+    return false;
+  }
+
+  return true;
+}
+
+static bool delete_user_pjsip_account(const char* uuid_user)
+{
+  int ret;
+  char* account;
+
+  if(uuid_user == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  // get account
+  account = get_user_pjsip_account(uuid_user);
+  if(account == NULL) {
+    slog(LOG_NOTICE, "Could not get account info.");
+    return false;
+  }
+
+  ret = pjsip_delete_account(account);
+  sfree(account);
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not delete account info.");
+    return false;
+  }
+
+  // reload pjsip config
+  ret = pjsip_reload_config();
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not reload pjsip_handler.");
+    return false;
+  }
+
+  return true;
+}
+
+static bool create_user_userinfo(const char* uuid_user, const json_t* j_data)
 {
   int ret;
   json_t* j_tmp;
@@ -1172,6 +1288,86 @@ static bool create_user_contact(const char* uuid_user, const char* target)
   return true;
 }
 
+static char* get_user_pjsip_account(const char* uuid_user)
+{
+  char* res;
+  const char* tmp_const;
+  json_t* j_contacts;
+  json_t* j_contact;
+
+  if(uuid_user == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  j_contacts = user_get_contacts_by_user_uuid(uuid_user);
+  if(j_contacts == NULL) {
+    slog(LOG_NOTICE, "Could not get contacts info. user_uuid[%s]", uuid_user);
+    return NULL;
+  }
+
+  j_contact = json_array_get(j_contacts, 0);
+  if(j_contact == NULL) {
+    slog(LOG_INFO, "The given user has no contact. user_uuid[%s]", uuid_user);
+    json_decref(j_contacts);
+    return NULL;
+  }
+
+  tmp_const = json_string_value(json_object_get(j_contact, "target"));
+  if(tmp_const == NULL) {
+    slog(LOG_ERR, "Could not get target info.");
+    json_decref(j_contacts);
+    return NULL;
+  }
+
+  res = strdup(tmp_const);
+  json_decref(j_contacts);
+
+  return res;
+}
+
+static char* get_user_context(const char* uuid_user)
+{
+  char* res;
+  const char* tmp_const;
+  char* account;
+  json_t* j_endpoint;
+
+
+  if(uuid_user == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  // get pjsip account
+  account = get_user_pjsip_account(uuid_user);
+  if(account == NULL) {
+    slog(LOG_NOTICE, "Could not get target info.");
+    return NULL;
+  }
+
+  // get endpoint info
+  j_endpoint = pjsip_get_endpoint_info(account);
+  sfree(account)
+  if(j_endpoint == NULL) {
+    slog(LOG_NOTICE, "Could not get endpoint info.");
+    return NULL;
+  }
+
+  // get context
+  tmp_const = json_string_value(json_object_get(j_endpoint, "context"));
+  if(tmp_const == NULL) {
+    slog(LOG_NOTICE, "Could not get context info.");
+    json_decref(j_endpoint);
+    return NULL;
+  }
+
+  res = strdup(tmp_const);
+  json_decref(j_endpoint);
+
+  return res;
+}
+
 static bool create_user_info(const json_t* j_data)
 {
   int ret;
@@ -1187,21 +1383,21 @@ static bool create_user_info(const json_t* j_data)
   target = utils_gen_uuid();
   uuid_user = utils_gen_uuid();
 
-  // create target
-  ret = create_user_target(target);
+  // create pjsip_account
+  ret = create_user_pjsip_account(target, j_data);
   if(ret == false) {
     slog(LOG_WARNING, "Could not create user target info.");
-    pjsip_delete_target(target);
+    delete_user_pjsip_account(target);
     sfree(target);
     sfree(uuid_user);
     return false;
   }
 
   // create user
-  ret = create_user_user(uuid_user, j_data);
+  ret = create_user_userinfo(uuid_user, j_data);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not create user user info.");
-    pjsip_delete_target(target);
+    delete_user_pjsip_account(target);
     sfree(uuid_user);
     sfree(target);
     return false;
@@ -1211,7 +1407,7 @@ static bool create_user_info(const json_t* j_data)
   ret = create_user_permission(uuid_user, j_data);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not create user permission info.");
-    pjsip_delete_target(target);
+    delete_user_pjsip_account(target);
     user_delete_userinfo_info(uuid_user);
     sfree(uuid_user);
     sfree(target);
@@ -1222,7 +1418,7 @@ static bool create_user_info(const json_t* j_data)
   ret = create_user_contact(uuid_user, target);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not create user contact info.");
-    pjsip_delete_target(target);
+    delete_user_pjsip_account(target);
     user_delete_userinfo_info(uuid_user);
     sfree(uuid_user);
     sfree(target);
@@ -1231,13 +1427,6 @@ static bool create_user_info(const json_t* j_data)
 
   sfree(target);
   sfree(uuid_user);
-
-  // reload pjsip config
-  ret = pjsip_reload_config();
-  if(ret == false) {
-    slog(LOG_WARNING, "Could not reload pjsip_handler.");
-    return false;
-  }
 
   return true;
 }
@@ -1248,6 +1437,13 @@ static bool delete_user_info(const char* uuid)
 
   if(uuid == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  // delete account
+  ret = delete_user_pjsip_account(uuid);
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not delete user pjsip account info. uuid[%s]", uuid);
     return false;
   }
 
@@ -1358,6 +1554,13 @@ static bool update_user_info(const char* uuid_user, const json_t* j_data)
   ret = update_user_permission(uuid_user, j_data);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not update permission info.");
+    return false;
+  }
+
+  // upate pjsip account info
+  ret = update_user_pjsip_account(uuid_user, j_data);
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not update pjsip account info.");
     return false;
   }
 
