@@ -526,7 +526,7 @@ static void ami_event_queueparams(json_t* j_msg)
   }
 
   // create queue info
-  ret = create_queue_param_info(j_tmp);
+  ret = queue_create_param_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert queue_param.");
@@ -596,7 +596,7 @@ static void ami_event_queuemember(json_t* j_msg)
   json_object_set_new(j_tmp, "id", json_string(id));
   sfree(id);
 
-  ret = create_queue_member_info(j_tmp);
+  ret = queue_create_member_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert queue_member.");
@@ -667,7 +667,7 @@ static void ami_event_queuememberadded(json_t* j_msg)
   json_object_set_new(j_tmp, "id", json_string(id));
   sfree(id);
 
-  ret = create_queue_member_info(j_tmp);
+  ret = queue_create_member_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert queue_member.");
@@ -738,7 +738,7 @@ static void ami_event_queuememberpause(json_t* j_msg)
   json_object_set_new(j_tmp, "id", json_string(id));
   sfree(id);
 
-  ret = create_queue_member_info(j_tmp);
+  ret = queue_create_member_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert queue_member.");
@@ -809,7 +809,7 @@ static void ami_event_queuememberpenalty(json_t* j_msg)
   json_object_set_new(j_tmp, "id", json_string(id));
   sfree(id);
 
-  ret = create_queue_member_info(j_tmp);
+  ret = queue_create_member_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert queue_member.");
@@ -840,7 +840,7 @@ static void ami_event_queuememberremoved(json_t* j_msg)
       json_string_value(json_object_get(j_msg, "Queue"))
       );
 
-  ret = delete_queue_member_info(id);
+  ret = queue_delete_member_info(id);
   sfree(id);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete queue_member.");
@@ -911,7 +911,7 @@ static void ami_event_queuememberringinuse(json_t* j_msg)
   json_object_set_new(j_tmp, "id", json_string(id));
   sfree(id);
 
-  ret = create_queue_member_info(j_tmp);
+  ret = queue_create_member_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert queue_member.");
@@ -968,7 +968,7 @@ static void ami_event_queueentry(json_t* j_msg)
   }
 
   // create queue entry
-  ret = create_queue_entry_info(j_tmp);
+  ret = queue_create_entry_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert queue_member.");
@@ -995,7 +995,7 @@ static void ami_event_queuecallerabandon(json_t* j_msg)
   slog(LOG_DEBUG, "Fired ami_event_queuecallerabandon.");
 
   tmp_const = json_string_value(json_object_get(j_msg, "Uniqueid"));
-  ret = delete_queue_entry_info(tmp_const);
+  ret = queue_delete_entry_info(tmp_const);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete queue_entry.");
     return;
@@ -1047,7 +1047,7 @@ static void ami_event_queuecallerjoin(json_t* j_msg)
   }
 
   // create queue entry
-  ret = create_queue_entry_info(j_tmp);
+  ret = queue_create_entry_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert queue_entry.");
@@ -1074,7 +1074,7 @@ static void ami_event_queuecallerleave(json_t* j_msg)
   slog(LOG_INFO, "Fired ami_event_queuecallerleave.");
 
   tmp_const = json_string_value(json_object_get(j_msg, "Uniqueid"));
-  ret = delete_queue_entry_info(tmp_const);
+  ret = queue_delete_entry_info(tmp_const);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete queue_entry.");
     return;
@@ -1149,7 +1149,7 @@ static void ami_event_queuememberstatus(json_t* j_msg)
   json_object_set_new(j_tmp, "id", json_string(id));
   sfree(id);
 
-  ret = update_queue_member_info(j_tmp);
+  ret = queue_update_member_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to queue_member.");

@@ -149,67 +149,67 @@ static const char* g_sql_create_core_module =
 
 
 
-// queue param
-static const char* g_sql_drop_queue_param = "drop table if exists queue_param;";
-static const char* g_sql_create_queue_param =
-"create table queue_param("
+//// queue param
+//static const char* g_sql_drop_queue_param = "drop table if exists queue_param;";
+//static const char* g_sql_create_queue_param =
+//"create table queue_param("
+//
+//// identity
+//"   name             varchar(255),"    // queue name.
+//
+//// status
+//"   max              int,"             // max available calls in the queue.
+//"   strategy         varchar(255),"    // queue strategy.
+//"   calls            int,"             // waiting call count.
+//"   hold_time        int,"             // average waiting time.
+//"   talk_time        int,"             // average talk time.
+//"   completed        int,"             // distributed call count.
+//"   abandoned        int,"             // could not distributed call count.
+//
+//// performance
+//"   service_level       int,"                 // service level interval time sec.
+//"   service_level_perf  real  default 0.0,"   // service level performance(%). completed_call / (abandoned_call + completed_call) * 100
+//
+//// etc
+//"   weight          int,"    // queue priority.
+//
+//// timestamp. UTC."
+//"   tm_update       datetime(6),"   // update time."
+//
+//"   primary key(name)"
+//
+//");";
 
-// identity
-"   name             varchar(255),"    // queue name.
 
-// status
-"   max              int,"             // max available calls in the queue.
-"   strategy         varchar(255),"    // queue strategy.
-"   calls            int,"             // waiting call count.
-"   hold_time        int,"             // average waiting time.
-"   talk_time        int,"             // average talk time.
-"   completed        int,"             // distributed call count.
-"   abandoned        int,"             // could not distributed call count.
-
-// performance
-"   service_level       int,"                 // service level interval time sec.
-"   service_level_perf  real  default 0.0,"   // service level performance(%). completed_call / (abandoned_call + completed_call) * 100
-
-// etc
-"   weight          int,"    // queue priority.
-
-// timestamp. UTC."
-"   tm_update       datetime(6),"   // update time."
-
-"   primary key(name)"
-
-");";
-
-
-// queue member
-static const char* g_sql_drop_queue_member = "drop table if exists queue_member;";
-static const char* g_sql_create_queue_member =
-"create table queue_member("
-
-// identity
-"   id             varchar(255),"   // member id(name@queue)
-"   queue_name     varchar(255),"   // queue name
-"   name           varchar(255),"   // member name
-
-"   location          varchar(255),"          // location
-"   state_interface   varchar(255),"          // state interface
-"   membership        varchar(255),"  // membership
-"   penalty           int,"           // penalty
-"   calls_taken       int,"           // call taken count.
-"   last_call         int,"
-"   last_pause        int,"
-"   in_call           int,"
-"   status            int,"
-"   paused            int,"
-"   paused_reason     text,"
-"   ring_inuse        int,"
-
-// timestamp. UTC."
-"   tm_update         datetime(6),"   // update time."
-
-"   primary key(queue_name, name)"
-
-");";
+//// queue member
+//static const char* g_sql_drop_queue_member = "drop table if exists queue_member;";
+//static const char* g_sql_create_queue_member =
+//"create table queue_member("
+//
+//// identity
+//"   id             varchar(255),"   // member id(name@queue)
+//"   queue_name     varchar(255),"   // queue name
+//"   name           varchar(255),"   // member name
+//
+//"   location          varchar(255),"          // location
+//"   state_interface   varchar(255),"          // state interface
+//"   membership        varchar(255),"  // membership
+//"   penalty           int,"           // penalty
+//"   calls_taken       int,"           // call taken count.
+//"   last_call         int,"
+//"   last_pause        int,"
+//"   in_call           int,"
+//"   status            int,"
+//"   paused            int,"
+//"   paused_reason     text,"
+//"   ring_inuse        int,"
+//
+//// timestamp. UTC."
+//"   tm_update         datetime(6),"   // update time."
+//
+//"   primary key(queue_name, name)"
+//
+//");";
 
 
 // queue entry

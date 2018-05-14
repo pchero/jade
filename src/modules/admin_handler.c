@@ -12,15 +12,24 @@
 #include "slog.h"
 #include "utils.h"
 
-#include "user_handler.h"
 #include "http_handler.h"
+#include "user_handler.h"
+#include "queue_handler.h"
 
 #include "admin_handler.h"
 
 #define DEF_ADMIN_AUTHTOKEN_TYPE       "admin"
 
 
-//// user module
+////// queue module
+// queue
+static json_t* get_queue_queues_all(void);
+static json_t* get_queue_queue_info(const char* key);
+
+////
+
+
+////// user module
 // user
 static json_t* get_user_users_all(void);
 static json_t* get_user_userinfo(const char* uuid);
@@ -774,6 +783,89 @@ void admin_htp_delete_admin_user_permissions_detail(evhtp_request_t *req, void *
   return;
 }
 
+/**
+ * GET ^/admin/queue/queues request handler.
+ * @param req
+ * @param data
+ */
+void admin_htp_get_admin_queue_queues(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_get_admin_queue_queues.");
+
+  // get info
+  j_tmp = get_queue_queues_all();
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get info.");
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", json_object());
+  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * GET ^/admin/queue/queues/(.*) request handler.
+ * @param req
+ * @param data
+ */
+void admin_htp_get_admin_queue_queues_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+  char* detail;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_get_admin_queue_queues_detail.");
+
+  // detail parse
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // get detail info
+  j_tmp = get_queue_queue_info(detail);
+  sfree(detail);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not find info.");
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", j_tmp);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+
+
 
 
 
@@ -1011,3 +1103,34 @@ static bool delete_user_permission_info(const char* uuid)
 
   return true;
 }
+
+static json_t* get_queue_queues_all(void)
+{
+  json_t* j_res;
+
+  j_res = queue_get_queue_params_all();
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
+static json_t* get_queue_queue_info(const char* key)
+{
+  json_t* j_res;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  j_res = queue_get_queue_param_info(key);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
+

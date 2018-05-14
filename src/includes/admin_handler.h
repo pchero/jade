@@ -22,6 +22,13 @@ void admin_htp_post_admin_login(evhtp_request_t *req, void *data);
 void admin_htp_delete_admin_login(evhtp_request_t *req, void *data);
 
 
+//// ^/admin/queue
+void admin_htp_get_admin_queue_queues(evhtp_request_t *req, void *data);
+void admin_htp_get_admin_queue_queues_detail(evhtp_request_t *req, void *data);
+
+
+
+
 //// ^/admin/user
 
 // users
