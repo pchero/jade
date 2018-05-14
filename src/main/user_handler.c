@@ -84,7 +84,7 @@ static bool create_permission_by_json(const json_t* j_data);
 static bool delete_permission(const char* key);
 
 static bool create_contact(const json_t* j_data);
-static bool update_contact(const char* uuid, json_t* j_data);
+static bool update_contact(const char* uuid, const json_t* j_data);
 static bool delete_contact(const char* uuid);
 
 static bool create_buddy(const char* uuid, const json_t* j_data);
@@ -1263,7 +1263,7 @@ static bool create_contact(const json_t* j_data)
   return true;
 }
 
-static bool update_contact(const char* uuid, json_t* j_data)
+static bool update_contact(const char* uuid, const json_t* j_data)
 {
   json_t* j_tmp;
   char* timestamp;
@@ -1276,30 +1276,33 @@ static bool update_contact(const char* uuid, json_t* j_data)
   slog(LOG_DEBUG, "Fired update_contact. uuid[%s]", uuid);
 
   timestamp = utils_get_utc_timestamp();
-  j_tmp = json_pack("{"
-      "s:s, s:s, "
-      "s:s, s:s, "
-      "s:s, s:s, "
-      "s:s "
-      "}",
 
-      "uuid",       uuid,
-      "user_uuid",  json_string_value(json_object_get(j_data, "user_uuid"))? : "",
-
-      "type",     json_string_value(json_object_get(j_data, "type"))? : "",
-      "target",   json_string_value(json_object_get(j_data, "target"))? : "",
-
-      "name",     json_string_value(json_object_get(j_data, "name"))? : "",
-      "detail",   json_string_value(json_object_get(j_data, "detail"))? : "",
-
-      "tm_update", timestamp
-      );
+  j_tmp = json_deep_copy(j_data);
+  json_object_set_new(j_tmp, "tm_update", json_string(timestamp));
   sfree(timestamp);
+  json_object_del(j_tmp, "tm_create");
 
   ret = db_update_contact_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not update contact info.");
+    return false;
+  }
+
+  return true;
+}
+
+bool user_update_contact_info(const char* key, const json_t* j_data)
+{
+  int ret;
+
+  if((key == NULL) || (j_data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  ret = update_contact(key, j_data);
+  if(ret == false) {
     return false;
   }
 
@@ -2387,7 +2390,6 @@ bool user_delete_permissions_by_useruuid(const char* uuid_user)
   return true;
 }
 
-
 /**
  * Delete user_permission info.
  * @param key
@@ -2406,6 +2408,23 @@ static bool delete_permission(const char* key)
   ret = db_delete_permission_info(key);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete permission info. uuid[%s]", key);
+    return false;
+  }
+
+  return true;
+}
+
+bool user_delete_permission_info(const char* key)
+{
+  int ret;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  ret = delete_permission(key);
+  if(ret == false) {
     return false;
   }
 
@@ -2512,6 +2531,23 @@ bool user_create_contact_info(const json_t* j_data)
   ret = create_contact(j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert user_contact.");
+    return false;
+  }
+
+  return true;
+}
+
+bool user_delete_contact_info(const char* key)
+{
+  int ret;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  ret = delete_contact(key);
+  if(ret == false) {
     return false;
   }
 

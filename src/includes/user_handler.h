@@ -50,6 +50,7 @@ json_t* user_get_permissions_by_useruuid(const char* uuid_user);
 bool user_create_permission_info(const json_t* j_data);
 json_t* user_get_permission_info(const char* uuid_permission);
 json_t* user_get_permission_info_by_useruuid_perm(const char* useruuid, const char* perm);
+bool user_delete_permission_info(const char* key);
 bool user_delete_permissions_by_useruuid(const char* uuid_user);
 
 // contact
@@ -57,6 +58,9 @@ json_t* user_get_contacts_all(void);
 json_t* user_get_contacts_by_user_uuid(const char* user_uuid);
 json_t* user_get_contact_info(const char* key);
 bool user_create_contact_info(const json_t* j_data);
+bool user_update_contact_info(const char* key, const json_t* j_data);
+bool user_delete_contact_info(const char* key);
+
 
 // buddy
 json_t* user_get_buddies_info_by_owneruuid(const char* uuid_user);
