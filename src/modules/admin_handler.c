@@ -5,6 +5,8 @@
  *      Author: pchero
  */
 
+#define _GNU_SOURCE
+
 #include <stdio.h>
 #include <evhtp.h>
 #include <jansson.h>
@@ -18,10 +20,22 @@
 #include "park_handler.h"
 #include "core_handler.h"
 #include "call_handler.h"
+#include "publication_handler.h"
 
 #include "admin_handler.h"
 
 #define DEF_ADMIN_AUTHTOKEN_TYPE       "admin"
+
+#define DEF_PUBLISH_TOPIC_PREFIX_ADMIN     "/admin"
+
+#define DEF_PUB_EVENT_PREFIX_ADMIN_CORE_CHANNEL   "admin.core.channel"
+#define DEF_PUB_EVENT_PREFIX_ADMIN_CORE_MODULE    "admin.core.module"
+#define DEF_PUB_EVENT_PREFIX_ADMIN_CORE_SYSTEM    "admin.core.system"
+
+#define DEF_PUB_EVENT_PREFIX_ADMIN_PARK_PARKEDCALL   "admin.park.parkedcall"
+
+
+static bool init_callbacks(void);
 
 
 ////// core module
@@ -58,6 +72,7 @@ static json_t* get_queue_entry_info(const char* key);
 ////// park module
 static json_t* get_park_parkedcalls_all(void);
 static json_t* get_park_parkedcall_info(const char* key);
+static bool delete_park_parkedcall_info(const char* key);
 
 static json_t* get_park_parkinglots_all(void);
 static json_t* get_park_parkinglot_info(const char* key);
@@ -92,6 +107,14 @@ static bool create_user_permission_info(const json_t* j_data);
 static bool delete_user_permission_info(const char* uuid);
 
 
+
+
+///// callback
+static bool cb_resource_handler_core_db_channel(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
+static bool cb_resource_handler_core_db_module(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
+static bool cb_resource_handler_core_db_system(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
+static bool cb_resource_handler_park_db_parkedcall(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
+
 ///// etc
 static bool load_module(const char* name);
 static bool reload_module(const char* name);
@@ -100,6 +123,14 @@ static bool unload_module(const char* name);
 
 bool admin_init_handler(void)
 {
+  int ret;
+
+  ret = init_callbacks();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate callbacks.");
+    return false;
+  }
+
   return true;
 }
 
@@ -125,6 +156,43 @@ bool admin_reload_handler(void)
   }
 
   return true;
+}
+
+static bool init_callbacks(void)
+{
+  core_register_callback_db_channel(&cb_resource_handler_core_db_channel);
+  core_register_callback_db_module(&cb_resource_handler_core_db_module);
+//  core_register_callback_db_system(&cb_resource_handler_core_db_system);
+
+  park_register_callback_db_parkedcall(&cb_resource_handler_park_db_parkedcall);
+
+
+  return true;
+}
+
+/**
+ * Returns all subscribable topics of admin module.
+ * @param j_user
+ * @return
+ */
+json_t* admin_get_subscribable_topics_all(const json_t* j_user)
+{
+  char* topic;
+  json_t* j_res;
+
+  if(j_user == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  j_res = json_array();
+
+  // set topics
+  asprintf(&topic, "%s", DEF_PUBLISH_TOPIC_PREFIX_ADMIN);
+  json_array_append_new(j_res, json_string(topic));
+  sfree(topic);
+
+  return j_res;
 }
 
 /**
@@ -1331,7 +1399,7 @@ void admin_htp_put_admin_park_cfg_parkinglots_detail(evhtp_request_t *req, void 
 }
 
 /**
- * DELETE ^/admin/park/parkinglots/(.*) request handler.
+ * DELETE ^/admin/park/cfg_parkinglots/(.*) request handler.
  * @param req
  * @param data
  */
@@ -1446,6 +1514,49 @@ void admin_htp_get_admin_park_parkedcalls_detail(evhtp_request_t *req, void *dat
   // create result
   j_res = http_create_default_result(EVHTP_RES_OK);
   json_object_set_new(j_res, "result", j_tmp);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * DELETE ^/admin/park/parkinglots/(.*) request handler.
+ * @param req
+ * @param data
+ */
+void admin_htp_delete_admin_park_parkinglots_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  char* detail;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_delete_admin_park_parkinglots_detail.");
+
+  // detail parse
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // delete
+  ret = delete_park_parkedcall_info(detail);
+  sfree(detail);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
 
   // response
   http_simple_response_normal(req, j_res);
@@ -2217,11 +2328,28 @@ static json_t* get_park_parkedcall_info(const char* key)
   return j_res;
 }
 
+static bool delete_park_parkedcall_info(const char* key)
+{
+  int ret;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  ret = call_hangup_by_unique_id(key);
+  if(ret == false) {
+    return false;
+  }
+
+  return true;
+}
+
 static json_t* get_park_parkinglots_all(void)
 {
   json_t* j_res;
 
-  j_res = park_get_parkedcalls_all();
+  j_res = park_get_parkinglots_all();
   if(j_res == NULL) {
     return NULL;
   }
@@ -2486,3 +2614,258 @@ static json_t* get_core_system_info(const char* key)
   return j_res;
 }
 
+/**
+ * Callback handler.
+ * publish event.
+ * admin.core.channel.<type>
+ * @param type
+ * @param j_data
+ * @return
+ */
+static bool cb_resource_handler_core_db_channel(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data)
+{
+  char* topic;
+  int ret;
+  json_t* j_event;
+  enum EN_PUBLISH_TYPES event_type;
+
+  if((j_data == NULL)){
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired cb_resource_handler_core_db_channel.");
+
+  // create event depends on type
+  if(type == EN_RESOURCE_CREATE) {
+    // set event type
+    event_type = EN_PUBLISH_CREATE;
+
+    // create event
+    j_event = json_deep_copy(j_data);
+  }
+  else if(type == EN_RESOURCE_UPDATE) {
+    // set event type
+    event_type = EN_PUBLISH_UPDATE;
+
+    // create event
+    j_event = json_deep_copy(j_data);
+  }
+  else if(type == EN_RESOURCE_DELETE) {
+    // set event type
+    event_type = EN_PUBLISH_DELETE;
+
+    // create event
+    j_event = json_deep_copy(j_data);
+  }
+  else {
+    // something was wrong
+    slog(LOG_ERR, "Unsupported resource update type. type[%d]", type);
+    return false;
+  }
+
+  // create topic
+  asprintf(&topic, "%s", DEF_PUBLISH_TOPIC_PREFIX_ADMIN);
+
+  // publish event
+  ret = publication_publish_event(topic, DEF_PUB_EVENT_PREFIX_ADMIN_CORE_CHANNEL, event_type, j_event);
+  sfree(topic);
+  json_decref(j_event);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Callback handler.
+ * publish event.
+ * admin.core.system.<type>
+ * @param type
+ * @param j_data
+ * @return
+ */
+static bool cb_resource_handler_core_db_system(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data)
+{
+  char* topic;
+  int ret;
+  json_t* j_event;
+  enum EN_PUBLISH_TYPES event_type;
+
+  if((j_data == NULL)){
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired cb_resource_handler_core_db_system.");
+
+  // create event depends on type
+  if(type == EN_RESOURCE_CREATE) {
+    // set event type
+    event_type = EN_PUBLISH_CREATE;
+
+    // create event
+    j_event = json_deep_copy(j_data);
+  }
+  else if(type == EN_RESOURCE_UPDATE) {
+    // set event type
+    event_type = EN_PUBLISH_UPDATE;
+
+    // create event
+    j_event = json_deep_copy(j_data);
+  }
+  else if(type == EN_RESOURCE_DELETE) {
+    // set event type
+    event_type = EN_PUBLISH_DELETE;
+
+    // create event
+    j_event = json_deep_copy(j_data);
+  }
+  else {
+    // something was wrong
+    slog(LOG_ERR, "Unsupported resource update type. type[%d]", type);
+    return false;
+  }
+
+  // create topic
+  asprintf(&topic, "%s", DEF_PUBLISH_TOPIC_PREFIX_ADMIN);
+
+  // publish event
+  ret = publication_publish_event(topic, DEF_PUB_EVENT_PREFIX_ADMIN_CORE_SYSTEM, event_type, j_event);
+  sfree(topic);
+  json_decref(j_event);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Callback handler.
+ * publish event.
+ * admin.core.module.<type>
+ * @param type
+ * @param j_data
+ * @return
+ */
+static bool cb_resource_handler_core_db_module(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data)
+{
+  char* topic;
+  int ret;
+  json_t* j_event;
+  enum EN_PUBLISH_TYPES event_type;
+
+  if((j_data == NULL)){
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired cb_resource_handler_core_db_module.");
+
+  // create event depends on type
+  if(type == EN_RESOURCE_CREATE) {
+    // set event type
+    event_type = EN_PUBLISH_CREATE;
+
+    // create event
+    j_event = json_deep_copy(j_data);
+  }
+  else if(type == EN_RESOURCE_UPDATE) {
+    // set event type
+    event_type = EN_PUBLISH_UPDATE;
+
+    // create event
+    j_event = json_deep_copy(j_data);
+  }
+  else if(type == EN_RESOURCE_DELETE) {
+    // set event type
+    event_type = EN_PUBLISH_DELETE;
+
+    // create event
+    j_event = json_deep_copy(j_data);
+  }
+  else {
+    // something was wrong
+    slog(LOG_ERR, "Unsupported resource update type. type[%d]", type);
+    return false;
+  }
+
+  // create topic
+  asprintf(&topic, "%s", DEF_PUBLISH_TOPIC_PREFIX_ADMIN);
+
+  // publish event
+  ret = publication_publish_event(topic, DEF_PUB_EVENT_PREFIX_ADMIN_CORE_MODULE, event_type, j_event);
+  sfree(topic);
+  json_decref(j_event);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Callback handler.
+ * publish event.
+ * admin.park.parkedcall.<type>
+ * @param type
+ * @param j_data
+ * @return
+ */
+static bool cb_resource_handler_park_db_parkedcall(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data)
+{
+  char* topic;
+  int ret;
+  json_t* j_event;
+  enum EN_PUBLISH_TYPES event_type;
+
+  if((j_data == NULL)){
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired cb_resource_handler_park_db_parkedcall.");
+
+  // create event depends on type
+  if(type == EN_RESOURCE_CREATE) {
+    // set event type
+    event_type = EN_PUBLISH_CREATE;
+
+    // create event
+    j_event = json_deep_copy(j_data);
+  }
+  else if(type == EN_RESOURCE_UPDATE) {
+    // set event type
+    event_type = EN_PUBLISH_UPDATE;
+
+    // create event
+    j_event = json_deep_copy(j_data);
+  }
+  else if(type == EN_RESOURCE_DELETE) {
+    // set event type
+    event_type = EN_PUBLISH_DELETE;
+
+    // create event
+    j_event = json_deep_copy(j_data);
+  }
+  else {
+    // something was wrong
+    slog(LOG_ERR, "Unsupported resource update type. type[%d]", type);
+    return false;
+  }
+
+  // create topic
+  asprintf(&topic, "%s", DEF_PUBLISH_TOPIC_PREFIX_ADMIN);
+
+  // publish event
+  ret = publication_publish_event(topic, DEF_PUB_EVENT_PREFIX_ADMIN_PARK_PARKEDCALL, event_type, j_event);
+  sfree(topic);
+  json_decref(j_event);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
+  return true;
+}

@@ -55,17 +55,23 @@ static void cb_htp_admin_core_modules(evhtp_request_t *req, void *data);
 static void cb_htp_admin_core_modules_detail(evhtp_request_t *req, void *data);
 static void cb_htp_admin_core_systems(evhtp_request_t *req, void *data);
 static void cb_htp_admin_core_systems_detail(evhtp_request_t *req, void *data);
+
 static void cb_htp_admin_login(evhtp_request_t *req, void *data);
+
 static void cb_htp_admin_park_cfg_parkinglots(evhtp_request_t *req, void *data);
 static void cb_htp_admin_park_cfg_parkinglots_detail(evhtp_request_t *req, void *data);
 static void cb_htp_admin_park_parkedcalls(evhtp_request_t *req, void *data);
 static void cb_htp_admin_park_parkedcalls_detail(evhtp_request_t *req, void *data);
 static void cb_htp_admin_park_parkinglots(evhtp_request_t *req, void *data);
 static void cb_htp_admin_park_parkinglots_detail(evhtp_request_t *req, void *data);
+
+static void cb_htp_admin_queue_entries(evhtp_request_t *req, void *data);
+static void cb_htp_admin_queue_entries_detail(evhtp_request_t *req, void *data);
 static void cb_htp_admin_queue_members(evhtp_request_t *req, void *data);
 static void cb_htp_admin_queue_members_detail(evhtp_request_t *req, void *data);
 static void cb_htp_admin_queue_queues(evhtp_request_t *req, void *data);
 static void cb_htp_admin_queue_queues_detail(evhtp_request_t *req, void *data);
+
 static void cb_htp_admin_user_users(evhtp_request_t *req, void *data);
 static void cb_htp_admin_user_users_detail(evhtp_request_t *req, void *data);
 static void cb_htp_admin_user_contacts(evhtp_request_t *req, void *data);
@@ -209,6 +215,10 @@ bool http_init_handler(void)
 
 
   /// queue
+  // entries
+  evhtp_set_regex_cb(g_htps, "^/v1/admin/queue/entries$", cb_htp_admin_queue_entries, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/admin/queue/entries/(.*)", cb_htp_admin_queue_entries_detail, NULL);
+
   // members
   evhtp_set_regex_cb(g_htps, "^/v1/admin/queue/members$", cb_htp_admin_queue_members, NULL);
   evhtp_set_regex_cb(g_htps, "^/v1/admin/queue/members/(.*)", cb_htp_admin_queue_members_detail, NULL);
@@ -4929,6 +4939,102 @@ static void cb_htp_admin_queue_queues_detail(evhtp_request_t *req, void *data)
 
 /**
  * http request handler
+ * ^/admin/queue/entries$
+ * @param req
+ * @param data
+ */
+static void cb_htp_admin_queue_entries(evhtp_request_t *req, void *data)
+{
+  int method;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_admin_queue_entries.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if(method != htp_method_GET) {
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // fire handlers
+  if(method == htp_method_GET) {
+    admin_htp_get_admin_queue_entries(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+
+  return;
+}
+
+/**
+ * http request handler
+ * ^/admin/queue/entries/<detail>
+ * @param req
+ * @param data
+ */
+static void cb_htp_admin_queue_entries_detail(evhtp_request_t *req, void *data)
+{
+  int method;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_admin_queue_entries_detail.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if(method != htp_method_GET) {
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // fire handlers
+  if(method == htp_method_GET) {
+    admin_htp_get_admin_queue_entries_detail(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+
+  return;
+}
+
+/**
+ * http request handler
  * ^/admin/queue/members$
  * @param req
  * @param data
@@ -5097,7 +5203,7 @@ static void cb_htp_admin_park_parkedcalls_detail(evhtp_request_t *req, void *dat
 
   // method check
   method = evhtp_request_get_method(req);
-  if(method != htp_method_GET) {
+  if((method != htp_method_GET) && (method != htp_method_DELETE)) {
     http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
@@ -5105,6 +5211,10 @@ static void cb_htp_admin_park_parkedcalls_detail(evhtp_request_t *req, void *dat
   // fire handlers
   if(method == htp_method_GET) {
     admin_htp_get_admin_park_parkedcalls_detail(req, data);
+    return;
+  }
+  else if(method == htp_method_DELETE) {
+    admin_htp_delete_admin_park_parkinglots_detail(req, data);
     return;
   }
   else {
@@ -5516,7 +5626,7 @@ static void cb_htp_admin_core_modules_detail(evhtp_request_t *req, void *data)
     return;
   }
   else if(method == htp_method_DELETE) {
-    admin_htp_delete_admin_core_channels_detail(req, data);
+    admin_htp_delete_admin_core_modules_detail(req, data);
     return;
   }
   else {

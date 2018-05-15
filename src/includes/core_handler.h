@@ -16,6 +16,12 @@ bool core_init_handler(void);
 bool core_term_handler(void);
 bool core_reload_handler(void);
 
+// callback
+bool core_register_callback_module(bool (*func)(enum EN_RESOURCE_UPDATE_TYPES, const json_t*));
+bool core_register_callback_db_channel(bool (*func)(enum EN_RESOURCE_UPDATE_TYPES, const json_t*));
+bool core_register_callback_db_module(bool (*func)(enum EN_RESOURCE_UPDATE_TYPES, const json_t*));
+bool core_register_callback_db_system(bool (*func)(enum EN_RESOURCE_UPDATE_TYPES, const json_t*));
+
 // channel
 json_t* core_get_channels_all(void);
 json_t* core_get_channels_by_devicename(const char* device_name);
@@ -35,7 +41,6 @@ json_t* core_get_systems_all(void);
 json_t* core_get_system_info(const char* id);
 bool core_create_system_info(const json_t* j_data);
 bool core_update_system_info(const json_t* j_data);
-
 
 // etc
 bool core_module_load(const char* name);

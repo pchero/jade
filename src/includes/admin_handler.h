@@ -14,6 +14,7 @@ bool admin_init_handler(void);
 bool admin_term_handler(void);
 bool admin_reload_handler(void);
 
+json_t* admin_get_subscribable_topics_all(const json_t* j_user);
 
 // http handlers
 
@@ -41,6 +42,7 @@ void admin_htp_delete_admin_login(evhtp_request_t *req, void *data);
 //// ^/admin/park
 void admin_htp_get_admin_park_parkedcalls(evhtp_request_t *req, void *data);
 void admin_htp_get_admin_park_parkedcalls_detail(evhtp_request_t *req, void *data);
+void admin_htp_delete_admin_park_parkinglots_detail(evhtp_request_t *req, void *data);
 
 void admin_htp_get_admin_park_parkinglots(evhtp_request_t *req, void *data);
 void admin_htp_get_admin_park_parkinglots_detail(evhtp_request_t *req, void *data);
@@ -57,6 +59,8 @@ void admin_htp_delete_admin_park_cfg_parkinglots_detail(evhtp_request_t *req, vo
 
 
 //// ^/admin/queue
+void admin_htp_get_admin_queue_entries(evhtp_request_t *req, void *data);
+void admin_htp_get_admin_queue_entries_detail(evhtp_request_t *req, void *data);
 void admin_htp_get_admin_queue_queues(evhtp_request_t *req, void *data);
 void admin_htp_get_admin_queue_queues_detail(evhtp_request_t *req, void *data);
 void admin_htp_get_admin_queue_members(evhtp_request_t *req, void *data);

@@ -14,6 +14,7 @@
 #include "manager_handler.h"
 #include "zmq_handler.h"
 #include "websocket_handler.h"
+#include "admin_handler.h"
 
 #include "subscription_handler.h"
 
@@ -95,9 +96,7 @@ bool subscription_subscribe_topics_client(const char* authtoken, void* zmq_sock)
 
   // get all subscribe-able topics
   if(strcmp(type, "admin") == 0) {
-    j_topics = json_array();
-    j_topic = json_string("/");
-    json_array_append_new(j_topics, j_topic);
+    j_topics = admin_get_subscribable_topics_all(j_user);
   }
   else if(strcmp(type, "me") == 0) {
     j_topics = me_get_subscribable_topics_all(j_user);

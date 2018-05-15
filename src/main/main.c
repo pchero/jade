@@ -190,6 +190,10 @@ bool init(void)
   }
 
   ret = manager_init_handler();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate manager_handler.");
+    return false;
+  }
 
   return true;
 }

@@ -18,12 +18,21 @@
 #define DEF_DB_TABLE_MODULE "core_module"
 #define DEF_DB_TABLE_SYSTEM "core_system"
 
+static struct st_callback* g_callback_module;
+
+static struct st_callback* g_callback_db_channel;
+static struct st_callback* g_callback_db_module;
+static struct st_callback* g_callback_db_system;
+
 static bool init_databases(void);
 static bool init_database_channel(void);
 static bool init_database_module(void);
 static bool init_database_system(void);
 
 static bool init_resources(void);
+
+static bool init_callbacks(void);
+static bool term_callbacks(void);
 
 static bool db_create_channel_info(const json_t* j_data);
 static bool db_update_channel_info(const json_t* j_data);
@@ -33,6 +42,12 @@ static bool db_create_module_info(const json_t* j_data);
 static bool db_update_module_info(const json_t* j_data);
 
 static bool db_create_system_info(const json_t* j_data);
+static bool db_update_system_info(const json_t* j_data);
+
+static void execute_callbacks_module(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
+static void execute_callbacks_db_channel(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
+static void execute_callbacks_db_module(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
+static void execute_callbacks_db_system(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
 
 
 bool core_init_handler(void)
@@ -42,6 +57,12 @@ bool core_init_handler(void)
   ret = init_databases();
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate database.");
+    return false;
+  }
+
+  ret = init_callbacks();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate callback.");
     return false;
   }
 
@@ -56,22 +77,34 @@ bool core_init_handler(void)
 
 bool core_term_handler(void)
 {
+
+  term_callbacks();
+
   return true;
 }
 
 bool core_reload_handler(void)
 {
   int ret;
+  json_t* j_tmp;
+  char* timestamp;
 
-  ret = core_term_handler();
+  timestamp = utils_get_utc_timestamp();
+  j_tmp = json_pack("{s:s}", "timestamp", timestamp);
+  sfree(timestamp);
+
+  // execute callbacks
+  execute_callbacks_module(EN_RESOURCE_RELOAD, j_tmp);
+
+  ret = init_databases();
   if(ret == false) {
-    slog(LOG_ERR, "Could not terminate call_handler.");
+    slog(LOG_ERR, "Could not initiate database.");
     return false;
   }
 
-  ret = core_init_handler();
+  ret = init_resources();
   if(ret == false) {
-    slog(LOG_ERR, "Could not initiate call_handler.");
+    slog(LOG_ERR, "Coudl not initiate resources.");
     return false;
   }
 
@@ -294,15 +327,39 @@ static bool init_resources(void)
   return true;
 }
 
+static bool init_callbacks(void)
+{
+  // registration_outbound
+  g_callback_module = utils_create_callback();
+  g_callback_db_channel = utils_create_callback();
+  g_callback_db_module = utils_create_callback();
+  g_callback_db_system = utils_create_callback();
+
+  return true;
+}
+
+static bool term_callbacks(void)
+{
+  utils_terminate_callback(g_callback_module);
+  utils_terminate_callback(g_callback_db_system);
+  utils_terminate_callback(g_callback_db_channel);
+  utils_terminate_callback(g_callback_db_module);
+
+  return true;
+}
+
 
 static bool db_create_channel_info(const json_t* j_data)
 {
   int ret;
+  const char* key;
+  json_t* j_tmp;
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return NULL;
   }
+  slog(LOG_DEBUG, "Fired db_create_channel_info.");
 
   // insert item
   ret = resource_insert_mem_item(DEF_DB_TABLE_CALL_CHANNEL, j_data);
@@ -311,12 +368,32 @@ static bool db_create_channel_info(const json_t* j_data)
     return false;
   }
 
+  // get key
+  key = json_string_value(json_object_get(j_data, "unique_id"));
+  if(key == NULL) {
+    slog(LOG_NOTICE, "Could not get unique id info.");
+    return false;
+  }
+
+  // get created item
+  j_tmp = core_get_channel_info(key);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get created info.");
+    return false;
+  }
+
+  // execute callback
+  execute_callbacks_db_channel(EN_RESOURCE_CREATE, j_tmp);
+  json_decref(j_tmp);
+
   return true;
 }
 
 static bool db_update_channel_info(const json_t* j_data)
 {
   int ret;
+  const char* key;
+  json_t* j_tmp;
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -329,23 +406,55 @@ static bool db_update_channel_info(const json_t* j_data)
     return false;
   }
 
+  // get key
+  key = json_string_value(json_object_get(j_data, "unique_id"));
+  if(key == NULL) {
+    slog(LOG_NOTICE, "Could not get unique id info.");
+    return false;
+  }
+
+  // get updated item
+  j_tmp = core_get_channel_info(key);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get updated info.");
+    return false;
+  }
+
+  // execute callback
+  execute_callbacks_db_channel(EN_RESOURCE_UPDATE, j_tmp);
+  json_decref(j_tmp);
+
   return true;
 }
 
 static bool db_delete_channel_info(const char* key)
 {
   int ret;
+  json_t* j_tmp;
 
   if(key == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
 
+  // get delete item
+  j_tmp = core_get_channel_info(key);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get delete info.");
+    return false;
+  }
+
+  // delete
   ret = resource_delete_mem_items_string(DEF_DB_TABLE_CALL_CHANNEL, "unique_id", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete channel info. unique_id[%s]", key);
+    json_decref(j_tmp);
     return false;
   }
+
+  // execute callback
+  execute_callbacks_db_channel(EN_RESOURCE_DELETE, j_tmp);
+  json_decref(j_tmp);
 
   return true;
 }
@@ -353,6 +462,8 @@ static bool db_delete_channel_info(const char* key)
 static bool db_create_module_info(const json_t* j_data)
 {
   int ret;
+  json_t* j_tmp;
+  const char* key;
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -366,23 +477,62 @@ static bool db_create_module_info(const json_t* j_data)
     return false;
   }
 
+  // get key
+  key = json_string_value(json_object_get(j_data, "name"));
+  if(key == NULL) {
+    slog(LOG_NOTICE, "Could not get name info.");
+    return false;
+  }
+
+  // get created info
+  j_tmp = core_get_module_info(key);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get created info.");
+    return false;
+  }
+
+  // execute callback
+  execute_callbacks_db_module(EN_RESOURCE_CREATE, j_tmp);
+  json_decref(j_tmp);
+
   return true;
 }
 
 static bool db_update_module_info(const json_t* j_data)
 {
   int ret;
+  json_t* j_tmp;
+  const char* key;
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
 
+  // update
   ret = resource_update_mem_item(DEF_DB_TABLE_MODULE, "name", j_data);
   if(ret == false) {
     slog(LOG_WARNING, "Could not update core module info.");
     return false;
   }
+
+  // get key
+  key = json_string_value(json_object_get(j_data, "name"));
+  if(key == NULL) {
+    slog(LOG_NOTICE, "Could not get name info.");
+    return false;
+  }
+
+  // get updated info
+  j_tmp = core_get_module_info(key);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get updated info.");
+    return false;
+  }
+
+  // execute callback
+  execute_callbacks_db_module(EN_RESOURCE_UPDATE, j_tmp);
+  json_decref(j_tmp);
 
   return true;
 }
@@ -390,18 +540,38 @@ static bool db_update_module_info(const json_t* j_data)
 static bool db_create_system_info(const json_t* j_data)
 {
   int ret;
+  json_t* j_tmp;
+  const char* key;
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return NULL;
   }
 
-  // insert item
+  // create
   ret = resource_insert_mem_item(DEF_DB_TABLE_SYSTEM, j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not create info module.");
     return false;
   }
+
+  // get key
+  key = json_string_value(json_object_get(j_data, "id"));
+  if(key == false) {
+    slog(LOG_NOTICE, "Could not get id info.");
+    return false;
+  }
+
+  // get created info
+  j_tmp = core_get_system_info(key);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get created info.");
+    return false;
+  }
+
+  // execute callback
+  execute_callbacks_db_system(EN_RESOURCE_CREATE, j_tmp);
+  json_decref(j_tmp);
 
   return true;
 }
@@ -409,6 +579,8 @@ static bool db_create_system_info(const json_t* j_data)
 static bool db_update_system_info(const json_t* j_data)
 {
   int ret;
+  const char* key;
+  json_t* j_tmp;
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -422,7 +594,185 @@ static bool db_update_system_info(const json_t* j_data)
     return false;
   }
 
+  // get key
+  key = json_string_value(json_object_get(j_data, "id"));
+  if(key == NULL) {
+    slog(LOG_NOTICE, "Could not get key info.");
+    return false;
+  }
+
+  // get updated info
+  j_tmp = core_get_system_info(key);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get created info.");
+    return false;
+  }
+
+  // execute callback
+  execute_callbacks_db_system(EN_RESOURCE_UPDATE, j_tmp);
+  json_decref(j_tmp);
+
   return true;
+}
+
+/**
+ * Register the callback for core reload
+ */
+bool core_register_callback_module(bool (*func)(enum EN_RESOURCE_UPDATE_TYPES, const json_t*))
+{
+  int ret;
+
+  if(func == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired pjsip_register_callback_reload.");
+
+  ret = utils_register_callback(g_callback_module, func);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not register callback for registration_outbound.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Execute the registered callbacks for this module
+ * @param j_data
+ */
+static void execute_callbacks_module(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data)
+{
+  slog(LOG_DEBUG, "Fired execute_callbacks_reload.");
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+
+  utils_execute_callbacks(g_callback_module, type, j_data);
+
+  return;
+}
+
+/**
+ * Register the callback for core db_channel
+ */
+bool core_register_callback_db_channel(bool (*func)(enum EN_RESOURCE_UPDATE_TYPES, const json_t*))
+{
+  int ret;
+
+  if(func == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired core_register_callback_db_channel.");
+
+  ret = utils_register_callback(g_callback_db_channel, func);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not register callback for channel.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Execute the registered callbacks for this db_channel
+ * @param j_data
+ */
+static void execute_callbacks_db_channel(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data)
+{
+  slog(LOG_DEBUG, "Fired execute_callbacks_db_channel.");
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+
+  utils_execute_callbacks(g_callback_db_channel, type, j_data);
+
+  return;
+}
+
+/**
+ * Register the callback for core db_module
+ */
+bool core_register_callback_db_module(bool (*func)(enum EN_RESOURCE_UPDATE_TYPES, const json_t*))
+{
+  int ret;
+
+  if(func == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired core_register_callback_db_module.");
+
+  ret = utils_register_callback(g_callback_db_module, func);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not register callback for channel.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Execute the registered callbacks for this db_module
+ * @param j_data
+ */
+static void execute_callbacks_db_module(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data)
+{
+  slog(LOG_DEBUG, "Fired execute_callbacks_db_module.");
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+
+  utils_execute_callbacks(g_callback_db_module, type, j_data);
+
+  return;
+}
+
+/**
+ * Register the callback for core db_system
+ */
+bool core_register_callback_db_system(bool (*func)(enum EN_RESOURCE_UPDATE_TYPES, const json_t*))
+{
+  int ret;
+
+  if(func == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired core_register_callback_db_system.");
+
+  ret = utils_register_callback(g_callback_db_system, func);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not register callback for channel.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Execute the registered callbacks for this db_system
+ * @param j_data
+ */
+static void execute_callbacks_db_system(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data)
+{
+  slog(LOG_DEBUG, "Fired execute_callbacks_db_system.");
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+
+  utils_execute_callbacks(g_callback_db_system, type, j_data);
+
+  return;
 }
 
 
@@ -481,7 +831,7 @@ json_t* core_get_channel_info(const char* unique_id)
   }
   slog(LOG_DEBUG, "Fired get_channel_info. unique_id[%s]", unique_id);
 
-  j_res = resource_get_mem_detail_item_key_string(DEF_DB_TABLE_CALL_CHANNEL, "uniquie_id", unique_id);
+  j_res = resource_get_mem_detail_item_key_string(DEF_DB_TABLE_CALL_CHANNEL, "unique_id", unique_id);
   if(j_res == NULL) {
     return NULL;
   }

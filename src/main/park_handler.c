@@ -22,13 +22,14 @@
 #define DEF_PARK_CONFNAME   "res_parking.conf"
 #define DEF_JADE_PARK_CONFNAME    "jade.res_parking.conf"
 
-
 #define DEF_DB_TABLE_PARK_PARKEDCALL   "parked_call"
 #define DEF_DB_TABLE_PARK_PARKINGLOT   "parking_lot"
 
-
 #define DEF_SETTING_CONTEXT_1   "general"
 #define DEF_SETTING_CONTEXT_2   "default"
+
+
+static struct st_callback* g_callback_db_parkedcall;
 
 
 static bool init_databases(void);
@@ -37,8 +38,13 @@ static bool init_database_parking_lot(void);
 
 static bool init_configs(void);
 
+static bool init_callbacks(void);
+static bool term_callbacks(void);
+
 static bool clear_park_parkinglot(void);
 static bool clear_park_parkedcall(void);
+
+static void execute_callbacks_db_parkedcall(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
 
 static bool db_create_parkinglot_info(const json_t* j_data);
 
@@ -69,6 +75,12 @@ bool park_init_handler(void)
   ret = init_configs();
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate configs.");
+    return false;
+  }
+
+  ret = init_callbacks();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate callbacks.");
     return false;
   }
 
@@ -110,6 +122,12 @@ bool park_term_handler(void)
   ret = clear_park_parkedcall();
   if(ret == false) {
     slog(LOG_ERR, "Could not clear parkedcall info.");
+    return false;
+  }
+
+  ret = term_callbacks();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not terminate callbacks.");
     return false;
   }
 
@@ -265,6 +283,57 @@ static bool init_configs(void)
   return true;
 }
 
+static bool init_callbacks(void)
+{
+  g_callback_db_parkedcall = utils_create_callback();
+
+  return true;
+}
+
+static bool term_callbacks(void)
+{
+  utils_terminate_callback(g_callback_db_parkedcall);
+}
+
+/**
+ * Register callback for parkedcall
+ */
+bool park_register_callback_db_parkedcall(bool (*func)(enum EN_RESOURCE_UPDATE_TYPES, const json_t*))
+{
+  int ret;
+
+  if(func == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired park_register_callback_db_parkedcall.");
+
+  ret = utils_register_callback(g_callback_db_parkedcall, func);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not register callback for parkedcall.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Execute the registered callbacks for parkedcall
+ * @param j_data
+ */
+static void execute_callbacks_db_parkedcall(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data)
+{
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired execute_callbacks_registration_outbound.");
+
+  utils_execute_callbacks(g_callback_db_parkedcall, type, j_data);
+
+  return;
+}
+
 
 static bool clear_park_parkinglot(void)
 {
@@ -315,6 +384,8 @@ static bool db_create_parkinglot_info(const json_t* j_data)
 static bool db_create_parkedcall_info(const json_t* j_data)
 {
   int ret;
+  json_t* j_tmp;
+  const char* key;
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -327,23 +398,62 @@ static bool db_create_parkedcall_info(const json_t* j_data)
     return false;
   }
 
+  // get key
+  key = json_string_value(json_object_get(j_data, "parkee_unique_id"));
+  if(key == NULL) {
+    slog(LOG_NOTICE, "Could not get parkee_unique_id.");
+    return false;
+  }
+
+  // get created item
+  j_tmp = park_get_parkedcall_info(key);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get created info.");
+    return false;
+  }
+
+  // execute callback
+  execute_callbacks_db_parkedcall(EN_RESOURCE_CREATE, j_tmp);
+  json_decref(j_tmp);
+
   return true;
 }
 
 static bool db_update_parkedcall_info(const json_t* j_data)
 {
   int ret;
+  json_t* j_tmp;
+  const char* key;
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
 
+  // update
   ret = resource_update_mem_item(DEF_DB_TABLE_PARK_PARKEDCALL, "parkee_unique_id", j_data);
   if(ret == false) {
     slog(LOG_WARNING, "Could not update park parked_call info.");
     return false;
   }
+
+  // get key
+  key = json_string_value(json_object_get(j_data, "parkee_unique_id"));
+  if(key == NULL) {
+    slog(LOG_NOTICE, "Could not get parkee_unique_id.");
+    return false;
+  }
+
+  // get updated item
+  j_tmp = park_get_parkedcall_info(key);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get updated info.");
+    return false;
+  }
+
+  // execute callback
+  execute_callbacks_db_parkedcall(EN_RESOURCE_UPDATE, j_tmp);
+  json_decref(j_tmp);
 
   return true;
 }
@@ -351,22 +461,33 @@ static bool db_update_parkedcall_info(const json_t* j_data)
 static bool db_delete_parkedcall_info(const char* key)
 {
   int ret;
+  json_t* j_tmp;
 
   if(key == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
 
+  // get delete item
+  j_tmp = park_get_parkedcall_info(key);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get delete info. key[%s]", key);
+    return false;
+  }
+
+  // delete
   ret = resource_delete_mem_items_string(DEF_DB_TABLE_PARK_PARKEDCALL, "parkee_unique_id", key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete park parkedcall info. unique_id[%s]", key);
     return false;
   }
 
+  // execute callback
+  execute_callbacks_db_parkedcall(EN_RESOURCE_DELETE, j_tmp);
+  json_decref(j_tmp);
+
   return true;
 }
-
-
 
 /**
  * Get all parkedcalls info array
