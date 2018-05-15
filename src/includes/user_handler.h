@@ -76,26 +76,4 @@ bool user_is_user_owned_buddy(const char* uuid_owner, const char* uuid_buddy);
 char* user_create_authtoken(const char* username, const char* password, const char* type);
 
 
-// http handlers
-void user_htp_post_user_login(evhtp_request_t *req, void *data);
-void user_htp_delete_user_login(evhtp_request_t *req, void *data);
-
-void user_htp_get_user_contacts(evhtp_request_t *req, void *data);
-void user_htp_post_user_contacts(evhtp_request_t *req, void *data);
-
-void user_htp_get_user_contacts_detail(evhtp_request_t *req, void *data);
-void user_htp_put_user_contacts_detail(evhtp_request_t *req, void *data);
-void user_htp_delete_user_contacts_detail(evhtp_request_t *req, void *data);
-
-void user_htp_post_user_users(evhtp_request_t *req, void *data);
-void user_htp_get_user_users(evhtp_request_t *req, void *data);
-
-void user_htp_get_user_permissions(evhtp_request_t *req, void *data);
-void user_htp_post_user_permissions(evhtp_request_t *req, void *data);
-void user_htp_delete_user_permissions_detail(evhtp_request_t *req, void *data);
-
-void user_htp_get_user_users_detail(evhtp_request_t *req, void *data);
-void user_htp_put_user_users_detail(evhtp_request_t *req, void *data);
-void user_htp_delete_user_users_detail(evhtp_request_t *req, void *data);
-
 #endif /* SRC_MAIN_USER_HANDLER_H_ */

@@ -139,14 +139,6 @@ static void cb_htp_sip_registries_detail(evhtp_request_t *req, void *data);
 static void cb_htp_sip_settings(evhtp_request_t *req, void *data);
 static void cb_htp_sip_settings_detail(evhtp_request_t *req, void *data);
 
-// user
-static void cb_htp_user_login(evhtp_request_t *req, void *data);
-static void cb_htp_user_contacts(evhtp_request_t *req, void *data);
-static void cb_htp_user_contacts_detail(evhtp_request_t *req, void *data);
-static void cb_htp_user_permissions(evhtp_request_t *req, void *data);
-static void cb_htp_user_permissions_detail(evhtp_request_t *req, void *data);
-static void cb_htp_user_users(evhtp_request_t *req, void *data);
-static void cb_htp_user_users_detail(evhtp_request_t *req, void *data);
 
 // voicemail/
 static void cb_htp_voicemail_config(evhtp_request_t *req, void *data);
@@ -395,24 +387,6 @@ bool http_init_handler(void)
   evhtp_set_regex_cb(g_htps, "^/v1/sip/settings$", cb_htp_sip_settings, NULL);
 
 
-
-  //// ^/user/
-  // contacts
-  evhtp_set_regex_cb(g_htps, "^/v1/user/contacts/(.*)", cb_htp_user_contacts_detail, NULL);
-  evhtp_set_regex_cb(g_htps, "^/v1/user/contacts$", cb_htp_user_contacts, NULL);
-
-  // login
-  evhtp_set_regex_cb(g_htps, "^/v1/user/login$", cb_htp_user_login, NULL);
-
-  // permissions
-  evhtp_set_regex_cb(g_htps, "^/v1/user/permissions/(.*)", cb_htp_user_permissions_detail, NULL);
-  evhtp_set_regex_cb(g_htps, "^/v1/user/permissions$", cb_htp_user_permissions, NULL);
-
-  // users
-  evhtp_set_regex_cb(g_htps, "^/v1/user/users/(.*)", cb_htp_user_users_detail, NULL);
-  evhtp_set_regex_cb(g_htps, "^/v1/user/users$", cb_htp_user_users, NULL);
-
-
   //// ^/voicemail/
   // config
   evhtp_set_regex_cb(g_htps, "^/v1/voicemail/config$", cb_htp_voicemail_config, NULL);
@@ -575,23 +549,6 @@ bool http_init_handler(void)
   evhtp_set_regex_cb(g_htps, "^/sip/settings/(.*)", cb_htp_sip_settings_detail, NULL);
   evhtp_set_regex_cb(g_htps, "^/sip/settings$", cb_htp_sip_settings, NULL);
 
-
-
-  //// ^/user/
-  // contacts
-  evhtp_set_regex_cb(g_htps, "^/user/contacts/(.*)", cb_htp_user_contacts_detail, NULL);
-  evhtp_set_regex_cb(g_htps, "^/user/contacts$", cb_htp_user_contacts, NULL);
-
-  // login
-  evhtp_set_regex_cb(g_htps, "^/user/login$", cb_htp_user_login, NULL);
-
-  // permissions
-  evhtp_set_regex_cb(g_htps, "^/user/permissions/(.*)", cb_htp_user_permissions_detail, NULL);
-  evhtp_set_regex_cb(g_htps, "^/user/permissions$", cb_htp_user_permissions, NULL);
-
-  // users
-  evhtp_set_regex_cb(g_htps, "^/user/users/(.*)", cb_htp_user_users_detail, NULL);
-  evhtp_set_regex_cb(g_htps, "^/user/users$", cb_htp_user_users, NULL);
 
 
   //// ^/voicemail/
@@ -3965,360 +3922,6 @@ static void cb_htp_dp_dialplans_detail(evhtp_request_t *req, void *data)
 
 /**
  * http request handler
- * ^/user/login$
- * @param req
- * @param data
- */
-static void cb_htp_user_login(evhtp_request_t *req, void *data)
-{
-  int method;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_INFO, "Fired cb_htp_user_login.");
-
-  // method check
-  method = evhtp_request_get_method(req);
-  if((method != htp_method_POST) && (method != htp_method_DELETE)) {
-    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-    return;
-  }
-
-  if(method == htp_method_POST) {
-    user_htp_post_user_login(req, data);
-    return;
-  }
-  else if(method == htp_method_DELETE) {
-    user_htp_delete_user_login(req, data);
-    return;
-  }
-  else {
-    // should not reach to here.
-    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-    return;
-  }
-
-  // should not reach to here.
-  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-
-  return;
-}
-
-/**
- * http request handler
- * ^/user/permissions$
- * @param req
- * @param data
- */
-static void cb_htp_user_permissions(evhtp_request_t *req, void *data)
-{
-  int method;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_INFO, "Fired cb_htp_user_permissions.");
-
-  // check authorization
-  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
-    return;
-  }
-
-  // method check
-  method = evhtp_request_get_method(req);
-  if((method != htp_method_POST) && (method != htp_method_GET)) {
-    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-    return;
-  }
-
-  if(method == htp_method_POST) {
-    user_htp_post_user_permissions(req, data);
-    return;
-  }
-  else if(method == htp_method_GET) {
-    user_htp_get_user_permissions(req, data);
-    return;
-  }
-  else {
-    // should not reach to here.
-    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-    return;
-  }
-
-  // should not reach to here.
-  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-
-  return;
-}
-
-/**
- * http request handler
- * ^/user/permissions/(.*)
- * @param req
- * @param data
- */
-static void cb_htp_user_permissions_detail(evhtp_request_t *req, void *data)
-{
-  int method;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_INFO, "Fired cb_htp_user_permissions_detail.");
-
-  // check authorization
-  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
-    return;
-  }
-
-  // method check
-  method = evhtp_request_get_method(req);
-  if(method != htp_method_DELETE) {
-    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-    return;
-  }
-
-  // fire handlers
-  if (method == htp_method_DELETE) {
-    user_htp_delete_user_permissions_detail(req, data);
-    return;
-  }
-  else {
-    // should not reach to here.
-    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-    return;
-  }
-
-  // should not reach to here.
-  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-
-  return;
-}
-
-/**
- * http request handler
- * ^/user/uesrs$
- * @param req
- * @param data
- */
-static void cb_htp_user_users(evhtp_request_t *req, void *data)
-{
-  int method;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_INFO, "Fired cb_htp_user_users.");
-
-  // check authorization
-  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
-    return;
-  }
-
-  // method check
-  method = evhtp_request_get_method(req);
-  if((method != htp_method_POST) && (method != htp_method_GET)) {
-    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-    return;
-  }
-
-  if(method == htp_method_POST) {
-    user_htp_post_user_users(req, data);
-    return;
-  }
-  else if(method == htp_method_GET) {
-    user_htp_get_user_users(req, data);
-    return;
-  }
-  else {
-    // should not reach to here.
-    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-    return;
-  }
-
-  // should not reach to here.
-  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-
-  return;
-}
-
-/**
- * http request handler
- * ^/user/users/(.*)
- * @param req
- * @param data
- */
-static void cb_htp_user_users_detail(evhtp_request_t *req, void *data)
-{
-  int method;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_INFO, "Fired cb_htp_user_users_detail.");
-
-  // check authorization
-  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
-    return;
-  }
-
-  // method check
-  method = evhtp_request_get_method(req);
-  if((method != htp_method_GET) && (method != htp_method_PUT) && (method != htp_method_DELETE)) {
-    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-    return;
-  }
-
-  // fire handlers
-  if(method == htp_method_GET) {
-    user_htp_get_user_users_detail(req, data);
-    return;
-  }
-  else if(method == htp_method_PUT) {
-    user_htp_put_user_users_detail(req, data);
-    return;
-  }
-  else if(method == htp_method_DELETE) {
-    user_htp_delete_user_users_detail(req, data);
-    return;
-  }
-  else {
-    // should not reach to here.
-    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-    return;
-  }
-
-  // should not reach to here.
-  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-  return;
-}
-
-/**
- * http request handler
- * ^/user/contacts
- * @param req
- * @param data
- */
-static void cb_htp_user_contacts(evhtp_request_t *req, void *data)
-{
-  int method;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_INFO, "Fired cb_htp_user_contacts.");
-
-  // check authorization
-  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
-    return;
-  }
-
-  // method check
-  method = evhtp_request_get_method(req);
-  if((method != htp_method_GET) && (method != htp_method_POST)) {
-    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-    return;
-  }
-
-  if(method == htp_method_GET) {
-    user_htp_get_user_contacts(req, data);
-    return;
-  }
-  else if(method == htp_method_POST) {
-    user_htp_post_user_contacts(req, data);
-    return;
-  }
-  else {
-    // should not reach to here.
-    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-    return;
-  }
-
-  // should not reach to here.
-  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-
-  return;
-}
-
-/**
- * http request handler
- * ^/user/contacts/(.*)
- * @param req
- * @param data
- */
-static void cb_htp_user_contacts_detail(evhtp_request_t *req, void *data)
-{
-  int method;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_INFO, "Fired cb_htp_user_contacts_detail.");
-
-  // check authorization
-  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
-    return;
-  }
-
-  // method check
-  method = evhtp_request_get_method(req);
-  if((method != htp_method_GET) && (method != htp_method_PUT) && (method != htp_method_DELETE)) {
-    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-    return;
-  }
-
-  // fire handlers
-  if(method == htp_method_GET) {
-    user_htp_get_user_contacts_detail(req, data);
-    return;
-  }
-  else if (method == htp_method_PUT) {
-    user_htp_put_user_contacts_detail(req, data);
-  }
-  else if (method == htp_method_DELETE) {
-    user_htp_delete_user_contacts_detail(req, data);
-    return;
-  }
-  else {
-    // should not reach to here.
-    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-    return;
-  }
-
-  // should not reach to here.
-  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-
-  return;
-}
-
-/**
- * http request handler
  * ^/me/info
  * @param req
  * @param data
@@ -4558,7 +4161,7 @@ static void cb_htp_me_login(evhtp_request_t *req, void *data)
   }
   else if(method == htp_method_DELETE) {
     // synonym of delete /user/login
-    user_htp_delete_user_login(req, data);
+    me_htp_delete_me_login(req, data);
     return;
   }
   else {
@@ -4904,8 +4507,7 @@ static void cb_htp_manager_login(evhtp_request_t *req, void *data)
     return;
   }
   else if(method == htp_method_DELETE) {
-    // synonym of delete /user/login
-    user_htp_delete_user_login(req, data);
+    manager_htp_delete_manager_login(req, data);
     return;
   }
   else {
@@ -5315,7 +4917,6 @@ static void cb_htp_admin_login(evhtp_request_t *req, void *data)
     return;
   }
   else if(method == htp_method_DELETE) {
-    // synonym of delete /user/login
     admin_htp_delete_admin_login(req, data);
     return;
   }
