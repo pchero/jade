@@ -22,11 +22,17 @@
 
 
 ////// queue module
-// queue
+// queues
 static json_t* get_queue_queues_all(void);
 static json_t* get_queue_queue_info(const char* key);
 
-////
+// members
+static json_t* get_queue_members_all(void);
+static json_t* get_queue_member_info(const char* key);
+
+// entries
+static json_t* get_queue_entries_all(void);
+static json_t* get_queue_entry_info(const char* key);
 
 
 ////// user module
@@ -864,7 +870,167 @@ void admin_htp_get_admin_queue_queues_detail(evhtp_request_t *req, void *data)
   return;
 }
 
+/**
+ * GET ^/admin/queue/members request handler.
+ * @param req
+ * @param data
+ */
+void admin_htp_get_admin_queue_members(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_tmp;
 
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_get_admin_queue_members.");
+
+  // get info
+  j_tmp = get_queue_members_all();
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get info.");
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", json_object());
+  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * GET ^/admin/queue/members/(.*) request handler.
+ * @param req
+ * @param data
+ */
+void admin_htp_get_admin_queue_members_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+  char* detail;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_get_admin_queue_members_detail.");
+
+  // detail parse
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // get detail info
+  j_tmp = get_queue_member_info(detail);
+  sfree(detail);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not find info.");
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", j_tmp);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * GET ^/admin/queue/entries request handler.
+ * @param req
+ * @param data
+ */
+void admin_htp_get_admin_queue_entries(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_get_admin_queue_entries.");
+
+  // get info
+  j_tmp = get_queue_entries_all();
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get info.");
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", json_object());
+  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * GET ^/admin/queue/entries/(.*) request handler.
+ * @param req
+ * @param data
+ */
+void admin_htp_get_admin_queue_entries_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+  char* detail;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_get_admin_queue_entries_detail.");
+
+  // detail parse
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // get detail info
+  j_tmp = get_queue_entry_info(detail);
+  sfree(detail);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not find info.");
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", j_tmp);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
 
 
 
@@ -1132,5 +1298,59 @@ static json_t* get_queue_queue_info(const char* key)
 
   return j_res;
 }
+
+static json_t* get_queue_members_all(void)
+{
+  json_t* j_res;
+
+  j_res = queue_get_members_all();
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
+static json_t* get_queue_member_info(const char* key)
+{
+  json_t* j_res;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  j_res = queue_get_member_info(key);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
+static json_t* get_queue_entries_all(void)
+{
+  json_t* j_res;
+
+  j_res = queue_get_entries_all();
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
+static json_t* get_queue_entry_info(const char* key)
+{
+  json_t* j_res;
+
+  j_res = queue_get_entry_info(key);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
 
 

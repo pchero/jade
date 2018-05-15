@@ -50,6 +50,8 @@ static void cb_htp_ping(evhtp_request_t *req, void *a);
 
 // admin
 static void cb_htp_admin_login(evhtp_request_t *req, void *data);
+static void cb_htp_admin_queue_members(evhtp_request_t *req, void *data);
+static void cb_htp_admin_queue_members_detail(evhtp_request_t *req, void *data);
 static void cb_htp_admin_queue_queues(evhtp_request_t *req, void *data);
 static void cb_htp_admin_queue_queues_detail(evhtp_request_t *req, void *data);
 static void cb_htp_admin_user_users(evhtp_request_t *req, void *data);
@@ -137,20 +139,6 @@ static void cb_htp_pjsip_configs_detail(evhtp_request_t *req, void *data);
 static void cb_htp_pjsip_settings(evhtp_request_t *req, void *data);
 static void cb_htp_pjsip_settings_detail(evhtp_request_t *req, void *data);
 
-// queue
-static void cb_htp_queue_entries(evhtp_request_t *req, void *data);
-static void cb_htp_queue_entries_detail(evhtp_request_t *req, void *data);
-static void cb_htp_queue_members(evhtp_request_t *req, void *data);
-static void cb_htp_queue_members_detail(evhtp_request_t *req, void *data);
-static void cb_htp_queue_queues(evhtp_request_t *req, void *data);
-static void cb_htp_queue_queues_detail(evhtp_request_t *req, void *data);
-static void cb_htp_queue_config(evhtp_request_t *req, void *data);
-static void cb_htp_queue_configs(evhtp_request_t *req, void *data);
-static void cb_htp_queue_configs_detail(evhtp_request_t *req, void *data);
-static void cb_htp_queue_settings(evhtp_request_t *req, void *data);
-static void cb_htp_queue_settings_detail(evhtp_request_t *req, void *data);
-
-
 // sip
 static void cb_htp_sip_config(evhtp_request_t *req, void *data);
 static void cb_htp_sip_configs(evhtp_request_t *req, void *data);
@@ -216,6 +204,10 @@ bool http_init_handler(void)
   evhtp_set_regex_cb(g_htps, "^/v1/admin/login$", cb_htp_admin_login, NULL);
 
   /// queue
+  // members
+  evhtp_set_regex_cb(g_htps, "^/v1/admin/queue/members$", cb_htp_admin_queue_members, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/admin/queue/members/(.*)", cb_htp_admin_queue_members_detail, NULL);
+
   // queues
   evhtp_set_regex_cb(g_htps, "^/v1/admin/queue/queues$", cb_htp_admin_queue_queues, NULL);
   evhtp_set_regex_cb(g_htps, "^/v1/admin/queue/queues/(.*)", cb_htp_admin_queue_queues_detail, NULL);
@@ -413,33 +405,6 @@ bool http_init_handler(void)
   // transports
   evhtp_set_regex_cb(g_htps, "^/v1/pjsip/transports/(.*)", cb_htp_pjsip_transports_detail, NULL);
   evhtp_set_regex_cb(g_htps, "^/v1/pjsip/transports$", cb_htp_pjsip_transports, NULL);
-
-
-
-  //// ^/queue/
-  // config
-  evhtp_set_regex_cb(g_htps, "^/v1/queue/config$", cb_htp_queue_config, NULL);
-
-  // configs
-  evhtp_set_regex_cb(g_htps, "^/v1/queue/configs/(.*)", cb_htp_queue_configs_detail, NULL);
-  evhtp_set_regex_cb(g_htps, "^/v1/queue/configs$", cb_htp_queue_configs, NULL);
-
-  // entries
-  evhtp_set_regex_cb(g_htps, "^/v1/queue/entries/(.*)", cb_htp_queue_entries_detail, NULL);
-  evhtp_set_regex_cb(g_htps, "^/v1/queue/entries$", cb_htp_queue_entries, NULL);
-
-  // members
-  evhtp_set_regex_cb(g_htps, "^/v1/queue/members/(.*)", cb_htp_queue_members_detail, NULL);
-  evhtp_set_regex_cb(g_htps, "^/v1/queue/members$", cb_htp_queue_members, NULL);
-
-  // queues
-  evhtp_set_regex_cb(g_htps, "^/v1/queue/queues/(.*)", cb_htp_queue_queues_detail, NULL);
-  evhtp_set_regex_cb(g_htps, "^/v1/queue/queues$", cb_htp_queue_queues, NULL);
-
-  // settings
-  evhtp_set_regex_cb(g_htps, "^/v1/queue/settings/(.*)", cb_htp_queue_settings_detail, NULL);
-  evhtp_set_regex_cb(g_htps, "^/v1/queue/settings$", cb_htp_queue_settings, NULL);
-
 
 
   //// ^/sip/
@@ -645,33 +610,6 @@ bool http_init_handler(void)
   evhtp_set_regex_cb(g_htps, "^/pjsip/transports$", cb_htp_pjsip_transports, NULL);
 
 
-
-  //// ^/queue/
-  // config
-  evhtp_set_regex_cb(g_htps, "^/queue/config$", cb_htp_queue_config, NULL);
-
-  // configs
-  evhtp_set_regex_cb(g_htps, "^/queue/configs/(.*)", cb_htp_queue_configs_detail, NULL);
-  evhtp_set_regex_cb(g_htps, "^/queue/configs$", cb_htp_queue_configs, NULL);
-
-  // entries
-  evhtp_set_regex_cb(g_htps, "^/queue/entries/(.*)", cb_htp_queue_entries_detail, NULL);
-  evhtp_set_regex_cb(g_htps, "^/queue/entries$", cb_htp_queue_entries, NULL);
-
-  // members
-  evhtp_set_regex_cb(g_htps, "^/queue/members/(.*)", cb_htp_queue_members_detail, NULL);
-  evhtp_set_regex_cb(g_htps, "^/queue/members$", cb_htp_queue_members, NULL);
-
-  // queues
-  evhtp_set_regex_cb(g_htps, "^/queue/queues/(.*)", cb_htp_queue_queues_detail, NULL);
-  evhtp_set_regex_cb(g_htps, "^/queue/queues$", cb_htp_queue_queues, NULL);
-
-  // settings
-  evhtp_set_regex_cb(g_htps, "^/queue/settings/(.*)", cb_htp_queue_settings_detail, NULL);
-  evhtp_set_regex_cb(g_htps, "^/queue/settings$", cb_htp_queue_settings, NULL);
-
-
-
   //// ^/sip/
   // config
   evhtp_set_regex_cb(g_htps, "^/sip/config$", cb_htp_sip_config, NULL);
@@ -753,17 +691,6 @@ bool http_init_handler(void)
   evhtp_set_cb(g_htps, "/registries/", cb_htp_sip_registries_detail, NULL);
   evhtp_set_cb(g_htps, "/registries", cb_htp_sip_registries, NULL);
 
-  // queue_params
-  evhtp_set_cb(g_htps, "/queue_params/", cb_htp_queue_queues_detail, NULL);
-  evhtp_set_cb(g_htps, "/queue_params", cb_htp_queue_queues, NULL);
-
-  // queue_members
-  evhtp_set_cb(g_htps, "/queue_members/", cb_htp_queue_members_detail, NULL);
-  evhtp_set_cb(g_htps, "/queue_members", cb_htp_queue_members, NULL);
-
-  // queue_entries
-  evhtp_set_cb(g_htps, "/queue_entries/", cb_htp_queue_entries_detail, NULL);
-  evhtp_set_cb(g_htps, "/queue_entries", cb_htp_queue_entries, NULL);
 
   // queue_entries
   evhtp_set_cb(g_htps, "/channels/", cb_htp_core_channels_detail, NULL);
@@ -1875,565 +1802,6 @@ static void cb_htp_sip_settings_detail(evhtp_request_t *req, void *data)
     return;
   }
   else if(method == htp_method_DELETE) {
-    queue_htp_delete_queue_settings_detail(req,data);
-    return;
-  }
-  else {
-    // should not reach to here.
-    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-    return;
-  }
-
-  // should not reach to here.
-  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-
-  return;
-}
-
-
-/**
- * http request handler
- * ^/queue/queues$
- * @param req
- * @param data
- */
-static void cb_htp_queue_queues(evhtp_request_t *req, void *data)
-{
-  int method;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_INFO, "Fired cb_htp_queue_queues.");
-
-  // check authorization
-  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
-    return;
-  }
-
-  // method check
-  method = evhtp_request_get_method(req);
-  if((method != htp_method_GET) && (method != htp_method_POST)) {
-    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-    return;
-  }
-
-  // fire handlers
-  if(method == htp_method_GET) {
-    queue_htp_get_queue_queues(req, data);
-    return;
-  }
-  else if(method == htp_method_POST) {
-    queue_htp_post_queue_queues(req, data);
-    return;
-  }
-  else {
-    // should not reach to here.
-    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-    return;
-  }
-
-  // should not reach to here.
-  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-  return;
-}
-
-/**
- * http request handler
- * ^/queue/queues/(.*)
- * @param req
- * @param data
- */
-static void cb_htp_queue_queues_detail(evhtp_request_t *req, void *data)
-{
-  int method;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_INFO, "Fired cb_htp_queue_queues_detail.");
-
-  // check authorization
-  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
-    return;
-  }
-
-  // method check
-  method = evhtp_request_get_method(req);
-  if((method != htp_method_GET) && (method != htp_method_PUT) && (method != htp_method_DELETE)) {
-    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-    return;
-  }
-
-  // fire handlers
-  if(method == htp_method_GET) {
-    queue_htp_get_queue_queues_detail(req, data);
-    return;
-  }
-  else if(method == htp_method_PUT) {
-    queue_htp_put_queue_queues_detail(req, data);
-    return;
-  }
-  else if(method == htp_method_DELETE) {
-    queue_htp_delete_queue_queues_detail(req, data);
-    return;
-  }
-  else {
-    // should not reach to here.
-    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-    return;
-  }
-
-  // should not reach to here.
-  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-  return;
-}
-
-/**
- * http request handler
- * ^/queue/config$
- * @param req
- * @param data
- */
-static void cb_htp_queue_config(evhtp_request_t *req, void *data)
-{
-  int method;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_INFO, "Fired cb_htp_queue_config.");
-
-  // check authorization
-  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
-    return;
-  }
-
-  // method check
-  method = evhtp_request_get_method(req);
-  if((method != htp_method_GET) && (method != htp_method_PUT)) {
-    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-    return;
-  }
-
-  // fire handlers
-  if(method == htp_method_GET) {
-    queue_htp_get_queue_config(req, data);
-    return;
-  }
-  else if(method == htp_method_PUT) {
-    queue_htp_put_queue_config(req, data);
-    return;
-  }
-  else {
-    // should not reach to here.
-    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-    return;
-  }
-
-  // should not reach to here.
-  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-
-  return;
-}
-
-/**
- * http request handler
- * ^/queue/configs/(.*)
- * @param req
- * @param data
- */
-static void cb_htp_queue_configs_detail(evhtp_request_t *req, void *data)
-{
-  int method;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_INFO, "Fired cb_htp_queue_configs_detail.");
-
-  // check authorization
-  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
-    return;
-  }
-
-  // method check
-  method = evhtp_request_get_method(req);
-  if((method != htp_method_GET) && (method != htp_method_DELETE)) {
-    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-    return;
-  }
-
-  // fire handlers
-  if(method == htp_method_GET) {
-    queue_htp_get_queue_configs_detail(req, data);
-    return;
-  }
-  else if (method == htp_method_DELETE) {
-    queue_htp_delete_queue_configs_detail(req, data);
-    return;
-  }
-  else {
-    // should not reach to here.
-    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-    return;
-  }
-
-  // should not reach to here.
-  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-
-  return;
-}
-
-/**
- * http request handler
- * ^/queue/configs$
- * @param req
- * @param data
- */
-static void cb_htp_queue_configs(evhtp_request_t *req, void *data)
-{
-  int method;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_INFO, "Fired cb_htp_queue_configs.");
-
-  // check authorization
-  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
-    return;
-  }
-
-  // method check
-  method = evhtp_request_get_method(req);
-  if(method != htp_method_GET) {
-    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-    return;
-  }
-
-  if(method == htp_method_GET) {
-    queue_htp_get_queue_configs(req, data);
-    return;
-  }
-  else {
-    // should not reach to here.
-    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-    return;
-  }
-
-  // should not reach to here.
-  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-
-  return;
-}
-
-/**
- * http request handler
- * ^/queue_members
- * @param req
- * @param data
- */
-static void cb_htp_queue_members(evhtp_request_t *req, void *data)
-{
-  int method;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_INFO, "Fired cb_htp_queue_members.");
-
-  // check authorization
-  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
-    return;
-  }
-
-  // method check
-  method = evhtp_request_get_method(req);
-  if(method != htp_method_GET) {
-    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-    return;
-  }
-
-  // fire handlers
-  if(method == htp_method_GET) {
-    queue_htp_get_queue_members(req, data);
-    return;
-  }
-  else {
-    // should not reach to here.
-    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-    return;
-  }
-
-  // should not reach to here.
-  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-  return;
-}
-
-/**
- * http request handler
- * ^/queue/members/(.*)
- * @param req
- * @param data
- */
-static void cb_htp_queue_members_detail(evhtp_request_t *req, void *data)
-{
-  int method;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_INFO, "Fired cb_htp_queue_members_detail.");
-
-  // check authorization
-  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
-    return;
-  }
-
-  // method check
-  method = evhtp_request_get_method(req);
-  if(method != htp_method_GET) {
-    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-    return;
-  }
-
-  // fire handlers
-  if(method == htp_method_GET) {
-    queue_htp_get_queue_members_detail(req, data);
-    return;
-  }
-  else {
-    // should not reach to here.
-    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-    return;
-  }
-
-  // should not reach to here.
-  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-  return;
-}
-
-/**
- * http request handler
- * ^/queue/entries$
- * @param req
- * @param data
- */
-static void cb_htp_queue_entries(evhtp_request_t *req, void *data)
-{
-  int method;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_INFO, "Fired cb_htp_queue_entries.");
-
-  // check authorization
-  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
-    return;
-  }
-
-  // method check
-  method = evhtp_request_get_method(req);
-  if(method != htp_method_GET) {
-    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-    return;
-  }
-
-  // fire handlers
-  if(method == htp_method_GET) {
-    queue_htp_get_queue_entries(req, data);
-    return;
-  }
-  else {
-    // should not reach to here.
-    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-    return;
-  }
-
-  // should not reach to here.
-  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-
-  return;
-}
-
-/**
- * http request handler
- * ^/queue/entries/(.*)
- * @param req
- * @param data
- */
-static void cb_htp_queue_entries_detail(evhtp_request_t *req, void *data)
-{
-  int method;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_INFO, "Fired cb_htp_queue_entries_detail.");
-
-  // check authorization
-  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
-    return;
-  }
-
-  // method check
-  method = evhtp_request_get_method(req);
-  if((method != htp_method_GET) && (method != htp_method_DELETE)) {
-    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-    return;
-  }
-
-  // fire handlers
-  if(method == htp_method_GET) {
-    queue_htp_get_queue_entries_detail(req, data);
-    return;
-  }
-  else if(method == htp_method_DELETE) {
-    // synonym of delete /core/channels/<detail>
-    core_htp_delete_core_channels_detail(req, data);
-    return;
-  }
-  else {
-    // should not reach to here.
-    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-    return;
-  }
-
-  // should not reach to here.
-  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-  return;
-}
-
-/**
- * http request handler
- * ^/queue/settings$
- * @param req
- * @param data
- */
-static void cb_htp_queue_settings(evhtp_request_t *req, void *data)
-{
-  int method;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_INFO, "Fired cb_htp_queue_settings.");
-
-  // check authorization
-  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
-    return;
-  }
-
-  // method check
-  method = evhtp_request_get_method(req);
-  if((method != htp_method_GET) && (method != htp_method_POST)) {
-    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-    return;
-  }
-
-  // fire handlers
-  if(method == htp_method_GET) {
-    queue_htp_get_queue_settings(req, data);
-    return;
-  }
-  else if(method == htp_method_POST) {
-  	queue_htp_post_queue_settings(req, data);
-    return;
-  }
-  else {
-    // should not reach to here.
-    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-    return;
-  }
-
-  // should not reach to here.
-  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-  return;
-}
-
-/**
- * http request handler
- * ^/queue/settings/detail
- * @param req
- * @param data
- */
-static void cb_htp_queue_settings_detail(evhtp_request_t *req, void *data)
-{
-  int method;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_INFO, "Fired cb_htp_queue_settings_detail.");
-
-  // check authorization
-  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
-    return;
-  }
-
-  // method check
-  method = evhtp_request_get_method(req);
-  if((method != htp_method_GET) && (method != htp_method_PUT) && (method != htp_method_DELETE)) {
-    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-    return;
-  }
-
-  if(method == htp_method_GET) {
-  	queue_htp_get_queue_settings_detail(req, data);
-    return;
-  }
-  else if(method == htp_method_PUT) {
-  	queue_htp_put_queue_settings_detail(req, data);
-  	return;
-  }
-  else if(method == htp_method_DELETE) {
-  	queue_htp_delete_queue_settings_detail(req,data);
     return;
   }
   else {
@@ -6888,6 +6256,102 @@ static void cb_htp_admin_queue_queues_detail(evhtp_request_t *req, void *data)
   // fire handlers
   if(method == htp_method_GET) {
     admin_htp_get_admin_queue_queues_detail(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+
+  return;
+}
+
+/**
+ * http request handler
+ * ^/admin/queue/members$
+ * @param req
+ * @param data
+ */
+static void cb_htp_admin_queue_members(evhtp_request_t *req, void *data)
+{
+  int method;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_admin_queue_members.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if(method != htp_method_GET) {
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // fire handlers
+  if(method == htp_method_GET) {
+    admin_htp_get_admin_queue_members(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+
+  return;
+}
+
+/**
+ * http request handler
+ * ^/admin/queue/members/<detail>
+ * @param req
+ * @param data
+ */
+static void cb_htp_admin_queue_members_detail(evhtp_request_t *req, void *data)
+{
+  int method;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_admin_queue_member_detail.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if(method != htp_method_GET) {
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // fire handlers
+  if(method == htp_method_GET) {
+    admin_htp_get_admin_queue_members_detail(req, data);
     return;
   }
   else {

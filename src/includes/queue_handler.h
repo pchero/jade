@@ -36,34 +36,9 @@ json_t* queue_get_entry_info(const char* key);
 bool queue_delete_entry_info(const char* key);
 bool queue_create_entry_info(const json_t* j_tmp);
 
-
-
-void queue_htp_get_queue_entries(evhtp_request_t *req, void *data);
-void queue_htp_get_queue_entries_detail(evhtp_request_t *req, void *data);
-void queue_htp_get_queue_members(evhtp_request_t *req, void *data);
-void queue_htp_get_queue_members_detail(evhtp_request_t *req, void *data);
-
-void queue_htp_get_queue_queues(evhtp_request_t *req, void *data);
-void queue_htp_post_queue_queues(evhtp_request_t *req, void *data);
-
-void queue_htp_get_queue_queues_detail(evhtp_request_t *req, void *data);
-void queue_htp_put_queue_queues_detail(evhtp_request_t *req, void *data);
-void queue_htp_delete_queue_queues_detail(evhtp_request_t *req, void *data);
-
-void queue_htp_get_queue_config(evhtp_request_t *req, void *data);
-void queue_htp_put_queue_config(evhtp_request_t *req, void *data);
-
-void queue_htp_get_queue_configs(evhtp_request_t *req, void *data);
-
-void queue_htp_get_queue_configs_detail(evhtp_request_t *req, void *data);
-void queue_htp_delete_queue_configs_detail(evhtp_request_t *req, void *data);
-
-void queue_htp_get_queue_settings(evhtp_request_t *req, void *data);
-void queue_htp_post_queue_settings(evhtp_request_t *req, void *data);
-
-void queue_htp_get_queue_settings_detail(evhtp_request_t *req, void *data);
-void queue_htp_put_queue_settings_detail(evhtp_request_t *req, void *data);
-void queue_htp_delete_queue_settings_detail(evhtp_request_t *req, void *data);
-
+// cfg
+bool queue_cfg_create_queue_info(const json_t* j_data);
+bool queue_cfg_update_queue_info(const json_t* j_data);
+bool queue_cfg_delete_queue_info(const char* name);
 
 #endif /* SRC_QUEUE_HANDLER_H_ */

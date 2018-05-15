@@ -1025,6 +1025,7 @@ static bool set_authtoken(struct client_session* session)
   tmp_const = json_string_value(json_object_get(j_param, "authtoken"));
   if(tmp_const == NULL) {
     slog(LOG_NOTICE, "Could not get authtoken info.");
+    json_decref(j_param);
     return false;
   }
 
