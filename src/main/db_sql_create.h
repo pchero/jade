@@ -212,31 +212,31 @@ static const char* g_sql_create_core_module =
 //");";
 
 
-// queue entry
-static const char* g_sql_drop_queue_entry = "drop table if exists queue_entry;";
-static const char* g_sql_create_queue_entry =
-"create table queue_entry("
-
-// identity
-"   unique_id         varchar(255),"
-"   queue_name        varchar(255),"
-"   channel           varchar(255),"
-
-// info
-"   position            int,"
-"   caller_id_num       varchar(255),"
-"   caller_id_name      varchar(255),"
-"   connected_line_num  varchar(255),"
-"   connected_line_name varchar(255),"
-
-"   wait                int,"
-
-// timestamp. UTC."
-"   tm_update         datetime(6),"   // update time."
-
-"   primary key(unique_id)"
-
-");";
+//// queue entry
+//static const char* g_sql_drop_queue_entry = "drop table if exists queue_entry;";
+//static const char* g_sql_create_queue_entry =
+//"create table queue_entry("
+//
+//// identity
+//"   unique_id         varchar(255),"
+//"   queue_name        varchar(255),"
+//"   channel           varchar(255),"
+//
+//// info
+//"   position            int,"
+//"   caller_id_num       varchar(255),"
+//"   caller_id_name      varchar(255),"
+//"   connected_line_num  varchar(255),"
+//"   connected_line_name varchar(255),"
+//
+//"   wait                int,"
+//
+//// timestamp. UTC."
+//"   tm_update         datetime(6),"   // update time."
+//
+//"   primary key(unique_id)"
+//
+//");";
 
 
 // database
@@ -355,69 +355,69 @@ static const char* g_sql_create_device_state =
 ");";
 
 
-// parking_lot
-static const char* g_sql_drop_parking_lot = "drop table if exists parking_lot;";
-static const char* g_sql_create_parking_lot =
-"create table parking_lot("
+//// parking_lot
+//static const char* g_sql_drop_parking_lot = "drop table if exists parking_lot;";
+//static const char* g_sql_create_parking_lot =
+//"create table parking_lot("
+//
+//"   name varchar(255),"
+//
+//"   start_space varchar(255),"
+//"   stop_space  varchar(255),"
+//
+//"   timeout int,"
+//
+//// timestamp. UTC."
+//"   tm_update         datetime(6),"   // update time."
+//
+//"   primary key(name)"
+//");";
 
-"   name varchar(255),"
 
-"   start_space varchar(255),"
-"   stop_space  varchar(255),"
-
-"   timeout int,"
-
-// timestamp. UTC."
-"   tm_update         datetime(6),"   // update time."
-
-"   primary key(name)"
-");";
-
-
-// parked_call
-static const char* g_sql_drop_parked_call = "drop table if exists parked_call;";
-static const char* g_sql_create_parked_call =
-"create table parked_call("
-
-// parked channel id info
-"   parkee_unique_id  varchar(255),"
-"   parkee_linked_id  varchar(255),"
-
-// parked channel info
-"   parkee_channel              varchar(255),"
-"   parkee_channel_state        varchar(255),"
-"   parkee_channel_state_desc   varchar(255),"
-
-// parked channel caller info
-"   parkee_caller_id_num    varchar(255),"
-"   parkee_caller_id_name   varchar(255),"
-
-// parked channel connected line info
-"   parkee_connected_line_num   varchar(255),"
-"   parkee_connected_line_name  varchar(255),"
-
-// parked channel account info
-"   parkee_account_code   varchar(255),"
-
-// parked channel dialplan info
-"   parkee_context    varchar(255),"
-"   parkee_exten      varchar(255),"
-"   parkee_priority   varchar(255),"
-
-// parked channel parker info
-"   parker_dial_string varchar(255),"
-
-// parking lot info
-"   parking_lot       varchar(255),"
-"   parking_space     varchar(255),"
-"   parking_timeout   int,"
-"   parking_duration  int,"
-
-// timestamp. UTC."
-"   tm_update         datetime(6),"   // update time."
-
-"   primary key(parkee_unique_id)"
-");";
+//// parked_call
+//static const char* g_sql_drop_parked_call = "drop table if exists parked_call;";
+//static const char* g_sql_create_parked_call =
+//"create table parked_call("
+//
+//// parked channel id info
+//"   parkee_unique_id  varchar(255),"
+//"   parkee_linked_id  varchar(255),"
+//
+//// parked channel info
+//"   parkee_channel              varchar(255),"
+//"   parkee_channel_state        varchar(255),"
+//"   parkee_channel_state_desc   varchar(255),"
+//
+//// parked channel caller info
+//"   parkee_caller_id_num    varchar(255),"
+//"   parkee_caller_id_name   varchar(255),"
+//
+//// parked channel connected line info
+//"   parkee_connected_line_num   varchar(255),"
+//"   parkee_connected_line_name  varchar(255),"
+//
+//// parked channel account info
+//"   parkee_account_code   varchar(255),"
+//
+//// parked channel dialplan info
+//"   parkee_context    varchar(255),"
+//"   parkee_exten      varchar(255),"
+//"   parkee_priority   varchar(255),"
+//
+//// parked channel parker info
+//"   parker_dial_string varchar(255),"
+//
+//// parking lot info
+//"   parking_lot       varchar(255),"
+//"   parking_space     varchar(255),"
+//"   parking_timeout   int,"
+//"   parking_duration  int,"
+//
+//// timestamp. UTC."
+//"   tm_update         datetime(6),"   // update time."
+//
+//"   primary key(parkee_unique_id)"
+//");";
 
 
 // voicemail_user

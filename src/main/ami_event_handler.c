@@ -1921,7 +1921,7 @@ static void ami_event_parkinglot(json_t* j_msg)
   }
 
   // create parking lot
-  ret = create_park_parkinglot_info(j_tmp);
+  ret = park_create_parkinglot_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not create parking_lot.");
@@ -2003,7 +2003,7 @@ static void ami_event_parkedcall(json_t* j_msg)
     return;
   }
 
-  ret = create_park_parkedcall_info(j_tmp);
+  ret = park_create_parkedcall_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to parked_call.");
@@ -2086,7 +2086,7 @@ static void ami_event_parkedcallswap(json_t* j_msg)
     return;
   }
 
-  ret = update_park_parkedcall_info(j_tmp);
+  ret = park_update_parkedcall_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to parked_call.");
@@ -2113,7 +2113,7 @@ static void ami_event_parkedcalltimeout(json_t* j_msg)
   slog(LOG_INFO, "Fired ami_event_parkedcalltimeout.");
 
   tmp_const = json_string_value(json_object_get(j_msg, "ParkeeUniqueid"));
-  ret = delete_park_parkedcall_info(tmp_const);
+  ret = park_delete_parkedcall_info(tmp_const);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete parked_call.");
     return;
@@ -2139,7 +2139,7 @@ static void ami_event_unparkedcall(json_t* j_msg)
   slog(LOG_INFO, "Fired ami_event_unparkedcall.");
 
   tmp_const = json_string_value(json_object_get(j_msg, "ParkeeUniqueid"));
-  ret = delete_park_parkedcall_info(tmp_const);
+  ret = park_delete_parkedcall_info(tmp_const);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete parked_call.");
     return;
@@ -2164,7 +2164,7 @@ static void ami_event_parkedcallgiveup(json_t* j_msg)
   slog(LOG_INFO, "Fired ami_event_parkedcallgiveup.");
 
   tmp_const = json_string_value(json_object_get(j_msg, "ParkeeUniqueid"));
-  ret = delete_park_parkedcall_info(tmp_const);
+  ret = park_delete_parkedcall_info(tmp_const);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete parked_call.");
     return;
