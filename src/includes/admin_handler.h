@@ -22,11 +22,31 @@ void admin_htp_post_admin_login(evhtp_request_t *req, void *data);
 void admin_htp_delete_admin_login(evhtp_request_t *req, void *data);
 
 
+
+//// ^/admin/park
+void admin_htp_get_admin_park_parkedcalls(evhtp_request_t *req, void *data);
+void admin_htp_get_admin_park_parkedcalls_detail(evhtp_request_t *req, void *data);
+
+void admin_htp_get_admin_park_parkinglots(evhtp_request_t *req, void *data);
+void admin_htp_get_admin_park_parkinglots_detail(evhtp_request_t *req, void *data);
+
+void admin_htp_get_admin_park_cfg_parkinglots(evhtp_request_t *req, void *data);
+void admin_htp_post_admin_park_cfg_parkinglots(evhtp_request_t *req, void *data);
+
+void admin_htp_get_admin_park_cfg_parkinglots_detail(evhtp_request_t *req, void *data);
+void admin_htp_put_admin_park_cfg_parkinglots_detail(evhtp_request_t *req, void *data);
+void admin_htp_delete_admin_park_cfg_parkinglots_detail(evhtp_request_t *req, void *data);
+
+
+
+
+
 //// ^/admin/queue
 void admin_htp_get_admin_queue_queues(evhtp_request_t *req, void *data);
 void admin_htp_get_admin_queue_queues_detail(evhtp_request_t *req, void *data);
 void admin_htp_get_admin_queue_members(evhtp_request_t *req, void *data);
 void admin_htp_get_admin_queue_members_detail(evhtp_request_t *req, void *data);
+
 
 
 

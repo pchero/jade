@@ -387,17 +387,17 @@ json_t* park_get_parkedcalls_all(void)
  * Get corresponding parked call detail info.
  * @return
  */
-json_t* park_get_parkedcall_info(const char* parkee_unique_id)
+json_t* park_get_parkedcall_info(const char* key)
 {
   json_t* j_res;
 
-  if(parkee_unique_id == NULL) {
+  if(key == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return NULL;
   }
-  slog(LOG_DEBUG, "Fired get_parked_call_info. name[%s]", parkee_unique_id);
+  slog(LOG_DEBUG, "Fired get_parked_call_info. parkee_unique_id[%s]", key);
 
-  j_res = resource_get_mem_detail_item_key_string(DEF_DB_TABLE_PARK_PARKEDCALL, "parkee_unique_id", parkee_unique_id);
+  j_res = resource_get_mem_detail_item_key_string(DEF_DB_TABLE_PARK_PARKEDCALL, "parkee_unique_id", key);
 
   return j_res;
 }
@@ -681,6 +681,40 @@ static bool cfg_delete_parkinglot_info(const char* key)
   return true;
 }
 
+json_t* park_cfg_get_parkinglots_all(void)
+{
+  json_t* j_res;
+
+  j_res = conf_get_ast_sections_all(DEF_JADE_PARK_CONFNAME);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
+json_t* park_cfg_get_parkinglot_info(const char* name)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+
+  if(name == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  j_tmp = conf_get_ast_section(DEF_JADE_PARK_CONFNAME, name);
+  if(j_tmp == NULL) {
+    return NULL;
+  }
+
+  j_res = json_pack("{s:s, s:o}",
+      "name",   name,
+      "data",   j_tmp
+      );
+
+  return j_res;
+}
 
 /**
  * Create parking lot info.

@@ -15,6 +15,7 @@
 #include "http_handler.h"
 #include "user_handler.h"
 #include "queue_handler.h"
+#include "park_handler.h"
 
 #include "admin_handler.h"
 
@@ -33,6 +34,22 @@ static json_t* get_queue_member_info(const char* key);
 // entries
 static json_t* get_queue_entries_all(void);
 static json_t* get_queue_entry_info(const char* key);
+
+
+
+////// park module
+static json_t* get_park_parkedcalls_all(void);
+static json_t* get_park_parkedcall_info(const char* key);
+
+static json_t* get_park_parkinglots_all(void);
+static json_t* get_park_parkinglot_info(const char* key);
+
+static json_t* get_park_cfg_parkinglots_all(void);
+static json_t* get_park_cfg_parkinglot_info(const char* key);
+static bool create_park_cfg_parkinglot_info(const json_t* j_data);
+static bool update_park_cfg_parkinglot_info(const char* name, const json_t* j_data);
+static bool delete_park_cfg_parkinglot_info(const char* name);
+
 
 
 ////// user module
@@ -1032,7 +1049,388 @@ void admin_htp_get_admin_queue_entries_detail(evhtp_request_t *req, void *data)
   return;
 }
 
+/**
+ * GET ^/admin/park/parkinglots request handler.
+ * @param req
+ * @param data
+ */
+void admin_htp_get_admin_park_parkinglots(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_tmp;
 
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_get_admin_park_parkinglots.");
+
+  // get info
+  j_tmp = get_park_parkinglots_all();
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get info.");
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", json_object());
+  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * GET ^/admin/park/parkinglots/(.*) request handler.
+ * @param req
+ * @param data
+ */
+void admin_htp_get_admin_park_parkinglots_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+  char* detail;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_get_admin_park_parkinglots_detail.");
+
+  // detail parse
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // get detail info
+  j_tmp = get_park_parkinglot_info(detail);
+  sfree(detail);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not find info.");
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", j_tmp);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * GET ^/admin/park/cfg_parkinglots request handler.
+ * @param req
+ * @param data
+ */
+void admin_htp_get_admin_park_cfg_parkinglots(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_get_admin_park_cfg_parkinglots.");
+
+  // get info
+  j_tmp = get_park_cfg_parkinglots_all();
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get info.");
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", json_object());
+  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * htp request handler.
+ * request: POST ^/admin/park/cfg_parkinglots$
+ * @param req
+ * @param data
+ */
+void admin_htp_post_admin_park_cfg_parkinglots(evhtp_request_t *req, void *data)
+{
+  json_t* j_data;
+  json_t* j_res;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_post_admin_park_cfg_parkinglots.");
+
+  // get data
+  j_data = http_get_json_from_request_data(req);
+  if(j_data == NULL) {
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // create info
+  ret = create_park_cfg_parkinglot_info(j_data);
+  json_decref(j_data);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+
+/**
+ * GET ^/admin/park/cfg_parkinglots/(.*) request handler.
+ * @param req
+ * @param data
+ */
+void admin_htp_get_admin_park_cfg_parkinglots_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+  char* detail;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_get_admin_park_cfg_parkinglots_detail.");
+
+  // detail parse
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // get detail info
+  j_tmp = get_park_cfg_parkinglot_info(detail);
+  sfree(detail);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not find info.");
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", j_tmp);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * PUT ^/admin/park/cfg_parkinglots/(.*) request handler.
+ * @param req
+ * @param data
+ */
+void admin_htp_put_admin_park_cfg_parkinglots_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_data;
+  char* detail;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_put_admin_park_cfg_parkinglots_detail.");
+
+  // detail parse
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  j_data = http_get_json_from_request_data(req);
+  if(j_data == NULL) {
+    slog(LOG_NOTICE, "Could not get data info.");
+    sfree(detail);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // update
+  ret = update_park_cfg_parkinglot_info(detail, j_data);
+  sfree(detail);
+  json_decref(j_data);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * DELETE ^/admin/park/parkinglots/(.*) request handler.
+ * @param req
+ * @param data
+ */
+void admin_htp_delete_admin_park_cfg_parkinglots_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  char* detail;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_delete_admin_park_cfg_parkinglots_detail.");
+
+  // detail parse
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // delete
+  ret = delete_park_cfg_parkinglot_info(detail);
+  sfree(detail);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * GET ^/admin/park/parkedcalls request handler.
+ * @param req
+ * @param data
+ */
+void admin_htp_get_admin_park_parkedcalls(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_get_admin_park_parkedcalls.");
+
+  // get info
+  j_tmp = get_park_parkedcalls_all();
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get info.");
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", json_object());
+  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * GET ^/admin/park/parkedcalls/(.*) request handler.
+ * @param req
+ * @param data
+ */
+void admin_htp_get_admin_park_parkedcalls_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+  char* detail;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_get_admin_park_parkedcalls_detail.");
+
+  // detail parse
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // get detail info
+  j_tmp = get_park_parkedcall_info(detail);
+  sfree(detail);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not find info.");
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", j_tmp);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
 
 
 
@@ -1352,5 +1750,145 @@ static json_t* get_queue_entry_info(const char* key)
   return j_res;
 }
 
+static json_t* get_park_parkedcalls_all(void)
+{
+  json_t* j_res;
 
+  j_res = park_get_parkedcalls_all();
+  if(j_res == NULL) {
+    return NULL;
+  }
 
+  return j_res;
+}
+
+static json_t* get_park_parkedcall_info(const char* key)
+{
+  json_t* j_res;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  j_res = park_get_parkedcall_info(key);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
+static json_t* get_park_parkinglots_all(void)
+{
+  json_t* j_res;
+
+  j_res = park_get_parkedcalls_all();
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
+static json_t* get_park_parkinglot_info(const char* key)
+{
+  json_t* j_res;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  j_res = park_get_parkinglot_info(key);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
+static json_t* get_park_cfg_parkinglots_all(void)
+{
+  json_t* j_res;
+
+  j_res = park_cfg_get_parkinglots_all();
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
+static json_t* get_park_cfg_parkinglot_info(const char* key)
+{
+  json_t* j_res;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  j_res = park_cfg_get_parkinglot_info(key);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
+static bool create_park_cfg_parkinglot_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  ret = park_cfg_create_parkinglot_info(j_data);
+  if(ret == false) {
+    return false;
+  }
+
+  return true;
+}
+
+static bool update_park_cfg_parkinglot_info(const char* name, const json_t* j_data)
+{
+  int ret;
+  json_t* j_tmp;
+
+  if((name == NULL) || (j_data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  j_tmp = json_deep_copy(j_data);
+  json_object_set_new(j_tmp, "name", json_string(name));
+
+  ret = park_cfg_update_parkinglot_info(j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    return false;
+  }
+
+  return true;
+}
+
+static bool delete_park_cfg_parkinglot_info(const char* name)
+{
+  int ret;
+
+  if(name == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  ret = park_cfg_delete_parkinglot_info(name);
+  if(ret == false) {
+    return false;
+  }
+
+  return true;
+}

@@ -50,6 +50,12 @@ static void cb_htp_ping(evhtp_request_t *req, void *a);
 
 // admin
 static void cb_htp_admin_login(evhtp_request_t *req, void *data);
+static void cb_htp_admin_park_cfg_parkinglots(evhtp_request_t *req, void *data);
+static void cb_htp_admin_park_cfg_parkinglots_detail(evhtp_request_t *req, void *data);
+static void cb_htp_admin_park_parkedcalls(evhtp_request_t *req, void *data);
+static void cb_htp_admin_park_parkedcalls_detail(evhtp_request_t *req, void *data);
+static void cb_htp_admin_park_parkinglots(evhtp_request_t *req, void *data);
+static void cb_htp_admin_park_parkinglots_detail(evhtp_request_t *req, void *data);
 static void cb_htp_admin_queue_members(evhtp_request_t *req, void *data);
 static void cb_htp_admin_queue_members_detail(evhtp_request_t *req, void *data);
 static void cb_htp_admin_queue_queues(evhtp_request_t *req, void *data);
@@ -183,6 +189,18 @@ bool http_init_handler(void)
   //// ^/admin/
   // login
   evhtp_set_regex_cb(g_htps, "^/v1/admin/login$", cb_htp_admin_login, NULL);
+
+  // park
+  evhtp_set_regex_cb(g_htps, "^/v1/admin/park/cfg_parkinglots$", cb_htp_admin_park_cfg_parkinglots, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/admin/park/cfg_parkinglots/(.*)", cb_htp_admin_park_cfg_parkinglots_detail, NULL);
+
+  evhtp_set_regex_cb(g_htps, "^/v1/admin/park/parkedcalls$", cb_htp_admin_park_parkedcalls, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/admin/park/parkedcalls/(.*)", cb_htp_admin_park_parkedcalls_detail, NULL);
+
+  evhtp_set_regex_cb(g_htps, "^/v1/admin/park/parkinglots$", cb_htp_admin_park_parkinglots, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/admin/park/parkinglots/(.*)", cb_htp_admin_park_parkinglots_detail, NULL);
+
+
 
   /// queue
   // members
@@ -5441,3 +5459,305 @@ static void cb_htp_admin_queue_members_detail(evhtp_request_t *req, void *data)
 
   return;
 }
+
+/**
+ * http request handler
+ * ^/admin/park/parkedcalls$
+ * @param req
+ * @param data
+ */
+static void cb_htp_admin_park_parkedcalls(evhtp_request_t *req, void *data)
+{
+  int method;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_admin_park_parkedcalls.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if(method != htp_method_GET) {
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // fire handlers
+  if(method == htp_method_GET) {
+    admin_htp_get_admin_park_parkedcalls(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+
+  return;
+}
+
+/**
+ * http request handler
+ * ^/admin/park/parkedcalls/<detail>
+ * @param req
+ * @param data
+ */
+static void cb_htp_admin_park_parkedcalls_detail(evhtp_request_t *req, void *data)
+{
+  int method;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_admin_park_parkedcalls_detail.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if(method != htp_method_GET) {
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // fire handlers
+  if(method == htp_method_GET) {
+    admin_htp_get_admin_park_parkedcalls_detail(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+
+  return;
+}
+
+/**
+ * http request handler
+ * ^/admin/park/parkinglots$
+ * @param req
+ * @param data
+ */
+static void cb_htp_admin_park_parkinglots(evhtp_request_t *req, void *data)
+{
+  int method;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_admin_park_parkinglots.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if(method != htp_method_GET) {
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // fire handlers
+  if(method == htp_method_GET) {
+    admin_htp_get_admin_park_parkinglots(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+
+  return;
+}
+
+/**
+ * http request handler
+ * ^/admin/park/parkinglots/<detail>
+ * @param req
+ * @param data
+ */
+static void cb_htp_admin_park_parkinglots_detail(evhtp_request_t *req, void *data)
+{
+  int method;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_admin_park_parkinglots_detail.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if(method != htp_method_GET) {
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // fire handlers
+  if(method == htp_method_GET) {
+    admin_htp_get_admin_park_parkinglots_detail(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+
+  return;
+}
+
+/**
+ * http request handler
+ * ^/admin/park/cfg_parkinglots$
+ * @param req
+ * @param data
+ */
+static void cb_htp_admin_park_cfg_parkinglots(evhtp_request_t *req, void *data)
+{
+  int method;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_admin_park_cfg_parkinglots.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if((method != htp_method_GET) && (method != htp_method_POST)) {
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // fire handlers
+  if(method == htp_method_GET) {
+    admin_htp_get_admin_park_cfg_parkinglots(req, data);
+    return;
+  }
+  else if (method == htp_method_POST) {
+    admin_htp_post_admin_park_cfg_parkinglots(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+
+  return;
+}
+
+/**
+ * http request handler
+ * ^/admin/park/cfg_parkinglots/<detail>
+ * @param req
+ * @param data
+ */
+static void cb_htp_admin_park_cfg_parkinglots_detail(evhtp_request_t *req, void *data)
+{
+  int method;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_admin_park_parkinglots_detail.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if((method != htp_method_GET) && (method != htp_method_PUT) && (method != htp_method_DELETE)) {
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // fire handlers
+  if(method == htp_method_GET) {
+    admin_htp_get_admin_park_cfg_parkinglots_detail(req, data);
+    return;
+  }
+  else if(method == htp_method_PUT) {
+    admin_htp_put_admin_park_cfg_parkinglots_detail(req, data);
+    return;
+  }
+  else if(method == htp_method_DELETE) {
+    admin_htp_delete_admin_park_cfg_parkinglots_detail(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+
+  return;
+}
+
+

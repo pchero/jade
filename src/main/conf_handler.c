@@ -1513,7 +1513,7 @@ json_t* conf_get_ast_sections_all(const char* filename)
 	json_object_foreach(j_conf, key, j_val) {
 		j_setting = json_pack("{s:s, s:O}",
 				"name",			key,
-				"setting",	j_val
+				"data",	    j_val
 				);
 		if(j_setting == NULL) {
 			slog(LOG_ERR, "Could not create setting info. key[%s]", key);
