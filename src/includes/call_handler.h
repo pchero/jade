@@ -11,17 +11,7 @@
 #include <stdbool.h>
 #include <jansson.h>
 
-bool call_init_handler(void);
-bool call_term_handler(void);
-bool call_reload_handler(void);
-
-json_t* call_get_channels_all(void);
-json_t* call_get_channels_by_devicename(const char* device_name);
-json_t* call_get_channel_info(const char* unique_id);
-bool call_create_channel_info(const json_t* j_data);
-int call_update_channel_info(const json_t* j_tmp);
-int call_delete_channel_info(const char* key);
-
+bool call_hangup_by_unique_id(const char* unique_id);
 bool call_originate_call_to_device(const char* source, const char* destination);
 
 #endif /* SRC_INCLUDES_CALL_HANDLER_H_ */

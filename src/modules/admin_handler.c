@@ -16,10 +16,28 @@
 #include "user_handler.h"
 #include "queue_handler.h"
 #include "park_handler.h"
+#include "core_handler.h"
+#include "call_handler.h"
 
 #include "admin_handler.h"
 
 #define DEF_ADMIN_AUTHTOKEN_TYPE       "admin"
+
+
+////// core module
+// channels
+static json_t* get_core_channels_all(void);
+static json_t* get_core_channel_info(const char* key);
+static bool delete_core_channel_info(const char* key);
+
+// modules
+static json_t* get_core_modules_all(void);
+static json_t* get_core_module_info(const char* key);
+
+// systems
+static json_t* get_core_systems_all(void);
+static json_t* get_core_system_info(const char* key);
+
 
 
 ////// queue module
@@ -74,6 +92,10 @@ static bool create_user_permission_info(const json_t* j_data);
 static bool delete_user_permission_info(const char* uuid);
 
 
+///// etc
+static bool load_module(const char* name);
+static bool reload_module(const char* name);
+static bool unload_module(const char* name);
 
 
 bool admin_init_handler(void)
@@ -1432,6 +1454,422 @@ void admin_htp_get_admin_park_parkedcalls_detail(evhtp_request_t *req, void *dat
   return;
 }
 
+/**
+ * GET ^/admin/core/channels request handler.
+ * @param req
+ * @param data
+ */
+void admin_htp_get_admin_core_channels(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_get_admin_core_channels.");
+
+  // get info
+  j_tmp = get_core_channels_all();
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get info.");
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", json_object());
+  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * GET ^/admin/core/channels/(.*) request handler.
+ * @param req
+ * @param data
+ */
+void admin_htp_get_admin_core_channels_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+  char* detail;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_get_admin_core_channels_detail.");
+
+  // detail parse
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // get detail info
+  j_tmp = get_core_channel_info(detail);
+  sfree(detail);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not find info.");
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", j_tmp);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * DELETE ^/admin/core/channels/(.*) request handler.
+ * @param req
+ * @param data
+ */
+void admin_htp_delete_admin_core_channels_detail(evhtp_request_t *req, void *data)
+{
+  int ret;
+  json_t* j_res;
+  char* detail;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_delete_admin_core_channels_detail.");
+
+  // detail parse
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // delete
+  ret = delete_core_channel_info(detail);
+  sfree(detail);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * GET ^/admin/core/modules$ request handler.
+ * @param req
+ * @param data
+ */
+void admin_htp_get_admin_core_modules(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_get_admin_core_modules.");
+
+  // get info
+  j_tmp = get_core_modules_all();
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get info.");
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", json_object());
+  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * GET ^/admin/core/modules/(.*) request handler.
+ * @param req
+ * @param data
+ */
+void admin_htp_get_admin_core_modules_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+  char* detail;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_get_admin_core_modules_detail.");
+
+  // detail parse
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // get detail info
+  j_tmp = get_core_module_info(detail);
+  sfree(detail);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not find info.");
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", j_tmp);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * POST ^/admin/core/modules/(.*) request handler.
+ * @param req
+ * @param data
+ */
+void admin_htp_post_admin_core_modules_detail(evhtp_request_t *req, void *data)
+{
+  int ret;
+  json_t* j_res;
+  char* detail;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_post_admin_core_modules_detail.");
+
+  // detail parse
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // load module
+  ret = load_module(detail);
+  sfree(detail);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * PUT ^/admin/core/modules/(.*) request handler.
+ * @param req
+ * @param data
+ */
+void admin_htp_put_admin_core_modules_detail(evhtp_request_t *req, void *data)
+{
+  int ret;
+  json_t* j_res;
+  char* detail;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_put_admin_core_modules_detail.");
+
+  // detail parse
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // reload module
+  ret = reload_module(detail);
+  sfree(detail);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * DELETE ^/admin/core/modules/(.*) request handler.
+ * @param req
+ * @param data
+ */
+void admin_htp_delete_admin_core_modules_detail(evhtp_request_t *req, void *data)
+{
+  int ret;
+  json_t* j_res;
+  char* detail;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_delete_admin_core_modules_detail.");
+
+  // detail parse
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // unload module
+  ret = unload_module(detail);
+  sfree(detail);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * GET ^/admin/core/systems$ request handler.
+ * @param req
+ * @param data
+ */
+void admin_htp_get_admin_core_systems(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_get_admin_core_systems.");
+
+  // get info
+  j_tmp = get_core_systems_all();
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get info.");
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", json_object());
+  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * GET ^/admin/core/systems/(.*) request handler.
+ * @param req
+ * @param data
+ */
+void admin_htp_get_admin_core_systems_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+  char* detail;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_get_admin_core_systems_detail.");
+
+  // detail parse
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // get detail info
+  j_tmp = get_core_system_info(detail);
+  sfree(detail);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not find info.");
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", j_tmp);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+
 
 
 //////////////////////////////////////////////////////////
@@ -1892,3 +2330,159 @@ static bool delete_park_cfg_parkinglot_info(const char* name)
 
   return true;
 }
+
+static json_t* get_core_channels_all(void)
+{
+  json_t* j_res;
+
+  j_res = core_get_channels_all();
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
+static json_t* get_core_channel_info(const char* key)
+{
+  json_t* j_res;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  j_res = core_get_channel_info(key);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
+static bool delete_core_channel_info(const char* key)
+{
+  int ret;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  ret = call_hangup_by_unique_id(key);
+  if(ret == false) {
+    return false;
+  }
+
+  return true;
+}
+
+static json_t* get_core_modules_all(void)
+{
+  json_t* j_res;
+
+  j_res = core_get_modules_all();
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
+static json_t* get_core_module_info(const char* key)
+{
+  json_t* j_res;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  j_res = core_get_module_info(key);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
+static bool load_module(const char* name)
+{
+  int ret;
+
+  if(name == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  ret = core_module_load(name);
+  if(ret == false) {
+    return false;
+  }
+
+  return true;
+}
+
+static bool reload_module(const char* name)
+{
+  int ret;
+
+  if(name == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  ret = core_module_reload(name);
+  if(ret == false) {
+    return false;
+  }
+
+  return true;
+}
+
+static bool unload_module(const char* name)
+{
+  int ret;
+
+  if(name == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  ret = core_module_unload(name);
+  if(ret == false) {
+    return false;
+  }
+
+  return true;
+}
+
+static json_t* get_core_systems_all(void)
+{
+  json_t* j_res;
+
+  j_res = core_get_systems_all();
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
+static json_t* get_core_system_info(const char* key)
+{
+  json_t* j_res;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  j_res = core_get_system_info(key);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+

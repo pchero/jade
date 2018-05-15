@@ -49,6 +49,12 @@ static char* get_data_from_request(evhtp_request_t* req);
 static void cb_htp_ping(evhtp_request_t *req, void *a);
 
 // admin
+static void cb_htp_admin_core_channels(evhtp_request_t *req, void *data);
+static void cb_htp_admin_core_channels_detail(evhtp_request_t *req, void *data);
+static void cb_htp_admin_core_modules(evhtp_request_t *req, void *data);
+static void cb_htp_admin_core_modules_detail(evhtp_request_t *req, void *data);
+static void cb_htp_admin_core_systems(evhtp_request_t *req, void *data);
+static void cb_htp_admin_core_systems_detail(evhtp_request_t *req, void *data);
 static void cb_htp_admin_login(evhtp_request_t *req, void *data);
 static void cb_htp_admin_park_cfg_parkinglots(evhtp_request_t *req, void *data);
 static void cb_htp_admin_park_cfg_parkinglots_detail(evhtp_request_t *req, void *data);
@@ -71,16 +77,6 @@ static void cb_htp_admin_user_permissions_detail(evhtp_request_t *req, void *dat
 // agent
 static void cb_htp_agent_agents(evhtp_request_t *req, void *data);
 static void cb_htp_agent_agents_detail(evhtp_request_t *req, void *data);
-
-// core
-static void cb_htp_core_agis(evhtp_request_t *req, void *data);
-static void cb_htp_core_agis_detail(evhtp_request_t *req, void *data);
-static void cb_htp_core_channels(evhtp_request_t *req, void *data);
-static void cb_htp_core_channels_detail(evhtp_request_t *req, void *data);
-static void cb_htp_core_modules(evhtp_request_t *req, void *data);
-static void cb_htp_core_modules_detail(evhtp_request_t *req, void *data);
-static void cb_htp_core_systems(evhtp_request_t *req, void *data);
-static void cb_htp_core_systems_detail(evhtp_request_t *req, void *data);
 
 // dp
 static void cb_htp_dp_dialplans(evhtp_request_t *req, void *data);
@@ -187,6 +183,16 @@ bool http_init_handler(void)
 
 
   //// ^/admin/
+  // core
+  evhtp_set_regex_cb(g_htps, "^/v1/admin/core/channels$", cb_htp_admin_core_channels, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/admin/core/channels/(.*)", cb_htp_admin_core_channels_detail, NULL);
+
+  evhtp_set_regex_cb(g_htps, "^/v1/admin/core/modules$", cb_htp_admin_core_modules, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/admin/core/modules/(.*)", cb_htp_admin_core_modules_detail, NULL);
+
+  evhtp_set_regex_cb(g_htps, "^/v1/admin/core/systems$", cb_htp_admin_core_systems, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/admin/core/systems/(.*)", cb_htp_admin_core_systems_detail, NULL);
+
   // login
   evhtp_set_regex_cb(g_htps, "^/v1/admin/login$", cb_htp_admin_login, NULL);
 
@@ -238,25 +244,6 @@ bool http_init_handler(void)
   // agents
   evhtp_set_regex_cb(g_htps, "^/v1/agent/agents/(.*)", cb_htp_agent_agents_detail, NULL);
   evhtp_set_regex_cb(g_htps, "^/v1/agent/agents$", cb_htp_agent_agents, NULL);
-
-
-
-  //// ^/core/
-  // agis
-  evhtp_set_regex_cb(g_htps, "^/v1/core/agis/(.*)", cb_htp_core_agis_detail, NULL);
-  evhtp_set_regex_cb(g_htps, "^/v1/core/agis$", cb_htp_core_agis, NULL);
-
-  // channels
-  evhtp_set_regex_cb(g_htps, "^/v1/core/channels/(.*)", cb_htp_core_channels_detail, NULL);
-  evhtp_set_regex_cb(g_htps, "^/v1/core/channels$", cb_htp_core_channels, NULL);
-
-  // modules
-  evhtp_set_regex_cb(g_htps, "^/v1/core/modules/(.*)", cb_htp_core_modules_detail, NULL);
-  evhtp_set_regex_cb(g_htps, "^/v1/core/modules$", cb_htp_core_modules, NULL);
-
-  // systems
-  evhtp_set_regex_cb(g_htps, "^/v1/core/systems/(.*)", cb_htp_core_systems_detail, NULL);
-  evhtp_set_regex_cb(g_htps, "^/v1/core/systems$", cb_htp_core_systems, NULL);
 
 
 
@@ -433,25 +420,6 @@ bool http_init_handler(void)
 
 
 
-  //// ^/core/
-  // agis
-  evhtp_set_regex_cb(g_htps, "^/core/agis/(.*)", cb_htp_core_agis_detail, NULL);
-  evhtp_set_regex_cb(g_htps, "^/core/agis$", cb_htp_core_agis, NULL);
-
-  // channels
-  evhtp_set_regex_cb(g_htps, "^/core/channels/(.*)", cb_htp_core_channels_detail, NULL);
-  evhtp_set_regex_cb(g_htps, "^/core/channels$", cb_htp_core_channels, NULL);
-
-  // modules
-  evhtp_set_regex_cb(g_htps, "^/core/modules/(.*)", cb_htp_core_modules_detail, NULL);
-  evhtp_set_regex_cb(g_htps, "^/core/modules$", cb_htp_core_modules, NULL);
-
-  // systems
-  evhtp_set_regex_cb(g_htps, "^/core/systems/(.*)", cb_htp_core_systems_detail, NULL);
-  evhtp_set_regex_cb(g_htps, "^/core/systems$", cb_htp_core_systems, NULL);
-
-
-
   //// ^/dp/
   // config
   evhtp_set_regex_cb(g_htps, "^/dp/config$", cb_htp_dp_config, NULL);
@@ -612,17 +580,9 @@ bool http_init_handler(void)
   evhtp_set_cb(g_htps, "/registries", cb_htp_sip_registries, NULL);
 
 
-  // queue_entries
-  evhtp_set_cb(g_htps, "/channels/", cb_htp_core_channels_detail, NULL);
-  evhtp_set_cb(g_htps, "/channels", cb_htp_core_channels, NULL);
-
   // agents
   evhtp_set_cb(g_htps, "/agents/", cb_htp_agent_agents_detail, NULL);
   evhtp_set_cb(g_htps, "/agents", cb_htp_agent_agents, NULL);
-
-  // systems
-  evhtp_set_cb(g_htps, "/systems/", cb_htp_core_systems_detail, NULL);
-  evhtp_set_cb(g_htps, "/systems", cb_htp_core_systems, NULL);
 
   // device_states
   evhtp_set_cb(g_htps, "/device_states/", cb_htp_device_states_detail, NULL);
@@ -1730,310 +1690,6 @@ static void cb_htp_sip_settings_detail(evhtp_request_t *req, void *data)
 
 /**
  * http request handler
- * ^/core/agis
- * @param req
- * @param data
- */
-static void cb_htp_core_agis(evhtp_request_t *req, void *data)
-{
-  int method;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_INFO, "Fired cb_htp_core_agis.");
-
-  // check authorization
-  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
-    return;
-  }
-
-  // method check
-  method = evhtp_request_get_method(req);
-  if(method != htp_method_GET) {
-    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-    return;
-  }
-
-  if(method == htp_method_GET) {
-    core_htp_get_core_agis(req, data);
-    return;
-  }
-  else {
-    // should not reach to here.
-    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-    return;
-  }
-
-  // should not reach to here.
-  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-
-  return;
-}
-
-/**
- * http request handler
- * ^/core/agis/<detail>
- * @param req
- * @param data
- */
-static void cb_htp_core_agis_detail(evhtp_request_t *req, void *data)
-{
-  int method;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_INFO, "Fired cb_htp_core_agis_detail.");
-
-  // check authorization
-  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
-    return;
-  }
-
-  // method check
-  method = evhtp_request_get_method(req);
-  if((method != htp_method_GET) && (method != htp_method_DELETE)) {
-    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-    return;
-  }
-
-  if(method == htp_method_GET) {
-    core_htp_get_core_agis_detail(req, data);
-    return;
-  }
-  else if(method == htp_method_DELETE) {
-    // synonym of delete /core/channels/<detail>
-    core_htp_delete_core_channels_detail(req, data);
-    return;
-  }
-  else {
-    // should not reach to here.
-    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-    return;
-  }
-
-  // should not reach to here.
-  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-
-  return;
-}
-
-/**
- * http request handler
- * ^/core/channels
- * @param req
- * @param data
- */
-static void cb_htp_core_channels(evhtp_request_t *req, void *data)
-{
-  int method;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_INFO, "Fired cb_htp_core_channels.");
-
-  // check authorization
-  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
-    return;
-  }
-
-  // method check
-  method = evhtp_request_get_method(req);
-  if(method != htp_method_GET) {
-    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-    return;
-  }
-
-  if(method == htp_method_GET) {
-    core_htp_get_core_channels(req, data);
-    return;
-  }
-  else {
-    // should not reach to here.
-    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-    return;
-  }
-
-  // should not reach to here.
-  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-
-  return;
-}
-
-/**
- * http request handler
- * ^/core/channels/
- * @param req
- * @param data
- */
-static void cb_htp_core_channels_detail(evhtp_request_t *req, void *data)
-{
-  int method;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_INFO, "Fired cb_htp_core_channels_detail.");
-
-  // check authorization
-  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
-    return;
-  }
-
-  // method check
-  method = evhtp_request_get_method(req);
-  if((method != htp_method_GET) && (method != htp_method_DELETE)) {
-    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-    return;
-  }
-
-  if(method == htp_method_GET) {
-    core_htp_get_core_channels_detail(req, data);
-    return;
-  }
-  else if(method == htp_method_DELETE) {
-    core_htp_delete_core_channels_detail(req, data);
-    return;
-  }
-  else {
-    // should not reach to here.
-    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-    return;
-  }
-
-  // should not reach to here.
-  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-
-  return;
-}
-
-/**
- * http request handler
- * ^/core/modules$
- * @param req
- * @param data
- */
-static void cb_htp_core_modules(evhtp_request_t *req, void *data)
-{
-  int method;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_INFO, "Fired cb_htp_core_modules.");
-
-  // check authorization
-  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
-    return;
-  }
-
-  // method check
-  method = evhtp_request_get_method(req);
-  if(method != htp_method_GET) {
-    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-    return;
-  }
-
-  if(method == htp_method_GET) {
-    core_htp_get_core_modules(req, data);
-    return;
-  }
-  else {
-    // should not reach to here.
-    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-    return;
-  }
-
-  // should not reach to here.
-  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-
-  return;
-}
-
-/**
- * http request handler
- * ^/core/modules/(.*)
- * @param req
- * @param data
- */
-static void cb_htp_core_modules_detail(evhtp_request_t *req, void *data)
-{
-  int method;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_INFO, "Fired cb_htp_core_modules_detail.");
-
-  // check authorization
-  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
-    return;
-  }
-
-  // method check
-  method = evhtp_request_get_method(req);
-  if((method != htp_method_GET) && (method != htp_method_POST) && (method != htp_method_PUT) && (method != htp_method_DELETE)) {
-    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-    return;
-  }
-
-  // fire handlers
-  if(method == htp_method_GET) {
-    core_htp_get_core_modules_detail(req, data);
-    return;
-  }
-  else if(method == htp_method_POST) {
-    core_htp_post_core_modules_detail(req, data);
-    return;
-  }
-  else if(method == htp_method_PUT) {
-    core_htp_put_core_modules_detail(req, data);
-    return;
-  }
-  else if(method == htp_method_DELETE) {
-    core_htp_delete_core_modules_detail(req, data);
-    return;
-  }
-  else {
-    // should not reach to here.
-    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-    return;
-  }
-
-  // should not reach to here.
-  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-  return;
-}
-
-
-/**
- * http request handler
  * ^/agents
  * @param req
  * @param data
@@ -2112,99 +1768,6 @@ static void cb_htp_agent_agents_detail(evhtp_request_t *req, void *data)
 
   if(method == htp_method_GET) {
     agent_htp_get_agent_agents_detail(req, data);
-    return;
-  }
-  else {
-    // should not reach to here.
-    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-    return;
-  }
-
-  // should not reach to here.
-  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-  return;
-}
-
-/**
- * http request handler
- * ^/core/systems
- * @param req
- * @param data
- */
-static void cb_htp_core_systems(evhtp_request_t *req, void *data)
-{
-  int method;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_INFO, "Fired cb_htp_core_systems.");
-
-  // check authorization
-  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
-    return;
-  }
-
-  // method check
-  method = evhtp_request_get_method(req);
-  if(method != htp_method_GET) {
-    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-    return;
-  }
-
-  if(method == htp_method_GET) {
-    core_htp_get_core_systems(req, data);
-    return;
-  }
-  else {
-    // should not reach to here.
-    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-    return;
-  }
-
-  // should not reach to here.
-  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-  return;
-
-}
-
-/**
- * http request handler
- * ^/core/systems/
- * @param req
- * @param data
- */
-static void cb_htp_core_systems_detail(evhtp_request_t *req, void *data)
-{
-  int method;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_INFO, "Fired cb_htp_core_systems_detail.");
-
-  // check authorization
-  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
-    return;
-  }
-
-  // method check
-  method = evhtp_request_get_method(req);
-  if(method != htp_method_GET) {
-    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
-    return;
-  }
-
-  if(method == htp_method_GET) {
-    core_htp_get_core_systems_detail(req, data);
     return;
   }
   else {
@@ -5759,5 +5322,310 @@ static void cb_htp_admin_park_cfg_parkinglots_detail(evhtp_request_t *req, void 
 
   return;
 }
+
+/**
+ * http request handler
+ * ^/admin/core/channels$
+ * @param req
+ * @param data
+ */
+static void cb_htp_admin_core_channels(evhtp_request_t *req, void *data)
+{
+  int method;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_admin_core_channels.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if(method != htp_method_GET) {
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // fire handlers
+  if(method == htp_method_GET) {
+    admin_htp_get_admin_core_channels(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+
+  return;
+}
+
+/**
+ * http request handler
+ * ^/admin/core/channels/<detail>$
+ * @param req
+ * @param data
+ */
+static void cb_htp_admin_core_channels_detail(evhtp_request_t *req, void *data)
+{
+  int method;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_admin_core_channels_detail.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if((method != htp_method_GET) && (method != htp_method_DELETE)) {
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // fire handlers
+  if(method == htp_method_GET) {
+    admin_htp_get_admin_core_channels_detail(req, data);
+    return;
+  }
+  else if(method == htp_method_DELETE) {
+    admin_htp_delete_admin_core_channels_detail(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+
+  return;
+}
+
+/**
+ * http request handler
+ * ^/admin/core/modules$
+ * @param req
+ * @param data
+ */
+static void cb_htp_admin_core_modules(evhtp_request_t *req, void *data)
+{
+  int method;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_admin_core_modules.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if(method != htp_method_GET) {
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // fire handlers
+  if(method == htp_method_GET) {
+    admin_htp_get_admin_core_modules(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+
+  return;
+}
+
+/**
+ * http request handler
+ * ^/admin/core/modules/<detail>$
+ * @param req
+ * @param data
+ */
+static void cb_htp_admin_core_modules_detail(evhtp_request_t *req, void *data)
+{
+  int method;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_admin_core_modules_detail.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if((method != htp_method_GET) && (method != htp_method_POST) && (method != htp_method_PUT) && (method != htp_method_DELETE)) {
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // fire handlers
+  if(method == htp_method_GET) {
+    admin_htp_get_admin_core_modules_detail(req, data);
+    return;
+  }
+  else if(method == htp_method_POST) {
+    admin_htp_post_admin_core_modules_detail(req, data);
+    return;
+  }
+  else if(method == htp_method_PUT) {
+    admin_htp_put_admin_core_modules_detail(req, data);
+    return;
+  }
+  else if(method == htp_method_DELETE) {
+    admin_htp_delete_admin_core_channels_detail(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+
+  return;
+}
+
+/**
+ * http request handler
+ * ^/admin/core/systems$
+ * @param req
+ * @param data
+ */
+static void cb_htp_admin_core_systems(evhtp_request_t *req, void *data)
+{
+  int method;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_admin_core_systems.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if(method != htp_method_GET) {
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // fire handlers
+  if(method == htp_method_GET) {
+    admin_htp_get_admin_core_systems(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+
+  return;
+}
+
+/**
+ * http request handler
+ * ^/admin/core/systems/<detail>$
+ * @param req
+ * @param data
+ */
+static void cb_htp_admin_core_systems_detail(evhtp_request_t *req, void *data)
+{
+  int method;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_admin_core_systems_detail.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if(method != htp_method_GET) {
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // fire handlers
+  if(method == htp_method_GET) {
+    admin_htp_get_admin_core_systems_detail(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+
+  return;
+}
+
 
 

@@ -126,27 +126,11 @@ static bool init_ast_database(void)
     return false;
   }
 
-  // system
-  db_ctx_exec(g_db_memory, g_sql_drop_system);
-  ret = db_ctx_exec(g_db_memory, g_sql_create_system);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create table. table[%s]", "system");
-    return false;
-  }
-
   // core_agi
   db_ctx_exec(g_db_memory, g_sql_drop_core_agi);
   ret = db_ctx_exec(g_db_memory, g_sql_create_core_agi);
   if(ret == false) {
     slog(LOG_ERR, "Could not create table. table[%s]", "core_agi");
-    return false;
-  }
-
-  // core_module
-  db_ctx_exec(g_db_memory, g_sql_drop_core_module);
-  ret = db_ctx_exec(g_db_memory, g_sql_create_core_module);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create table. table[%s]", "core_module");
     return false;
   }
 
@@ -1763,55 +1747,7 @@ json_t* get_agent_agent_info(const char* id)
   return j_tmp;
 }
 
-/**
- * Get all system's all id array
- * @return
- */
-json_t* get_core_systems_all_id(void)
-{
-  json_t* j_res;
 
-  slog(LOG_DEBUG, "Fired get_systems_all_id.");
-
-  j_res = resource_get_mem_items("system", "id");
-
-  return j_res;
-}
-
-/**
- * Get all system's array
- * @return
- */
-json_t* get_core_systems_all(void)
-{
-  json_t* j_res;
-
-  slog(LOG_DEBUG, "Fired get_systems_all.");
-
-  j_res = resource_get_mem_items("system", "*");
-
-  return j_res;
-}
-
-
-/**
- * Get corresponding system detail info.
- * @return
- */
-json_t* get_core_system_info(const char* id)
-{
-  json_t* j_res;
-
-  if(id == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return NULL;
-  }
-  slog(LOG_DEBUG, "Fired get_system_info. id[%s]", id);
-
-  j_res = resource_get_mem_detail_item_key_string("system", "id", id);
-
-  return j_res;
-}
 
 
 /**
@@ -1914,102 +1850,6 @@ json_t* get_voicemail_users_all()
   j_res = resource_get_mem_items("voicemail_user", "*");
 
   return j_res;
-}
-
-/**
- * Insert data into core_module
- * @param j_tmp
- * @return
- */
-int create_core_module(json_t* j_tmp)
-{
-  int ret;
-
-  if(j_tmp == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return false;
-  }
-
-  ret = resource_insert_mem_item("core_module", j_tmp);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not insert core_module.");
-    return false;
-  }
-
-  return true;
-}
-
-/**
- * Get all core_modules info.
- * @return
- */
-json_t* get_core_modules_all(void)
-{
-  json_t* j_res;
-  slog(LOG_DEBUG, "Fired get_core_modules_all.");
-
-  j_res = resource_get_mem_items("core_module", "*");
-
-  return j_res;
-}
-
-/**
- * Get given core_module info.
- * @return
- */
-json_t* get_core_module_info(const char* key)
-{
-  json_t* j_res;
-
-  if(key == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return NULL;
-  }
-  slog(LOG_DEBUG, "Fired get_core_module_info.");
-
-  j_res = resource_get_mem_detail_item_key_string("core_module", "name", key);
-
-  return j_res;
-}
-
-/**
- * Update core module info.
- * @param j_data
- * @return
- */
-bool update_core_module_info(const json_t* j_data)
-{
-  int ret;
-  json_t* j_tmp;
-  const char* module_name;
-
-  if(j_data == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return false;
-  }
-  slog(LOG_DEBUG, "Fired update_core_module_info.");
-
-  ret = resource_update_mem_item("core_module", "name", j_data);
-  if(ret == false) {
-    slog(LOG_WARNING, "Could not update core module info.");
-    return false;
-  }
-
-  module_name = json_string_value(json_object_get(j_data, "name"));
-  if(module_name == NULL) {
-    slog(LOG_ERR, "Could not get name info.");
-    return false;
-  }
-
-  j_tmp = resource_get_mem_detail_item_key_string("core_module", "name", module_name);
-
-  ret = publication_publish_event_core_module(DEF_PUB_TYPE_UPDATE, j_tmp);
-  json_decref(j_tmp);
-  if(ret == false) {
-    return false;
-  }
-
-  return true;
 }
 
 /**

@@ -17,9 +17,24 @@ bool admin_reload_handler(void);
 
 // http handlers
 
+
+//// ^/admin/core
+void admin_htp_get_admin_core_channels(evhtp_request_t *req, void *data);
+void admin_htp_get_admin_core_channels_detail(evhtp_request_t *req, void *data);
+void admin_htp_delete_admin_core_channels_detail(evhtp_request_t *req, void *data);
+void admin_htp_get_admin_core_modules(evhtp_request_t *req, void *data);
+void admin_htp_get_admin_core_modules_detail(evhtp_request_t *req, void *data);
+void admin_htp_post_admin_core_modules_detail(evhtp_request_t *req, void *data);
+void admin_htp_put_admin_core_modules_detail(evhtp_request_t *req, void *data);
+void admin_htp_delete_admin_core_modules_detail(evhtp_request_t *req, void *data);
+void admin_htp_get_admin_core_systems(evhtp_request_t *req, void *data);
+void admin_htp_get_admin_core_systems_detail(evhtp_request_t *req, void *data);
+
 //// ^/admin/login
 void admin_htp_post_admin_login(evhtp_request_t *req, void *data);
 void admin_htp_delete_admin_login(evhtp_request_t *req, void *data);
+
+
 
 
 

@@ -72,24 +72,24 @@ static const char* g_sql_create_core_agi =
 "   primary key(unique_id)"
 ");";
 
-// core_module
-static const char* g_sql_drop_core_module = "drop table if exists core_module;";
-static const char* g_sql_create_core_module =
-"create table core_module("
-
-// identity
-"   name      varchar(255) not null,"
-
-// info
-"   size      int,"
-"   load      varchar(255),"
-"   version   varchar(255),"
-
-// timestamp. UTC."
-"   tm_update     datetime(6),"
-
-"   primary key(name)"
-");";
+//// core_module
+//static const char* g_sql_drop_core_module = "drop table if exists core_module;";
+//static const char* g_sql_create_core_module =
+//"create table core_module("
+//
+//// identity
+//"   name      varchar(255) not null,"
+//
+//// info
+//"   size      int,"
+//"   load      varchar(255),"
+//"   version   varchar(255),"
+//
+//// timestamp. UTC."
+//"   tm_update     datetime(6),"
+//
+//"   primary key(name)"
+//");";
 
 
 //// sip_peer
@@ -297,44 +297,44 @@ static const char* g_sql_create_agent =
 
 ");";
 
-// system
-static const char* g_sql_drop_system = "drop table if exists system;";
-static const char* g_sql_create_system =
-"create table system("
-
-// identity
-"   id varchar(255),"
-
-// version info
-"   ami_version   varchar(255),"
-"   ast_version   varchar(255),"
-"   system_name   varchar(255),"
-
-//  time info
-"   startup_date  varchar(255),"
-"   startup_time  varchar(255),"
-"   reload_date   varchar(255),"
-"   reload_time   varchar(255),"
-"   current_calls int,"
-
-// max info
-"   max_calls         int,"
-"   max_load_avg      real,"
-"   max_file_handles  int,"
-
-"   run_user          varchar(255),"
-"   run_group         varchar(255),"
-
-"   real_time_enabled varchar(255),"
-"   cdr_enabled       varchar(255),"
-"   http_enabled      varchar(255),"
-
-// timestamp. UTC."
-"   tm_update         datetime(6),"   // update time."
-
-"   primary key(id)"
-
-");";
+//// system
+//static const char* g_sql_drop_system = "drop table if exists system;";
+//static const char* g_sql_create_system =
+//"create table system("
+//
+//// identity
+//"   id varchar(255),"
+//
+//// version info
+//"   ami_version   varchar(255),"
+//"   ast_version   varchar(255),"
+//"   system_name   varchar(255),"
+//
+////  time info
+//"   startup_date  varchar(255),"
+//"   startup_time  varchar(255),"
+//"   reload_date   varchar(255),"
+//"   reload_time   varchar(255),"
+//"   current_calls int,"
+//
+//// max info
+//"   max_calls         int,"
+//"   max_load_avg      real,"
+//"   max_file_handles  int,"
+//
+//"   run_user          varchar(255),"
+//"   run_group         varchar(255),"
+//
+//"   real_time_enabled varchar(255),"
+//"   cdr_enabled       varchar(255),"
+//"   http_enabled      varchar(255),"
+//
+//// timestamp. UTC."
+//"   tm_update         datetime(6),"   // update time."
+//
+//"   primary key(id)"
+//
+//");";
 
 
 // device_state

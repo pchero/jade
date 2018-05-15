@@ -24,6 +24,7 @@
 #include "chat_handler.h"
 #include "publication_handler.h"
 #include "subscription_handler.h"
+#include "core_handler.h"
 #include "call_handler.h"
 
 #include "me_handler.h"
@@ -2055,7 +2056,7 @@ static json_t* get_calls_info(const json_t* j_user)
     }
 
     // get call info
-    j_calls = call_get_channels_by_devicename(target);
+    j_calls = core_get_channels_by_devicename(target);
     if(j_calls == NULL) {
       slog(LOG_NOTICE, "Could not get channels info. target[%s]", target);
       continue;

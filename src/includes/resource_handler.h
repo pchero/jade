@@ -73,15 +73,7 @@ bool update_core_agi_info_cmd_result_done(const char* agi_uuid, const char* cmd_
 bool delete_core_agi_info(const char* key);
 bool add_core_agi_info_cmd(const char* agi_uuid, const char* cmd_uuid, const char* command, const char* dp_uuid);
 // core_system
-json_t* get_core_systems_all_id(void);
-json_t* get_core_systems_all(void);
-json_t* get_core_system_info(const char* id);
 // core_module
-int create_core_module(json_t* j_tmp);
-json_t* get_core_modules_all(void);
-json_t* get_core_module_info(const char* key);
-bool update_core_module_info(const json_t* j_data);
-
 
 
 
@@ -90,21 +82,9 @@ json_t* get_databases_all_key(void);
 json_t* get_database_info(const char* key);
 
 
-
-///////// queue
-// queue entry
-// queue members
-// queue param
-
-
 // device_state
 json_t* get_device_states_all_device(void);
 json_t* get_device_state_info(const char* device);
-
-
-/////// park
-// parkinglot
-// parkedcalls
 
 
 ////// voicemail
