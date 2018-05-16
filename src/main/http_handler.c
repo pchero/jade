@@ -58,6 +58,8 @@ static void cb_htp_admin_core_systems_detail(evhtp_request_t *req, void *data);
 
 static void cb_htp_admin_login(evhtp_request_t *req, void *data);
 
+static void cb_htp_admin_info(evhtp_request_t *req, void *data);
+
 static void cb_htp_admin_park_cfg_parkinglots(evhtp_request_t *req, void *data);
 static void cb_htp_admin_park_cfg_parkinglots_detail(evhtp_request_t *req, void *data);
 static void cb_htp_admin_park_configurations(evhtp_request_t *req, void *data);
@@ -200,6 +202,9 @@ bool http_init_handler(void)
 
   evhtp_set_regex_cb(g_htps, "^/v1/admin/core/systems$", cb_htp_admin_core_systems, NULL);
   evhtp_set_regex_cb(g_htps, "^/v1/admin/core/systems/(.*)", cb_htp_admin_core_systems_detail, NULL);
+
+  // info
+  evhtp_set_regex_cb(g_htps, "^/v1/admin/info$", cb_htp_admin_info, NULL);
 
   // login
   evhtp_set_regex_cb(g_htps, "^/v1/admin/login$", cb_htp_admin_login, NULL);
@@ -4481,6 +4486,49 @@ static void cb_htp_manager_sdialplans_detail(evhtp_request_t *req, void *data)
 
   // should not reach to here.
   http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+
+  return;
+}
+
+/**
+ * http request handler.
+ * ^/admin/info$
+ * @param req
+ * @param data
+ */
+static void cb_htp_admin_info(evhtp_request_t *req, void *data)
+{
+  int method;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_admin_info.");
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if((method != htp_method_GET) && (method != htp_method_PUT)) {
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  if(method == htp_method_GET) {
+    admin_htp_get_admin_info(req, data);
+    return;
+  }
+  else if(method == htp_method_PUT) {
+    admin_htp_put_admin_info(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
 
   return;
 }

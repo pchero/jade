@@ -111,6 +111,9 @@ static bool create_user_permission_info(const json_t* j_data);
 static bool delete_user_permission_info(const char* uuid);
 
 
+// info
+static bool update_admin_info(const json_t* j_user, const json_t* j_data);
+static json_t* get_admin_info(const json_t* j_user);
 
 
 ///// callback
@@ -195,6 +198,102 @@ json_t* admin_get_subscribable_topics_all(const json_t* j_user)
   sfree(topic);
 
   return j_res;
+}
+
+/**
+ * GET ^/admin/info request handler.
+ * @param req
+ * @param data
+ */
+void admin_htp_get_admin_info(evhtp_request_t *req, void *data)
+{
+  json_t* j_user;
+  json_t* j_res;
+  json_t* j_tmp;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_get_admin_info.");
+
+  // get userinfo
+  j_user = http_get_userinfo(req);
+  if(j_user == NULL) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  // get info
+  j_tmp = get_admin_info(j_user);
+  json_decref(j_user);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get manager info.");
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", j_tmp);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * PUT ^/admin/info request handler.
+ * @param req
+ * @param data
+ */
+void admin_htp_put_admin_info(evhtp_request_t *req, void *data)
+{
+  int ret;
+  json_t* j_res;
+  json_t* j_data;
+  json_t* j_user;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_put_admin_info.");
+
+  // get userinfo
+  j_user = http_get_userinfo(req);
+  if(j_user == NULL) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  // get data
+  j_data = http_get_json_from_request_data(req);
+  if(j_data == NULL) {
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    json_decref(j_user);
+    return;
+  }
+
+  // update info
+  ret = update_admin_info(j_user, j_data);
+  json_decref(j_data);
+  json_decref(j_user);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
 }
 
 /**
@@ -2855,6 +2954,74 @@ static bool delete_park_configuration_info(const char* name)
 
   ret = park_delete_configuration_info(name);
   if(ret == false) {
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Get given admin info.
+ * @param authtoken
+ * @return
+ */
+static json_t* get_admin_info(const json_t* j_user)
+{
+  json_t* j_res;
+  const char* uuid_user;
+
+  if(j_user == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+  slog(LOG_DEBUG, "Fired get_admin_info.");
+
+  uuid_user = json_string_value(json_object_get(j_user, "uuid"));
+  if(uuid_user == NULL) {
+    slog(LOG_NOTICE, "Could not get user uuid info.");
+    return NULL;
+  }
+
+  // get user info
+  j_res = user_get_userinfo_info(uuid_user);
+  if(j_res == NULL) {
+    slog(LOG_NOTICE, "Could not get user info.");
+    return NULL;
+  }
+
+  // remove password object
+  json_object_del(j_res, "password");
+
+  return j_res;
+}
+
+/**
+ * Update given admin info.
+ * @param j_user
+ * @param j_data
+ * @return
+ */
+static bool update_admin_info(const json_t* j_user, const json_t* j_data)
+{
+  int ret;
+  const char* uuid;
+
+  if((j_user == NULL) || (j_data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired update_admin_info.");
+
+  uuid = json_string_value(json_object_get(j_user, "uuid"));
+  if(uuid == NULL) {
+    slog(LOG_NOTICE, "Could not get user uuid info.");
+    return false;
+  }
+
+  // update
+  ret = user_update_userinfo_info(uuid, j_data);
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not update userinfo.");
     return false;
   }
 
