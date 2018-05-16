@@ -293,6 +293,8 @@ static bool init_callbacks(void)
 static bool term_callbacks(void)
 {
   utils_terminate_callback(g_callback_db_parkedcall);
+
+  return true;
 }
 
 /**
@@ -949,3 +951,107 @@ bool park_cfg_delete_parkinglot_info(const char* parkinglot)
   return true;
 }
 
+json_t* park_get_configurations_all(void)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+
+  // get backup configs
+  j_res = conf_get_ast_backup_configs_text_all(DEF_PARK_CONFNAME);
+  if(j_res == NULL) {
+    slog(LOG_NOTICE, "Could not get backup configs info.");
+    return NULL;
+  }
+
+  // get current config
+  j_tmp = conf_get_ast_current_config_info_text(DEF_PARK_CONFNAME);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get current config info.");
+    return NULL;
+  }
+
+  json_array_append_new(j_res, j_tmp);
+
+  return j_res;
+}
+
+json_t* park_get_configuration_info(const char* name)
+{
+  int ret;
+  json_t* j_res;
+
+  if(name == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  ret = strcmp(name, "current");
+  if(ret == 0) {
+    j_res = conf_get_ast_current_config_info_text(name);
+  }
+  else {
+    j_res = conf_get_ast_backup_config_info_text(name);
+  }
+
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
+bool park_update_configuration_info(const json_t* j_data)
+{
+  int ret;
+  const char* name;
+  const char* data;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  name = json_string_value(json_object_get(j_data, "name"));
+  data = json_string_value(json_object_get(j_data, "data"));
+  if((name == NULL) || (data == NULL)) {
+    slog(LOG_NOTICE, "Could not get name or data info.");
+    return false;
+  }
+
+  ret = strcmp(name, "current");
+  if(ret != 0) {
+    slog(LOG_NOTICE, "The only current configuration can update.");
+    return false;
+  }
+
+  ret = conf_update_ast_current_config_info_text(name, data);
+  if(ret == false) {
+    return false;
+  }
+
+  return true;
+}
+
+bool park_delete_configuration_info(const char* name)
+{
+  int ret;
+
+  if(name == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  ret = strcmp(name, "current");
+  if(ret == 0) {
+    slog(LOG_NOTICE, "The current configuration is not deletable.");
+    return false;
+  }
+
+  ret = conf_remove_ast_backup_config_info_valid(name, DEF_PARK_CONFNAME);
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not delete backup config info.");
+    return false;
+  }
+
+  return true;
+}

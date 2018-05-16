@@ -420,8 +420,8 @@ void sip_htp_get_sip_registries(evhtp_request_t *req, void *data)
  */
 void sip_htp_get_sip_config(evhtp_request_t *req, void *data)
 {
-  char* res;
   json_t* j_res;
+  json_t* j_tmp;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -430,8 +430,8 @@ void sip_htp_get_sip_config(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_sip_config.");
 
   // get info
-  res = conf_get_ast_current_config_info_text(DEF_SIP_CONFNAME);
-  if(res == NULL) {
+  j_tmp = conf_get_ast_current_config_info_text(DEF_SIP_CONFNAME);
+  if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get sip conf.");
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
@@ -439,8 +439,7 @@ void sip_htp_get_sip_config(evhtp_request_t *req, void *data)
 
   // create result
   j_res = http_create_default_result(EVHTP_RES_OK);
-  json_object_set_new(j_res, "result", json_string(res));
-  sfree(res);
+  json_object_set_new(j_res, "result", j_tmp);
 
   // response
   http_simple_response_normal(req, j_res);
@@ -510,7 +509,7 @@ void sip_htp_get_sip_configs(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_sip_configs.");
 
   // get info
-  j_tmp = conf_get_ast_backup_configs_info_all(DEF_SIP_CONFNAME);
+  j_tmp = conf_get_ast_backup_configs_text_all(DEF_SIP_CONFNAME);
   if(j_tmp == NULL) {
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
@@ -535,8 +534,8 @@ void sip_htp_get_sip_configs(evhtp_request_t *req, void *data)
  */
 void sip_htp_get_sip_configs_detail(evhtp_request_t *req, void *data)
 {
-  char* tmp;
   json_t* j_res;
+  json_t* j_tmp;
   char* detail;
 
   if(req == NULL) {
@@ -554,9 +553,9 @@ void sip_htp_get_sip_configs_detail(evhtp_request_t *req, void *data)
   }
 
   // get config info
-  tmp = conf_get_ast_backup_config_info_text_valid(detail, DEF_SIP_CONFNAME);
+  j_tmp = conf_get_ast_backup_config_info_text_valid(detail, DEF_SIP_CONFNAME);
   sfree(detail);
-  if(tmp == NULL) {
+  if(j_tmp == NULL) {
     slog(LOG_NOTICE, "Could not find config info.");
     http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
     return;
@@ -564,8 +563,7 @@ void sip_htp_get_sip_configs_detail(evhtp_request_t *req, void *data)
 
   // create result
   j_res = http_create_default_result(EVHTP_RES_OK);
-  json_object_set_new(j_res, "result", json_string(tmp));
-  sfree(tmp);
+  json_object_set_new(j_res, "result", j_tmp);
 
   // response
   http_simple_response_normal(req, j_res);

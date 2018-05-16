@@ -37,4 +37,11 @@ bool park_cfg_update_parkinglot_info(const json_t* j_data);
 bool park_cfg_delete_parkinglot_info(const char* parkinglot);
 
 
+// configuration
+json_t* park_get_configurations_all(void);
+json_t* park_get_configuration_info(const char* name);
+bool park_update_configuration_info(const json_t* j_data);
+bool park_delete_configuration_info(const char* name);
+
+
 #endif /* SRC_PARK_HANDLER_H_ */

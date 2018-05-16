@@ -60,6 +60,8 @@ static void cb_htp_admin_login(evhtp_request_t *req, void *data);
 
 static void cb_htp_admin_park_cfg_parkinglots(evhtp_request_t *req, void *data);
 static void cb_htp_admin_park_cfg_parkinglots_detail(evhtp_request_t *req, void *data);
+static void cb_htp_admin_park_configurations(evhtp_request_t *req, void *data);
+static void cb_htp_admin_park_configurations_detail(evhtp_request_t *req, void *data);
 static void cb_htp_admin_park_parkedcalls(evhtp_request_t *req, void *data);
 static void cb_htp_admin_park_parkedcalls_detail(evhtp_request_t *req, void *data);
 static void cb_htp_admin_park_parkinglots(evhtp_request_t *req, void *data);
@@ -205,6 +207,9 @@ bool http_init_handler(void)
   // park
   evhtp_set_regex_cb(g_htps, "^/v1/admin/park/cfg_parkinglots$", cb_htp_admin_park_cfg_parkinglots, NULL);
   evhtp_set_regex_cb(g_htps, "^/v1/admin/park/cfg_parkinglots/(.*)", cb_htp_admin_park_cfg_parkinglots_detail, NULL);
+
+  evhtp_set_regex_cb(g_htps, "^/v1/admin/park/configurations$", cb_htp_admin_park_configurations, NULL);
+  evhtp_set_regex_cb(g_htps, "^/v1/admin/park/configurations/(.*)", cb_htp_admin_park_configurations_detail, NULL);
 
   evhtp_set_regex_cb(g_htps, "^/v1/admin/park/parkedcalls$", cb_htp_admin_park_parkedcalls, NULL);
   evhtp_set_regex_cb(g_htps, "^/v1/admin/park/parkedcalls/(.*)", cb_htp_admin_park_parkedcalls_detail, NULL);
@@ -5432,6 +5437,111 @@ static void cb_htp_admin_park_cfg_parkinglots_detail(evhtp_request_t *req, void 
 
   return;
 }
+
+/**
+ * http request handler
+ * ^/admin/park/configurations$
+ * @param req
+ * @param data
+ */
+static void cb_htp_admin_park_configurations(evhtp_request_t *req, void *data)
+{
+  int method;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_admin_park_configurations.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if(method != htp_method_GET) {
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // fire handlers
+  if(method == htp_method_GET) {
+    admin_htp_get_admin_park_configurations(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+
+  return;
+}
+
+/**
+ * http request handler
+ * ^/admin/park/configurations/<detail>
+ * @param req
+ * @param data
+ */
+static void cb_htp_admin_park_configurations_detail(evhtp_request_t *req, void *data)
+{
+  int method;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_INFO, "Fired cb_htp_admin_park_configurations_detail.");
+
+  // check authorization
+  ret = http_is_request_has_permission(req, EN_HTTP_PERM_ADMIN);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_FORBIDDEN, 0, NULL);
+    return;
+  }
+
+  // method check
+  method = evhtp_request_get_method(req);
+  if((method != htp_method_GET) && (method != htp_method_PUT) && (method != htp_method_DELETE)) {
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // fire handlers
+  if(method == htp_method_GET) {
+    admin_htp_get_admin_park_configurations_detail(req, data);
+    return;
+  }
+  else if(method == htp_method_PUT) {
+    admin_htp_put_admin_park_configurations_detail(req, data);
+    return;
+  }
+  else if(method == htp_method_DELETE) {
+    admin_htp_delete_admin_park_configurations_detail(req, data);
+    return;
+  }
+  else {
+    // should not reach to here.
+    http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
+    return;
+  }
+
+  // should not reach to here.
+  http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+
+  return;
+}
+
 
 /**
  * http request handler

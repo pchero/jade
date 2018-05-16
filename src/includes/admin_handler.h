@@ -54,7 +54,11 @@ void admin_htp_get_admin_park_cfg_parkinglots_detail(evhtp_request_t *req, void 
 void admin_htp_put_admin_park_cfg_parkinglots_detail(evhtp_request_t *req, void *data);
 void admin_htp_delete_admin_park_cfg_parkinglots_detail(evhtp_request_t *req, void *data);
 
+void admin_htp_get_admin_park_configurations(evhtp_request_t *req, void *data);
 
+void admin_htp_get_admin_park_configurations_detail(evhtp_request_t *req, void *data);
+void admin_htp_put_admin_park_configurations_detail(evhtp_request_t *req, void *data);
+void admin_htp_delete_admin_park_configurations_detail(evhtp_request_t *req, void *data);
 
 
 
