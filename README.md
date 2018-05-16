@@ -12,8 +12,6 @@ Or may be used by either companies who wish to make calls on their own behalf, o
 
 * Event subscription via ZeroMQ and Websocket
 
-* Static/Dynamic dialplan configuration
-
 * Strategical inbound/outbound call distributing
   * Call balancing
   * Strategical call retrying
@@ -33,6 +31,17 @@ Or may be used by either companies who wish to make calls on their own behalf, o
 * Chat
 
 * Buddy
+
+* Call
+  * Voice
+  * WebRTC
+  
+* Dialplan
+  * Static dialplan configuration
+  * Dynamic dialplan configuration
+  
+* Trunk
+  * Provide easy trunk setting.
 
 * SMS(WIP)
 * Mail(WIP)
