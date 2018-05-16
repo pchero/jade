@@ -956,21 +956,26 @@ json_t* park_get_configurations_all(void)
   json_t* j_res;
   json_t* j_tmp;
 
-  // get backup configs
-  j_res = conf_get_ast_backup_configs_text_all(DEF_PARK_CONFNAME);
-  if(j_res == NULL) {
-    slog(LOG_NOTICE, "Could not get backup configs info.");
-    return NULL;
-  }
+  j_res = json_array();
 
   // get current config
   j_tmp = conf_get_ast_current_config_info_text(DEF_PARK_CONFNAME);
   if(j_tmp == NULL) {
     slog(LOG_NOTICE, "Could not get current config info.");
+    json_decref(j_res);
     return NULL;
   }
-
   json_array_append_new(j_res, j_tmp);
+
+  // get backup configs
+  j_tmp = conf_get_ast_backup_configs_text_all(DEF_PARK_CONFNAME);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get backup configs info.");
+    json_decref(j_res);
+    return NULL;
+  }
+  json_array_extend(j_res, j_tmp);
+  json_decref(j_tmp);
 
   return j_res;
 }
@@ -1024,7 +1029,7 @@ bool park_update_configuration_info(const json_t* j_data)
     return false;
   }
 
-  ret = conf_update_ast_current_config_info_text(name, data);
+  ret = conf_update_ast_current_config_info_text(DEF_PARK_CONFNAME, data);
   if(ret == false) {
     return false;
   }
