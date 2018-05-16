@@ -64,7 +64,7 @@ Or may be used by either companies who wish to make calls on their own behalf, o
 ## Demo
 * jade
   * You can try apis to here.
-  * http://project.pchero21.com/jade/
+  * http://project.pchero21.com:8081
 
 * jade-me
   * https://github.com/pchero/jade-me
