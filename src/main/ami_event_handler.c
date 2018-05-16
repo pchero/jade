@@ -18,6 +18,7 @@
 #include "ami_response_handler.h"
 #include "resource_handler.h"
 #include "call_handler.h"
+#include "core_handler.h"
 
 #include "ob_ami_handler.h"
 #include "ob_dialing_handler.h"
@@ -526,7 +527,7 @@ static void ami_event_queueparams(json_t* j_msg)
   }
 
   // create queue info
-  ret = create_queue_param_info(j_tmp);
+  ret = queue_create_param_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert queue_param.");
@@ -596,7 +597,7 @@ static void ami_event_queuemember(json_t* j_msg)
   json_object_set_new(j_tmp, "id", json_string(id));
   sfree(id);
 
-  ret = create_queue_member_info(j_tmp);
+  ret = queue_create_member_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert queue_member.");
@@ -667,7 +668,7 @@ static void ami_event_queuememberadded(json_t* j_msg)
   json_object_set_new(j_tmp, "id", json_string(id));
   sfree(id);
 
-  ret = create_queue_member_info(j_tmp);
+  ret = queue_create_member_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert queue_member.");
@@ -738,7 +739,7 @@ static void ami_event_queuememberpause(json_t* j_msg)
   json_object_set_new(j_tmp, "id", json_string(id));
   sfree(id);
 
-  ret = create_queue_member_info(j_tmp);
+  ret = queue_create_member_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert queue_member.");
@@ -809,7 +810,7 @@ static void ami_event_queuememberpenalty(json_t* j_msg)
   json_object_set_new(j_tmp, "id", json_string(id));
   sfree(id);
 
-  ret = create_queue_member_info(j_tmp);
+  ret = queue_create_member_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert queue_member.");
@@ -840,7 +841,7 @@ static void ami_event_queuememberremoved(json_t* j_msg)
       json_string_value(json_object_get(j_msg, "Queue"))
       );
 
-  ret = delete_queue_member_info(id);
+  ret = queue_delete_member_info(id);
   sfree(id);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete queue_member.");
@@ -911,7 +912,7 @@ static void ami_event_queuememberringinuse(json_t* j_msg)
   json_object_set_new(j_tmp, "id", json_string(id));
   sfree(id);
 
-  ret = create_queue_member_info(j_tmp);
+  ret = queue_create_member_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert queue_member.");
@@ -968,7 +969,7 @@ static void ami_event_queueentry(json_t* j_msg)
   }
 
   // create queue entry
-  ret = create_queue_entry_info(j_tmp);
+  ret = queue_create_entry_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert queue_member.");
@@ -995,7 +996,7 @@ static void ami_event_queuecallerabandon(json_t* j_msg)
   slog(LOG_DEBUG, "Fired ami_event_queuecallerabandon.");
 
   tmp_const = json_string_value(json_object_get(j_msg, "Uniqueid"));
-  ret = delete_queue_entry_info(tmp_const);
+  ret = queue_delete_entry_info(tmp_const);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete queue_entry.");
     return;
@@ -1047,7 +1048,7 @@ static void ami_event_queuecallerjoin(json_t* j_msg)
   }
 
   // create queue entry
-  ret = create_queue_entry_info(j_tmp);
+  ret = queue_create_entry_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert queue_entry.");
@@ -1074,7 +1075,7 @@ static void ami_event_queuecallerleave(json_t* j_msg)
   slog(LOG_INFO, "Fired ami_event_queuecallerleave.");
 
   tmp_const = json_string_value(json_object_get(j_msg, "Uniqueid"));
-  ret = delete_queue_entry_info(tmp_const);
+  ret = queue_delete_entry_info(tmp_const);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete queue_entry.");
     return;
@@ -1149,7 +1150,7 @@ static void ami_event_queuememberstatus(json_t* j_msg)
   json_object_set_new(j_tmp, "id", json_string(id));
   sfree(id);
 
-  ret = update_queue_member_info(j_tmp);
+  ret = queue_update_member_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to queue_member.");
@@ -1380,7 +1381,7 @@ static void ami_event_hangup(json_t* j_msg)
   sfree(timestamp);
 
   // update info
-  ret = call_update_channel_info(j_tmp);
+  ret = core_update_channel_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not update channel info.");
@@ -1388,7 +1389,7 @@ static void ami_event_hangup(json_t* j_msg)
   }
 
   // delete channel info.
-  ret = call_delete_channel_info(unique_id);
+  ret = core_delete_channel_info(unique_id);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete channel info. unique_id[%s]", unique_id);
     return;
@@ -1535,7 +1536,7 @@ static void ami_event_newchannel(json_t* j_msg)
   }
 
   // create info
-  ret = call_create_channel_info(j_tmp);
+  ret = core_create_channel_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to channel.");
@@ -1637,7 +1638,7 @@ static void ami_event_rename(json_t* j_msg)
   }
 
   // get channel info
-  j_tmp = call_get_channel_info(unique_id);
+  j_tmp = core_get_channel_info(unique_id);
   if(j_tmp == NULL) {
     slog(LOG_NOTICE, "Could not get correct channel info.");
     return;
@@ -1650,7 +1651,7 @@ static void ami_event_rename(json_t* j_msg)
   sfree(timestamp);
 
   // update channel info.
-  ret = call_update_channel_info(j_tmp);
+  ret = core_update_channel_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not update channel info.");
@@ -1921,7 +1922,7 @@ static void ami_event_parkinglot(json_t* j_msg)
   }
 
   // create parking lot
-  ret = create_park_parkinglot_info(j_tmp);
+  ret = park_create_parkinglot_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not create parking_lot.");
@@ -2003,7 +2004,7 @@ static void ami_event_parkedcall(json_t* j_msg)
     return;
   }
 
-  ret = create_park_parkedcall_info(j_tmp);
+  ret = park_create_parkedcall_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to parked_call.");
@@ -2086,7 +2087,7 @@ static void ami_event_parkedcallswap(json_t* j_msg)
     return;
   }
 
-  ret = update_park_parkedcall_info(j_tmp);
+  ret = park_update_parkedcall_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to parked_call.");
@@ -2113,7 +2114,7 @@ static void ami_event_parkedcalltimeout(json_t* j_msg)
   slog(LOG_INFO, "Fired ami_event_parkedcalltimeout.");
 
   tmp_const = json_string_value(json_object_get(j_msg, "ParkeeUniqueid"));
-  ret = delete_park_parkedcall_info(tmp_const);
+  ret = park_delete_parkedcall_info(tmp_const);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete parked_call.");
     return;
@@ -2139,7 +2140,7 @@ static void ami_event_unparkedcall(json_t* j_msg)
   slog(LOG_INFO, "Fired ami_event_unparkedcall.");
 
   tmp_const = json_string_value(json_object_get(j_msg, "ParkeeUniqueid"));
-  ret = delete_park_parkedcall_info(tmp_const);
+  ret = park_delete_parkedcall_info(tmp_const);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete parked_call.");
     return;
@@ -2164,7 +2165,7 @@ static void ami_event_parkedcallgiveup(json_t* j_msg)
   slog(LOG_INFO, "Fired ami_event_parkedcallgiveup.");
 
   tmp_const = json_string_value(json_object_get(j_msg, "ParkeeUniqueid"));
-  ret = delete_park_parkedcall_info(tmp_const);
+  ret = park_delete_parkedcall_info(tmp_const);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete parked_call.");
     return;
@@ -2250,7 +2251,7 @@ static void ami_event_varset(json_t* j_msg)
   slog(LOG_DEBUG, "Check value. key[%s], val[%s]", key, val);
 
   // get channel info
-  j_chan = call_get_channel_info(unique_id);
+  j_chan = core_get_channel_info(unique_id);
   if(j_chan == NULL) {
     slog(LOG_ERR, "Could not get channel info.");
     return;
@@ -2282,7 +2283,7 @@ static void ami_event_varset(json_t* j_msg)
   sfree(timestamp);
 
   // update info
-  ret = call_update_channel_info(j_chan);
+  ret = core_update_channel_info(j_chan);
   json_decref(j_chan);
   if(ret == false) {
     slog(LOG_ERR, "Could not update to channel.");
@@ -3120,7 +3121,7 @@ static void ami_event_coreshowchannel(json_t* j_msg)
   }
 
   // create channel info
-  ret = call_create_channel_info(j_tmp);
+  ret = core_create_channel_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert to channel.");
@@ -3183,7 +3184,7 @@ static void ami_event_newstate(json_t* j_msg)
   }
 
   // update channel info.
-  ret = call_update_channel_info(j_tmp);
+  ret = core_update_channel_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not update channel info.");
@@ -3252,7 +3253,7 @@ static void ami_event_newexten(json_t* j_msg)
   }
 
   // update channel info.
-  ret = call_update_channel_info(j_tmp);
+  ret = core_update_channel_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not update channel info.");
@@ -3584,7 +3585,7 @@ static void ami_event_reload(json_t* j_msg)
       );
   sfree(timestamp);
 
-  ret = update_core_module_info(j_tmp);
+  ret = core_update_module_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not update module info.");

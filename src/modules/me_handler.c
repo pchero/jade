@@ -24,6 +24,7 @@
 #include "chat_handler.h"
 #include "publication_handler.h"
 #include "subscription_handler.h"
+#include "core_handler.h"
 #include "call_handler.h"
 
 #include "me_handler.h"
@@ -1052,6 +1053,45 @@ void me_htp_post_me_login(evhtp_request_t *req, void *data)
 }
 
 /**
+ * htp request handler.
+ * request: DELETE ^/admin/login$
+ * @param req
+ * @param data
+ */
+void me_htp_delete_me_login(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  const char* authtoken;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired me_htp_delete_me_login.");
+
+  // get authtoken
+  authtoken = evhtp_kv_find(req->uri->query, "authtoken");
+  if(authtoken == NULL) {
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // delete authtoken
+  ret = user_delete_authtoken_info(authtoken);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  j_res = http_create_default_result(EVHTP_RES_OK);
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
  * GET ^/me/search request handler.
  * @param req
  * @param data
@@ -2016,7 +2056,7 @@ static json_t* get_calls_info(const json_t* j_user)
     }
 
     // get call info
-    j_calls = call_get_channels_by_devicename(target);
+    j_calls = core_get_channels_by_devicename(target);
     if(j_calls == NULL) {
       slog(LOG_NOTICE, "Could not get channels info. target[%s]", target);
       continue;

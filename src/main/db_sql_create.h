@@ -72,24 +72,24 @@ static const char* g_sql_create_core_agi =
 "   primary key(unique_id)"
 ");";
 
-// core_module
-static const char* g_sql_drop_core_module = "drop table if exists core_module;";
-static const char* g_sql_create_core_module =
-"create table core_module("
-
-// identity
-"   name      varchar(255) not null,"
-
-// info
-"   size      int,"
-"   load      varchar(255),"
-"   version   varchar(255),"
-
-// timestamp. UTC."
-"   tm_update     datetime(6),"
-
-"   primary key(name)"
-");";
+//// core_module
+//static const char* g_sql_drop_core_module = "drop table if exists core_module;";
+//static const char* g_sql_create_core_module =
+//"create table core_module("
+//
+//// identity
+//"   name      varchar(255) not null,"
+//
+//// info
+//"   size      int,"
+//"   load      varchar(255),"
+//"   version   varchar(255),"
+//
+//// timestamp. UTC."
+//"   tm_update     datetime(6),"
+//
+//"   primary key(name)"
+//");";
 
 
 //// sip_peer
@@ -149,94 +149,94 @@ static const char* g_sql_create_core_module =
 
 
 
-// queue param
-static const char* g_sql_drop_queue_param = "drop table if exists queue_param;";
-static const char* g_sql_create_queue_param =
-"create table queue_param("
-
-// identity
-"   name             varchar(255),"    // queue name.
-
-// status
-"   max              int,"             // max available calls in the queue.
-"   strategy         varchar(255),"    // queue strategy.
-"   calls            int,"             // waiting call count.
-"   hold_time        int,"             // average waiting time.
-"   talk_time        int,"             // average talk time.
-"   completed        int,"             // distributed call count.
-"   abandoned        int,"             // could not distributed call count.
-
-// performance
-"   service_level       int,"                 // service level interval time sec.
-"   service_level_perf  real  default 0.0,"   // service level performance(%). completed_call / (abandoned_call + completed_call) * 100
-
-// etc
-"   weight          int,"    // queue priority.
-
-// timestamp. UTC."
-"   tm_update       datetime(6),"   // update time."
-
-"   primary key(name)"
-
-");";
-
-
-// queue member
-static const char* g_sql_drop_queue_member = "drop table if exists queue_member;";
-static const char* g_sql_create_queue_member =
-"create table queue_member("
-
-// identity
-"   id             varchar(255),"   // member id(name@queue)
-"   queue_name     varchar(255),"   // queue name
-"   name           varchar(255),"   // member name
-
-"   location          varchar(255),"          // location
-"   state_interface   varchar(255),"          // state interface
-"   membership        varchar(255),"  // membership
-"   penalty           int,"           // penalty
-"   calls_taken       int,"           // call taken count.
-"   last_call         int,"
-"   last_pause        int,"
-"   in_call           int,"
-"   status            int,"
-"   paused            int,"
-"   paused_reason     text,"
-"   ring_inuse        int,"
-
-// timestamp. UTC."
-"   tm_update         datetime(6),"   // update time."
-
-"   primary key(queue_name, name)"
-
-");";
+//// queue param
+//static const char* g_sql_drop_queue_param = "drop table if exists queue_param;";
+//static const char* g_sql_create_queue_param =
+//"create table queue_param("
+//
+//// identity
+//"   name             varchar(255),"    // queue name.
+//
+//// status
+//"   max              int,"             // max available calls in the queue.
+//"   strategy         varchar(255),"    // queue strategy.
+//"   calls            int,"             // waiting call count.
+//"   hold_time        int,"             // average waiting time.
+//"   talk_time        int,"             // average talk time.
+//"   completed        int,"             // distributed call count.
+//"   abandoned        int,"             // could not distributed call count.
+//
+//// performance
+//"   service_level       int,"                 // service level interval time sec.
+//"   service_level_perf  real  default 0.0,"   // service level performance(%). completed_call / (abandoned_call + completed_call) * 100
+//
+//// etc
+//"   weight          int,"    // queue priority.
+//
+//// timestamp. UTC."
+//"   tm_update       datetime(6),"   // update time."
+//
+//"   primary key(name)"
+//
+//");";
 
 
-// queue entry
-static const char* g_sql_drop_queue_entry = "drop table if exists queue_entry;";
-static const char* g_sql_create_queue_entry =
-"create table queue_entry("
+//// queue member
+//static const char* g_sql_drop_queue_member = "drop table if exists queue_member;";
+//static const char* g_sql_create_queue_member =
+//"create table queue_member("
+//
+//// identity
+//"   id             varchar(255),"   // member id(name@queue)
+//"   queue_name     varchar(255),"   // queue name
+//"   name           varchar(255),"   // member name
+//
+//"   location          varchar(255),"          // location
+//"   state_interface   varchar(255),"          // state interface
+//"   membership        varchar(255),"  // membership
+//"   penalty           int,"           // penalty
+//"   calls_taken       int,"           // call taken count.
+//"   last_call         int,"
+//"   last_pause        int,"
+//"   in_call           int,"
+//"   status            int,"
+//"   paused            int,"
+//"   paused_reason     text,"
+//"   ring_inuse        int,"
+//
+//// timestamp. UTC."
+//"   tm_update         datetime(6),"   // update time."
+//
+//"   primary key(queue_name, name)"
+//
+//");";
 
-// identity
-"   unique_id         varchar(255),"
-"   queue_name        varchar(255),"
-"   channel           varchar(255),"
 
-// info
-"   position            int,"
-"   caller_id_num       varchar(255),"
-"   caller_id_name      varchar(255),"
-"   connected_line_num  varchar(255),"
-"   connected_line_name varchar(255),"
-
-"   wait                int,"
-
-// timestamp. UTC."
-"   tm_update         datetime(6),"   // update time."
-
-"   primary key(unique_id)"
-
-");";
+//// queue entry
+//static const char* g_sql_drop_queue_entry = "drop table if exists queue_entry;";
+//static const char* g_sql_create_queue_entry =
+//"create table queue_entry("
+//
+//// identity
+//"   unique_id         varchar(255),"
+//"   queue_name        varchar(255),"
+//"   channel           varchar(255),"
+//
+//// info
+//"   position            int,"
+//"   caller_id_num       varchar(255),"
+//"   caller_id_name      varchar(255),"
+//"   connected_line_num  varchar(255),"
+//"   connected_line_name varchar(255),"
+//
+//"   wait                int,"
+//
+//// timestamp. UTC."
+//"   tm_update         datetime(6),"   // update time."
+//
+//"   primary key(unique_id)"
+//
+//");";
 
 
 // database
@@ -297,44 +297,44 @@ static const char* g_sql_create_agent =
 
 ");";
 
-// system
-static const char* g_sql_drop_system = "drop table if exists system;";
-static const char* g_sql_create_system =
-"create table system("
-
-// identity
-"   id varchar(255),"
-
-// version info
-"   ami_version   varchar(255),"
-"   ast_version   varchar(255),"
-"   system_name   varchar(255),"
-
-//  time info
-"   startup_date  varchar(255),"
-"   startup_time  varchar(255),"
-"   reload_date   varchar(255),"
-"   reload_time   varchar(255),"
-"   current_calls int,"
-
-// max info
-"   max_calls         int,"
-"   max_load_avg      real,"
-"   max_file_handles  int,"
-
-"   run_user          varchar(255),"
-"   run_group         varchar(255),"
-
-"   real_time_enabled varchar(255),"
-"   cdr_enabled       varchar(255),"
-"   http_enabled      varchar(255),"
-
-// timestamp. UTC."
-"   tm_update         datetime(6),"   // update time."
-
-"   primary key(id)"
-
-");";
+//// system
+//static const char* g_sql_drop_system = "drop table if exists system;";
+//static const char* g_sql_create_system =
+//"create table system("
+//
+//// identity
+//"   id varchar(255),"
+//
+//// version info
+//"   ami_version   varchar(255),"
+//"   ast_version   varchar(255),"
+//"   system_name   varchar(255),"
+//
+////  time info
+//"   startup_date  varchar(255),"
+//"   startup_time  varchar(255),"
+//"   reload_date   varchar(255),"
+//"   reload_time   varchar(255),"
+//"   current_calls int,"
+//
+//// max info
+//"   max_calls         int,"
+//"   max_load_avg      real,"
+//"   max_file_handles  int,"
+//
+//"   run_user          varchar(255),"
+//"   run_group         varchar(255),"
+//
+//"   real_time_enabled varchar(255),"
+//"   cdr_enabled       varchar(255),"
+//"   http_enabled      varchar(255),"
+//
+//// timestamp. UTC."
+//"   tm_update         datetime(6),"   // update time."
+//
+//"   primary key(id)"
+//
+//");";
 
 
 // device_state
@@ -355,69 +355,69 @@ static const char* g_sql_create_device_state =
 ");";
 
 
-// parking_lot
-static const char* g_sql_drop_parking_lot = "drop table if exists parking_lot;";
-static const char* g_sql_create_parking_lot =
-"create table parking_lot("
+//// parking_lot
+//static const char* g_sql_drop_parking_lot = "drop table if exists parking_lot;";
+//static const char* g_sql_create_parking_lot =
+//"create table parking_lot("
+//
+//"   name varchar(255),"
+//
+//"   start_space varchar(255),"
+//"   stop_space  varchar(255),"
+//
+//"   timeout int,"
+//
+//// timestamp. UTC."
+//"   tm_update         datetime(6),"   // update time."
+//
+//"   primary key(name)"
+//");";
 
-"   name varchar(255),"
 
-"   start_space varchar(255),"
-"   stop_space  varchar(255),"
-
-"   timeout int,"
-
-// timestamp. UTC."
-"   tm_update         datetime(6),"   // update time."
-
-"   primary key(name)"
-");";
-
-
-// parked_call
-static const char* g_sql_drop_parked_call = "drop table if exists parked_call;";
-static const char* g_sql_create_parked_call =
-"create table parked_call("
-
-// parked channel id info
-"   parkee_unique_id  varchar(255),"
-"   parkee_linked_id  varchar(255),"
-
-// parked channel info
-"   parkee_channel              varchar(255),"
-"   parkee_channel_state        varchar(255),"
-"   parkee_channel_state_desc   varchar(255),"
-
-// parked channel caller info
-"   parkee_caller_id_num    varchar(255),"
-"   parkee_caller_id_name   varchar(255),"
-
-// parked channel connected line info
-"   parkee_connected_line_num   varchar(255),"
-"   parkee_connected_line_name  varchar(255),"
-
-// parked channel account info
-"   parkee_account_code   varchar(255),"
-
-// parked channel dialplan info
-"   parkee_context    varchar(255),"
-"   parkee_exten      varchar(255),"
-"   parkee_priority   varchar(255),"
-
-// parked channel parker info
-"   parker_dial_string varchar(255),"
-
-// parking lot info
-"   parking_lot       varchar(255),"
-"   parking_space     varchar(255),"
-"   parking_timeout   int,"
-"   parking_duration  int,"
-
-// timestamp. UTC."
-"   tm_update         datetime(6),"   // update time."
-
-"   primary key(parkee_unique_id)"
-");";
+//// parked_call
+//static const char* g_sql_drop_parked_call = "drop table if exists parked_call;";
+//static const char* g_sql_create_parked_call =
+//"create table parked_call("
+//
+//// parked channel id info
+//"   parkee_unique_id  varchar(255),"
+//"   parkee_linked_id  varchar(255),"
+//
+//// parked channel info
+//"   parkee_channel              varchar(255),"
+//"   parkee_channel_state        varchar(255),"
+//"   parkee_channel_state_desc   varchar(255),"
+//
+//// parked channel caller info
+//"   parkee_caller_id_num    varchar(255),"
+//"   parkee_caller_id_name   varchar(255),"
+//
+//// parked channel connected line info
+//"   parkee_connected_line_num   varchar(255),"
+//"   parkee_connected_line_name  varchar(255),"
+//
+//// parked channel account info
+//"   parkee_account_code   varchar(255),"
+//
+//// parked channel dialplan info
+//"   parkee_context    varchar(255),"
+//"   parkee_exten      varchar(255),"
+//"   parkee_priority   varchar(255),"
+//
+//// parked channel parker info
+//"   parker_dial_string varchar(255),"
+//
+//// parking lot info
+//"   parking_lot       varchar(255),"
+//"   parking_space     varchar(255),"
+//"   parking_timeout   int,"
+//"   parking_duration  int,"
+//
+//// timestamp. UTC."
+//"   tm_update         datetime(6),"   // update time."
+//
+//"   primary key(parkee_unique_id)"
+//");";
 
 
 // voicemail_user

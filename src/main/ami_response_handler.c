@@ -14,6 +14,7 @@
 #include "slog.h"
 #include "utils.h"
 #include "common.h"
+#include "core_handler.h"
 #include "action_handler.h"
 #include "resource_handler.h"
 
@@ -21,7 +22,6 @@
 ACTION_RES ami_response_handler_corestatus(json_t* j_action, json_t* j_msg)
 {
   char* tmp;
-  char* sql;
   char* timestamp;
   const char* response;
   int ret;
@@ -55,9 +55,12 @@ ACTION_RES ami_response_handler_corestatus(json_t* j_action, json_t* j_msg)
 
   timestamp = utils_get_utc_timestamp();
   j_tmp = json_pack("{"
+      "s:s, "
       "s:s, s:s, s:s, s:s, s:i, "
       "s:s"
       "}",
+
+      "id",   json_string_value(json_object_get(json_object_get(j_action, "data"), "id")),
 
       "startup_date",   json_string_value(json_object_get(j_msg, "CoreStartupDate")),
       "startup_time",   json_string_value(json_object_get(j_msg, "CoreStartupTime")),
@@ -69,17 +72,8 @@ ACTION_RES ami_response_handler_corestatus(json_t* j_action, json_t* j_msg)
       );
   sfree(timestamp);
 
-
-  tmp = db_ctx_get_update_str(j_tmp);
+  ret = core_update_system_info(j_tmp);
   json_decref(j_tmp);
-  asprintf(&sql, "update system set %s where id=\"%s\";",
-      tmp,
-      json_string_value(json_object_get(json_object_get(j_action, "data"), "id"))
-      );
-  sfree(tmp);
-
-  ret = db_ctx_exec(g_db_memory, sql);
-  sfree(sql);
   if(ret == false) {
     slog(LOG_WARNING, "Could not update system info. id[%s]", json_string_value(json_object_get(json_object_get(j_action, "data"), "id")));
     return ACTION_RES_ERROR;
@@ -91,7 +85,6 @@ ACTION_RES ami_response_handler_corestatus(json_t* j_action, json_t* j_msg)
 ACTION_RES ami_response_handler_coresettings(json_t* j_action, json_t* j_msg)
 {
   char* tmp;
-  char* sql;
   char* timestamp;
   const char* response;
   int ret;
@@ -125,11 +118,14 @@ ACTION_RES ami_response_handler_coresettings(json_t* j_action, json_t* j_msg)
 
   timestamp = utils_get_utc_timestamp();
   j_tmp = json_pack("{"
+      "s:s, "
       "s:s, s:s, s:s, "
       "s:i, s:f, s:i"
       "s:s, s:s,"
       "s:s, s:s, s:s"
       "}",
+
+      "id",   json_string_value(json_object_get(json_object_get(j_action, "data"), "id")),
 
       "ami_version",   json_string_value(json_object_get(j_msg, "AMIversion")),
       "ast_version",   json_string_value(json_object_get(j_msg, "AsteriskVersion")),
@@ -151,17 +147,8 @@ ACTION_RES ami_response_handler_coresettings(json_t* j_action, json_t* j_msg)
       );
   sfree(timestamp);
 
-
-  tmp = db_ctx_get_update_str(j_tmp);
+  ret = core_update_system_info(j_tmp);
   json_decref(j_tmp);
-  asprintf(&sql, "update system set %s where id=\"%s\";",
-      tmp,
-      json_string_value(json_object_get(json_object_get(j_action, "data"), "id"))
-      );
-  sfree(tmp);
-
-  ret = db_ctx_exec(g_db_memory, sql);
-  sfree(sql);
   if(ret == false) {
     slog(LOG_WARNING, "Could not update system info. id[%s]", json_string_value(json_object_get(json_object_get(j_action, "data"), "id")));
     return ACTION_RES_ERROR;
@@ -234,7 +221,7 @@ ACTION_RES ami_response_handler_modulecheck(json_t* j_action, json_t* j_msg)
   sfree(timestamp);
 
   // update module info
-  ret = update_core_module_info(j_tmp);
+  ret = core_update_module_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not update core module info.");
@@ -325,7 +312,7 @@ ACTION_RES ami_response_handler_moduleload(json_t* j_action, json_t* j_msg)
   sfree(timestamp);
 
   // update module info
-  ret = update_core_module_info(j_tmp);
+  ret = core_update_module_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not update core module info.");

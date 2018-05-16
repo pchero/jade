@@ -317,7 +317,7 @@ static bool init_default_originate_to_device(void)
 void dialplan_htp_get_dp_config(evhtp_request_t *req, void *data)
 {
   json_t* j_res;
-  char* tmp;
+  json_t* j_tmp;
 
   if(req == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -326,8 +326,8 @@ void dialplan_htp_get_dp_config(evhtp_request_t *req, void *data)
   slog(LOG_DEBUG, "Fired htp_get_dp_config.");
 
   // get info
-  tmp = conf_get_ast_current_config_info_text(DEF_AST_DIALPLAN_CONFNAME);
-  if(tmp == NULL) {
+  j_tmp = conf_get_ast_current_config_info_text(DEF_AST_DIALPLAN_CONFNAME);
+  if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get dialplan conf.");
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
     return;
@@ -335,8 +335,7 @@ void dialplan_htp_get_dp_config(evhtp_request_t *req, void *data)
 
   // create result
   j_res = http_create_default_result(EVHTP_RES_OK);
-  json_object_set_new(j_res, "result", json_string(tmp));
-  sfree(tmp);
+  json_object_set_new(j_res, "result", j_tmp);
 
   // response
   http_simple_response_normal(req, j_res);

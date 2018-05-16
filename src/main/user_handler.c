@@ -74,9 +74,9 @@ static bool db_create_userinfo_info(const json_t* j_data);
 static bool db_update_userinfo_info(const json_t* j_data);
 static bool db_delete_userinfo_info(const char* uuid);
 
-static bool create_userinfo(const char* uuid, json_t* j_data);
-static bool create_userinfo_without_uuid(json_t* j_data);
-static bool update_userinfo(const char* uuid, json_t* j_data);
+static bool create_userinfo(const char* uuid, const json_t* j_data);
+static bool create_userinfo_without_uuid(const json_t* j_data);
+static bool update_userinfo(const char* uuid, const json_t* j_data);
 static bool delete_userinfo(const char* uuid);
 
 static bool create_permission(const char* user_uuid, const char* permission);
@@ -84,7 +84,7 @@ static bool create_permission_by_json(const json_t* j_data);
 static bool delete_permission(const char* key);
 
 static bool create_contact(const json_t* j_data);
-static bool update_contact(const char* uuid, json_t* j_data);
+static bool update_contact(const char* uuid, const json_t* j_data);
 static bool delete_contact(const char* uuid);
 
 static bool create_buddy(const char* uuid, const json_t* j_data);
@@ -454,659 +454,6 @@ static void cb_user_validate_authtoken(__attribute__((unused)) int fd, __attribu
   return;
 }
 
-/**
- * htp request handler.
- * request: POST ^/user/login$
- * @param req
- * @param data
- */
-void user_htp_post_user_login(evhtp_request_t *req, void *data)
-{
-  json_t* j_tmp;
-  json_t* j_res;
-  char* username;
-  char* password;
-  char* authtoken;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_get_queue_entries.");
-
-  // get username/pass
-  ret = http_get_htp_id_pass(req, &username, &password);
-  if(ret == false) {
-    sfree(username);
-    sfree(password);
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // create authtoken
-  authtoken = create_authtoken(username, password, "admin");
-  sfree(username);
-  sfree(password);
-  if(authtoken == NULL) {
-    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
-    return;
-  }
-
-  j_tmp = json_pack("{s:s}",
-      "authtoken",  authtoken
-      );
-  sfree(authtoken);
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-  json_object_set_new(j_res, "result", j_tmp);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * htp request handler.
- * request: DELETE ^/user/login$
- * @param req
- * @param data
- */
-void user_htp_delete_user_login(evhtp_request_t *req, void *data)
-{
-  json_t* j_res;
-  const char* authtoken;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_delete_user_login.");
-
-  // get authtoken
-  authtoken = evhtp_kv_find(req->uri->query, "authtoken");
-  if(authtoken == NULL) {
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // delete authtoken
-  ret = user_delete_authtoken_info(authtoken);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  j_res = http_create_default_result(EVHTP_RES_OK);
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * GET ^/user/contacts request handler.
- * @param req
- * @param data
- */
-void user_htp_get_user_contacts(evhtp_request_t *req, void *data)
-{
-  json_t* j_tmp;
-  json_t* j_res;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_get_user_contacts.");
-
-  // get info
-  j_tmp = user_get_contacts_all();
-  if(j_tmp == NULL) {
-    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-  json_object_set_new(j_res, "result", json_object());
-  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * htp request handler.
- * request: POST ^/user/contacts
- * @param req
- * @param data
- */
-void user_htp_post_user_contacts(evhtp_request_t *req, void *data)
-{
-  json_t* j_data;
-  json_t* j_res;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_post_user_contacts.");
-
-  // get data
-  j_data = http_get_json_from_request_data(req);
-  if(j_data == NULL) {
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // create contact
-  ret = create_contact(j_data);
-  json_decref(j_data);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * GET ^/user/contacts/(.*) request handler.
- * @param req
- * @param data
- */
-void user_htp_get_user_contacts_detail(evhtp_request_t *req, void *data)
-{
-  json_t* j_res;
-  json_t* j_tmp;
-  char* detail;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_get_user_contacts_detail.");
-
-  // detail parse
-  detail = http_get_parsed_detail(req);
-  if(detail == NULL) {
-    slog(LOG_ERR, "Could not get detail info.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // get detail info
-  j_tmp = user_get_contact_info(detail);
-  sfree(detail);
-  if(j_tmp == NULL) {
-    slog(LOG_NOTICE, "Could not find contact info.");
-    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-  json_object_set_new(j_res, "result", j_tmp);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * PUT ^/user/contacts/(.*) request handler.
- * @param req
- * @param data
- */
-void user_htp_put_user_contacts_detail(evhtp_request_t *req, void *data)
-{
-  json_t* j_res;
-  json_t* j_data;
-  char* detail;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_put_user_contacts_detail.");
-
-  // detail parse
-  detail = http_get_parsed_detail(req);
-  if(detail == NULL) {
-    slog(LOG_ERR, "Could not get detail info.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  j_data = http_get_json_from_request_data(req);
-  if(j_data == NULL) {
-    slog(LOG_NOTICE, "Could not get data info.");
-    sfree(detail);
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // update
-  ret = update_contact(detail, j_data);
-  sfree(detail);
-  json_decref(j_data);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * DELETE ^/user/contacts/(.*) request handler.
- * @param req
- * @param data
- */
-void user_htp_delete_user_contacts_detail(evhtp_request_t *req, void *data)
-{
-  json_t* j_res;
-  char* detail;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_delete_user_contacts_detail.");
-
-  // detail parse
-  detail = http_get_parsed_detail(req);
-  if(detail == NULL) {
-    slog(LOG_ERR, "Could not get detail info.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // delete
-  ret = delete_contact(detail);
-  sfree(detail);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * htp request handler.
- * request: POST ^/user/users
- * @param req
- * @param data
- */
-void user_htp_post_user_users(evhtp_request_t *req, void *data)
-{
-  json_t* j_data;
-  json_t* j_res;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_post_user_users.");
-
-  // get data
-  j_data = http_get_json_from_request_data(req);
-  if(j_data == NULL) {
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // create user
-  ret = create_userinfo_without_uuid(j_data);
-  json_decref(j_data);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * htp request handler.
- * request: GET ^/user/users
- * @param req
- * @param data
- */
-void user_htp_get_user_users(evhtp_request_t *req, void *data)
-{
-  json_t* j_tmp;
-  json_t* j_res;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_get_user_users.");
-
-  // get info
-  j_tmp = user_get_userinfos_all();
-  if(j_tmp == NULL) {
-    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-  json_object_set_new(j_res, "result", json_object());
-  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * GET ^/user/users/(.*) request handler.
- * @param req
- * @param data
- */
-void user_htp_get_user_users_detail(evhtp_request_t *req, void *data)
-{
-  json_t* j_res;
-  json_t* j_tmp;
-  char* detail;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_get_user_users_detail.");
-
-  // detail parse
-  detail = http_get_parsed_detail(req);
-  if(detail == NULL) {
-    slog(LOG_ERR, "Could not get detail info.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // get detail info
-  j_tmp = user_get_userinfo_info(detail);
-  sfree(detail);
-  if(j_tmp == NULL) {
-    slog(LOG_NOTICE, "Could not find userinfo info.");
-    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-  json_object_set_new(j_res, "result", j_tmp);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * PUT ^/user/users/(.*) request handler.
- * @param req
- * @param data
- */
-void user_htp_put_user_users_detail(evhtp_request_t *req, void *data)
-{
-  json_t* j_res;
-  json_t* j_data;
-  char* detail;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_put_user_users_detail.");
-
-  // detail parse
-  detail = http_get_parsed_detail(req);
-  if(detail == NULL) {
-    slog(LOG_ERR, "Could not get detail info.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  j_data = http_get_json_from_request_data(req);
-  if(j_data == NULL) {
-    slog(LOG_NOTICE, "Could not get data info.");
-    sfree(detail);
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // update
-  ret = update_userinfo(detail, j_data);
-  sfree(detail);
-  json_decref(j_data);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * DELETE ^/user/users/(.*) request handler.
- * @param req
- * @param data
- */
-void user_htp_delete_user_users_detail(evhtp_request_t *req, void *data)
-{
-  json_t* j_res;
-  char* detail;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_delete_user_users_detail.");
-
-  // detail parse
-  detail = http_get_parsed_detail(req);
-  if(detail == NULL) {
-    slog(LOG_ERR, "Could not get detail info.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // delete
-  ret = user_delete_userinfo_info(detail);
-  sfree(detail);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * GET ^/user/permissions request handler.
- * @param req
- * @param data
- */
-void user_htp_get_user_permissions(evhtp_request_t *req, void *data)
-{
-  json_t* j_tmp;
-  json_t* j_res;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_get_user_permissions.");
-
-  // get info
-  j_tmp = user_get_permissions_all();
-  if(j_tmp == NULL) {
-    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-  json_object_set_new(j_res, "result", json_object());
-  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * htp request handler.
- * request: POST ^/user/permissions
- * @param req
- * @param data
- */
-void user_htp_post_user_permissions(evhtp_request_t *req, void *data)
-{
-  json_t* j_data;
-  json_t* j_res;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_post_user_permissions.");
-
-  // get data
-  j_data = http_get_json_from_request_data(req);
-  if(j_data == NULL) {
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // create data
-  ret = create_permission_by_json(j_data);
-  json_decref(j_data);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * DELETE ^/user/permissions/(.*) request handler.
- * @param req
- * @param data
- */
-void user_htp_delete_user_permissions_detail(evhtp_request_t *req, void *data)
-{
-  json_t* j_res;
-  char* detail;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_delete_user_permissions_detail.");
-
-  // detail parse
-  detail = http_get_parsed_detail(req);
-  if(detail == NULL) {
-    slog(LOG_ERR, "Could not get detail info.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // delete
-  ret = delete_permission(detail);
-  sfree(detail);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
 
 static char* create_authtoken(const char* username, const char* password, const char* type)
 {
@@ -1263,7 +610,7 @@ static bool create_contact(const json_t* j_data)
   return true;
 }
 
-static bool update_contact(const char* uuid, json_t* j_data)
+static bool update_contact(const char* uuid, const json_t* j_data)
 {
   json_t* j_tmp;
   char* timestamp;
@@ -1276,25 +623,11 @@ static bool update_contact(const char* uuid, json_t* j_data)
   slog(LOG_DEBUG, "Fired update_contact. uuid[%s]", uuid);
 
   timestamp = utils_get_utc_timestamp();
-  j_tmp = json_pack("{"
-      "s:s, s:s, "
-      "s:s, s:s, "
-      "s:s, s:s, "
-      "s:s "
-      "}",
 
-      "uuid",       uuid,
-      "user_uuid",  json_string_value(json_object_get(j_data, "user_uuid"))? : "",
-
-      "type",     json_string_value(json_object_get(j_data, "type"))? : "",
-      "target",   json_string_value(json_object_get(j_data, "target"))? : "",
-
-      "name",     json_string_value(json_object_get(j_data, "name"))? : "",
-      "detail",   json_string_value(json_object_get(j_data, "detail"))? : "",
-
-      "tm_update", timestamp
-      );
+  j_tmp = json_deep_copy(j_data);
+  json_object_set_new(j_tmp, "tm_update", json_string(timestamp));
   sfree(timestamp);
+  json_object_del(j_tmp, "tm_create");
 
   ret = db_update_contact_info(j_tmp);
   json_decref(j_tmp);
@@ -1306,7 +639,24 @@ static bool update_contact(const char* uuid, json_t* j_data)
   return true;
 }
 
-bool user_create_userinfo(const char* uuid, json_t* j_data)
+bool user_update_contact_info(const char* key, const json_t* j_data)
+{
+  int ret;
+
+  if((key == NULL) || (j_data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  ret = update_contact(key, j_data);
+  if(ret == false) {
+    return false;
+  }
+
+  return true;
+}
+
+bool user_create_userinfo(const char* uuid, const json_t* j_data)
 {
   int ret;
 
@@ -1323,7 +673,7 @@ bool user_create_userinfo(const char* uuid, json_t* j_data)
   return true;
 }
 
-static bool create_userinfo(const char* uuid, json_t* j_data)
+static bool create_userinfo(const char* uuid, const json_t* j_data)
 {
   json_t* j_tmp;
   char* timestamp;
@@ -1391,7 +741,7 @@ static bool create_userinfo(const char* uuid, json_t* j_data)
  * @param j_data
  * @return
  */
-static bool create_userinfo_without_uuid(json_t* j_data)
+static bool create_userinfo_without_uuid(const json_t* j_data)
 {
   char* uuid;
   int ret;
@@ -1419,7 +769,7 @@ static bool create_userinfo_without_uuid(json_t* j_data)
  * @param j_data
  * @return
  */
-static bool update_userinfo(const char* uuid, json_t* j_data)
+static bool update_userinfo(const char* uuid, const json_t* j_data)
 {
   json_t* j_tmp;
   char* timestamp;
@@ -2387,7 +1737,6 @@ bool user_delete_permissions_by_useruuid(const char* uuid_user)
   return true;
 }
 
-
 /**
  * Delete user_permission info.
  * @param key
@@ -2406,6 +1755,23 @@ static bool delete_permission(const char* key)
   ret = db_delete_permission_info(key);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete permission info. uuid[%s]", key);
+    return false;
+  }
+
+  return true;
+}
+
+bool user_delete_permission_info(const char* key)
+{
+  int ret;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  ret = delete_permission(key);
+  if(ret == false) {
     return false;
   }
 
@@ -2512,6 +1878,23 @@ bool user_create_contact_info(const json_t* j_data)
   ret = create_contact(j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert user_contact.");
+    return false;
+  }
+
+  return true;
+}
+
+bool user_delete_contact_info(const char* key)
+{
+  int ret;
+
+  if(key == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  ret = delete_contact(key);
+  if(ret == false) {
     return false;
   }
 

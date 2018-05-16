@@ -19,6 +19,7 @@
 #include "utils.h"
 #include "resource_handler.h"
 #include "ami_action_handler.h"
+#include "core_handler.h"
 
 #include "misc_handler.h"
 
@@ -119,7 +120,7 @@ static bool init_modules_info(void)
         );
 
     // insert
-    ret = create_core_module(j_tmp);
+    ret = core_create_module(j_tmp);
     json_decref(j_tmp);
     if(ret == true) {
       // send modulecheck request

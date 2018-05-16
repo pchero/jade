@@ -9,23 +9,43 @@
 #define SRC_CORE_HANDLER_H_
 
 #include <evhtp.h>
+#include <stdbool.h>
+#include <jansson.h>
 
-void core_htp_get_core_agis(evhtp_request_t *req, void *data);
-void core_htp_get_core_agis_detail(evhtp_request_t *req, void *data);
+bool core_init_handler(void);
+bool core_term_handler(void);
+bool core_reload_handler(void);
 
-void core_htp_get_core_channels(evhtp_request_t *req, void *data);
-void core_htp_get_core_channels_detail(evhtp_request_t *req, void *data);
-void core_htp_delete_core_channels_detail(evhtp_request_t *req, void *data);
+// callback
+bool core_register_callback_module(bool (*func)(enum EN_RESOURCE_UPDATE_TYPES, const json_t*));
+bool core_register_callback_db_channel(bool (*func)(enum EN_RESOURCE_UPDATE_TYPES, const json_t*));
+bool core_register_callback_db_module(bool (*func)(enum EN_RESOURCE_UPDATE_TYPES, const json_t*));
+bool core_register_callback_db_system(bool (*func)(enum EN_RESOURCE_UPDATE_TYPES, const json_t*));
 
-void core_htp_get_core_modules(evhtp_request_t *req, void *data);
-void core_htp_get_core_modules_detail(evhtp_request_t *req, void *data);
-void core_htp_post_core_modules_detail(evhtp_request_t *req, void *data);
-void core_htp_put_core_modules_detail(evhtp_request_t *req, void *data);
-void core_htp_delete_core_modules_detail(evhtp_request_t *req, void *data);
+// channel
+json_t* core_get_channels_all(void);
+json_t* core_get_channels_by_devicename(const char* device_name);
+json_t* core_get_channel_info(const char* unique_id);
+bool core_create_channel_info(const json_t* j_data);
+int core_update_channel_info(const json_t* j_tmp);
+int core_delete_channel_info(const char* key);
 
-void core_htp_get_core_systems(evhtp_request_t *req, void *data);
-void core_htp_get_core_systems_detail(evhtp_request_t *req, void *data);
+// module
+json_t* core_get_modules_all(void);
+json_t* core_get_module_info(const char* key);
+bool core_create_module(json_t* j_tmp);
+bool core_update_module_info(const json_t* j_data);
 
+// system
+json_t* core_get_systems_all(void);
+json_t* core_get_system_info(const char* id);
+bool core_create_system_info(const json_t* j_data);
+bool core_update_system_info(const json_t* j_data);
+
+// etc
+bool core_module_load(const char* name);
+bool core_module_reload(const char* name);
+bool core_module_unload(const char* name);
 
 
 #endif /* SRC_CORE_HANDLER_H_ */

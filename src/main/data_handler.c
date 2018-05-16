@@ -158,15 +158,9 @@ static void cb_ami_status_check(__attribute__((unused)) int fd, __attribute__((u
   json_t* j_tmp;
   json_t* j_data;
   char* action_id;
-  char* sql;
   int ret;
 
   slog(LOG_DEBUG, "Fired cb_ami_status_check.");
-
-  // create initial info if need.
-  asprintf(&sql, "insert or ignore into system(id) values(1)");
-  db_ctx_exec(g_db_memory, sql);
-  sfree(sql);
 
   //// CoreStatus
   // create data

@@ -73,15 +73,7 @@ bool update_core_agi_info_cmd_result_done(const char* agi_uuid, const char* cmd_
 bool delete_core_agi_info(const char* key);
 bool add_core_agi_info_cmd(const char* agi_uuid, const char* cmd_uuid, const char* command, const char* dp_uuid);
 // core_system
-json_t* get_core_systems_all_id(void);
-json_t* get_core_systems_all(void);
-json_t* get_core_system_info(const char* id);
 // core_module
-int create_core_module(json_t* j_tmp);
-json_t* get_core_modules_all(void);
-json_t* get_core_module_info(const char* key);
-bool update_core_module_info(const json_t* j_data);
-
 
 
 
@@ -90,58 +82,9 @@ json_t* get_databases_all_key(void);
 json_t* get_database_info(const char* key);
 
 
-
-///////// queue
-// queue entry
-bool clear_queue_entry(void);
-json_t* get_queue_entry_info(const char* key);
-json_t* get_queue_entry_info_by_id_name(const char* channel, const char* queue_name);
-json_t* get_queue_entries_all(void);
-json_t* get_queue_entries_all_by_queuename(const char* name);
-json_t* get_queue_entries_all_unique_id_queue_name(void);
-int delete_queue_entry_info(const char* key);
-int create_queue_entry_info(const json_t* j_tmp);
-// queue members
-bool clear_queue_member(void);
-json_t* get_queue_members_all(void);
-json_t* get_queue_members_all_by_queuename(const char* name);
-json_t* get_queue_members_all_name_queue(void);
-json_t* get_queue_member_info(const char* id);
-bool create_queue_member_info(const json_t* j_data);
-bool update_queue_member_info(const json_t* j_data);
-bool delete_queue_member_info(const char* key);
-// queue param
-bool clear_queue_param(void);
-json_t* get_queue_param_info(const char* name);
-json_t* get_queue_params_all(void);
-json_t* get_queue_params_all_name(void);
-int create_queue_param_info(const json_t* j_tmp);
-int delete_queue_param_info(const char* key);
-// queue status
-json_t* get_queue_status_info(const char* name);
-json_t* get_queue_statuses_all(void);
-
-
 // device_state
 json_t* get_device_states_all_device(void);
 json_t* get_device_state_info(const char* device);
-
-
-/////// park
-// parkinglot
-bool clear_park_parkinglot(void);
-json_t* get_park_parkinglots_all(void);
-json_t* get_park_parkinglots_all_name(void);
-json_t* get_park_parkinglot_info(const char* name);
-int create_park_parkinglot_info(const json_t* j_tmp);
-// parkedcalls
-bool clear_park_parkedcall(void);
-json_t* get_park_parkedcalls_all();
-json_t* get_park_parkedcalls_all_parkee_unique_id(void);
-json_t* get_park_parkedcall_info(const char* parkee_unique_id);
-bool create_park_parkedcall_info(const json_t* j_tmp);
-bool update_park_parkedcall_info(const json_t* j_data);
-bool delete_park_parkedcall_info(const char* key);
 
 
 ////// voicemail

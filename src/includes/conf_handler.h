@@ -27,7 +27,7 @@ bool conf_create_ast_section(const char* filename, const char* name, const json_
 bool conf_update_ast_section(const char* filename, const char* name, const json_t* j_data);
 bool conf_delete_ast_section(const char* filename, const char* name);
 
-json_t* conf_get_ast_backup_configs_info_all(const char* filename);
+json_t* conf_get_ast_backup_configs_text_all(const char* filename);
 json_t* conf_get_ast_backup_config_info(const char* filename);
 bool conf_remove_ast_backup_config_info_valid(const char* filename, const char* valid);
 
@@ -40,11 +40,11 @@ bool conf_update_ast_section_array(const char* filename, const char* name, const
 bool conf_delete_ast_section_array(const char* filename, const char* name);
 
 // text
-char* conf_get_ast_current_config_info_text(const char* filename);
+json_t* conf_get_ast_current_config_info_text(const char* filename);
 bool conf_update_ast_current_config_info_text(const char* filename, const char* data);
 
-char* conf_get_ast_backup_config_info_text(const char* filename);
-char* conf_get_ast_backup_config_info_text_valid(const char* filename, const char* valid);
+json_t* conf_get_ast_backup_config_info_text(const char* filename);
+json_t* conf_get_ast_backup_config_info_text_valid(const char* filename, const char* valid);
 
 // etc
 bool conf_add_external_config_file(const char* filename, const char* external_filename);

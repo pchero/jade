@@ -31,7 +31,7 @@ json_t* user_get_userinfo_info(const char* key);
 json_t* user_get_userinfo_info_by_username(const char* key);
 json_t* user_get_userinfo_info_by_username_password(const char* username, const char* pass);
 json_t* user_get_userinfo_by_authtoken(const char* authtoken);
-bool user_create_userinfo(const char* uuid, json_t* j_data);
+bool user_create_userinfo(const char* uuid, const json_t* j_data);
 bool user_update_userinfo_info(const char* uuid_user, const json_t* j_data);
 bool user_delete_userinfo_info(const char* key);
 bool user_delete_related_info_by_useruuid(const char* uuid_user);
@@ -50,6 +50,7 @@ json_t* user_get_permissions_by_useruuid(const char* uuid_user);
 bool user_create_permission_info(const json_t* j_data);
 json_t* user_get_permission_info(const char* uuid_permission);
 json_t* user_get_permission_info_by_useruuid_perm(const char* useruuid, const char* perm);
+bool user_delete_permission_info(const char* key);
 bool user_delete_permissions_by_useruuid(const char* uuid_user);
 
 // contact
@@ -57,6 +58,9 @@ json_t* user_get_contacts_all(void);
 json_t* user_get_contacts_by_user_uuid(const char* user_uuid);
 json_t* user_get_contact_info(const char* key);
 bool user_create_contact_info(const json_t* j_data);
+bool user_update_contact_info(const char* key, const json_t* j_data);
+bool user_delete_contact_info(const char* key);
+
 
 // buddy
 json_t* user_get_buddies_info_by_owneruuid(const char* uuid_user);
@@ -71,27 +75,5 @@ bool user_is_user_owned_buddy(const char* uuid_owner, const char* uuid_buddy);
 // authtoken
 char* user_create_authtoken(const char* username, const char* password, const char* type);
 
-
-// http handlers
-void user_htp_post_user_login(evhtp_request_t *req, void *data);
-void user_htp_delete_user_login(evhtp_request_t *req, void *data);
-
-void user_htp_get_user_contacts(evhtp_request_t *req, void *data);
-void user_htp_post_user_contacts(evhtp_request_t *req, void *data);
-
-void user_htp_get_user_contacts_detail(evhtp_request_t *req, void *data);
-void user_htp_put_user_contacts_detail(evhtp_request_t *req, void *data);
-void user_htp_delete_user_contacts_detail(evhtp_request_t *req, void *data);
-
-void user_htp_post_user_users(evhtp_request_t *req, void *data);
-void user_htp_get_user_users(evhtp_request_t *req, void *data);
-
-void user_htp_get_user_permissions(evhtp_request_t *req, void *data);
-void user_htp_post_user_permissions(evhtp_request_t *req, void *data);
-void user_htp_delete_user_permissions_detail(evhtp_request_t *req, void *data);
-
-void user_htp_get_user_users_detail(evhtp_request_t *req, void *data);
-void user_htp_put_user_users_detail(evhtp_request_t *req, void *data);
-void user_htp_delete_user_users_detail(evhtp_request_t *req, void *data);
 
 #endif /* SRC_MAIN_USER_HANDLER_H_ */

@@ -14,30 +14,34 @@ bool park_init_handler(void);
 bool park_term_handler(void);
 bool park_reload_handler(void);
 
-void park_htp_get_park_parkinglots(evhtp_request_t *req, void *data);
-void park_htp_post_park_parkinglots(evhtp_request_t *req, void *data);
+// callback
+bool park_register_callback_db_parkedcall(bool (*func)(enum EN_RESOURCE_UPDATE_TYPES, const json_t*));
 
-void park_htp_get_park_parkinglots_detail(evhtp_request_t *req, void *data);
-void park_htp_put_park_parkinglots_detail(evhtp_request_t *req, void *data);
-void park_htp_delete_park_parkinglots_detail(evhtp_request_t *req, void *data);
+// parkinglot
+json_t* park_get_parkinglots_all(void);
+json_t* park_get_parkinglot_info(const char* name);
+bool park_create_parkinglot_info(const json_t* j_tmp);
 
-void park_htp_get_park_parkedcalls(evhtp_request_t *req, void *data);
-void park_htp_get_park_parkedcalls_detail(evhtp_request_t *req, void *data);
+// parkedcall
+json_t* park_get_parkedcalls_all();
+json_t* park_get_parkedcall_info(const char* key);
+bool park_create_parkedcall_info(const json_t* j_data);
+bool park_update_parkedcall_info(const json_t* j_data);
+bool park_delete_parkedcall_info(const char* key);
 
-void park_htp_get_park_config(evhtp_request_t *req, void *data);
-void park_htp_put_park_config(evhtp_request_t *req, void *data);
+// cfg
+json_t* park_cfg_get_parkinglots_all(void);
+json_t* park_cfg_get_parkinglot_info(const char* name);
+bool park_cfg_create_parkinglot_info(const json_t* j_data);
+bool park_cfg_update_parkinglot_info(const json_t* j_data);
+bool park_cfg_delete_parkinglot_info(const char* parkinglot);
 
-void park_htp_get_park_configs(evhtp_request_t *req, void *data);
 
-void park_htp_get_park_configs_detail(evhtp_request_t *req, void *data);
-void park_htp_delete_park_configs_detail(evhtp_request_t *req, void *data);
-
-void park_htp_get_park_settings(evhtp_request_t *req, void *data);
-void park_htp_post_park_settings(evhtp_request_t *req, void *data);
-
-void park_htp_get_park_settings_detail(evhtp_request_t *req, void *data);
-void park_htp_put_park_settings_detail(evhtp_request_t *req, void *data);
-void park_htp_delete_park_settings_detail(evhtp_request_t *req, void *data);
+// configuration
+json_t* park_get_configurations_all(void);
+json_t* park_get_configuration_info(const char* name);
+bool park_update_configuration_info(const json_t* j_data);
+bool park_delete_configuration_info(const char* name);
 
 
 #endif /* SRC_PARK_HANDLER_H_ */

@@ -45,6 +45,7 @@ void me_htp_post_me_chats_detail_messages(evhtp_request_t *req, void *data);
 void me_htp_get_me_chats_detail_messages(evhtp_request_t *req, void *data);
 
 void me_htp_post_me_login(evhtp_request_t *req, void *data);
+void me_htp_delete_me_login(evhtp_request_t *req, void *data);
 
 void me_htp_get_me_search(evhtp_request_t *req, void *data);
 

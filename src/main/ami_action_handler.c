@@ -15,6 +15,7 @@
 #include "resource_handler.h"
 #include "action_handler.h"
 #include "call_handler.h"
+#include "core_handler.h"
 
 #include "ami_action_handler.h"
 
@@ -104,7 +105,7 @@ bool ami_action_hangup_by_uniqueid(const char* unique_id)
   }
   slog(LOG_DEBUG, "Fired ami_action_hangup_by_uniqueid. unique_id[%s]", unique_id);
 
-  j_tmp = call_get_channel_info(unique_id);
+  j_tmp = core_get_channel_info(unique_id);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get channel info.");
     return false;

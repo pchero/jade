@@ -21,7 +21,7 @@
 
 extern app* g_app;
 
-#define DEF_JADE_LIB_DIR          "/var/lib/jade"
+#define DEF_JADE_LIB_DIR          "/opt/var/lib/jade"
 #define DEF_AST_CONF_BACKUP_DIR   "confs"
 
 #define MAX_CONF_BUF    1048576   // 10 Mb(1024 * 1024)
@@ -217,9 +217,9 @@ static json_t* get_ast_backup_filenames(const char* filename)
 {
   json_t* j_res;
   struct dirent **namelist;
+  int ret;
   int i;
   int cnt;
-  char* tmp;
   char* dir;
 
   if(filename == NULL) {
@@ -244,8 +244,8 @@ static json_t* get_ast_backup_filenames(const char* filename)
 
   // get file info
   for(i = 0; i < cnt; i++) {
-    tmp = strstr(namelist[i]->d_name, filename);
-    if(tmp != NULL) {
+    ret = strncmp(namelist[i]->d_name, filename, strlen(filename));
+    if(ret == 0) {
       json_array_append_new(j_res, json_string(namelist[i]->d_name));
     }
     free(namelist[i]);
@@ -589,11 +589,12 @@ json_t* conf_get_ast_current_config_info_array(const char* filename)
  * @param filename
  * @return
  */
-char* conf_get_ast_current_config_info_text(const char* filename)
+json_t* conf_get_ast_current_config_info_text(const char* filename)
 {
+  json_t* j_res;
   const char* dir;
   char* target;
-  char* res;
+  char* tmp;
 
   if(filename == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -604,14 +605,20 @@ char* conf_get_ast_current_config_info_text(const char* filename)
   dir = json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "directory_conf"));
   asprintf(&target, "%s/%s", dir, filename);
 
-  res = get_ast_config_info_text(target);
+  tmp = get_ast_config_info_text(target);
   sfree(target);
-  if(res == NULL) {
+  if(tmp == NULL) {
     slog(LOG_ERR, "Could not get config file info.");
     return NULL;
   }
 
-  return res;
+  j_res = json_pack("{s:s, s:s}",
+      "name",   "current",
+      "data",   tmp
+      );
+  sfree(tmp);
+
+  return j_res;
 }
 
 
@@ -791,11 +798,11 @@ json_t* conf_get_ast_backup_config_info(const char* filename)
  * @param filename
  * @return
  */
-char* conf_get_ast_backup_config_info_text(const char* filename)
+json_t* conf_get_ast_backup_config_info_text(const char* filename)
 {
+  json_t* j_res;
   char* tmp;
   char* full_filename;
-  char* res;
 
   if(filename == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -808,14 +815,20 @@ char* conf_get_ast_backup_config_info_text(const char* filename)
   asprintf(&full_filename, "%s/%s", tmp, filename);
   sfree(tmp);
 
-  res = get_ast_config_info_text(full_filename);
+  tmp = get_ast_config_info_text(full_filename);
   sfree(full_filename);
-  if(res == NULL) {
+  if(tmp == NULL) {
     slog(LOG_ERR, "Could not get config file info.");
     return NULL;
   }
 
-  return res;
+  j_res = json_pack("{s:s, s:s}",
+      "name",   filename,
+      "data",   tmp
+      );
+  sfree(tmp);
+
+  return j_res;
 }
 
 /**
@@ -823,9 +836,9 @@ char* conf_get_ast_backup_config_info_text(const char* filename)
  * @param filename
  * @return
  */
-char* conf_get_ast_backup_config_info_text_valid(const char* filename, const char* valid)
+json_t* conf_get_ast_backup_config_info_text_valid(const char* filename, const char* valid)
 {
-  char* res;
+  json_t* j_res;
   const char* tmp_const;
 
   if(filename == NULL) {
@@ -841,13 +854,13 @@ char* conf_get_ast_backup_config_info_text_valid(const char* filename, const cha
     return NULL;
   }
 
-  res = conf_get_ast_backup_config_info_text(filename);
-  if(res == NULL) {
+  j_res = conf_get_ast_backup_config_info_text(filename);
+  if(j_res == NULL) {
     slog(LOG_ERR, "Could not get backup config info. filename[%s]", filename);
     return NULL;
   }
 
-  return res;
+  return j_res;
 }
 
 /**
@@ -856,14 +869,13 @@ char* conf_get_ast_backup_config_info_text_valid(const char* filename, const cha
  * @param filename
  * @return
  */
-json_t* conf_get_ast_backup_configs_info_all(const char* filename)
+json_t* conf_get_ast_backup_configs_text_all(const char* filename)
 {
   json_t* j_res;
   json_t* j_list;
   json_t* j_tmp;
   json_t* j_conf;
   const char* backup_filename;
-  char* tmp;
   int idx;
 
   if(filename == NULL) {
@@ -883,20 +895,10 @@ json_t* conf_get_ast_backup_configs_info_all(const char* filename)
     // get filename
     backup_filename = json_string_value(j_tmp);
 
-    tmp = conf_get_ast_backup_config_info_text(backup_filename);
-    if(tmp == NULL) {
-      slog(LOG_ERR, "Could not get config file info.");
-      continue;
-    }
-
-    j_conf = json_pack("{s:s, s:s}",
-    		"filename",		backup_filename,
-    		"config", 		tmp
-				);
-    sfree(tmp);
+    j_conf = conf_get_ast_backup_config_info_text(backup_filename);
     if(j_conf == NULL) {
-    	slog(LOG_ERR, "Could not create config info. filename[%s]", backup_filename);
-    	continue;
+      slog(LOG_ERR, "Could not create config info. filename[%s]", backup_filename);
+      continue;
     }
 
     // add to array
@@ -1513,7 +1515,7 @@ json_t* conf_get_ast_sections_all(const char* filename)
 	json_object_foreach(j_conf, key, j_val) {
 		j_setting = json_pack("{s:s, s:O}",
 				"name",			key,
-				"setting",	j_val
+				"data",	    j_val
 				);
 		if(j_setting == NULL) {
 			slog(LOG_ERR, "Could not create setting info. key[%s]", key);
