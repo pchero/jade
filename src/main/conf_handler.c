@@ -1643,7 +1643,7 @@ bool conf_update_ast_section(const char* filename, const json_t* j_data)
     return false;
   }
 
-  ret = update_ast_current_config_section_data(filename, name, j_data);
+  ret = update_ast_current_config_section_data(filename, name, j_tmp);
   if(ret == false) {
     return false;
   }
