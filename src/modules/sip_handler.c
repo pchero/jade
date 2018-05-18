@@ -690,7 +690,7 @@ void sip_htp_post_sip_settings(evhtp_request_t *req, void *data)
     return;
   }
 
-  ret = conf_create_ast_section(DEF_SIP_CONFNAME, name, j_setting);
+  ret = conf_create_ast_section_data(DEF_SIP_CONFNAME, name, j_setting);
   json_decref(j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not create sip setting.");
@@ -735,7 +735,7 @@ void sip_htp_get_sip_settings_detail(evhtp_request_t *req, void *data)
   }
 
   // get setting
-  j_tmp = conf_get_ast_section(DEF_SIP_CONFNAME, detail);
+  j_tmp = conf_get_ast_section_data(DEF_SIP_CONFNAME, detail);
   sfree(detail);
   if(j_tmp == NULL) {
     slog(LOG_ERR, "Could not get sip setting.");
@@ -791,7 +791,7 @@ void sip_htp_put_sip_settings_detail(evhtp_request_t *req, void *data)
   }
 
   // update setting
-  ret = conf_update_ast_section(DEF_SIP_CONFNAME, detail, j_data);
+  ret = conf_update_ast_section_data(DEF_SIP_CONFNAME, detail, j_data);
   sfree(detail);
   json_decref(j_data);
   if(ret == false) {

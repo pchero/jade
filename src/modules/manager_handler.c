@@ -1167,7 +1167,7 @@ static bool update_user_pjsip_account(const char* uuid_user, const json_t* j_dat
 
   // to change user's context,
   // we need to change endpoint configurations
-  j_endpoint = pjsip_cfg_get_endpoint_info(account);
+  j_endpoint = pjsip_cfg_get_endpoint_info_data(account);
   if(j_endpoint == NULL) {
     slog(LOG_NOTICE, "Could not get endpoint info.");
     sfree(account);
@@ -1912,7 +1912,7 @@ static json_t* get_trunk_info(const char* name)
   json_object_set_new(j_res, "name", json_string(name));
 
   // get cfg registration
-  j_tmp = pjsip_cfg_get_registration_info(name);
+  j_tmp = pjsip_cfg_get_registration_info_data(name);
   if(j_tmp  == NULL) {
     slog(LOG_NOTICE, "No registration info. name[%s]", name);
     json_decref(j_res);
@@ -1923,23 +1923,23 @@ static json_t* get_trunk_info(const char* name)
   json_decref(j_tmp);
 
   // get cfg auth
-  j_tmp = pjsip_cfg_get_auth_info(name);
+  j_tmp = pjsip_cfg_get_auth_info_data(name);
   json_object_set(j_res, "username", json_object_get(j_tmp, "username"));
   json_object_set(j_res, "password", json_object_get(j_tmp, "password"));
   json_decref(j_tmp);
 
   // get cfg aor
-  j_tmp = pjsip_cfg_get_aor_info(name);
+  j_tmp = pjsip_cfg_get_aor_info_data(name);
   json_object_set(j_res, "contact", json_object_get(j_tmp, "contact"));
   json_decref(j_tmp);
 
   // get cfg endpoint
-  j_tmp = pjsip_cfg_get_endpoint_info(name);
+  j_tmp = pjsip_cfg_get_endpoint_info_data(name);
   json_object_set(j_res, "context", json_object_get(j_tmp, "context"));
   json_decref(j_tmp);
 
   // get cfg identify
-  j_tmp = pjsip_cfg_get_identify_info(name);
+  j_tmp = pjsip_cfg_get_identify_info_data(name);
   json_object_set_new(j_res, "hostname", json_object_get(j_tmp, "match")? json_incref(json_object_get(j_tmp, "match")) : json_string(""));
   json_decref(j_tmp);
 
@@ -2132,7 +2132,7 @@ static bool update_trunk_info(const char* name, const json_t* j_data)
   }
 
   // update registration
-  j_tmp = pjsip_cfg_get_registration_info(name);
+  j_tmp = pjsip_cfg_get_registration_info_data(name);
   if(j_tmp == NULL) {
     slog(LOG_NOTICE, "Could not get cfg registration info. name[%s]", name);
     return false;
@@ -2151,7 +2151,7 @@ static bool update_trunk_info(const char* name, const json_t* j_data)
   }
 
   // update auth
-  j_tmp = pjsip_cfg_get_auth_info(name);
+  j_tmp = pjsip_cfg_get_auth_info_data(name);
   if(j_tmp == NULL) {
     slog(LOG_NOTICE, "Could not get cfg auth info. name[%s]", name);
     return false;
@@ -2170,7 +2170,7 @@ static bool update_trunk_info(const char* name, const json_t* j_data)
   }
 
   // update aor
-  j_tmp = pjsip_cfg_get_aor_info(name);
+  j_tmp = pjsip_cfg_get_aor_info_data(name);
   if(j_tmp == NULL) {
     slog(LOG_NOTICE, "Could not get cfg aor info. name[%s]", name);
     return false;
@@ -2186,7 +2186,7 @@ static bool update_trunk_info(const char* name, const json_t* j_data)
   }
 
   // update endpoint
-  j_tmp = pjsip_cfg_get_endpoint_info(name);
+  j_tmp = pjsip_cfg_get_endpoint_info_data(name);
   if(j_tmp == NULL) {
     slog(LOG_NOTICE, "Could not get cfg endpoint info. name[%s]", name);
     return false;
@@ -2202,7 +2202,7 @@ static bool update_trunk_info(const char* name, const json_t* j_data)
   }
 
   // update identify
-  j_tmp = pjsip_cfg_get_identify_info(name);
+  j_tmp = pjsip_cfg_get_identify_info_data(name);
   if(j_tmp == NULL) {
     slog(LOG_NOTICE, "Could not get cfg identify info. name[%s]", name);
     return false;
@@ -2236,43 +2236,43 @@ static bool is_exist_trunk(const char* name)
 {
   json_t* j_tmp;
 
-  j_tmp = pjsip_cfg_get_aor_info(name);
+  j_tmp = pjsip_cfg_get_aor_info_data(name);
   if(j_tmp != NULL) {
     json_decref(j_tmp);
     return true;
   }
 
-  j_tmp = pjsip_cfg_get_auth_info(name);
+  j_tmp = pjsip_cfg_get_auth_info_data(name);
   if(j_tmp != NULL) {
     json_decref(j_tmp);
     return true;
   }
 
-  j_tmp = pjsip_cfg_get_contact_info(name);
+  j_tmp = pjsip_cfg_get_contact_info_data(name);
   if(j_tmp != NULL) {
     json_decref(j_tmp);
     return true;
   }
 
-  j_tmp = pjsip_cfg_get_endpoint_info(name);
+  j_tmp = pjsip_cfg_get_endpoint_info_data(name);
   if(j_tmp != NULL) {
     json_decref(j_tmp);
     return true;
   }
 
-  j_tmp = pjsip_cfg_get_identify_info(name);
+  j_tmp = pjsip_cfg_get_identify_info_data(name);
   if(j_tmp != NULL) {
     json_decref(j_tmp);
     return true;
   }
 
-  j_tmp = pjsip_cfg_get_registration_info(name);
+  j_tmp = pjsip_cfg_get_registration_info_data(name);
   if(j_tmp != NULL) {
     json_decref(j_tmp);
     return true;
   }
 
-  j_tmp = pjsip_cfg_get_transport_info(name);
+  j_tmp = pjsip_cfg_get_transport_info_data(name);
   if(j_tmp != NULL) {
     json_decref(j_tmp);
     return true;

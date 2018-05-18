@@ -81,6 +81,18 @@ void admin_htp_get_admin_queue_members_detail(evhtp_request_t *req, void *data);
 void admin_htp_put_admin_queue_members_detail(evhtp_request_t *req, void *data);
 void admin_htp_delete_admin_queue_member_detail(evhtp_request_t *req, void *data);
 
+void admin_htp_get_admin_queue_cfg_queues(evhtp_request_t *req, void *data);
+void admin_htp_post_admin_queue_cfg_queues(evhtp_request_t *req, void *data);
+
+void admin_htp_get_admin_queue_cfg_queues_detail(evhtp_request_t *req, void *data);
+void admin_htp_put_admin_queue_cfg_queues_detail(evhtp_request_t *req, void *data);
+void admin_htp_delete_admin_queue_cfg_queues_detail(evhtp_request_t *req, void *data);
+
+void admin_htp_get_admin_queue_configurations(evhtp_request_t *req, void *data);
+
+void admin_htp_get_admin_queue_configurations_detail(evhtp_request_t *req, void *data);
+void admin_htp_put_admin_queue_configurations_detail(evhtp_request_t *req, void *data);
+void admin_htp_delete_admin_queue_configurations_detail(evhtp_request_t *req, void *data);
 
 
 

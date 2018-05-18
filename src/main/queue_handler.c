@@ -16,6 +16,7 @@
 #include "ami_handler.h"
 #include "ami_action_handler.h"
 #include "publication_handler.h"
+#include "conf_handler.h"
 
 #include "queue_handler.h"
 #include "resource_handler.h"
@@ -24,15 +25,14 @@
 
 #define DEF_JADE_QUEUE_CONFNAME_QUEUE   "jade.queues.conf"
 
-
-
-
 #define DEF_SETTING_SECTION "global"
 
 #define DEF_DB_TABLE_QUEUE_PARAM    "queue_param"
 #define DEF_DB_TABLE_QUEUE_MEMBER   "queue_member"
 #define DEF_DB_TABLE_QUEUE_ENTRY    "queue_entry"
 
+static struct st_callback* g_callback_db_entry;
+static struct st_callback* g_callback_db_member;
 
 
 static bool init_databases(void);
@@ -41,6 +41,10 @@ static bool init_database_member(void);
 static bool init_database_entry(void);
 
 static bool init_configs(void);
+
+static bool init_callbacks(void);
+static bool term_callbacks(void);
+
 
 static bool db_create_param_info(const json_t* j_data);
 
@@ -51,8 +55,12 @@ static bool db_create_member_info(const json_t* j_data);
 static bool db_update_member_info(const json_t* j_data);
 static bool db_delete_member_info(const char* key);
 
-static bool cfg_create_queue_info(const char* name, const json_t* j_data);
-static bool cfg_update_queue_info(const char* name, const json_t* j_data);
+static void execute_callbacks_db_entry(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
+static void execute_callbacks_db_member(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
+
+
+static bool cfg_create_queue_info(const json_t* j_data);
+static bool cfg_update_queue_info(const json_t* j_data);
 static bool cfg_delete_queue_info(const char* name);
 
 static bool clear_queue_entry(void);
@@ -64,8 +72,6 @@ static bool is_setting_section(const char* section);
 static bool send_request_member_penalty_update(const json_t* j_data);
 static bool send_request_member_paused_update(const json_t* j_data);
 static bool send_request_member_add_to_queue(const json_t* j_data);
-
-static bool parse_queue_id(const char* str, char** interface, char** queue);
 
 
 bool queue_init_handler(void)
@@ -86,6 +92,13 @@ bool queue_init_handler(void)
   ret = init_configs();
   if(ret == false) {
     slog(LOG_ERR, "Could not initiate configs.");
+    return false;
+  }
+
+  // callbacks
+  ret = init_callbacks();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not initiate callback.");
     return false;
   }
 
@@ -120,6 +133,12 @@ bool queue_term_handler(void)
   }
 
   ret = clear_queue_member();
+  if(ret == false) {
+    slog(LOG_ERR, "Could not clear queue_member info.");
+    return false;
+  }
+
+  ret = term_callbacks();
   if(ret == false) {
     slog(LOG_ERR, "Could not clear queue_member info.");
     return false;
@@ -322,9 +341,27 @@ static bool init_configs(void)
   return true;
 }
 
+static bool init_callbacks(void)
+{
+  g_callback_db_entry = utils_create_callback();
+  g_callback_db_member = utils_create_callback();
+
+  return true;
+}
+
+static bool term_callbacks(void)
+{
+  utils_terminate_callback(g_callback_db_entry);
+  utils_terminate_callback(g_callback_db_member);
+
+  return true;
+}
+
 static bool db_create_entry_info(const json_t* j_data)
 {
   int ret;
+  const char* key;
+  json_t* j_tmp;
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -332,11 +369,29 @@ static bool db_create_entry_info(const json_t* j_data)
   }
 
   // insert item
-  ret = resource_insert_mem_item("queue_entry", j_data);
+  ret = resource_insert_mem_item(DEF_DB_TABLE_QUEUE_ENTRY, j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert queue_entry.");
     return false;
   }
+
+  // get key
+  key = json_string_value(json_object_get(j_data, "unique_id"));
+  if(key == NULL) {
+    slog(LOG_NOTICE, "Could not get key.");
+    return false;
+  }
+
+  // get created info
+  j_tmp = queue_get_entry_info(key);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get created info.");
+    return false;
+  }
+
+  // execute callback
+  execute_callbacks_db_entry(EN_RESOURCE_CREATE, j_tmp);
+  json_decref(j_tmp);
 
   return true;
 }
@@ -344,18 +399,30 @@ static bool db_create_entry_info(const json_t* j_data)
 static bool db_delete_entry_info(const char* key)
 {
   int ret;
+  json_t* j_tmp;
 
   if(key == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
 
-  // delete
-  ret = resource_delete_mem_items_string("queue_entry", "unique_id", key);
-  if(ret == false) {
-    slog(LOG_WARNING, "Could not delete channel info. unique_id[%s]", key);
+  // get delete info
+  j_tmp = queue_get_entry_info(key);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get delete info.");
     return false;
   }
+
+  // delete
+  ret = resource_delete_mem_items_string(DEF_DB_TABLE_QUEUE_ENTRY, "unique_id", key);
+  if(ret == false) {
+    slog(LOG_WARNING, "Could not delete channel info. unique_id[%s]", key);
+    json_decref(j_tmp);
+    return false;
+  }
+
+  execute_callbacks_db_entry(EN_RESOURCE_DELETE, j_tmp);
+  json_decref(j_tmp);
 
   return true;
 }
@@ -363,6 +430,8 @@ static bool db_delete_entry_info(const char* key)
 static bool db_create_member_info(const json_t* j_data)
 {
   int ret;
+  json_t* j_tmp;
+  const char* key;
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -370,11 +439,29 @@ static bool db_create_member_info(const json_t* j_data)
   }
 
   // create member info
-  ret = resource_insert_mem_item("queue_member", j_data);
+  ret = resource_insert_mem_item(DEF_DB_TABLE_QUEUE_MEMBER, j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert queue_member.");
     return false;
   }
+
+  // get key
+  key = json_string_value(json_object_get(j_data, "id"));
+  if(key == false) {
+    slog(LOG_NOTICE, "Could not get key info.");
+    return false;
+  }
+
+  // get info
+  j_tmp = queue_get_member_info(key);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get created info.");
+    return false;
+  }
+
+  // execute callback
+  execute_callbacks_db_member(EN_RESOURCE_CREATE, j_tmp);
+  json_decref(j_tmp);
 
   return true;
 }
@@ -382,6 +469,8 @@ static bool db_create_member_info(const json_t* j_data)
 static bool db_update_member_info(const json_t* j_data)
 {
   int ret;
+  const char* key;
+  json_t* j_tmp;
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -389,11 +478,29 @@ static bool db_update_member_info(const json_t* j_data)
   }
 
   // update
-  ret = resource_update_mem_item("queue_member", "id", j_data);
+  ret = resource_update_mem_item(DEF_DB_TABLE_QUEUE_MEMBER, "id", j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update queue_member info.");
     return false;
   }
+
+  // get key
+  key = json_string_value(json_object_get(j_data, "id"));
+  if(key == false) {
+    slog(LOG_NOTICE, "Could not get key info.");
+    return false;
+  }
+
+  // get info
+  j_tmp = queue_get_member_info(key);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get created info.");
+    return false;
+  }
+
+  // execute callback
+  execute_callbacks_db_member(EN_RESOURCE_UPDATE, j_tmp);
+  json_decref(j_tmp);
 
   return true;
 }
@@ -401,33 +508,46 @@ static bool db_update_member_info(const json_t* j_data)
 static bool db_delete_member_info(const char* key)
 {
   int ret;
+  json_t* j_tmp;
 
   if(key == false) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
 
-  // delete
-  ret = resource_delete_mem_items_string("queue_member", "id", key);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not delete queue member info.");
+  // get delete info
+  j_tmp = queue_get_member_info(key);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get delete info.");
     return false;
   }
+
+  // delete
+  ret = resource_delete_mem_items_string(DEF_DB_TABLE_QUEUE_MEMBER, "id", key);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not delete queue member info.");
+    json_decref(j_tmp);
+    return false;
+  }
+
+  // execute callback
+  execute_callbacks_db_member(EN_RESOURCE_DELETE, j_tmp);
+  json_decref(j_tmp);
 
   return true;
 }
 
-static bool cfg_create_queue_info(const char* name, const json_t* j_data)
+static bool cfg_create_queue_info(const json_t* j_data)
 {
   int ret;
 
-  if((name == NULL) || (j_data == NULL)) {
+  if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
-  slog(LOG_DEBUG, "Fired cfg_create_queue_info. name[%s]", name);
+  slog(LOG_DEBUG, "Fired cfg_create_queue_info.");
 
-  ret = conf_create_ast_section(DEF_JADE_QUEUE_CONFNAME_QUEUE, name, j_data);
+  ret = conf_create_ast_section(DEF_JADE_QUEUE_CONFNAME_QUEUE, j_data);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not create config for queue.");
     return false;
@@ -436,19 +556,19 @@ static bool cfg_create_queue_info(const char* name, const json_t* j_data)
   return true;
 }
 
-static bool cfg_update_queue_info(const char* name, const json_t* j_data)
+static bool cfg_update_queue_info(const json_t* j_data)
 {
   int ret;
 
-  if((name == NULL) || (j_data == NULL)) {
+  if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
-  slog(LOG_DEBUG, "Fired cfg_update_queue_info. name[%s]", name);
+  slog(LOG_DEBUG, "Fired cfg_update_queue_info.");
 
-  ret = conf_update_ast_section(DEF_JADE_QUEUE_CONFNAME_QUEUE, name, j_data);
+  ret = conf_update_ast_section(DEF_JADE_QUEUE_CONFNAME_QUEUE, j_data);
   if(ret == false) {
-    slog(LOG_NOTICE, "Could not update config for queue. name[%s]", name);
+    slog(LOG_NOTICE, "Could not update config for queue.");
     return false;
   }
 
@@ -483,7 +603,6 @@ static bool cfg_delete_queue_info(const char* name)
 bool queue_cfg_create_queue_info(const json_t* j_data)
 {
   const char* name;
-  json_t* j_tmp;
   int ret;
 
   if(j_data == NULL) {
@@ -493,8 +612,7 @@ bool queue_cfg_create_queue_info(const json_t* j_data)
 
   // get info
   name = json_string_value(json_object_get(j_data, "name"));
-  j_tmp = json_object_get(j_data, "data");
-  if((name == NULL) || (j_tmp == NULL)) {
+  if(name == NULL) {
     slog(LOG_NOTICE, "Could not get name or data.");
     return false;
   }
@@ -507,7 +625,7 @@ bool queue_cfg_create_queue_info(const json_t* j_data)
   }
 
   // create
-  ret = cfg_create_queue_info(name, j_tmp);
+  ret = cfg_create_queue_info(j_data);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not get create cfg queue info.");
     return false;
@@ -525,7 +643,6 @@ bool queue_cfg_update_queue_info(const json_t* j_data)
 {
   int ret;
   const char* name;
-  json_t* j_tmp;
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -535,9 +652,8 @@ bool queue_cfg_update_queue_info(const json_t* j_data)
 
   // get info
   name = json_string_value(json_object_get(j_data, "name"));
-  j_tmp = json_object_get(j_data, "data");
-  if((name == NULL) || (j_tmp == NULL)) {
-    slog(LOG_NOTICE, "Could not get name or data info.");
+  if(name == NULL) {
+    slog(LOG_NOTICE, "Could not get name info.");
     return false;
   }
 
@@ -549,7 +665,7 @@ bool queue_cfg_update_queue_info(const json_t* j_data)
   }
 
   // update queue info
-  ret = cfg_update_queue_info(name, j_tmp);
+  ret = cfg_update_queue_info(j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update queue info.");
     return false;
@@ -621,7 +737,7 @@ json_t* queue_get_queue_params_all(void)
 {
   json_t* j_res;
 
-  j_res = resource_get_mem_items("queue_param", "*");
+  j_res = resource_get_mem_items(DEF_DB_TABLE_QUEUE_PARAM, "*");
   return j_res;
 }
 
@@ -639,7 +755,7 @@ json_t* queue_get_queue_param_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired get_queue_param_info.");
 
-  j_res = resource_get_mem_detail_item_key_string("queue_param", "name", key);
+  j_res = resource_get_mem_detail_item_key_string(DEF_DB_TABLE_QUEUE_PARAM, "name", key);
 
   return j_res;
 }
@@ -648,7 +764,7 @@ static bool clear_queue_entry(void)
 {
   int ret;
 
-  ret = resource_clear_mem_table("queue_entry");
+  ret = resource_clear_mem_table(DEF_DB_TABLE_QUEUE_ENTRY);
   if(ret == false) {
     slog(LOG_ERR, "Could not clear clear_queue_entry");
     return false;
@@ -667,14 +783,13 @@ static bool db_create_param_info(const json_t* j_data)
   }
 
   // insert queue info
-  ret = resource_insert_mem_item("queue_param", j_data);
+  ret = resource_insert_mem_item(DEF_DB_TABLE_QUEUE_PARAM, j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert queue_param.");
     return false;
   }
 
   return true;
-
 }
 
 /**
@@ -684,8 +799,6 @@ static bool db_create_param_info(const json_t* j_data)
 bool queue_create_param_info(const json_t* j_data)
 {
   int ret;
-  const char* tmp_const;
-  json_t* j_tmp;
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -699,22 +812,6 @@ bool queue_create_param_info(const json_t* j_data)
     return false;
   }
 
-  // get queue info
-  tmp_const = json_string_value(json_object_get(j_data, "name"));
-  j_tmp = queue_get_queue_param_info(tmp_const);
-  if(j_tmp == NULL) {
-    slog(LOG_ERR, "Could not get queue info. name[%s]", tmp_const);
-    return false;
-  }
-
-  // publish event
-  ret = publication_publish_event_queue_queue(DEF_PUB_TYPE_CREATE, j_tmp);
-  json_decref(j_tmp);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not publish event.");
-    return false;
-  }
-
   return true;
 }
 
@@ -725,8 +822,6 @@ bool queue_create_param_info(const json_t* j_data)
 bool queue_create_member_info(const json_t* j_data)
 {
   int ret;
-  const char* id;
-  json_t* j_tmp;
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -738,18 +833,6 @@ bool queue_create_member_info(const json_t* j_data)
   ret = db_create_member_info(j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert queue_member.");
-    return false;
-  }
-
-  // get data
-  id = json_string_value(json_object_get(j_data, "id"));
-  j_tmp = queue_get_member_info(id);
-
-  // publish event
-  ret = publication_publish_event_queue_member(DEF_PUB_TYPE_CREATE, j_tmp);
-  json_decref(j_tmp);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not publish update event.");
     return false;
   }
 
@@ -771,7 +854,7 @@ json_t* queue_get_entries_all_by_queuename(const char* name)
   slog(LOG_DEBUG, "Fired get_queue_entries_all_by_queuename. name[%s]", name);
 
   // get items
-  j_res = resource_get_mem_detail_items_key_string("queue_entry", "queue_name", name);
+  j_res = resource_get_mem_detail_items_key_string(DEF_DB_TABLE_QUEUE_ENTRY, "queue_name", name);
 
   return j_res;
 }
@@ -791,7 +874,7 @@ json_t* queue_get_entry_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired get_queue_entry_info.");
 
-  j_res = resource_get_mem_detail_item_key_string("queue_entry", "unique_id", key);
+  j_res = resource_get_mem_detail_item_key_string(DEF_DB_TABLE_QUEUE_ENTRY, "unique_id", key);
 
   return j_res;
 }
@@ -804,7 +887,7 @@ json_t* queue_get_members_all(void)
 {
   json_t* j_res;
 
-  j_res = resource_get_mem_items("queue_member", "*");
+  j_res = resource_get_mem_items(DEF_DB_TABLE_QUEUE_MEMBER, "*");
   return j_res;
 }
 
@@ -823,7 +906,7 @@ json_t* queue_get_members_all_by_queuename(const char* name)
   slog(LOG_DEBUG, "Fired get_queue_members_all_by_queuename. name[%s]", name);
 
   // get items
-  j_res = resource_get_mem_detail_items_key_string("queue_member", "queue_name", name);
+  j_res = resource_get_mem_detail_items_key_string(DEF_DB_TABLE_QUEUE_MEMBER, "queue_name", name);
 
   return j_res;
 }
@@ -843,7 +926,7 @@ json_t* queue_get_member_info(const char* id)
   slog(LOG_DEBUG, "Fired get_queue_member_info. id[%s]", id);
 
   // get queue member
-  j_tmp = resource_get_mem_detail_item_key_string("queue_member", "id", id);
+  j_tmp = resource_get_mem_detail_item_key_string(DEF_DB_TABLE_QUEUE_MEMBER, "id", id);
   if(j_tmp == NULL) {
     return NULL;
   }
@@ -868,7 +951,7 @@ static bool send_request_member_penalty_update(const json_t* j_data)
   interface = json_string_value(json_object_get(j_data, "state_interface"));
   penalty_number = json_integer_value(json_object_get(j_data, "penalty"));
 
-  snprintf(penalty_string, sizeof(penalty_string), "%d", penalty_number);
+  snprintf(penalty_string, sizeof(penalty_string) - 1, "%d", penalty_number);
 
   // send penalty request
   ret = ami_action_queuepenalty(queue_name, interface, penalty_string);
@@ -896,7 +979,7 @@ static bool send_request_member_paused_update(const json_t* j_data)
 
   queue_name = json_string_value(json_object_get(j_data, "queue_name"));
   interface = json_string_value(json_object_get(j_data, "state_interface"));
-  reason = json_string_value(json_object_get(j_data, "reason"));
+  reason = json_string_value(json_object_get(j_data, "paused_reason"));
   paused_number = json_integer_value(json_object_get(j_data, "paused"));
   snprintf(paused_string, sizeof(paused_string), "%d", paused_number);
 
@@ -936,7 +1019,7 @@ static bool send_request_member_add_to_queue(const json_t* j_data)
   snprintf(penalty, sizeof(penalty) - 1, "%d", penalty_number);
 
   paused_number = json_integer_value(json_object_get(j_data, "paused"));
-  snprintf(paused, sizeof(paused), "%d", paused_number);
+  snprintf(paused, sizeof(paused) - 1, "%d", paused_number);
 
   // send request
   ret = ami_action_queueadd(queue, interface, penalty, paused, member_name, state_interface);
@@ -989,22 +1072,28 @@ bool queue_action_update_member_paused_penalty(const json_t* j_data)
 bool queue_action_delete_member_from_queue(const char* id)
 {
   int ret;
-  char* interface;
-  char* queue;
+  const char* interface;
+  const char* queue;
+  json_t* j_tmp;
 
   if(id == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
+  slog(LOG_DEBUG, "Fired queue_action_delete_member_from_queue. id[%s]", id);
 
-  ret = parse_queue_id(id, &interface, &queue);
-  if(ret == false) {
+  j_tmp = queue_get_member_info(id);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get member info.");
     return false;
   }
 
+  queue = json_string_value(json_object_get(j_tmp, "queue_name"));
+  interface = json_string_value(json_object_get(j_tmp, "state_interface"));
+
+  // send request
   ret = ami_action_queueremove(queue, interface);
-  sfree(interface);
-  sfree(queue);
+  json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not remove member from the queue.");
     return false;
@@ -1037,7 +1126,6 @@ bool queue_action_add_member_to_queue(const json_t* j_data)
 bool queue_delete_entry_info(const char* key)
 {
   int ret;
-  json_t* j_data;
 
   if(key == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -1045,28 +1133,13 @@ bool queue_delete_entry_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired delete_queue_entry_info. key[%s]", key);
 
-  // get data
-  j_data = resource_get_mem_detail_item_key_string("queue_entry", "unique_id", key);
-  if(j_data == NULL) {
-    slog(LOG_NOTICE, "The queue_entry info is already deleted. unique_id[%s]", key);
-    return true;
-  }
-
   // delete
   ret = db_delete_entry_info(key);
   if(ret == false) {
     slog(LOG_WARNING, "Could not delete channel info. unique_id[%s]", key);
-    json_decref(j_data);
     return false;
   }
 
-  // publish event
-  ret = publication_publish_event_queue_entry(DEF_PUB_TYPE_DELETE, j_data);
-  json_decref(j_data);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not publish event.");
-    return false;
-  }
   return true;
 }
 
@@ -1077,8 +1150,6 @@ bool queue_delete_entry_info(const char* key)
 bool queue_create_entry_info(const json_t* j_data)
 {
   int ret;
-  const char* tmp_const;
-  json_t* j_tmp;
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -1089,23 +1160,6 @@ bool queue_create_entry_info(const json_t* j_data)
   ret = db_create_entry_info(j_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not create entry.");
-    return false;
-  }
-
-  // publish
-  // get queue info
-  tmp_const = json_string_value(json_object_get(j_data, "unique_id"));
-  j_tmp = queue_get_entry_info(tmp_const);
-  if(j_tmp == NULL) {
-    slog(LOG_ERR, "Could not get queue entry info. unique_id[%s]", tmp_const);
-    return false;
-  }
-
-  // publish event
-  ret = publication_publish_event_queue_entry(DEF_PUB_TYPE_CREATE, j_tmp);
-  json_decref(j_tmp);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not publish event.");
     return false;
   }
 
@@ -1120,7 +1174,7 @@ json_t* queue_get_entries_all(void)
 {
   json_t* j_res;
 
-  j_res = resource_get_mem_items("queue_entry", "*");
+  j_res = resource_get_mem_items(DEF_DB_TABLE_QUEUE_ENTRY, "*");
   return j_res;
 }
 
@@ -1128,7 +1182,7 @@ static bool clear_queue_member(void)
 {
   int ret;
 
-  ret = resource_clear_mem_table("queue_member");
+  ret = resource_clear_mem_table(DEF_DB_TABLE_QUEUE_MEMBER);
   if(ret == false) {
     slog(LOG_ERR, "Could not clear clear_queue_member");
     return false;
@@ -1140,8 +1194,6 @@ static bool clear_queue_member(void)
 bool queue_update_member_info(const json_t* j_data)
 {
   int ret;
-  const char* tmp_const;
-  json_t* j_tmp;
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -1156,23 +1208,6 @@ bool queue_update_member_info(const json_t* j_data)
     return false;
   }
 
-  // publish
-  // get info
-  tmp_const = json_string_value(json_object_get(j_data, "id"));
-  j_tmp = queue_get_member_info(tmp_const);
-  if(j_tmp == NULL) {
-    slog(LOG_ERR, "Could not get queue_member info. id[%s]", tmp_const);
-    return false;
-  }
-
-  // publish event
-  ret = publication_publish_event_queue_member(DEF_PUB_TYPE_UPDATE, j_tmp);
-  json_decref(j_tmp);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not publish event.");
-    return false;
-  }
-
   return true;
 }
 
@@ -1183,7 +1218,6 @@ bool queue_update_member_info(const json_t* j_data)
 bool queue_delete_member_info(const char* key)
 {
   int ret;
-  json_t* j_tmp;
 
   if(key == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -1191,26 +1225,10 @@ bool queue_delete_member_info(const char* key)
   }
   slog(LOG_DEBUG, "Fired delete_queue_member_info.");
 
-  // get member info
-  j_tmp = resource_get_mem_detail_item_key_string("queue_member", "id", key);
-  if(j_tmp == NULL) {
-    slog(LOG_NOTICE, "The key is already deleted.");
-    return true;
-  }
-
   // delete
   ret = db_delete_member_info(key);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete queue member info.");
-    json_decref(j_tmp);
-    return false;
-  }
-
-  // publish
-  ret = publication_publish_event_queue_member(DEF_PUB_TYPE_DELETE, j_tmp);
-  json_decref(j_tmp);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not publish delete event.");
     return false;
   }
 
@@ -1221,7 +1239,7 @@ static bool clear_queue_param(void)
 {
   int ret;
 
-  ret = resource_clear_mem_table("queue_param");
+  ret = resource_clear_mem_table(DEF_DB_TABLE_QUEUE_PARAM);
   if(ret == false) {
     slog(LOG_ERR, "Could not clear clear_queue_param");
     return false;
@@ -1230,35 +1248,219 @@ static bool clear_queue_param(void)
   return true;
 }
 
-/**
- * Parse queue member id to interface and queue
- * @param str
- * @param mailbox
- * @param context
- * @return
- */
-static bool parse_queue_id(const char* str, char** interface, char** queue)
+json_t* queue_cfg_get_queues_all(void)
 {
-  char* tmp;
-  char* token;
-  char* org;
+  json_t* j_res;
 
-  if(str == NULL) {
+  j_res = conf_get_ast_sections_all(DEF_JADE_QUEUE_CONFNAME_QUEUE);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
+json_t* queue_cfg_get_queue_info(const char* name)
+{
+  json_t* j_res;
+
+  if(name == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  j_res = conf_get_ast_section(DEF_JADE_QUEUE_CONFNAME_QUEUE, name);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
+/**
+ * Register callback for db entry
+ */
+bool queue_register_callback_db_entry(bool (*func)(enum EN_RESOURCE_UPDATE_TYPES, const json_t*))
+{
+  int ret;
+
+  if(func == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
+  slog(LOG_DEBUG, "Fired queue_register_callback_db_entry.");
 
-  tmp = strdup(str);
-  org = tmp;
-
-  token = strsep(&tmp, "@");
-  *interface = strdup(token);
-  *queue = strdup(tmp);
-
-  sfree(org);
+  ret = utils_register_callback(g_callback_db_entry, func);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not register callback for entry.");
+    return false;
+  }
 
   return true;
 }
 
+/**
+ * Execute the registered callbacks for db entry
+ * @param j_data
+ */
+static void execute_callbacks_db_entry(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data)
+{
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired execute_callbacks_db_entry.");
 
+  utils_execute_callbacks(g_callback_db_entry, type, j_data);
 
+  return;
+}
+
+/**
+ * Register callback for db member
+ */
+bool queue_register_callback_db_member(bool (*func)(enum EN_RESOURCE_UPDATE_TYPES, const json_t*))
+{
+  int ret;
+
+  if(func == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired queue_register_callback_db_member.");
+
+  ret = utils_register_callback(g_callback_db_member, func);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not register callback for member.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Execute the registered callbacks for db member
+ * @param j_data
+ */
+static void execute_callbacks_db_member(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data)
+{
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired execute_callbacks_db_member.");
+
+  utils_execute_callbacks(g_callback_db_member, type, j_data);
+
+  return;
+}
+
+json_t* queue_get_configurations_all(void)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+
+  j_res = json_array();
+
+  // get current config
+  j_tmp = conf_get_ast_current_config_info_text(DEF_QUEUE_CONFNAME);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get current config info.");
+    json_decref(j_res);
+    return NULL;
+  }
+  json_array_append_new(j_res, j_tmp);
+
+  // get backup configs
+  j_tmp = conf_get_ast_backup_configs_text_all(DEF_QUEUE_CONFNAME);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get backup configs info.");
+    json_decref(j_res);
+    return NULL;
+  }
+  json_array_extend(j_res, j_tmp);
+  json_decref(j_tmp);
+
+  return j_res;
+}
+
+json_t* queue_get_configuration_info(const char* name)
+{
+  int ret;
+  json_t* j_res;
+
+  if(name == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  ret = strcmp(name, "current");
+  if(ret == 0) {
+    j_res = conf_get_ast_current_config_info_text(DEF_QUEUE_CONFNAME);
+  }
+  else {
+    j_res = conf_get_ast_backup_config_info_text(name);
+  }
+
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
+bool queue_update_configuration_info(const json_t* j_data)
+{
+  int ret;
+  const char* name;
+  const char* data;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  name = json_string_value(json_object_get(j_data, "name"));
+  data = json_string_value(json_object_get(j_data, "data"));
+  if((name == NULL) || (data == NULL)) {
+    slog(LOG_NOTICE, "Could not get name or data info.");
+    return false;
+  }
+
+  ret = strcmp(name, "current");
+  if(ret != 0) {
+    slog(LOG_NOTICE, "The only current configuration can update.");
+    return false;
+  }
+
+  ret = conf_update_ast_current_config_info_text(DEF_QUEUE_CONFNAME, data);
+  if(ret == false) {
+    return false;
+  }
+
+  return true;
+}
+
+bool queue_delete_configuration_info(const char* name)
+{
+  int ret;
+
+  if(name == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  ret = strcmp(name, "current");
+  if(ret == 0) {
+    slog(LOG_NOTICE, "The current configuration is not deletable.");
+    return false;
+  }
+
+  ret = conf_remove_ast_backup_config_info_valid(name, DEF_QUEUE_CONFNAME);
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not delete backup config info.");
+    return false;
+  }
+
+  return true;
+}

@@ -32,7 +32,9 @@
 #define DEF_PUB_EVENT_PREFIX_ADMIN_CORE_MODULE    "admin.core.module"
 #define DEF_PUB_EVENT_PREFIX_ADMIN_CORE_SYSTEM    "admin.core.system"
 
-#define DEF_PUB_EVENT_PREFIX_ADMIN_PARK_PARKEDCALL   "admin.park.parkedcall"
+#define DEF_PUB_EVENT_PREFIX_ADMIN_PARK_PARKEDCALL    "admin.park.parkedcall"
+#define DEF_PUB_EVENT_PREFIX_ADMIN_QUEUE_ENTRY        "admin.queue.entry"
+#define DEF_PUB_EVENT_PREFIX_ADMIN_QUEUE_MEMBER       "admin.queue.member"
 
 
 static bool init_callbacks(void);
@@ -114,15 +116,22 @@ static bool create_user_permission_info(const json_t* j_data);
 static bool delete_user_permission_info(const char* uuid);
 
 
-// info
+/////////// info
 static bool update_admin_info(const json_t* j_user, const json_t* j_data);
 static json_t* get_admin_info(const json_t* j_user);
+
+
+//////// queue
+static bool update_queue_cfg_queue_info(const char* key, const json_t* j_data);
+static bool update_queue_configuration_info(const char* key, const json_t* j_data);
 
 
 ///// callback
 static bool cb_resource_handler_core_db_channel(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
 static bool cb_resource_handler_core_db_module(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
 static bool cb_resource_handler_park_db_parkedcall(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
+static bool cb_resource_handler_queue_db_entry(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
+static bool cb_resource_handler_queue_db_member(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
 
 ///// etc
 static bool load_module(const char* name);
@@ -174,6 +183,8 @@ static bool init_callbacks(void)
 
   park_register_callback_db_parkedcall(&cb_resource_handler_park_db_parkedcall);
 
+  queue_register_callback_db_entry(&cb_resource_handler_queue_db_entry);
+  queue_register_callback_db_member(&cb_resource_handler_queue_db_member);
 
   return true;
 }
@@ -1409,6 +1420,404 @@ void admin_htp_delete_admin_queue_entries_detail(evhtp_request_t *req, void *dat
 
   // delete
   ret = delete_queue_entry_info(detail);
+  sfree(detail);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * GET ^/admin/queue/cfg_queues request handler.
+ * @param req
+ * @param data
+ */
+void admin_htp_get_admin_queue_cfg_queues(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_get_admin_park_cfg_parkinglots.");
+
+  // get info
+  j_tmp = queue_cfg_get_queues_all();
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get info.");
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", json_object());
+  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * htp request handler.
+ * request: POST ^/admin/queue/cfg_queues$
+ * @param req
+ * @param data
+ */
+void admin_htp_post_admin_queue_cfg_queues(evhtp_request_t *req, void *data)
+{
+  json_t* j_data;
+  json_t* j_res;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_post_admin_queue_cfg_queues.");
+
+  // get data
+  j_data = http_get_json_from_request_data(req);
+  if(j_data == NULL) {
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // create info
+  ret = queue_cfg_create_queue_info(j_data);
+  json_decref(j_data);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+
+/**
+ * GET ^/admin/queue/cfg_queues/(.*) request handler.
+ * @param req
+ * @param data
+ */
+void admin_htp_get_admin_queue_cfg_queues_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+  char* detail;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_get_admin_queue_cfg_queues_detail.");
+
+  // detail parse
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // get detail info
+  j_tmp = queue_cfg_get_queue_info(detail);
+  sfree(detail);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not find info.");
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", j_tmp);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * PUT ^/admin/queue/cfg_queues/(.*) request handler.
+ * @param req
+ * @param data
+ */
+void admin_htp_put_admin_queue_cfg_queues_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_data;
+  char* detail;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_put_admin_queue_cfg_queues_detail.");
+
+  // detail parse
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  j_data = http_get_json_from_request_data(req);
+  if(j_data == NULL) {
+    slog(LOG_NOTICE, "Could not get data info.");
+    sfree(detail);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // update
+  ret = update_queue_cfg_queue_info(detail, j_data);
+  sfree(detail);
+  json_decref(j_data);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * DELETE ^/admin/queue/cfg_queues/(.*) request handler.
+ * @param req
+ * @param data
+ */
+void admin_htp_delete_admin_queue_cfg_queues_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  char* detail;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_delete_admin_queue_cfg_queues_detail.");
+
+  // detail parse
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // delete
+  ret = queue_cfg_delete_queue_info(detail);
+  sfree(detail);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * GET ^/admin/queue/configurations request handler.
+ * @param req
+ * @param data
+ */
+void admin_htp_get_admin_queue_configurations(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_get_admin_park_configurations.");
+
+  // get info
+  j_tmp = queue_get_configurations_all();
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get info.");
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", json_object());
+  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * GET ^/admin/queue/configurations/(.*) request handler.
+ * @param req
+ * @param data
+ */
+void admin_htp_get_admin_queue_configurations_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+  char* detail;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_get_admin_queue_configurations_detail.");
+
+  // detail parse
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // get detail info
+  j_tmp = queue_get_configuration_info(detail);
+  sfree(detail);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not find info.");
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", j_tmp);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * PUT ^/admin/queue/configurations/(.*) request handler.
+ * @param req
+ * @param data
+ */
+void admin_htp_put_admin_queue_configurations_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_data;
+  char* detail;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_put_admin_queue_configurations_detail.");
+
+  // detail parse
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  j_data = http_get_json_from_request_data(req);
+  if(j_data == NULL) {
+    slog(LOG_NOTICE, "Could not get data info.");
+    sfree(detail);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // update
+  ret = update_queue_configuration_info(detail, j_data);
+  sfree(detail);
+  json_decref(j_data);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * DELETE ^/admin/queue/configurations/(.*) request handler.
+ * @param req
+ * @param data
+ */
+void admin_htp_delete_admin_queue_configurations_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  char* detail;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_delete_admin_queue_configurations_detail.");
+
+  // detail parse
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // delete
+  ret = queue_delete_configuration_info(detail);
   sfree(detail);
   if(ret == false) {
     http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
@@ -2990,6 +3399,51 @@ static bool delete_park_cfg_parkinglot_info(const char* name)
   return true;
 }
 
+static bool update_queue_cfg_queue_info(const char* key, const json_t* j_data)
+{
+  int ret;
+  json_t* j_tmp;
+
+  if((key == NULL) || (j_data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  j_tmp = json_deep_copy(j_data);
+
+  json_object_set_new(j_tmp, "name", json_string(key));
+
+  ret = queue_cfg_update_queue_info(j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    return false;
+  }
+
+  return true;
+}
+
+static bool update_queue_configuration_info(const char* key, const json_t* j_data)
+{
+  int ret;
+  json_t* j_tmp;
+
+  if((key == NULL) || (j_data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  j_tmp = json_deep_copy(j_data);
+  json_object_set_new(j_tmp, "name", json_string(key));
+
+  ret = queue_update_configuration_info(j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    return false;
+  }
+
+  return true;
+}
+
 static json_t* get_core_channels_all(void)
 {
   json_t* j_res;
@@ -3463,6 +3917,134 @@ static bool cb_resource_handler_park_db_parkedcall(enum EN_RESOURCE_UPDATE_TYPES
 
   // publish event
   ret = publication_publish_event(topic, DEF_PUB_EVENT_PREFIX_ADMIN_PARK_PARKEDCALL, event_type, j_event);
+  sfree(topic);
+  json_decref(j_event);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Callback handler.
+ * publish event.
+ * admin.queue.entry.<type>
+ * @param type
+ * @param j_data
+ * @return
+ */
+static bool cb_resource_handler_queue_db_entry(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data)
+{
+  char* topic;
+  int ret;
+  json_t* j_event;
+  enum EN_PUBLISH_TYPES event_type;
+
+  if((j_data == NULL)){
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired cb_resource_handler_queue_db_entry.");
+
+  // create event depends on type
+  if(type == EN_RESOURCE_CREATE) {
+    // set event type
+    event_type = EN_PUBLISH_CREATE;
+
+    // create event
+    j_event = json_deep_copy(j_data);
+  }
+  else if(type == EN_RESOURCE_UPDATE) {
+    // set event type
+    event_type = EN_PUBLISH_UPDATE;
+
+    // create event
+    j_event = json_deep_copy(j_data);
+  }
+  else if(type == EN_RESOURCE_DELETE) {
+    // set event type
+    event_type = EN_PUBLISH_DELETE;
+
+    // create event
+    j_event = json_deep_copy(j_data);
+  }
+  else {
+    // something was wrong
+    slog(LOG_ERR, "Unsupported resource update type. type[%d]", type);
+    return false;
+  }
+
+  // create topic
+  asprintf(&topic, "%s", DEF_PUBLISH_TOPIC_PREFIX_ADMIN);
+
+  // publish event
+  ret = publication_publish_event(topic, DEF_PUB_EVENT_PREFIX_ADMIN_QUEUE_ENTRY, event_type, j_event);
+  sfree(topic);
+  json_decref(j_event);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not publish event.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Callback handler.
+ * publish event.
+ * admin.queue.member.<type>
+ * @param type
+ * @param j_data
+ * @return
+ */
+static bool cb_resource_handler_queue_db_member(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data)
+{
+  char* topic;
+  int ret;
+  json_t* j_event;
+  enum EN_PUBLISH_TYPES event_type;
+
+  if((j_data == NULL)){
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired cb_resource_handler_queue_db_member.");
+
+  // create event depends on type
+  if(type == EN_RESOURCE_CREATE) {
+    // set event type
+    event_type = EN_PUBLISH_CREATE;
+
+    // create event
+    j_event = json_deep_copy(j_data);
+  }
+  else if(type == EN_RESOURCE_UPDATE) {
+    // set event type
+    event_type = EN_PUBLISH_UPDATE;
+
+    // create event
+    j_event = json_deep_copy(j_data);
+  }
+  else if(type == EN_RESOURCE_DELETE) {
+    // set event type
+    event_type = EN_PUBLISH_DELETE;
+
+    // create event
+    j_event = json_deep_copy(j_data);
+  }
+  else {
+    // something was wrong
+    slog(LOG_ERR, "Unsupported resource update type. type[%d]", type);
+    return false;
+  }
+
+  // create topic
+  asprintf(&topic, "%s", DEF_PUBLISH_TOPIC_PREFIX_ADMIN);
+
+  // publish event
+  ret = publication_publish_event(topic, DEF_PUB_EVENT_PREFIX_ADMIN_QUEUE_MEMBER, event_type, j_event);
   sfree(topic);
   json_decref(j_event);
   if(ret == false) {
