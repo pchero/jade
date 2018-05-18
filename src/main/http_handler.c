@@ -5064,7 +5064,7 @@ static void cb_htp_admin_queue_entries_detail(evhtp_request_t *req, void *data)
 
   // method check
   method = evhtp_request_get_method(req);
-  if(method != htp_method_GET) {
+  if((method != htp_method_GET) && (method != htp_method_DELETE)) {
     http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
@@ -5073,6 +5073,9 @@ static void cb_htp_admin_queue_entries_detail(evhtp_request_t *req, void *data)
   if(method == htp_method_GET) {
     admin_htp_get_admin_queue_entries_detail(req, data);
     return;
+  }
+  else if(method == htp_method_DELETE) {
+    admin_htp_delete_admin_queue_entries_detail(req, data);
   }
   else {
     // should not reach to here.
@@ -5112,7 +5115,7 @@ static void cb_htp_admin_queue_members(evhtp_request_t *req, void *data)
 
   // method check
   method = evhtp_request_get_method(req);
-  if(method != htp_method_GET) {
+  if((method != htp_method_GET) && (method != htp_method_POST)) {
     http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
@@ -5120,6 +5123,10 @@ static void cb_htp_admin_queue_members(evhtp_request_t *req, void *data)
   // fire handlers
   if(method == htp_method_GET) {
     admin_htp_get_admin_queue_members(req, data);
+    return;
+  }
+  else if(method == htp_method_POST) {
+    admin_htp_post_admin_queue_members(req, data);
     return;
   }
   else {
@@ -5160,7 +5167,7 @@ static void cb_htp_admin_queue_members_detail(evhtp_request_t *req, void *data)
 
   // method check
   method = evhtp_request_get_method(req);
-  if(method != htp_method_GET) {
+  if((method != htp_method_GET) && (method != htp_method_PUT)) {
     http_simple_response_error(req, EVHTP_RES_METHNALLOWED, 0, NULL);
     return;
   }
@@ -5169,6 +5176,13 @@ static void cb_htp_admin_queue_members_detail(evhtp_request_t *req, void *data)
   if(method == htp_method_GET) {
     admin_htp_get_admin_queue_members_detail(req, data);
     return;
+  }
+  else if(method == htp_method_PUT) {
+    admin_htp_put_admin_queue_members_detail(req, data);
+    return;
+  }
+  else if(method == htp_method_DELETE) {
+    admin_htp_delete_admin_queue_member_detail(req, data);
   }
   else {
     // should not reach to here.

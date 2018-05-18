@@ -14,6 +14,7 @@
 #include "utils.h"
 #include "conf_handler.h"
 #include "ami_handler.h"
+#include "ami_action_handler.h"
 #include "publication_handler.h"
 
 #include "queue_handler.h"
@@ -59,6 +60,13 @@ static bool clear_queue_member(void);
 static bool clear_queue_param(void);
 
 static bool is_setting_section(const char* section);
+
+static bool send_request_member_penalty_update(const json_t* j_data);
+static bool send_request_member_paused_update(const json_t* j_data);
+static bool send_request_member_add_to_queue(const json_t* j_data);
+
+static bool parse_queue_id(const char* str, char** interface, char** queue);
+
 
 bool queue_init_handler(void)
 {
@@ -843,6 +851,185 @@ json_t* queue_get_member_info(const char* id)
   return j_tmp;
 }
 
+static bool send_request_member_penalty_update(const json_t* j_data)
+{
+  int ret;
+  const char* queue_name;
+  const char* interface;
+  int penalty_number;
+  char penalty_string[64];
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  queue_name = json_string_value(json_object_get(j_data, "queue_name"));
+  interface = json_string_value(json_object_get(j_data, "state_interface"));
+  penalty_number = json_integer_value(json_object_get(j_data, "penalty"));
+
+  snprintf(penalty_string, sizeof(penalty_string), "%d", penalty_number);
+
+  // send penalty request
+  ret = ami_action_queuepenalty(queue_name, interface, penalty_string);
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not send penalty request.");
+    return false;
+  }
+
+  return true;
+}
+
+static bool send_request_member_paused_update(const json_t* j_data)
+{
+  int ret;
+  const char* queue_name;
+  const char* interface;
+  const char* reason;
+  int paused_number;
+  char paused_string[64];
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  queue_name = json_string_value(json_object_get(j_data, "queue_name"));
+  interface = json_string_value(json_object_get(j_data, "state_interface"));
+  reason = json_string_value(json_object_get(j_data, "reason"));
+  paused_number = json_integer_value(json_object_get(j_data, "paused"));
+  snprintf(paused_string, sizeof(paused_string), "%d", paused_number);
+
+  // send paused request
+  ret = ami_action_queuepause(queue_name, interface, paused_string, reason);
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not send paused request.");
+    return false;
+  }
+
+  return true;
+}
+
+static bool send_request_member_add_to_queue(const json_t* j_data)
+{
+  int ret;
+  int penalty_number;
+  int paused_number;
+  const char* queue;
+  const char* interface;
+  const char* member_name;
+  const char* state_interface;
+  char penalty[64];
+  char paused[64];
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  queue = json_string_value(json_object_get(j_data, "queue_name"));
+  interface = json_string_value(json_object_get(j_data, "state_interface"));
+  member_name = json_string_value(json_object_get(j_data, "name"));
+  state_interface = json_string_value(json_object_get(j_data, "state_interface"));
+
+  penalty_number = json_integer_value(json_object_get(j_data, "penalty"));
+  snprintf(penalty, sizeof(penalty) - 1, "%d", penalty_number);
+
+  paused_number = json_integer_value(json_object_get(j_data, "paused"));
+  snprintf(paused, sizeof(paused), "%d", paused_number);
+
+  // send request
+  ret = ami_action_queueadd(queue, interface, penalty, paused, member_name, state_interface);
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not send ami request.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Update given member's paused and penalty info.
+ * @param j_data
+ * @return
+ */
+bool queue_action_update_member_paused_penalty(const json_t* j_data)
+{
+  int ret;
+  json_t* j_tmp;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  // check penalty
+  j_tmp = json_object_get(j_data, "penalty");
+  if(j_tmp != NULL) {
+    ret = send_request_member_penalty_update(j_data);
+    if(ret == false) {
+      slog(LOG_NOTICE, "Could not update member penalty info.");
+      return false;
+    }
+  }
+
+  // check paused
+  j_tmp = json_object_get(j_data, "paused");
+  if(j_tmp != NULL) {
+    ret = send_request_member_paused_update(j_data);
+    if(ret == false) {
+      slog(LOG_NOTICE, "Could not update member paused info.");
+      return false;
+    }
+  }
+
+  return true;
+}
+
+bool queue_action_delete_member_from_queue(const char* id)
+{
+  int ret;
+  char* interface;
+  char* queue;
+
+  if(id == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  ret = parse_queue_id(id, &interface, &queue);
+  if(ret == false) {
+    return false;
+  }
+
+  ret = ami_action_queueremove(queue, interface);
+  sfree(interface);
+  sfree(queue);
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not remove member from the queue.");
+    return false;
+  }
+
+  return true;
+}
+
+bool queue_action_add_member_to_queue(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  ret = send_request_member_add_to_queue(j_data);
+  if(ret == false) {
+    return false;
+  }
+
+  return true;
+}
+
 /**
  * delete queue entry info.
  * @return
@@ -1043,7 +1230,35 @@ static bool clear_queue_param(void)
   return true;
 }
 
+/**
+ * Parse queue member id to interface and queue
+ * @param str
+ * @param mailbox
+ * @param context
+ * @return
+ */
+static bool parse_queue_id(const char* str, char** interface, char** queue)
+{
+  char* tmp;
+  char* token;
+  char* org;
 
+  if(str == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  tmp = strdup(str);
+  org = tmp;
+
+  token = strsep(&tmp, "@");
+  *interface = strdup(token);
+  *queue = strdup(tmp);
+
+  sfree(org);
+
+  return true;
+}
 
 
 

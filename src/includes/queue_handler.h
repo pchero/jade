@@ -41,4 +41,9 @@ bool queue_cfg_create_queue_info(const json_t* j_data);
 bool queue_cfg_update_queue_info(const json_t* j_data);
 bool queue_cfg_delete_queue_info(const char* name);
 
+// action
+bool queue_action_update_member_paused_penalty(const json_t* j_data);
+bool queue_action_delete_member_from_queue(const char* id);
+bool queue_action_add_member_to_queue(const json_t* j_data);
+
 #endif /* SRC_QUEUE_HANDLER_H_ */
