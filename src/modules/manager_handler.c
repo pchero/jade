@@ -1175,7 +1175,7 @@ static bool update_user_pjsip_account(const char* uuid_user, const json_t* j_dat
   }
 
   json_object_set_new(j_endpoint, "context", json_string(context));
-  ret = pjsip_cfg_update_endpoint_info(account, j_endpoint);
+  ret = pjsip_cfg_update_endpoint_info_data(account, j_endpoint);
   sfree(account);
   json_decref(j_endpoint);
   if(ret == false) {
@@ -2116,6 +2116,7 @@ static bool update_trunk_info(const char* name, const json_t* j_data)
 {
   int ret;
   json_t* j_tmp;
+  json_t* j_cfg;
 
   if((name == NULL) || (j_data == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -2132,7 +2133,8 @@ static bool update_trunk_info(const char* name, const json_t* j_data)
   }
 
   // update registration
-  j_tmp = pjsip_cfg_get_registration_info_data(name);
+  j_cfg = pjsip_cfg_get_registration_info(name);
+  j_tmp = json_object_get(j_cfg, "data");
   if(j_tmp == NULL) {
     slog(LOG_NOTICE, "Could not get cfg registration info. name[%s]", name);
     return false;
@@ -2143,8 +2145,8 @@ static bool update_trunk_info(const char* name, const json_t* j_data)
   json_object_set_new(j_tmp, "client_uri",
       json_object_get(j_data, "client_uri")? json_incref(json_object_get(j_data, "client_uri")) : json_string("")
       );
-  ret = pjsip_cfg_update_registration_info(name, j_tmp);
-  json_decref(j_tmp);
+  ret = pjsip_cfg_update_registration_info(j_cfg);
+  json_decref(j_cfg);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not update registration info.");
     return false;
@@ -2178,7 +2180,7 @@ static bool update_trunk_info(const char* name, const json_t* j_data)
   json_object_set_new(j_tmp, "contact",
       json_object_get(j_data, "contact")? json_incref(json_object_get(j_data, "contact")) : json_string("")
       );
-  ret = pjsip_cfg_update_aor_info(name, j_tmp);
+  ret = pjsip_cfg_update_aor_info_data(name, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not update aor info.");
@@ -2194,7 +2196,7 @@ static bool update_trunk_info(const char* name, const json_t* j_data)
   json_object_set_new(j_tmp, "context",
       json_object_get(j_data, "context")? json_incref(json_object_get(j_data, "context")) : json_string("")
       );
-  ret = pjsip_cfg_update_endpoint_info(name, j_tmp);
+  ret = pjsip_cfg_update_endpoint_info_data(name, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not update endpoint info.");
@@ -2210,7 +2212,7 @@ static bool update_trunk_info(const char* name, const json_t* j_data)
   json_object_set_new(j_tmp, "match",
       json_object_get(j_data, "hostname")? json_incref(json_object_get(j_data, "hostname")) : json_string("")
       );
-  ret = pjsip_cfg_update_identify_info(name, j_tmp);
+  ret = pjsip_cfg_update_identify_info_data(name, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not update identify info.");
@@ -2272,7 +2274,7 @@ static bool is_exist_trunk(const char* name)
     return true;
   }
 
-  j_tmp = pjsip_cfg_get_transport_info_data(name);
+  j_tmp = pjsip_cfg_get_transport_info(name);
   if(j_tmp != NULL) {
     json_decref(j_tmp);
     return true;

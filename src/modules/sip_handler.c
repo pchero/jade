@@ -474,7 +474,7 @@ void sip_htp_put_sip_config(evhtp_request_t *req, void *data)
   }
 
   // update config
-  ret = conf_update_ast_current_config_info_text(DEF_SIP_CONFNAME, req_data);
+  ret = conf_update_ast_current_config_info_text_data(DEF_SIP_CONFNAME, req_data);
   sfree(req_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update sip config info.");

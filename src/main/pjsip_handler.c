@@ -83,22 +83,6 @@ static bool init_resources(void);
 
 static bool term_pjsip_databases(void);
 
-static bool create_config_pjsip_aor(const json_t* j_data);
-static bool create_config_pjsip_auth(const json_t* j_data);
-static bool create_config_pjsip_contact(const json_t* j_data);
-static bool create_config_pjsip_endpoint(const json_t* j_data);
-static bool create_config_pjsip_identify(const json_t* j_data);
-static bool create_config_pjsip_registration(const json_t* j_data);
-static bool create_config_pjsip_transport(const json_t* j_data);
-
-static bool update_config_pjsip_aor(const char* name, const json_t* j_data);
-static bool update_config_pjsip_auth(const char* name, const json_t* j_data);
-static bool update_config_pjsip_contact(const char* name, const json_t* j_data);
-static bool update_config_pjsip_endpoint(const char* name, const json_t* j_data);
-static bool update_config_pjsip_identify(const char* name, const json_t* j_data);
-static bool update_config_pjsip_registration(const char* name, const json_t* j_data);
-static bool update_config_pjsip_transport(const char* name, const json_t* j_data);
-
 static bool create_config_aor_with_default_setting(const char* name);
 static bool create_config_auth_with_default_setting(const char* name);
 static bool create_config_endpoint_with_default_setting(const char* name, const char* context);
@@ -129,32 +113,32 @@ static bool db_update_registration_outbound_info(const json_t* j_data);
 static bool db_delete_registration_outbound_info(const char* key);
 
 // cfg handlers
-static bool cfg_create_aor_info_data(const char* name, const json_t* j_data);
-static bool cfg_update_aor_info_data(const char* name, const json_t* j_data);
+static bool cfg_create_aor_info(const json_t* j_data);
+static bool cfg_update_aor_info(const json_t* j_data);
 static bool cfg_delete_aor_info(const char* name);
 
-static bool cfg_create_auth_info_data(const char* name, const json_t* j_data);
-static bool cfg_update_auth_info_data(const char* name, const json_t* j_data);
+static bool cfg_create_auth_info(const json_t* j_data);
+static bool cfg_update_auth_info(const json_t* j_data);
 static bool cfg_delete_auth_info(const char* name);
 
-static bool cfg_create_contact_info_data(const char* name, const json_t* j_data);
-static bool cfg_update_contact_info_data(const char* name, const json_t* j_data);
+static bool cfg_create_contact_info(const json_t* j_data);
+static bool cfg_update_contact_info(const json_t* j_data);
 static bool cfg_delete_contact_info(const char* name);
 
-static bool cfg_create_endpoint_info_data(const char* name, const json_t* j_data);
-static bool cfg_update_endpoint_info_data(const char* name, const json_t* j_data);
+static bool cfg_create_endpoint_info(const json_t* j_data);
+static bool cfg_update_endpoint_info(const json_t* j_data);
 static bool cfg_delete_endpoint_info(const char* name);
 
-static bool cfg_create_identify_info_data(const char* name, const json_t* j_data);
-static bool cfg_update_identify_info_data(const char* name, const json_t* j_data);
+static bool cfg_create_identify_info(const json_t* j_data);
+static bool cfg_update_identify_info(const json_t* j_data);
 static bool cfg_delete_identify_info(const char* name);
 
-static bool cfg_create_registration_info_data(const char* name, const json_t* j_data);
-static bool cfg_update_registration_info_data(const char* name, const json_t* j_data);
+static bool cfg_create_registration_info(const json_t* j_data);
+static bool cfg_update_registration_info(const json_t* j_data);
 static bool cfg_delete_registration_info(const char* name);
 
-static bool cfg_create_transport_info_data(const char* name, const json_t* j_data);
-static bool cfg_update_transport_info_data(const char* name, const json_t* j_data);
+static bool cfg_create_transport_info(const json_t* j_data);
+static bool cfg_update_transport_info(const json_t* j_data);
 static bool cfg_delete_transport_info(const char* name);
 
 static void execute_callbacks_module(enum EN_RESOURCE_UPDATE_TYPES type, const json_t* j_data);
@@ -339,16 +323,21 @@ static bool init_config_default_info(void)
   json_t* j_data;
 
   // create default transport udp
-  j_tmp = pjsip_cfg_get_transport_info_data(DEF_TRANSPORT_NAME_UDP);
+  j_tmp = pjsip_cfg_get_transport_info(DEF_TRANSPORT_NAME_UDP);
   if(j_tmp != NULL) {
     json_decref(j_tmp);
   }
   else {
-    j_data = json_pack("{s:s, s:s}",
-        "protocol",   "udp",
-        "bind",       "0.0.0.0"
+    j_data = json_pack("{"
+        "s:s, "
+        "s:{s:s, s:s}"
+        "}",
+        "name", DEF_TRANSPORT_NAME_UDP,
+        "data",
+          "protocol",   "udp",
+          "bind",       "0.0.0.0"
         );
-    ret = cfg_create_transport_info_data(DEF_TRANSPORT_NAME_UDP, j_data);
+    ret = cfg_create_transport_info(j_data);
     json_decref(j_data);
     if(ret == false) {
       slog(LOG_ERR, "Could not create default config info.");
@@ -357,16 +346,21 @@ static bool init_config_default_info(void)
   }
 
   // create default transport tcp
-  j_tmp = pjsip_cfg_get_transport_info_data(DEF_TRANSPORT_NAME_TCP);
+  j_tmp = pjsip_cfg_get_transport_info(DEF_TRANSPORT_NAME_TCP);
   if(j_tmp != NULL) {
     json_decref(j_tmp);
   }
   else  {
-    j_data = json_pack("{s:s, s:s}",
-        "protocol",   "tcp",
-        "bind",       "0.0.0.0"
+    j_data = json_pack("{"
+        "s:s, "
+        "s:{s:s, s:s}"
+        "}",
+        "name", DEF_TRANSPORT_NAME_TCP,
+        "data",
+          "protocol",   "tcp",
+          "bind",       "0.0.0.0"
         );
-    ret = cfg_create_transport_info_data(DEF_TRANSPORT_NAME_TCP, j_data);
+    ret = cfg_create_transport_info(j_data);
     json_decref(j_data);
     if(ret == false) {
       slog(LOG_ERR, "Could not create default config info.");
@@ -375,16 +369,21 @@ static bool init_config_default_info(void)
   }
 
   // create default transport wss
-  j_tmp = pjsip_cfg_get_transport_info_data(DEF_TRANSPORT_NAME_WSS);
+  j_tmp = pjsip_cfg_get_transport_info(DEF_TRANSPORT_NAME_WSS);
   if(j_tmp != NULL) {
     json_decref(j_tmp);
   }
   else {
-    j_data = json_pack("{s:s, s:s}",
-        "protocol",   "wss",
-        "bind",       "0.0.0.0"
+    j_data = json_pack("{"
+        "s:s, "
+        "s:{s:s, s:s}"
+        "}",
+        "name", DEF_TRANSPORT_NAME_WSS,
+        "data",
+          "protocol",   "wss",
+          "bind",       "0.0.0.0"
         );
-    ret = cfg_create_transport_info_data(DEF_TRANSPORT_NAME_WSS, j_data);
+    ret = cfg_create_transport_info(j_data);
     json_decref(j_data);
     if(ret == false) {
       slog(LOG_ERR, "Could not create default config info.");
@@ -1000,1606 +999,6 @@ static bool init_pjsip_database_registration_outbound(void)
   }
 
   return true;
-}
-
-/**
- * htp request handler.
- * request: GET ^/pjsip/endpoints
- * @param req
- * @param data
- */
-void pjsip_htp_get_pjsip_endpoints(evhtp_request_t *req, void *data)
-{
-  json_t* j_tmp;
-  json_t* j_res;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_get_pjsip_endpoints.");
-
-  j_tmp = pjsip_get_endpoints_all();
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-  json_object_set_new(j_res, "result", json_object());
-  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * htp request handler.
- * request: POST ^/pjsip/endpoints$
- * @param req
- * @param data
- */
-void pjsip_htp_post_pjsip_endpoints(evhtp_request_t *req, void *data)
-{
-  json_t* j_res;
-  json_t* j_data;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_post_pjsip_endpoints.");
-
-  // get data
-  j_data = http_get_json_from_request_data(req);
-  if(j_data == NULL) {
-    slog(LOG_ERR, "Could not get data from request.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // create
-  ret = create_config_pjsip_endpoint(j_data);
-  json_decref(j_data);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-
-/**
- * GET ^/pjsip/endpoints/(*) request handler.
- * @param req
- * @param data
- */
-void pjsip_htp_get_pjsip_endpoints_detail(evhtp_request_t *req, void *data)
-{
-  json_t* j_tmp;
-  json_t* j_res;
-  char* detail;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_get_pjsip_endpoints_detail.");
-
-  // get detail
-  detail = http_get_parsed_detail(req);
-  if(detail == NULL) {
-    slog(LOG_ERR, "Could not get name info.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // get info
-  j_tmp = pjsip_get_endpoint_info(detail);
-  sfree(detail);
-  if(j_tmp == NULL) {
-    slog(LOG_ERR, "Could not get name info.");
-    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-  json_object_set_new(j_res, "result", j_tmp);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * PUT ^/pjsip/endpoints/(*) request handler.
- * @param req
- * @param data
- */
-void pjsip_htp_put_pjsip_endpoints_detail(evhtp_request_t *req, void *data)
-{
-  json_t* j_res;
-  json_t* j_data;
-  char* detail;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_put_pjsip_endpoints_detail.");
-
-  // get detail
-  detail = http_get_parsed_detail(req);
-  if(detail == NULL) {
-    slog(LOG_ERR, "Could not get name info.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // get data
-  j_data = http_get_json_from_request_data(req);
-  if(j_data == NULL) {
-    slog(LOG_ERR, "Could not get data from request.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // update
-  ret = update_config_pjsip_endpoint(detail, j_data);
-  sfree(detail);
-  json_decref(j_data);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not update pjsip endpoint info.");
-    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * DELETE ^/pjsip/endpoints/(*) request handler.
- * @param req
- * @param data
- */
-void pjsip_htp_delete_pjsip_endpoints_detail(evhtp_request_t *req, void *data)
-{
-  json_t* j_res;
-  char* detail;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_delete_pjsip_endpoints_detail.");
-
-  // get detail
-  detail = http_get_parsed_detail(req);
-  if(detail == NULL) {
-    slog(LOG_ERR, "Could not get name info.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // delete
-  ret = pjsip_cfg_delete_endpoint_info(detail);
-  sfree(detail);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not update pjsip endpoint info.");
-    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * htp request handler.
- * request: GET ^/pjsip/aors$
- * @param req
- * @param data
- */
-void pjsip_htp_get_pjsip_aors(evhtp_request_t *req, void *data)
-{
-  json_t* j_tmp;
-  json_t* j_res;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_get_pjsip_aors.");
-
-  j_tmp = pjsip_get_aors_all();
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-  json_object_set_new(j_res, "result", json_object());
-  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * htp request handler.
- * request: POST ^/pjsip/aors$
- * @param req
- * @param data
- */
-void pjsip_htp_post_pjsip_aors(evhtp_request_t *req, void *data)
-{
-  json_t* j_res;
-  json_t* j_data;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_post_pjsip_aors.");
-
-  // get data
-  j_data = http_get_json_from_request_data(req);
-  if(j_data == NULL) {
-    slog(LOG_ERR, "Could not get data from request.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // create
-  ret = create_config_pjsip_aor(j_data);
-  json_decref(j_data);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * GET ^/pjsip/aors/(*) request handler.
- * @param req
- * @param data
- */
-void pjsip_htp_get_pjsip_aors_detail(evhtp_request_t *req, void *data)
-{
-  json_t* j_tmp;
-  json_t* j_res;
-  char* detail;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_get_pjsip_aors_detail.");
-
-  detail = http_get_parsed_detail(req);
-  if(detail == NULL) {
-    slog(LOG_ERR, "Could not get name info.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // get info
-  j_tmp = pjsip_get_aor_info(detail);
-  sfree(detail);
-  if(j_tmp == NULL) {
-    slog(LOG_ERR, "Could not get name info.");
-    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-  json_object_set_new(j_res, "result", j_tmp);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * PUT ^/pjsip/aors/(*) request handler.
- * @param req
- * @param data
- */
-void pjsip_htp_put_pjsip_aors_detail(evhtp_request_t *req, void *data)
-{
-  json_t* j_res;
-  json_t* j_data;
-  char* detail;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_put_pjsip_aors_detail.");
-
-  // get detail
-  detail = http_get_parsed_detail(req);
-  if(detail == NULL) {
-    slog(LOG_ERR, "Could not get name info.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // get data
-  j_data = http_get_json_from_request_data(req);
-  if(j_data == NULL) {
-    slog(LOG_ERR, "Could not get data from request.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // update
-  ret = update_config_pjsip_aor(detail, j_data);
-  sfree(detail);
-  json_decref(j_data);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not update pjsip aor info.");
-    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * DELETE ^/pjsip/aors/(*) request handler.
- * @param req
- * @param data
- */
-void pjsip_htp_delete_pjsip_aors_detail(evhtp_request_t *req, void *data)
-{
-  json_t* j_res;
-  char* detail;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_delete_pjsip_aors_detail.");
-
-  // get detail
-  detail = http_get_parsed_detail(req);
-  if(detail == NULL) {
-    slog(LOG_ERR, "Could not get name info.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // delete
-  ret = pjsip_cfg_delete_aor_info(detail);
-  sfree(detail);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not update pjsip aor info.");
-    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * htp request handler.
- * request: GET ^/pjsip/auths$
- * @param req
- * @param data
- */
-void pjsip_htp_get_pjsip_auths(evhtp_request_t *req, void *data)
-{
-  json_t* j_tmp;
-  json_t* j_res;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_get_pjsip_auths.");
-
-  j_tmp = pjsip_get_auths_all();
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-  json_object_set_new(j_res, "result", json_object());
-  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * htp request handler.
- * request: POST ^/pjsip/auths$
- * @param req
- * @param data
- */
-void pjsip_htp_post_pjsip_auths(evhtp_request_t *req, void *data)
-{
-  json_t* j_res;
-  json_t* j_data;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_post_pjsip_auths.");
-
-  // get data
-  j_data = http_get_json_from_request_data(req);
-  if(j_data == NULL) {
-    slog(LOG_ERR, "Could not get data from request.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // create
-  ret = create_config_pjsip_auth(j_data);
-  json_decref(j_data);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * GET ^/pjsip/auths/(.*) request handler.
- * @param req
- * @param data
- */
-void pjsip_htp_get_pjsip_auths_detail(evhtp_request_t *req, void *data)
-{
-  json_t* j_tmp;
-  json_t* j_res;
-  char* detail;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_get_pjsip_auths_detail.");
-
-  detail = http_get_parsed_detail(req);
-  if(detail == NULL) {
-    slog(LOG_ERR, "Could not get name info.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // get info
-  j_tmp = pjsip_get_auth_info(detail);
-  sfree(detail);
-  if(j_tmp == NULL) {
-    slog(LOG_ERR, "Could not get name info.");
-    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-  json_object_set_new(j_res, "result", j_tmp);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * PUT ^/pjsip/auths/(*) request handler.
- * @param req
- * @param data
- */
-void pjsip_htp_put_pjsip_auths_detail(evhtp_request_t *req, void *data)
-{
-  json_t* j_res;
-  json_t* j_data;
-  char* detail;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_put_pjsip_auths_detail.");
-
-  // get detail
-  detail = http_get_parsed_detail(req);
-  if(detail == NULL) {
-    slog(LOG_ERR, "Could not get name info.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // get data
-  j_data = http_get_json_from_request_data(req);
-  if(j_data == NULL) {
-    slog(LOG_ERR, "Could not get data from request.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // update
-  ret = update_config_pjsip_auth(detail, j_data);
-  sfree(detail);
-  json_decref(j_data);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not update pjsip auth info.");
-    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * DELETE ^/pjsip/auths/(*) request handler.
- * @param req
- * @param data
- */
-void pjsip_htp_delete_pjsip_auths_detail(evhtp_request_t *req, void *data)
-{
-  json_t* j_res;
-  char* detail;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_delete_pjsip_auths_detail.");
-
-  // get detail
-  detail = http_get_parsed_detail(req);
-  if(detail == NULL) {
-    slog(LOG_ERR, "Could not get name info.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // delete
-  ret = pjsip_cfg_delete_auth_info(detail);
-  sfree(detail);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not update pjsip auth info.");
-    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * htp request handler.
- * request: GET ^/pjsip/contacts$
- * @param req
- * @param data
- */
-void pjsip_htp_get_pjsip_contacts(evhtp_request_t *req, void *data)
-{
-  json_t* j_tmp;
-  json_t* j_res;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_get_pjsip_contacts.");
-
-  j_tmp = pjsip_get_contacts_all();
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-  json_object_set_new(j_res, "result", json_object());
-  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * htp request handler.
- * request: POST ^/pjsip/contacts$
- * @param req
- * @param data
- */
-void pjsip_htp_post_pjsip_contacts(evhtp_request_t *req, void *data)
-{
-  json_t* j_res;
-  json_t* j_data;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_post_pjsip_contacts.");
-
-  // get data
-  j_data = http_get_json_from_request_data(req);
-  if(j_data == NULL) {
-    slog(LOG_ERR, "Could not get data from request.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // create
-  ret = create_config_pjsip_contact(j_data);
-  json_decref(j_data);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * GET ^/pjsip/contacts/(.*) request handler.
- * @param req
- * @param data
- */
-void pjsip_htp_get_pjsip_contacts_detail(evhtp_request_t *req, void *data)
-{
-  json_t* j_tmp;
-  json_t* j_res;
-  char* detail;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_get_pjsip_contacts_detail.");
-
-  // detail parse
-  detail = http_get_parsed_detail(req);
-  if(detail == NULL) {
-    slog(LOG_ERR, "Could not get name info.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // get info
-  j_tmp = pjsip_get_contact_info(detail);
-  sfree(detail);
-  if(j_tmp == NULL) {
-    slog(LOG_ERR, "Could not get name info.");
-    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-  json_object_set_new(j_res, "result", j_tmp);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * PUT ^/pjsip/contacts/(*) request handler.
- * @param req
- * @param data
- */
-void pjsip_htp_put_pjsip_contacts_detail(evhtp_request_t *req, void *data)
-{
-  json_t* j_res;
-  json_t* j_data;
-  char* detail;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_put_pjsip_contacts_detail.");
-
-  // get detail
-  detail = http_get_parsed_detail(req);
-  if(detail == NULL) {
-    slog(LOG_ERR, "Could not get name info.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // get data
-  j_data = http_get_json_from_request_data(req);
-  if(j_data == NULL) {
-    slog(LOG_ERR, "Could not get data from request.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // update
-  ret = update_config_pjsip_contact(detail, j_data);
-  sfree(detail);
-  json_decref(j_data);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not update pjsip contact info.");
-    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * DELETE ^/pjsip/contacts/(*) request handler.
- * @param req
- * @param data
- */
-void pjsip_htp_delete_pjsip_contacts_detail(evhtp_request_t *req, void *data)
-{
-  json_t* j_res;
-  char* detail;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_delete_pjsip_contacts_detail.");
-
-  // get detail
-  detail = http_get_parsed_detail(req);
-  if(detail == NULL) {
-    slog(LOG_ERR, "Could not get name info.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // delete
-  ret = pjsip_cfg_delete_contact_info(detail);
-  sfree(detail);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not update pjsip contact info.");
-    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * htp request handler.
- * request: POST ^/pjsip/identifies$
- * @param req
- * @param data
- */
-void pjsip_htp_post_pjsip_identifies(evhtp_request_t *req, void *data)
-{
-  json_t* j_res;
-  json_t* j_data;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_post_pjsip_identifies.");
-
-  // get data
-  j_data = http_get_json_from_request_data(req);
-  if(j_data == NULL) {
-    slog(LOG_ERR, "Could not get data from request.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // create
-  ret = create_config_pjsip_identify(j_data);
-  json_decref(j_data);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * PUT ^/pjsip/identifies/(*) request handler.
- * @param req
- * @param data
- */
-void pjsip_htp_put_pjsip_identifies_detail(evhtp_request_t *req, void *data)
-{
-  json_t* j_res;
-  json_t* j_data;
-  char* detail;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_put_pjsip_identifies_detail.");
-
-  // get detail
-  detail = http_get_parsed_detail(req);
-  if(detail == NULL) {
-    slog(LOG_ERR, "Could not get name info.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // get data
-  j_data = http_get_json_from_request_data(req);
-  if(j_data == NULL) {
-    slog(LOG_ERR, "Could not get data from request.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // update
-  ret = update_config_pjsip_identify(detail, j_data);
-  sfree(detail);
-  json_decref(j_data);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not update pjsip identify info.");
-    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * DELETE ^/pjsip/identifies/(*) request handler.
- * @param req
- * @param data
- */
-void pjsip_htp_delete_pjsip_identifies_detail(evhtp_request_t *req, void *data)
-{
-  json_t* j_res;
-  char* detail;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_delete_pjsip_identifies_detail.");
-
-  // get detail
-  detail = http_get_parsed_detail(req);
-  if(detail == NULL) {
-    slog(LOG_ERR, "Could not get name info.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // delete
-  ret = pjsip_cfg_delete_identify_info(detail);
-  sfree(detail);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not update pjsip identify info.");
-    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * htp request handler.
- * request: POST ^/pjsip/registrations$
- * @param req
- * @param data
- */
-void pjsip_htp_post_pjsip_registrations(evhtp_request_t *req, void *data)
-{
-  json_t* j_res;
-  json_t* j_data;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_post_pjsip_registrations.");
-
-  // get data
-  j_data = http_get_json_from_request_data(req);
-  if(j_data == NULL) {
-    slog(LOG_ERR, "Could not get data from request.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // create
-  ret = create_config_pjsip_registration(j_data);
-  json_decref(j_data);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * PUT ^/pjsip/registrations/(*) request handler.
- * @param req
- * @param data
- */
-void pjsip_htp_put_pjsip_registrations_detail(evhtp_request_t *req, void *data)
-{
-  json_t* j_res;
-  json_t* j_data;
-  char* detail;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_put_pjsip_registrations_detail.");
-
-  // get detail
-  detail = http_get_parsed_detail(req);
-  if(detail == NULL) {
-    slog(LOG_ERR, "Could not get name info.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // get data
-  j_data = http_get_json_from_request_data(req);
-  if(j_data == NULL) {
-    slog(LOG_ERR, "Could not get data from request.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // update
-  ret = update_config_pjsip_registration(detail, j_data);
-  sfree(detail);
-  json_decref(j_data);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not update pjsip registration info.");
-    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * DELETE ^/pjsip/registrations/(*) request handler.
- * @param req
- * @param data
- */
-void pjsip_htp_delete_pjsip_registrations_detail(evhtp_request_t *req, void *data)
-{
-  json_t* j_res;
-  char* detail;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_delete_pjsip_registrations_detail.");
-
-  // get detail
-  detail = http_get_parsed_detail(req);
-  if(detail == NULL) {
-    slog(LOG_ERR, "Could not get name info.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // delete
-  ret = pjsip_cfg_delete_registration_info(detail);
-  sfree(detail);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not update pjsip registration info.");
-    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-
-/**
- * htp request handler.
- * request: POST ^/pjsip/transports$
- * @param req
- * @param data
- */
-void pjsip_htp_post_pjsip_transports(evhtp_request_t *req, void *data)
-{
-  json_t* j_res;
-  json_t* j_data;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_post_pjsip_transports.");
-
-  // get data
-  j_data = http_get_json_from_request_data(req);
-  if(j_data == NULL) {
-    slog(LOG_ERR, "Could not get data from request.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // create
-  ret = create_config_pjsip_transport(j_data);
-  json_decref(j_data);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * PUT ^/pjsip/transports/(*) request handler.
- * @param req
- * @param data
- */
-void pjsip_htp_put_pjsip_transports_detail(evhtp_request_t *req, void *data)
-{
-  json_t* j_res;
-  json_t* j_data;
-  char* detail;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_put_pjsip_transports_detail.");
-
-  // get detail
-  detail = http_get_parsed_detail(req);
-  if(detail == NULL) {
-    slog(LOG_ERR, "Could not get name info.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // get data
-  j_data = http_get_json_from_request_data(req);
-  if(j_data == NULL) {
-    slog(LOG_ERR, "Could not get data from request.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // update
-  ret = update_config_pjsip_transport(detail, j_data);
-  sfree(detail);
-  json_decref(j_data);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not update pjsip transport info.");
-    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * DELETE ^/pjsip/transports/(*) request handler.
- * @param req
- * @param data
- */
-void pjsip_htp_delete_pjsip_transports_detail(evhtp_request_t *req, void *data)
-{
-  json_t* j_res;
-  char* detail;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_delete_pjsip_transports_detail.");
-
-  // get detail
-  detail = http_get_parsed_detail(req);
-  if(detail == NULL) {
-    slog(LOG_ERR, "Could not get name info.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // delete
-  ret = pjsip_cfg_delete_transport_info(detail);
-  sfree(detail);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not update pjsip transport info.");
-    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * GET ^/pjsip/config request handler.
- * @param req
- * @param data
- */
-void pjsip_htp_get_pjsip_config(evhtp_request_t *req, void *data)
-{
-  json_t* j_res;
-  json_t* j_tmp;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_get_pjsip_config.");
-
-  // get info
-  j_tmp = conf_get_ast_current_config_info_text(DEF_PJSIP_CONFNAME);
-  if(j_tmp == NULL) {
-    slog(LOG_ERR, "Could not get pjsip conf.");
-    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-  json_object_set_new(j_res, "result", j_tmp);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * PUT ^/pjsip/config request handler.
- * @param req
- * @param data
- */
-void pjsip_htp_put_pjsip_config(evhtp_request_t *req, void *data)
-{
-  json_t* j_res;
-  char* req_data;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_put_pjsip_config.");
-
-  req_data = http_get_text_from_request_data(req);
-  if(req_data == NULL) {
-    slog(LOG_ERR, "Could not get data.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // update config
-  ret = conf_update_ast_current_config_info_text(DEF_PJSIP_CONFNAME, req_data);
-  sfree(req_data);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not update pjsip config info.");
-    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * GET ^/pjsip/configs request handler.
- * @param req
- * @param data
- */
-void pjsip_htp_get_pjsip_configs(evhtp_request_t *req, void *data)
-{
-  json_t* j_tmp;
-  json_t* j_res;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_get_pjsip_configs.");
-
-  // get info
-  j_tmp = conf_get_ast_backup_configs_text_all(DEF_PJSIP_CONFNAME);
-  if(j_tmp == NULL) {
-    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-  json_object_set_new(j_res, "result", json_object());
-  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
-* GET ^/pjsip/configs/(.*) request handler.
-* @param req
-* @param data
-*/
-void pjsip_htp_get_pjsip_configs_detail(evhtp_request_t *req, void *data)
-{
- json_t* j_res;
- json_t* j_tmp;
- char* detail;
-
- if(req == NULL) {
-   slog(LOG_WARNING, "Wrong input parameter.");
-   return;
- }
- slog(LOG_DEBUG, "Fired htp_get_pjsip_configs_detail.");
-
- // detail parse
- detail = http_get_parsed_detail(req);
- if(detail == NULL) {
-   slog(LOG_ERR, "Could not get detail info.");
-   http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-   return;
- }
-
- // get info
- j_tmp = conf_get_ast_backup_config_info_text_valid(detail, DEF_PJSIP_CONFNAME);
- sfree(detail);
- if(j_tmp == NULL) {
-   slog(LOG_NOTICE, "Could not find config info.");
-   http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
-   return;
- }
-
- // create result
- j_res = http_create_default_result(EVHTP_RES_OK);
- json_object_set_new(j_res, "result", j_tmp);
-
- // response
- http_simple_response_normal(req, j_res);
- json_decref(j_res);
-
- return;
-}
-
-/**
- * DELETE ^/pjsip/configs/(.*) request handler.
- * @param req
- * @param data
- */
-void pjsip_htp_delete_pjsip_configs_detail(evhtp_request_t *req, void *data)
-{
-  json_t* j_res;
-  char* detail;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_delete_pjsip_configs_detail.");
-
-  // detail parse
-  detail = http_get_parsed_detail(req);
-  if(detail == NULL) {
-    slog(LOG_ERR, "Could not get detail info.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // remove it
-  ret = conf_remove_ast_backup_config_info_valid(detail, DEF_PJSIP_CONFNAME);
-  sfree(detail);
-  if(ret == false) {
-    slog(LOG_NOTICE, "Could not delete backup config file.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * htp request handler.
- * GET ^/pjsip/settings/(.*) request handler.
- * @param req
- * @param data
- */
-void pjsip_htp_get_pjsip_settings_detail(evhtp_request_t *req, void *data)
-{
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_get_pjsip_settings_detail.");
-
-  // deprecated.
-  http_simple_response_error(req, EVHTP_RES_GONE, 0, NULL);
-
-  return;
-}
-
-/**
- * htp request handler.
- * PUT ^/pjsip/settings/(.*) request handler.
- * @param req
- * @param data
- */
-void pjsip_htp_put_pjsip_settings_detail(evhtp_request_t *req, void *data)
-{
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_put_pjsip_settings_detail.");
-
-  // deprecated.
-  http_simple_response_error(req, EVHTP_RES_GONE, 0, NULL);
-
-  return;
-}
-
-/**
- * htp request handler.
- * DELETE ^/pjsip/settings/(.*) request handler.
- * @param req
- * @param data
- */
-void pjsip_htp_delete_pjsip_settings_detail(evhtp_request_t *req, void *data)
-{
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_delete_pjsip_settings_detail.");
-
-  // deprecated.
-  http_simple_response_error(req, EVHTP_RES_GONE, 0, NULL);
-
-  return;
-}
-
-/**
- * htp request handler.
- * request: GET ^/pjsip/settings$
- * @param req
- * @param data
- */
-void pjsip_htp_get_pjsip_settings(evhtp_request_t *req, void *data)
-{
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_get_pjsip_settings.");
-
-  // deprecated.
-  http_simple_response_error(req, EVHTP_RES_GONE, 0, NULL);
-
-  return;
-}
-
-/**
- * htp request handler.
- * request: POST ^/pjsip/settings$
- * @param req
- * @param data
- */
-void pjsip_htp_post_pjsip_settings(evhtp_request_t *req, void *data)
-{
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_post_pjsip_settings.");
-
-  // deprecated.
-  http_simple_response_error(req, EVHTP_RES_GONE, 0, NULL);
-
-  return;
 }
 
 /**
@@ -3556,6 +1955,18 @@ static bool db_delete_registration_outbound_info(const char* key)
   return true;
 }
 
+json_t* pjsip_get_registration_outbounds_all(void)
+{
+  json_t* j_res;
+
+  j_res = resource_get_mem_items(DEF_DB_TABLE_PJSIP_REGISTRATION_OUTBOUND, "*");
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
 /**
  * Return the given registraion_outbound info.
  * @param key
@@ -3877,231 +2288,6 @@ static bool term_pjsip_databases(void)
   return true;
 
 }
-
-/**
- * Update pjsip aor info to the pjsip-aor config file
- * @param j_data
- * @return
- */
-static bool update_config_pjsip_aor(const char* name, const json_t* j_data)
-{
-  int ret;
-  json_t* j_tmp;
-
-  if((name == NULL) || (j_data == NULL)) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return false;
-  }
-  slog(LOG_DEBUG, "Fired update_config_pjsip_aor.");
-
-  j_tmp = json_deep_copy(j_data);
-
-  // delete object_name, object_type
-  json_object_del(j_tmp, "object_name");
-  json_object_del(j_tmp, "object_type");
-
-  ret = cfg_update_aor_info_data(name, j_tmp);
-  json_decref(j_tmp);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create pjsip config aor type.");
-    return false;
-  }
-
-  return true;
-}
-
-/**
- * Update pjsip auth info to the pjsip-auth config file
- * @param j_data
- * @return
- */
-static bool update_config_pjsip_auth(const char* name, const json_t* j_data)
-{
-  int ret;
-  json_t* j_tmp;
-
-  if((name == NULL) || (j_data == NULL)) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return false;
-  }
-  slog(LOG_DEBUG, "Fired update_config_pjsip_auth.");
-
-  j_tmp = json_deep_copy(j_data);
-
-  // delete object_name, object_type
-  json_object_del(j_tmp, "object_name");
-  json_object_del(j_tmp, "object_type");
-
-  ret = cfg_update_auth_info_data(name, j_tmp);
-  json_decref(j_tmp);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create pjsip config auth type.");
-    return false;
-  }
-
-  return true;
-}
-
-/**
- * Update pjsip contact info to the pjsip-contact config file
- * @param j_data
- * @return
- */
-static bool update_config_pjsip_contact(const char* name, const json_t* j_data)
-{
-  int ret;
-  json_t* j_tmp;
-
-  if((name == NULL) || (j_data == NULL)) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return false;
-  }
-  slog(LOG_DEBUG, "Fired update_config_pjsip_contact.");
-
-  j_tmp = json_deep_copy(j_data);
-
-  // delete object_name, object_type
-  json_object_del(j_tmp, "object_name");
-  json_object_del(j_tmp, "object_type");
-
-  ret = cfg_update_contact_info_data(name, j_tmp);
-  json_decref(j_tmp);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create pjsip config contact type.");
-    return false;
-  }
-
-  return true;
-}
-
-/**
- * Update pjsip endpoint info to the pjsip-endpoint config file
- * @param j_data
- * @return
- */
-static bool update_config_pjsip_endpoint(const char* name, const json_t* j_data)
-{
-  int ret;
-  json_t* j_tmp;
-
-  if((name == NULL) || (j_data == NULL)) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return false;
-  }
-  slog(LOG_DEBUG, "Fired update_config_pjsip_endpoint.");
-
-  j_tmp = json_deep_copy(j_data);
-
-  // delete object_name, object_type
-  json_object_del(j_tmp, "object_name");
-  json_object_del(j_tmp, "object_type");
-
-  ret = cfg_update_endpoint_info_data(name, j_tmp);
-  json_decref(j_tmp);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create pjsip config endpoint type.");
-    return false;
-  }
-
-  return true;
-}
-
-/**
- * Update pjsip identify info to the pjsip-identify config file
- * @param j_data
- * @return
- */
-static bool update_config_pjsip_identify(const char* name, const json_t* j_data)
-{
-  int ret;
-  json_t* j_tmp;
-
-  if((name == NULL) || (j_data == NULL)) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return false;
-  }
-  slog(LOG_DEBUG, "Fired update_config_pjsip_identify.");
-
-  j_tmp = json_deep_copy(j_data);
-
-  // delete object_name, object_type
-  json_object_del(j_tmp, "object_name");
-  json_object_del(j_tmp, "object_type");
-
-  ret = cfg_update_identify_info_data(name, j_tmp);
-  json_decref(j_tmp);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create pjsip config identify type.");
-    return false;
-  }
-
-  return true;
-}
-
-/**
- * Update pjsip registration info to the pjsip-registration config file
- * @param j_data
- * @return
- */
-static bool update_config_pjsip_registration(const char* name, const json_t* j_data)
-{
-  int ret;
-  json_t* j_tmp;
-
-  if((name == NULL) || (j_data == NULL)) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return false;
-  }
-  slog(LOG_DEBUG, "Fired update_config_pjsip_registration.");
-
-  j_tmp = json_deep_copy(j_data);
-
-  // delete object_name, object_type
-  json_object_del(j_tmp, "object_name");
-  json_object_del(j_tmp, "object_type");
-
-  ret = cfg_update_registration_info_data(name, j_tmp);
-  json_decref(j_tmp);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create pjsip config registration type.");
-    return false;
-  }
-
-  return true;
-}
-
-/**
- * Update pjsip transport info to the pjsip-transport config file
- * @param j_data
- * @return
- */
-static bool update_config_pjsip_transport(const char* name, const json_t* j_data)
-{
-  int ret;
-  json_t* j_tmp;
-
-  if((name == NULL) || (j_data == NULL)) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return false;
-  }
-  slog(LOG_DEBUG, "Fired update_config_pjsip_transport.");
-
-  j_tmp = json_deep_copy(j_data);
-
-  // delete object_name, object_type
-  json_object_del(j_tmp, "object_name");
-  json_object_del(j_tmp, "object_type");
-
-  ret = cfg_update_transport_info_data(name, j_tmp);
-  json_decref(j_tmp);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create pjsip config transport type.");
-    return false;
-  }
-
-  return true;
-}
-
 /**
  * Delete pjsip aor info from the pjsip-aor config file
  * @param j_data
@@ -4152,6 +2338,43 @@ bool pjsip_cfg_delete_auth_info(const char* name)
   return true;
 }
 
+bool pjsip_cfg_create_contact_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  // update
+  ret = cfg_create_contact_info(j_data);
+  if(ret == false) {
+    return false;
+  }
+
+  return true;
+}
+
+
+bool pjsip_cfg_update_contact_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  // update
+  ret = cfg_update_contact_info(j_data);
+  if(ret == false) {
+    return false;
+  }
+
+  return true;
+}
+
 /**
  * Delete pjsip contact info from the pjsip-contact config file
  * @param j_data
@@ -4175,6 +2398,23 @@ bool pjsip_cfg_delete_contact_info(const char* name)
   }
 
   return true;
+}
+
+json_t* pjsip_cfg_get_endpoint_info(const char* name)
+{
+  json_t* j_res;
+
+  if(name == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  j_res = conf_get_ast_section(DEF_PJSIP_CONFNAME_ENDPOINT, name);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
 }
 
 /**
@@ -4227,6 +2467,73 @@ bool pjsip_cfg_delete_identify_info(const char* name)
   return true;
 }
 
+json_t* pjsip_cfg_get_registration_info(const char* name)
+{
+  json_t* j_res;
+
+  if(name == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  j_res = conf_get_ast_section(DEF_PJSIP_CONFNAME_REGISTRATION, name);
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
+/**
+ * Create pjsip registration info from the pjsip-registration config file
+ * @param j_data
+ * @return
+ */
+bool pjsip_cfg_create_registration_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired pjsip_cfg_create_registration_info.");
+
+  // update
+  ret = cfg_create_registration_info(j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not delete pjsip registration.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Update pjsip registration info from the pjsip-registration config file
+ * @param j_data
+ * @return
+ */
+bool pjsip_cfg_update_registration_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired pjsip_cfg_update_registration_info.");
+
+  // update
+  ret = cfg_update_registration_info(j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not delete pjsip registration.");
+    return false;
+  }
+
+  return true;
+}
+
 /**
  * Delete pjsip registration info from the pjsip-registration config file
  * @param j_data
@@ -4246,6 +2553,54 @@ bool pjsip_cfg_delete_registration_info(const char* name)
   ret = cfg_delete_registration_info(name);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete pjsip registration.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Create pjsip transport info to the pjsip-transport config file
+ * @param j_data
+ * @return
+ */
+bool pjsip_cfg_create_transport_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired pjsip_cfg_create_transport_info.");
+
+  ret = cfg_create_transport_info(j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not create pjsip transport.");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Update pjsip transport info to the pjsip-transport config file
+ * @param j_data
+ * @return
+ */
+bool pjsip_cfg_update_transport_info(const json_t* j_data)
+{
+  int ret;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired pjsip_cfg_update_transport_info.");
+
+  ret = cfg_update_transport_info(j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not update pjsip transport.");
     return false;
   }
 
@@ -4276,21 +2631,21 @@ bool pjsip_cfg_delete_transport_info(const char* name)
   return true;
 }
 
-static bool cfg_create_aor_info_data(const char* name, const json_t* j_data)
+static bool cfg_create_aor_info(const json_t* j_data)
 {
   int ret;
   json_t* j_tmp;
 
-  if((name == NULL) || (j_data == NULL)) {
+  if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
-  slog(LOG_DEBUG, "Fired cfg_create_aor_info. name[%s]", name);
+  slog(LOG_DEBUG, "Fired cfg_create_aor_info.");
 
   j_tmp = json_deep_copy(j_data);
-  json_object_set_new(j_tmp, "type", json_string("aor"));
+  json_object_set_new(json_object_get(j_tmp, "data"), "type", json_string("aor"));
 
-  ret = conf_create_ast_section_data(DEF_PJSIP_CONFNAME_AOR, name, j_tmp);
+  ret = conf_create_ast_section(DEF_PJSIP_CONFNAME_AOR, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not create config for pjsip aor.");
@@ -4300,21 +2655,21 @@ static bool cfg_create_aor_info_data(const char* name, const json_t* j_data)
   return true;
 }
 
-static bool cfg_update_aor_info_data(const char* name, const json_t* j_data)
+static bool cfg_update_aor_info(const json_t* j_data)
 {
   int ret;
   json_t* j_tmp;
 
-  if((name == NULL) || (j_data == NULL)) {
+  if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
-  slog(LOG_DEBUG, "Fired cfg_update_aor_info. name[%s]", name);
+  slog(LOG_DEBUG, "Fired cfg_update_aor_info.");
 
   j_tmp = json_deep_copy(j_data);
-  json_object_set_new(j_tmp, "type", json_string("aor"));
+  json_object_set_new(json_object_get(j_tmp, "data"), "type", json_string("aor"));
 
-  ret = conf_update_ast_section_data(DEF_PJSIP_CONFNAME_AOR, name, j_tmp);
+  ret = conf_update_ast_section(DEF_PJSIP_CONFNAME_AOR, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not update config for pjsip aor.");
@@ -4343,21 +2698,21 @@ static bool cfg_delete_aor_info(const char* name)
   return true;
 }
 
-static bool cfg_create_auth_info_data(const char* name, const json_t* j_data)
+static bool cfg_create_auth_info(const json_t* j_data)
 {
   int ret;
   json_t* j_tmp;
 
-  if((name == NULL) || (j_data == NULL)) {
+  if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
-  slog(LOG_DEBUG, "Fired cfg_create_auth_info. name[%s]", name);
+  slog(LOG_DEBUG, "Fired cfg_create_auth_info.");
 
   j_tmp = json_deep_copy(j_data);
-  json_object_set_new(j_tmp, "type", json_string("auth"));
+  json_object_set_new(json_object_get(j_tmp, "data"), "type", json_string("auth"));
 
-  ret = conf_create_ast_section_data(DEF_PJSIP_CONFNAME_AUTH, name, j_tmp);
+  ret = conf_create_ast_section(DEF_PJSIP_CONFNAME_AUTH, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not create config for pjsip auth.");
@@ -4367,21 +2722,21 @@ static bool cfg_create_auth_info_data(const char* name, const json_t* j_data)
   return true;
 }
 
-static bool cfg_update_auth_info_data(const char* name, const json_t* j_data)
+static bool cfg_update_auth_info(const json_t* j_data)
 {
   int ret;
   json_t* j_tmp;
 
-  if((name == NULL) || (j_data == NULL)) {
+  if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
-  slog(LOG_DEBUG, "Fired cfg_update_auth_info. name[%s]", name);
+  slog(LOG_DEBUG, "Fired cfg_update_auth_info.");
 
   j_tmp = json_deep_copy(j_data);
-  json_object_set_new(j_tmp, "type", json_string("auth"));
+  json_object_set_new(json_object_get(j_tmp, "data"), "type", json_string("auth"));
 
-  ret = conf_update_ast_section_data(DEF_PJSIP_CONFNAME_AUTH, name, j_tmp);
+  ret = conf_update_ast_section(DEF_PJSIP_CONFNAME_AUTH, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not update config for pjsip auth.");
@@ -4410,21 +2765,21 @@ static bool cfg_delete_auth_info(const char* name)
   return true;
 }
 
-static bool cfg_create_contact_info_data(const char* name, const json_t* j_data)
+static bool cfg_create_contact_info(const json_t* j_data)
 {
   int ret;
   json_t* j_tmp;
 
-  if((name == NULL) || (j_data == NULL)) {
+  if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
-  slog(LOG_DEBUG, "Fired cfg_create_contact_info. name[%s]", name);
+  slog(LOG_DEBUG, "Fired cfg_create_contact_info.");
 
   j_tmp = json_deep_copy(j_data);
-  json_object_set_new(j_tmp, "type", json_string("contact"));
+  json_object_set_new(json_object_get(j_tmp, "data"), "type", json_string("contact"));
 
-  ret = conf_create_ast_section_data(DEF_PJSIP_CONFNAME_CONTACT, name, j_tmp);
+  ret = conf_create_ast_section(DEF_PJSIP_CONFNAME_CONTACT, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not create config for pjsip contact.");
@@ -4434,21 +2789,21 @@ static bool cfg_create_contact_info_data(const char* name, const json_t* j_data)
   return true;
 }
 
-static bool cfg_update_contact_info_data(const char* name, const json_t* j_data)
+static bool cfg_update_contact_info(const json_t* j_data)
 {
   int ret;
   json_t* j_tmp;
 
-  if((name == NULL) || (j_data == NULL)) {
+  if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
-  slog(LOG_DEBUG, "Fired cfg_update_contact_info. name[%s]", name);
+  slog(LOG_DEBUG, "Fired cfg_update_contact_info.");
 
   j_tmp = json_deep_copy(j_data);
-  json_object_set_new(j_tmp, "type", json_string("contact"));
+  json_object_set_new(json_object_get(j_tmp, "data"), "type", json_string("contact"));
 
-  ret = conf_update_ast_section_data(DEF_PJSIP_CONFNAME_CONTACT, name, j_tmp);
+  ret = conf_update_ast_section(DEF_PJSIP_CONFNAME_CONTACT, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not update config for pjsip contact.");
@@ -4477,83 +2832,85 @@ static bool cfg_delete_contact_info(const char* name)
   return true;
 }
 
-static bool cfg_create_endpoint_info_data(const char* name, const json_t* j_data)
+static bool cfg_create_endpoint_info(const json_t* j_data)
 {
   int ret;
   json_t* j_tmp;
-  json_t* j_cb_data;
+  const char* name;
 
-  if((name == NULL) || (j_data == NULL)) {
+  if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
-  slog(LOG_DEBUG, "Fired cfg_create_endpoint_info. name[%s]", name);
+  slog(LOG_DEBUG, "Fired cfg_create_endpoint_info.");
 
   j_tmp = json_deep_copy(j_data);
-  json_object_set_new(j_tmp, "type", json_string("endpoint"));
+  json_object_set_new(json_object_get(j_tmp, "data"), "type", json_string("endpoint"));
 
-  ret = conf_create_ast_section_data(DEF_PJSIP_CONFNAME_ENDPOINT, name, j_tmp);
+  ret = conf_create_ast_section(DEF_PJSIP_CONFNAME_ENDPOINT, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not create config for pjsip endpoint.");
     return false;
   }
 
+  name = json_string_value(json_object_get(j_data, "name"));
+  if(name == NULL) {
+    slog(LOG_NOTICE, "Could not get name info.");
+    return false;
+  }
+
   // get created data
-  j_tmp = pjsip_cfg_get_endpoint_info_data(name);
+  j_tmp = pjsip_cfg_get_endpoint_info(name);
   if(j_tmp == NULL) {
     slog(LOG_NOTICE, "Could not get created cfg endpoint info.");
     return false;
   }
 
-  j_cb_data = json_pack("{s:s, s:o}",
-      "name", name,
-      "data", j_tmp
-      );
-
   // execute
-  execute_callbacks_cfg_endpoint(EN_RESOURCE_CREATE, j_cb_data);
-  json_decref(j_cb_data);
+  execute_callbacks_cfg_endpoint(EN_RESOURCE_CREATE, j_tmp);
+  json_decref(j_tmp);
 
   return true;
 }
 
-static bool cfg_update_endpoint_info_data(const char* name, const json_t* j_data)
+static bool cfg_update_endpoint_info(const json_t* j_data)
 {
   int ret;
+  const char* name;
   json_t* j_tmp;
-  json_t* j_cb_data;
 
-  if((name == NULL) || (j_data == NULL)) {
+  if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
-  slog(LOG_DEBUG, "Fired cfg_update_endpoint_info. name[%s]", name);
+  slog(LOG_DEBUG, "Fired cfg_update_endpoint_info.");
 
   j_tmp = json_deep_copy(j_data);
-  json_object_set_new(j_tmp, "type", json_string("endpoint"));
+  json_object_set_new(json_object_get(j_tmp, "data"), "type", json_string("endpoint"));
 
-  ret = conf_update_ast_section_data(DEF_PJSIP_CONFNAME_ENDPOINT, name, j_tmp);
+  ret = conf_update_ast_section(DEF_PJSIP_CONFNAME_ENDPOINT, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not update config for pjsip endpoint.");
     return false;
   }
 
+  name = json_string_value(json_object_get(j_data, "name"));
+  if(name == NULL) {
+    slog(LOG_NOTICE, "Could not get name info.");
+    return false;
+  }
+
   // get updated data
-  j_tmp = pjsip_cfg_get_endpoint_info_data(name);
+  j_tmp = pjsip_cfg_get_endpoint_info(name);
   if(j_tmp == NULL) {
     slog(LOG_NOTICE, "Could not get updated cfg endpoint info.");
     return false;
   }
 
-  j_cb_data = json_pack("{s:s, s:o}",
-      "name", name,
-      "data", j_tmp
-      );
-
-  execute_callbacks_cfg_endpoint(EN_RESOURCE_UPDATE, j_cb_data);
-  json_decref(j_cb_data);
+  execute_callbacks_cfg_endpoint(EN_RESOURCE_UPDATE, j_tmp);
+  json_decref(j_tmp);
 
   return true;
 }
@@ -4595,21 +2952,21 @@ static bool cfg_delete_endpoint_info(const char* name)
   return true;
 }
 
-static bool cfg_create_identify_info_data(const char* name, const json_t* j_data)
+static bool cfg_create_identify_info(const json_t* j_data)
 {
   int ret;
   json_t* j_tmp;
 
-  if((name == NULL) || (j_data == NULL)) {
+  if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
-  slog(LOG_DEBUG, "Fired cfg_create_identify_info. name[%s]", name);
+  slog(LOG_DEBUG, "Fired cfg_create_identify_info.");
 
   j_tmp = json_deep_copy(j_data);
-  json_object_set_new(j_tmp, "type", json_string("identify"));
+  json_object_set_new(json_object_get(j_tmp, "data"), "type", json_string("identify"));
 
-  ret = conf_create_ast_section_data(DEF_PJSIP_CONFNAME_IDENTIFY, name, j_tmp);
+  ret = conf_create_ast_section(DEF_PJSIP_CONFNAME_IDENTIFY, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not create config for pjsip identify.");
@@ -4619,21 +2976,21 @@ static bool cfg_create_identify_info_data(const char* name, const json_t* j_data
   return true;
 }
 
-static bool cfg_update_identify_info_data(const char* name, const json_t* j_data)
+static bool cfg_update_identify_info(const json_t* j_data)
 {
   int ret;
   json_t* j_tmp;
 
-  if((name == NULL) || (j_data == NULL)) {
+  if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
-  slog(LOG_DEBUG, "Fired cfg_update_identify_info. name[%s]", name);
+  slog(LOG_DEBUG, "Fired cfg_update_identify_info.");
 
   j_tmp = json_deep_copy(j_data);
-  json_object_set_new(j_tmp, "type", json_string("identify"));
+  json_object_set_new(json_object_get(j_tmp, "data"), "type", json_string("identify"));
 
-  ret = conf_update_ast_section_data(DEF_PJSIP_CONFNAME_IDENTIFY, name, j_tmp);
+  ret = conf_update_ast_section(DEF_PJSIP_CONFNAME_IDENTIFY, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not update config for pjsip identify.");
@@ -4662,21 +3019,21 @@ static bool cfg_delete_identify_info(const char* name)
   return true;
 }
 
-static bool cfg_create_registration_info_data(const char* name, const json_t* j_data)
+static bool cfg_create_registration_info(const json_t* j_data)
 {
   int ret;
   json_t* j_tmp;
 
-  if((name == NULL) || (j_data == NULL)) {
+  if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
-  slog(LOG_DEBUG, "Fired cfg_create_registration_info. name[%s]", name);
+  slog(LOG_DEBUG, "Fired cfg_create_registration_info.");
 
   j_tmp = json_deep_copy(j_data);
-  json_object_set_new(j_tmp, "type", json_string("registration"));
+  json_object_set_new(json_object_get(j_tmp, "data"), "type", json_string("registration"));
 
-  ret = conf_create_ast_section_data(DEF_PJSIP_CONFNAME_REGISTRATION, name, j_tmp);
+  ret = conf_create_ast_section(DEF_PJSIP_CONFNAME_REGISTRATION, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not create config for pjsip registration.");
@@ -4686,21 +3043,22 @@ static bool cfg_create_registration_info_data(const char* name, const json_t* j_
   return true;
 }
 
-static bool cfg_update_registration_info_data(const char* name, const json_t* j_data)
+static bool cfg_update_registration_info(const json_t* j_data)
 {
   int ret;
   json_t* j_tmp;
 
-  if((name == NULL) || (j_data == NULL)) {
+  if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
-  slog(LOG_DEBUG, "Fired cfg_update_registration_info. name[%s]", name);
+  slog(LOG_DEBUG, "Fired cfg_update_registration_info.");
 
   j_tmp = json_deep_copy(j_data);
-  json_object_set_new(j_tmp, "type", json_string("registration"));
 
-  ret = conf_update_ast_section_data(DEF_PJSIP_CONFNAME_REGISTRATION, name, j_tmp);
+  json_object_set_new(json_object_get(j_tmp, "data"), "type", json_string("registration"));
+
+  ret = conf_update_ast_section(DEF_PJSIP_CONFNAME_REGISTRATION, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not update config for pjsip registration.");
@@ -4709,6 +3067,7 @@ static bool cfg_update_registration_info_data(const char* name, const json_t* j_
 
   return true;
 }
+
 
 static bool cfg_delete_registration_info(const char* name)
 {
@@ -4729,21 +3088,21 @@ static bool cfg_delete_registration_info(const char* name)
   return true;
 }
 
-static bool cfg_create_transport_info_data(const char* name, const json_t* j_data)
+static bool cfg_create_transport_info(const json_t* j_data)
 {
   int ret;
   json_t* j_tmp;
 
-  if((name == NULL) || (j_data == NULL)) {
+  if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
-  slog(LOG_DEBUG, "Fired cfg_create_transport_info. name[%s]", name);
+  slog(LOG_DEBUG, "Fired cfg_create_transport_info.");
 
   j_tmp = json_deep_copy(j_data);
-  json_object_set_new(j_tmp, "type", json_string("transport"));
+  json_object_set_new(json_object_get(j_tmp, "data"), "type", json_string("transport"));
 
-  ret = conf_create_ast_section_data(DEF_PJSIP_CONFNAME_TRANSPORT, name, j_tmp);
+  ret = conf_create_ast_section(DEF_PJSIP_CONFNAME_TRANSPORT, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not create config for pjsip transport.");
@@ -4753,21 +3112,21 @@ static bool cfg_create_transport_info_data(const char* name, const json_t* j_dat
   return true;
 }
 
-static bool cfg_update_transport_info_data(const char* name, const json_t* j_data)
+static bool cfg_update_transport_info(const json_t* j_data)
 {
   int ret;
   json_t* j_tmp;
 
-  if((name == NULL) || (j_data == NULL)) {
+  if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
-  slog(LOG_DEBUG, "Fired cfg_update_transport_info. name[%s]", name);
+  slog(LOG_DEBUG, "Fired cfg_update_transport_info.");
 
   j_tmp = json_deep_copy(j_data);
-  json_object_set_new(j_tmp, "type", json_string("transport"));
+  json_object_set_new(json_object_get(j_tmp, "data"), "type", json_string("transport"));
 
-  ret = conf_update_ast_section_data(DEF_PJSIP_CONFNAME_TRANSPORT, name, j_tmp);
+  ret = conf_update_ast_section(DEF_PJSIP_CONFNAME_TRANSPORT, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not update config for pjsip transport.");
@@ -4797,273 +3156,6 @@ static bool cfg_delete_transport_info(const char* name)
 }
 
 /**
- * Create pjsip aor info to the pjsip-aor config file
- * @param j_data
- * @return
- */
-static bool create_config_pjsip_aor(const json_t* j_data)
-{
-  int ret;
-  json_t* j_tmp;
-  const char* name;
-
-  if(j_data == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return false;
-  }
-  slog(LOG_DEBUG, "Fired create_config_pjsip_aor.");
-
-  name = json_string_value(json_object_get(j_data, "object_name"));
-  if(name == NULL) {
-    slog(LOG_NOTICE, "Could not get name info.");
-    return false;
-  }
-
-  j_tmp = json_deep_copy(j_data);
-
-  // delete object_name, object_type
-  json_object_del(j_tmp, "object_name");
-  json_object_del(j_tmp, "object_type");
-
-  ret = cfg_create_aor_info_data(name, j_tmp);
-  json_decref(j_tmp);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create pjsip config aor type.");
-    return false;
-  }
-
-  return true;
-}
-
-/**
- * Create pjsip auth info to the pjsip-auth config file
- * @param j_data
- * @return
- */
-static bool create_config_pjsip_auth(const json_t* j_data)
-{
-  int ret;
-  json_t* j_tmp;
-  const char* name;
-
-  if(j_data == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return false;
-  }
-  slog(LOG_DEBUG, "Fired create_config_pjsip_auth.");
-
-  name = json_string_value(json_object_get(j_data, "object_name"));
-  if(name == NULL) {
-    slog(LOG_NOTICE, "Could not get name info.");
-    return false;
-  }
-
-  // delete object_name, object_type
-  j_tmp = json_deep_copy(j_data);
-  json_object_del(j_tmp, "object_name");
-  json_object_del(j_tmp, "object_type");
-
-  ret = cfg_create_auth_info_data(name, j_tmp);
-  json_decref(j_tmp);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create pjsip config auth type.");
-    return false;
-  }
-
-  return true;
-}
-
-/**
- * Create pjsip contact info to the pjsip-contact config file
- * @param j_data
- * @return
- */
-static bool create_config_pjsip_contact(const json_t* j_data)
-{
-  int ret;
-  json_t* j_tmp;
-  const char* name;
-
-  if(j_data == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return false;
-  }
-  slog(LOG_DEBUG, "Fired create_config_pjsip_contact.");
-
-  name = json_string_value(json_object_get(j_data, "object_name"));
-  if(name == NULL) {
-    slog(LOG_NOTICE, "Could not get name info.");
-    return false;
-  }
-
-  // delete object_name, object_type
-  j_tmp = json_deep_copy(j_data);
-  json_object_del(j_tmp, "object_name");
-  json_object_del(j_tmp, "object_type");
-
-  ret = cfg_create_contact_info_data(name, j_tmp);
-  json_decref(j_tmp);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create pjsip config contact type.");
-    return false;
-  }
-
-  return true;
-}
-
-/**
- * Create pjsip endpoint info to the pjsip-endpoint config file
- * @param j_data
- * @return
- */
-static bool create_config_pjsip_endpoint(const json_t* j_data)
-{
-  int ret;
-  const char* name;
-  json_t* j_tmp;
-
-  if(j_data == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return false;
-  }
-  slog(LOG_DEBUG, "Fired create_config_pjsip_endpoint.");
-
-  name = json_string_value(json_object_get(j_data, "object_name"));
-  if(name == NULL) {
-    slog(LOG_NOTICE, "Could not get name info.");
-    return false;
-  }
-
-  // delete object_name, object_type
-  j_tmp = json_deep_copy(j_data);
-  json_object_del(j_tmp, "object_name");
-  json_object_del(j_tmp, "object_type");
-
-  ret = cfg_create_endpoint_info_data(name, j_tmp);
-  json_decref(j_tmp);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create pjsip config endpoint type.");
-    return false;
-  }
-
-  return true;
-}
-
-/**
- * Create pjsip identify info to the pjsip-identify config file
- * @param j_data
- * @return
- */
-static bool create_config_pjsip_identify(const json_t* j_data)
-{
-  int ret;
-  const char* name;
-  json_t* j_tmp;
-
-  if(j_data == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return false;
-  }
-  slog(LOG_DEBUG, "Fired create_config_pjsip_identify.");
-
-  name = json_string_value(json_object_get(j_data, "object_name"));
-  if(name == NULL) {
-    slog(LOG_NOTICE, "Could not get name info.");
-    return false;
-  }
-
-  // delete object_name, object_type
-  j_tmp = json_deep_copy(j_data);
-  json_object_del(j_tmp, "object_name");
-  json_object_del(j_tmp, "object_type");
-
-  ret = cfg_create_identify_info_data(name, j_tmp);
-  json_decref(j_tmp);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create pjsip config identify type.");
-    return false;
-  }
-
-  return true;
-}
-
-/**
- * Create pjsip registration info to the pjsip-registration config file
- * @param j_data
- * @return
- */
-static bool create_config_pjsip_registration(const json_t* j_data)
-{
-  int ret;
-  const char* name;
-  json_t* j_tmp;
-
-  if(j_data == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return false;
-  }
-  slog(LOG_DEBUG, "Fired create_config_pjsip_registration.");
-
-  name = json_string_value(json_object_get(j_data, "object_name"));
-  if(name == NULL) {
-    slog(LOG_NOTICE, "Could not get name info.");
-    return false;
-  }
-
-  // delete object_name, object_type
-  j_tmp = json_deep_copy(j_data);
-  json_object_del(j_tmp, "object_name");
-  json_object_del(j_tmp, "object_type");
-
-  ret = cfg_create_registration_info_data(name, j_tmp);
-  json_decref(j_tmp);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create pjsip config registration type.");
-    return false;
-  }
-
-  return true;
-}
-
-/**
- * Create pjsip transport info to the pjsip-transport config file
- * @param j_data
- * @return
- */
-static bool create_config_pjsip_transport(const json_t* j_data)
-{
-  int ret;
-  const char* name;
-  json_t* j_tmp;
-
-  if(j_data == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return false;
-  }
-  slog(LOG_DEBUG, "Fired create_config_pjsip_transport.");
-
-  name = json_string_value(json_object_get(j_data, "object_name"));
-  if(name == NULL) {
-    slog(LOG_NOTICE, "Could not get name info.");
-    return false;
-  }
-
-  // delete object_name, object_type
-  j_tmp = json_deep_copy(j_data);
-  json_object_del(j_tmp, "object_name");
-  json_object_del(j_tmp, "object_type");
-
-  ret = cfg_create_transport_info_data(name, j_tmp);
-  json_decref(j_tmp);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not create pjsip config transport type.");
-    return false;
-  }
-
-  return true;
-}
-
-/**
  * Create aor config with default setting.
  * @param name
  * @return
@@ -5079,13 +3171,15 @@ static bool create_config_aor_with_default_setting(const char* name)
   }
 
   // create default data
-  j_tmp = json_pack("{s:s, s:s}",
-      "max_contacts",     "10",
-      "remove_existing",  "yes"
+  j_tmp = json_pack("{s:s, s:{s:s, s:s}}",
+      "name",   name,
+      "data",
+        "max_contacts",     "10",
+        "remove_existing",  "yes"
       );
 
   // create default aor info
-  ret = cfg_create_aor_info_data(name, j_tmp);
+  ret = cfg_create_aor_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     return false;
@@ -5108,15 +3202,17 @@ static bool create_config_auth_with_default_setting(const char* name)
 
   // create default data
   password = utils_gen_uuid();
-  j_tmp = json_pack("{s:s, s:s, s:s}",
-      "auth_type",    "userpass",
-      "username",     name,
-      "password",     password
+  j_tmp = json_pack("{s:s, s:{s:s, s:s, s:s}}",
+      "name",   name,
+      "data",
+        "auth_type",    "userpass",
+        "username",     name,
+        "password",     password
       );
   sfree(password);
 
   // create default auth info
-  ret = cfg_create_auth_info_data(name, j_tmp);
+  ret = cfg_create_auth_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     return false;
@@ -5140,44 +3236,45 @@ static bool create_config_endpoint_with_default_setting(const char* name, const 
   cert_file = json_string_value(json_object_get(json_object_get(g_app->j_conf, "pjsip"), "dtls_cert_file"));
 
   j_tmp = json_pack("{"
-      "s:s, s:s, "
-
       "s:s, "
+      "s: {"
+        "s:s, s:s, "
+        "s:s, "
+        "s:s, s:s, "
 
-      "s:s, s:s, "
-
-      "s:s, s:s, s:s, "
-
-      "s:s, s:s, "
-
-      "s:s, "
-
-      "s:s, s:s"
+        "s:s, s:s, s:s, "
+        "s:s, s:s, "
+        "s:s, "
+        "s:s, s:s"
+        "}"
       "}",
 
-      "aors",         name,
-      "auth",         name,
+      "name",   name,
+      "data",
+        "aors",         name,
+        "auth",         name,
 
-      "use_avpf",     "yes",
+        "use_avpf",     "yes",
 
-      "media_encryption",               "dtls",
-      "media_use_received_transport",   "yes",
+        "media_encryption",               "dtls",
+        "media_use_received_transport",   "yes",
 
-      "dtls_cert_file",   cert_file,
-      "dtls_verify",      "fingerprint",
-      "dtls_setup",       "actpass",
 
-      "ice_support",    "yes",
-      "rtcp_mux",       "yes",
+        "dtls_cert_file",   cert_file,
+        "dtls_verify",      "fingerprint",
+        "dtls_setup",       "actpass",
 
-      "context",        context,
+        "ice_support",    "yes",
+        "rtcp_mux",       "yes",
 
-      "allow",          "opus",
-      "allow",          "ulaw"
+        "context",        context,
+
+        "allow",          "opus",
+        "allow",          "ulaw"
       );
 
   // create default info
-  ret = cfg_create_endpoint_info_data(name, j_tmp);
+  ret = cfg_create_endpoint_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     return false;
@@ -5419,7 +3516,7 @@ json_t* pjsip_cfg_get_registration_info_data(const char* name)
   return j_res;
 }
 
-json_t* pjsip_cfg_get_transport_info_data(const char* name)
+json_t* pjsip_cfg_get_transport_info(const char* name)
 {
   json_t* j_res;
 
@@ -5428,7 +3525,7 @@ json_t* pjsip_cfg_get_transport_info_data(const char* name)
     return NULL;
   }
 
-  j_res = conf_get_ast_section_data(DEF_PJSIP_CONFNAME_TRANSPORT, name);
+  j_res = conf_get_ast_section(DEF_PJSIP_CONFNAME_TRANSPORT, name);
   if(j_res == NULL) {
     return NULL;
   }
@@ -5447,45 +3544,32 @@ bool pjsip_cfg_create_registration_with_default_info(const char* name, const cha
   }
 
   j_tmp = json_pack("{"
-      "s:s, s:s, s:s, "
       "s:s, "
-      "s:s, s:s, s:s "
+      "s:{"
+        "s:s, s:s, s:s, "
+        "s:s, "
+        "s:s, s:s, s:s "
+        "}"
       "}",
 
-      "outbound_auth",  name,
-      "server_uri",   server_uri,
-      "client_uri",   client_uri,
+      "name",   name,
+      "data",
 
-      "retry_interval", "60",
+        "outbound_auth",  name,
+        "server_uri",   server_uri,
+        "client_uri",   client_uri,
 
-      "line",       "yes",
-      "endpoint",   name,
-      "transport",  DEF_TRANSPORT_NAME_UDP
+        "retry_interval", "60",
+
+        "line",       "yes",
+        "endpoint",   name,
+        "transport",  DEF_TRANSPORT_NAME_UDP
       );
 
-  ret = cfg_create_registration_info_data(name, j_tmp);
+  ret = cfg_create_registration_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not create registration with default info.");
-    return false;
-  }
-
-  return true;
-}
-
-bool pjsip_cfg_update_registration_info(const char* name, const json_t* j_data)
-{
-  int ret;
-
-  if((name == NULL) || (j_data == NULL)) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return false;
-  }
-  slog(LOG_DEBUG, "Fired pjsip_cfg_update_registration_info. name[%s]", name);
-
-  ret = cfg_update_registration_info_data(name, j_data);
-  if(ret == false) {
-    slog(LOG_NOTICE, "Could not update registration info.");
     return false;
   }
 
@@ -5503,13 +3587,15 @@ bool pjsip_cfg_create_auth_info(const char* name, const char* username, const ch
   }
 
   // create auth
-  j_tmp = json_pack("{s:s, s:s, s:s}",
-      "auth_type",    "userpass",
-      "username",     username,
-      "password",     password
+  j_tmp = json_pack("{s:s, s:{s:s, s:s, s:s}}",
+      "name",       name,
+      "data",
+        "auth_type",    "userpass",
+        "username",     username,
+        "password",     password
       );
 
-  ret = cfg_create_auth_info_data(name, j_tmp);
+  ret = cfg_create_auth_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not create auth info.");
@@ -5522,6 +3608,7 @@ bool pjsip_cfg_create_auth_info(const char* name, const char* username, const ch
 bool pjsip_cfg_update_auth_info(const char* name, const json_t* j_data)
 {
   int ret;
+  json_t* j_tmp;
 
   if((name == NULL) || (j_data == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -5529,7 +3616,13 @@ bool pjsip_cfg_update_auth_info(const char* name, const json_t* j_data)
   }
   slog(LOG_DEBUG, "Fired pjsip_cfg_update_auth_info. name[%s]", name);
 
-  ret = cfg_update_auth_info_data(name, j_data);
+  j_tmp = json_pack("{s:s, s:O}",
+      "name",   name,
+      "data",   j_data
+      );
+
+  ret = cfg_update_auth_info(j_tmp);
+  json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not update auth info.");
     return false;
@@ -5548,11 +3641,13 @@ bool pjsip_cfg_create_aor_info(const char* name, const char* contact)
     return false;
   }
 
-  j_tmp = json_pack("{s:s}",
-      "contact", contact
+  j_tmp = json_pack("{s:s, s:{s:s}}",
+      "name",   name,
+      "data",
+        "contact", contact
       );
 
-  ret = cfg_create_aor_info_data(name, j_tmp);
+  ret = cfg_create_aor_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not create aor info.");
@@ -5562,9 +3657,10 @@ bool pjsip_cfg_create_aor_info(const char* name, const char* contact)
   return true;
 }
 
-bool pjsip_cfg_update_aor_info(const char* name, const json_t* j_data)
+bool pjsip_cfg_update_aor_info_data(const char* name, const json_t* j_data)
 {
   int ret;
+  json_t* j_tmp;
 
   if((name == NULL) || (j_data == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -5572,7 +3668,13 @@ bool pjsip_cfg_update_aor_info(const char* name, const json_t* j_data)
   }
   slog(LOG_DEBUG, "Fired pjsip_cfg_update_aor_info. name[%s]", name);
 
-  ret = cfg_update_aor_info_data(name, j_data);
+  j_tmp = json_pack("{s:s, s:O}",
+      "name",   name,
+      "data",   j_data
+      );
+
+  ret = cfg_update_aor_info(j_tmp);
+  json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not update aor info.");
     return false;
@@ -5591,14 +3693,16 @@ bool pjsip_cfg_create_endpoint_with_default_info(const char* name, const char* c
     return false;
   }
 
-  j_tmp = json_pack("{s:s, s:s, s:s, s:s}",
-      "outbound_auth",  name,
-      "aors",           name,
-      "context",        context,
-      "allow",          "ulaw"
+  j_tmp = json_pack("{s:s, s:{s:s, s:s, s:s, s:s}}",
+      "name",           name,
+      "data",
+        "outbound_auth",  name,
+        "aors",           name,
+        "context",        context,
+        "allow",          "ulaw"
       );
 
-  ret = cfg_create_endpoint_info_data(name, j_tmp);
+  ret = cfg_create_endpoint_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not create endpoint info.");
@@ -5608,9 +3712,10 @@ bool pjsip_cfg_create_endpoint_with_default_info(const char* name, const char* c
   return true;
 }
 
-bool pjsip_cfg_update_endpoint_info(const char* name, const json_t* j_data)
+bool pjsip_cfg_update_endpoint_info_data(const char* name, const json_t* j_data)
 {
   int ret;
+  json_t* j_tmp;
 
   if((name == NULL) || (j_data == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -5618,7 +3723,13 @@ bool pjsip_cfg_update_endpoint_info(const char* name, const json_t* j_data)
   }
   slog(LOG_DEBUG, "Fired pjsip_cfg_update_endpoint_info. name[%s]", name);
 
-  ret = cfg_update_endpoint_info_data(name, j_data);
+  j_tmp = json_pack("{s:s, s:O}",
+      "name",   name,
+      "data",   j_data
+      );
+
+  ret = cfg_update_endpoint_info(j_tmp);
+  json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not update endpoint info.");
     return false;
@@ -5637,12 +3748,18 @@ bool pjsip_cfg_create_identify_info(const char* name, const char* match)
     return false;
   }
 
-  j_tmp = json_pack("{s:s, s:s}",
-      "endpoint",     name,
-      "match",        match
+  j_tmp = json_pack("{"
+      "s:s, "
+      "s:{s:s, s:s}"
+      "}",
+
+      "name",     name,
+      "data",
+        "endpoint",     name,
+        "match",        match
       );
 
-  ret = cfg_create_identify_info_data(name, j_tmp);
+  ret = cfg_create_identify_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not create identify info.");
@@ -5652,17 +3769,24 @@ bool pjsip_cfg_create_identify_info(const char* name, const char* match)
   return true;
 }
 
-bool pjsip_cfg_update_identify_info(const char* name, const json_t* j_data)
+bool pjsip_cfg_update_identify_info_data(const char* name, const json_t* j_data)
 {
   int ret;
+  json_t* j_tmp;
 
   if((name == NULL) || (j_data == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
-  slog(LOG_DEBUG, "Fired pjsip_cfg_update_identify_info. name[%s]", name);
+  slog(LOG_DEBUG, "Fired pjsip_cfg_update_identify_info_data. name[%s]", name);
 
-  ret = cfg_update_identify_info_data(name, j_data);
+  j_tmp = json_pack("{s:s, s:O}",
+      "name",   name,
+      "data",   j_data
+      );
+
+  ret = cfg_update_identify_info(j_tmp);
+  json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not update identify info.");
     return false;
@@ -5788,5 +3912,115 @@ static void execute_callbacks_cfg_endpoint(enum EN_RESOURCE_UPDATE_TYPES type, c
   utils_execute_callbacks(g_callback_cfg_endpoint, type, j_data);
 
   return;
+}
+
+json_t* pjsip_get_configurations_all(void)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+
+  j_res = json_array();
+
+  // get current config
+  j_tmp = conf_get_ast_current_config_info_text(DEF_PJSIP_CONFNAME);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get current config info.");
+    json_decref(j_res);
+    return NULL;
+  }
+  json_array_append_new(j_res, j_tmp);
+
+  // get backup configs
+  j_tmp = conf_get_ast_backup_configs_text_all(DEF_PJSIP_CONFNAME);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get backup configs info.");
+    json_decref(j_res);
+    return NULL;
+  }
+  json_array_extend(j_res, j_tmp);
+  json_decref(j_tmp);
+
+  return j_res;
+}
+
+json_t* pjsip_get_configuration_info(const char* name)
+{
+  int ret;
+  json_t* j_res;
+
+  if(name == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  ret = strcmp(name, "current");
+  if(ret == 0) {
+    j_res = conf_get_ast_current_config_info_text(DEF_PJSIP_CONFNAME);
+  }
+  else {
+    j_res = conf_get_ast_backup_config_info_text(name);
+  }
+
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
+bool pjsip_update_configuration_info(const json_t* j_data)
+{
+  int ret;
+  const char* name;
+  const char* data;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  name = json_string_value(json_object_get(j_data, "name"));
+  data = json_string_value(json_object_get(j_data, "data"));
+  if((name == NULL) || (data == NULL)) {
+    slog(LOG_NOTICE, "Could not get name or data info.");
+    return false;
+  }
+
+  ret = strcmp(name, "current");
+  if(ret != 0) {
+    slog(LOG_NOTICE, "The only current configuration can update.");
+    return false;
+  }
+
+  ret = conf_update_ast_current_config_info_text_data(DEF_PJSIP_CONFNAME, data);
+  if(ret == false) {
+    return false;
+  }
+
+  return true;
+}
+
+bool pjsip_delete_configuration_info(const char* name)
+{
+  int ret;
+
+  if(name == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  ret = strcmp(name, DEF_PJSIP_CONFNAME);
+  if(ret == 0) {
+    slog(LOG_NOTICE, "The current configuration is not deletable.");
+    return false;
+  }
+
+  ret = conf_remove_ast_backup_config_info_valid(name, DEF_PJSIP_CONFNAME);
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not delete backup config info.");
+    return false;
+  }
+
+  return true;
 }
 

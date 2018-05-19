@@ -573,7 +573,7 @@ void voicemail_htp_put_voicemail_config(evhtp_request_t *req, void *data)
   }
 
   // update config
-  ret = conf_update_ast_current_config_info_text(DEF_VOICEMAIL_CONFNAME, req_data);
+  ret = conf_update_ast_current_config_info_text_data(DEF_VOICEMAIL_CONFNAME, req_data);
   sfree(req_data);
   if(ret == false) {
     slog(LOG_ERR, "Could not update voicemail config info.");

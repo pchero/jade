@@ -66,6 +66,29 @@ void admin_htp_delete_admin_park_configurations_detail(evhtp_request_t *req, voi
 
 
 
+//// ^/admin/pjsip
+void admin_htp_get_admin_pjsip_aors(evhtp_request_t *req, void *data);
+void admin_htp_get_admin_pjsip_aors_detail(evhtp_request_t *req, void *data);
+
+void admin_htp_get_admin_pjsip_auths(evhtp_request_t *req, void *data);
+void admin_htp_get_admin_pjsip_auths_detail(evhtp_request_t *req, void *data);
+
+void admin_htp_get_admin_pjsip_configurations(evhtp_request_t *req, void *data);
+
+void admin_htp_get_admin_pjsip_configurations_detail(evhtp_request_t *req, void *data);
+void admin_htp_put_admin_pjsip_configurations_detail(evhtp_request_t *req, void *data);
+void admin_htp_delete_admin_pjsip_configurations_detail(evhtp_request_t *req, void *data);
+
+void admin_htp_get_admin_pjsip_contacts(evhtp_request_t *req, void *data);
+void admin_htp_get_admin_pjsip_contacts_detail(evhtp_request_t *req, void *data);
+
+void admin_htp_get_admin_pjsip_endpoints(evhtp_request_t *req, void *data);
+void admin_htp_get_admin_pjsip_endpoints_detail(evhtp_request_t *req, void *data);
+
+void admin_htp_get_admin_pjsip_registration_outbounds(evhtp_request_t *req, void *data);
+void admin_htp_get_admin_pjsip_registration_outbounds_detail(evhtp_request_t *req, void *data);
+
+
 //// ^/admin/queue
 void admin_htp_get_admin_queue_entries(evhtp_request_t *req, void *data);
 void admin_htp_get_admin_queue_entries_detail(evhtp_request_t *req, void *data);

@@ -369,7 +369,7 @@ void dialplan_htp_put_dp_config(evhtp_request_t *req, void *data)
   }
 
   // update config
-  ret = conf_update_ast_current_config_info_text(DEF_AST_DIALPLAN_CONFNAME, tmp);
+  ret = conf_update_ast_current_config_info_text_data(DEF_AST_DIALPLAN_CONFNAME, tmp);
   sfree(tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not update dialplan config info.");

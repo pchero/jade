@@ -1433,7 +1433,7 @@ bool queue_update_configuration_info(const json_t* j_data)
     return false;
   }
 
-  ret = conf_update_ast_current_config_info_text(DEF_QUEUE_CONFNAME, data);
+  ret = conf_update_ast_current_config_info_text_data(DEF_QUEUE_CONFNAME, data);
   if(ret == false) {
     return false;
   }
@@ -1450,7 +1450,7 @@ bool queue_delete_configuration_info(const char* name)
     return false;
   }
 
-  ret = strcmp(name, "current");
+  ret = strcmp(name, DEF_QUEUE_CONFNAME);
   if(ret == 0) {
     slog(LOG_NOTICE, "The current configuration is not deletable.");
     return false;
