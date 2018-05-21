@@ -22,6 +22,7 @@
 #include "call_handler.h"
 #include "publication_handler.h"
 #include "pjsip_handler.h"
+#include "dialplan_handler.h"
 
 #include "admin_handler.h"
 
@@ -99,6 +100,11 @@ static bool delete_park_configuration_info(const char* name);
 ///// pjsip module
 static bool update_pjsip_configuration_info(const char* name, const json_t* j_data);
 
+///// dialplan module
+static bool update_dialplan_adp_info(const char* key, const json_t* j_data);
+static bool update_dialplan_adpma_info(const char* key, const json_t* j_data);
+static bool update_dialplan_sdp_info(const char* key, const json_t* j_data);
+static bool update_dialplan_configuration_info(const char* key, const json_t* j_data);
 
 
 ////// user module
@@ -2860,6 +2866,845 @@ void admin_htp_get_admin_core_systems_detail(evhtp_request_t *req, void *data)
 }
 
 /**
+ * GET ^/admin/dialplan/adps/ request handler.
+ * @param req
+ * @param data
+ */
+void admin_htp_get_admin_dialplan_adps(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_get_admin_dialplan_adps.");
+
+  // get info
+  j_tmp = dialplan_get_dialplans_all();
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get users info.");
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", json_object());
+  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * htp request handler.
+ * request: POST ^/admin/dialplan/adps$
+ * @param req
+ * @param data
+ */
+void admin_htp_post_admin_dialplan_adps(evhtp_request_t *req, void *data)
+{
+  json_t* j_data;
+  json_t* j_res;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_post_admin_dialplan_adps.");
+
+  // get data
+  j_data = http_get_json_from_request_data(req);
+  if(j_data == NULL) {
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // create user
+  ret = dialplan_create_dialplan_info(j_data);
+  json_decref(j_data);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * GET ^/admin/dialplan/adps/(.*) request handler.
+ * @param req
+ * @param data
+ */
+void admin_htp_get_admin_dialplan_adps_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+  char* detail;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_get_admin_dialplan_adps_detail.");
+
+  // detail parse
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // get detail info
+  j_tmp = dialplan_get_dialplan_info(detail);
+  sfree(detail);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not find info.");
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", j_tmp);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * PUT ^/admin/dialplan/adps/(.*) request handler.
+ * @param req
+ * @param data
+ */
+void admin_htp_put_admin_dialplan_adps_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_data;
+  char* detail;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_put_admin_dialplan_adps_detail.");
+
+  // detail parse
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  j_data = http_get_json_from_request_data(req);
+  if(j_data == NULL) {
+    slog(LOG_NOTICE, "Could not get data info.");
+    sfree(detail);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // update
+  ret = update_dialplan_adp_info(detail, j_data);
+  sfree(detail);
+  json_decref(j_data);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * DELETE ^/admin/dialplan/adps/(.*) request handler.
+ * @param req
+ * @param data
+ */
+void admin_htp_delete_admin_dialplan_adps_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  char* detail;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_delete_admin_dialplan_adps_detail.");
+
+  // detail parse
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // delete
+  ret = dialplan_delete_dialplan_info(detail);
+  sfree(detail);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * GET ^/admin/dialplan/adpmas/ request handler.
+ * @param req
+ * @param data
+ */
+void admin_htp_get_admin_dialplan_adpmas(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_get_admin_dialplan_adpmas.");
+
+  // get info
+  j_tmp = dialplan_get_dpmas_all();
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get users info.");
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", json_object());
+  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * htp request handler.
+ * request: POST ^/admin/dialplan/adpmas$
+ * @param req
+ * @param data
+ */
+void admin_htp_post_admin_dialplan_adpmas(evhtp_request_t *req, void *data)
+{
+  json_t* j_data;
+  json_t* j_res;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_post_admin_dialplan_adpmas.");
+
+  // get data
+  j_data = http_get_json_from_request_data(req);
+  if(j_data == NULL) {
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // create user
+  ret = dialplan_create_dpma_info(j_data);
+  json_decref(j_data);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * GET ^/admin/dialplan/adpmas/(.*) request handler.
+ * @param req
+ * @param data
+ */
+void admin_htp_get_admin_dialplan_adpmas_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+  char* detail;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_get_admin_dialplan_adpmas_detail.");
+
+  // detail parse
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // get detail info
+  j_tmp = dialplan_get_dpma_info(detail);
+  sfree(detail);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not find info.");
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", j_tmp);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * PUT ^/admin/dialplan/adpmas/(.*) request handler.
+ * @param req
+ * @param data
+ */
+void admin_htp_put_admin_dialplan_adpmas_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_data;
+  char* detail;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_put_admin_dialplan_adpmas_detail.");
+
+  // detail parse
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  j_data = http_get_json_from_request_data(req);
+  if(j_data == NULL) {
+    slog(LOG_NOTICE, "Could not get data info.");
+    sfree(detail);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // update
+  ret = update_dialplan_adpma_info(detail, j_data);
+  sfree(detail);
+  json_decref(j_data);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * DELETE ^/admin/dialplan/adpmas/(.*) request handler.
+ * @param req
+ * @param data
+ */
+void admin_htp_delete_admin_dialplan_adpmas_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  char* detail;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_delete_admin_dialplan_adpmas_detail.");
+
+  // detail parse
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // delete
+  ret = dialplan_delete_dpma_info(detail);
+  sfree(detail);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * GET ^/admin/dialplan/sdps/ request handler.
+ * @param req
+ * @param data
+ */
+void admin_htp_get_admin_dialplan_sdps(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_get_admin_dialplan_sdps.");
+
+  // get info
+  j_tmp = dialplan_get_sdialplans_all();
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get users info.");
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", json_object());
+  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * htp request handler.
+ * request: POST ^/admin/dialplan/sdps$
+ * @param req
+ * @param data
+ */
+void admin_htp_post_admin_dialplan_sdps(evhtp_request_t *req, void *data)
+{
+  json_t* j_data;
+  json_t* j_res;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_post_admin_dialplan_sdps.");
+
+  // get data
+  j_data = http_get_json_from_request_data(req);
+  if(j_data == NULL) {
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // create info
+  ret = dialplan_create_sdialplan_info(j_data);
+  json_decref(j_data);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * GET ^/admin/dialplan/sdps/(.*) request handler.
+ * @param req
+ * @param data
+ */
+void admin_htp_get_admin_dialplan_sdps_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+  char* detail;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_get_admin_dialplan_sdps_detail.");
+
+  // detail parse
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // get detail info
+  j_tmp = dialplan_get_sdialplan_info(detail);
+  sfree(detail);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not find info.");
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", j_tmp);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * PUT ^/admin/dialplan/sdps/(.*) request handler.
+ * @param req
+ * @param data
+ */
+void admin_htp_put_admin_dialplan_sdps_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_data;
+  char* detail;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_put_admin_dialplan_sdps_detail.");
+
+  // detail parse
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  j_data = http_get_json_from_request_data(req);
+  if(j_data == NULL) {
+    slog(LOG_NOTICE, "Could not get data info.");
+    sfree(detail);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // update
+  ret = update_dialplan_sdp_info(detail, j_data);
+  sfree(detail);
+  json_decref(j_data);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * DELETE ^/admin/dialplan/sdps/(.*) request handler.
+ * @param req
+ * @param data
+ */
+void admin_htp_delete_admin_dialplan_sdps_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  char* detail;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_delete_admin_dialplan_sdps_detail.");
+
+  // detail parse
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // delete
+  ret = dialplan_delete_sdialplan_info(detail);
+  sfree(detail);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * GET ^/admin/dialplan/configurations/ request handler.
+ * @param req
+ * @param data
+ */
+void admin_htp_get_admin_dialplan_configurations(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_get_admin_dialplan_configurations.");
+
+  // get info
+  j_tmp = dialplan_get_configurations_all();
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get users info.");
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", json_object());
+  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * GET ^/admin/dialplan/configurations/(.*) request handler.
+ * @param req
+ * @param data
+ */
+void admin_htp_get_admin_dialplan_configurations_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+  char* detail;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_get_admin_dialplan_configurations_detail.");
+
+  // detail parse
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // get detail info
+  j_tmp = dialplan_get_configuration_info(detail);
+  sfree(detail);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not find info.");
+    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+  json_object_set_new(j_res, "result", j_tmp);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * PUT ^/admin/dialplan/configurations/(.*) request handler.
+ * @param req
+ * @param data
+ */
+void admin_htp_put_admin_dialplan_configurations_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  json_t* j_data;
+  char* detail;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_put_admin_dialplan_configurations_detail.");
+
+  // detail parse
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  j_data = http_get_json_from_request_data(req);
+  if(j_data == NULL) {
+    slog(LOG_NOTICE, "Could not get data info.");
+    sfree(detail);
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // update
+  ret = update_dialplan_configuration_info(detail, j_data);
+  sfree(detail);
+  json_decref(j_data);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+/**
+ * DELETE ^/admin/dialplan/configurations/(.*) request handler.
+ * @param req
+ * @param data
+ */
+void admin_htp_delete_admin_dialplan_configurations_detail(evhtp_request_t *req, void *data)
+{
+  json_t* j_res;
+  char* detail;
+  int ret;
+
+  if(req == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return;
+  }
+  slog(LOG_DEBUG, "Fired admin_htp_delete_admin_dialplan_configurations_detail.");
+
+  // detail parse
+  detail = http_get_parsed_detail(req);
+  if(detail == NULL) {
+    slog(LOG_ERR, "Could not get detail info.");
+    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
+    return;
+  }
+
+  // delete
+  ret = dialplan_delete_configuration_info(detail);
+  sfree(detail);
+  if(ret == false) {
+    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
+    return;
+  }
+
+  // create result
+  j_res = http_create_default_result(EVHTP_RES_OK);
+
+  // response
+  http_simple_response_normal(req, j_res);
+  json_decref(j_res);
+
+  return;
+}
+
+
+
+/**
  * GET ^/admin/pjsip/aors request handler.
  * @param req
  * @param data
@@ -4338,6 +5183,94 @@ static bool update_pjsip_configuration_info(const char* name, const json_t* j_da
   json_object_set_new(j_tmp, "name", json_string(name));
 
   ret = pjsip_update_configuration_info(j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    return false;
+  }
+
+  return true;
+}
+
+static bool update_dialplan_adp_info(const char* key, const json_t* j_data)
+{
+  int ret;
+  json_t* j_tmp;
+
+  if((key == NULL) || (j_data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  j_tmp = json_deep_copy(j_data);
+  json_object_set_new(j_tmp, "uuid", json_string(key));
+
+  ret = dialplan_update_dialplan_info(j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    return false;
+  }
+
+  return true;
+}
+
+static bool update_dialplan_adpma_info(const char* key, const json_t* j_data)
+{
+  int ret;
+  json_t* j_tmp;
+
+  if((key == NULL) || (j_data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  j_tmp = json_deep_copy(j_data);
+  json_object_set_new(j_tmp, "uuid", json_string(key));
+
+  ret = dialplan_update_dpma_info(j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    return false;
+  }
+
+  return true;
+}
+
+static bool update_dialplan_sdp_info(const char* key, const json_t* j_data)
+{
+  int ret;
+  json_t* j_tmp;
+
+  if((key == NULL) || (j_data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  j_tmp = json_deep_copy(j_data);
+  json_object_set_new(j_tmp, "name", json_string(key));
+
+  ret = dialplan_update_sdialplan_info(j_tmp);
+  json_decref(j_tmp);
+  if(ret == false) {
+    return false;
+  }
+
+  return true;
+}
+
+static bool update_dialplan_configuration_info(const char* key, const json_t* j_data)
+{
+  int ret;
+  json_t* j_tmp;
+
+  if((key == NULL) || (j_data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  j_tmp = json_deep_copy(j_data);
+  json_object_set_new(j_tmp, "name", json_string(key));
+
+  ret = dialplan_update_configuration_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     return false;

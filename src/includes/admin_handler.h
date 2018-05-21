@@ -31,6 +31,42 @@ void admin_htp_delete_admin_core_modules_detail(evhtp_request_t *req, void *data
 void admin_htp_get_admin_core_systems(evhtp_request_t *req, void *data);
 void admin_htp_get_admin_core_systems_detail(evhtp_request_t *req, void *data);
 
+
+//// ^/admin/dialplan/adps
+void admin_htp_get_admin_dialplan_adps(evhtp_request_t *req, void *data);
+void admin_htp_post_admin_dialplan_adps(evhtp_request_t *req, void *data);
+
+void admin_htp_get_admin_dialplan_adps_detail(evhtp_request_t *req, void *data);
+void admin_htp_put_admin_dialplan_adps_detail(evhtp_request_t *req, void *data);
+void admin_htp_delete_admin_dialplan_adps_detail(evhtp_request_t *req, void *data);
+
+
+//// ^/admin/dialplan/adpmas
+void admin_htp_get_admin_dialplan_adpmas(evhtp_request_t *req, void *data);
+void admin_htp_post_admin_dialplan_adpmas(evhtp_request_t *req, void *data);
+
+void admin_htp_get_admin_dialplan_adpmas_detail(evhtp_request_t *req, void *data);
+void admin_htp_put_admin_dialplan_adpmas_detail(evhtp_request_t *req, void *data);
+void admin_htp_delete_admin_dialplan_adpmas_detail(evhtp_request_t *req, void *data);
+
+
+//// ^/admin/dialplan/configurations
+void admin_htp_delete_admin_dialplan_sdps_detail(evhtp_request_t *req, void *data);
+void admin_htp_get_admin_dialplan_configurations(evhtp_request_t *req, void *data);
+void admin_htp_get_admin_dialplan_configurations_detail(evhtp_request_t *req, void *data);
+void admin_htp_put_admin_dialplan_configurations_detail(evhtp_request_t *req, void *data);
+void admin_htp_delete_admin_dialplan_configurations_detail(evhtp_request_t *req, void *data);
+
+
+//// ^/admin/dialplan/sdps
+void admin_htp_get_admin_dialplan_sdps(evhtp_request_t *req, void *data);
+void admin_htp_post_admin_dialplan_sdps(evhtp_request_t *req, void *data);
+
+void admin_htp_get_admin_dialplan_sdps_detail(evhtp_request_t *req, void *data);
+void admin_htp_put_admin_dialplan_sdps_detail(evhtp_request_t *req, void *data);
+void admin_htp_delete_admin_dialplan_sdps_detail(evhtp_request_t *req, void *data);
+
+
 //// ^/admin/login
 void admin_htp_post_admin_login(evhtp_request_t *req, void *data);
 void admin_htp_delete_admin_login(evhtp_request_t *req, void *data);

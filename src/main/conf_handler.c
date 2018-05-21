@@ -613,7 +613,7 @@ json_t* conf_get_ast_current_config_info_text(const char* name)
   }
 
   j_res = json_pack("{s:s, s:s}",
-      "name",   "current",
+      "name",   name,
       "data",   tmp
       );
   sfree(tmp);

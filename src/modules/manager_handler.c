@@ -2316,19 +2316,13 @@ static json_t* get_sdialplan_info(const char* name)
 static bool create_sdialplan_info(const json_t* j_data)
 {
   int ret;
-  const char* name;
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
 
-  name = json_string_value(json_object_get(j_data, "name"));
-  if(name == NULL) {
-    slog(LOG_NOTICE, "Could not get name info.");
-  }
-
-  ret = dialplan_create_sdialplan_info(name, j_data);
+  ret = dialplan_create_sdialplan_info(j_data);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not create sdialplan info.");
     return false;
@@ -2352,6 +2346,7 @@ static bool create_sdialplan_info(const json_t* j_data)
 static bool update_sdialplan_info(const char* name, const json_t* j_data)
 {
   int ret;
+  json_t* j_tmp;
 
   if((name == NULL) || (j_data == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -2359,7 +2354,11 @@ static bool update_sdialplan_info(const char* name, const json_t* j_data)
   }
   slog(LOG_DEBUG, "Fired update_sdialplan_info. name[%s]", name);
 
-  ret = dialplan_update_sdialplan_info(name, j_data);
+  j_tmp = json_deep_copy(j_data);
+  json_object_set_new(j_tmp, "name", json_string(name));
+
+  ret = dialplan_update_sdialplan_info(j_tmp);
+  json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not update sdialplan info. name[%s]", name);
     return false;

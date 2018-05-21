@@ -3953,7 +3953,7 @@ json_t* pjsip_get_configuration_info(const char* name)
     return NULL;
   }
 
-  ret = strcmp(name, "current");
+  ret = strcmp(name, DEF_PJSIP_CONFNAME);
   if(ret == 0) {
     j_res = conf_get_ast_current_config_info_text(DEF_PJSIP_CONFNAME);
   }
@@ -3986,7 +3986,7 @@ bool pjsip_update_configuration_info(const json_t* j_data)
     return false;
   }
 
-  ret = strcmp(name, "current");
+  ret = strcmp(name, DEF_PJSIP_CONFNAME);
   if(ret != 0) {
     slog(LOG_NOTICE, "The only current configuration can update.");
     return false;
