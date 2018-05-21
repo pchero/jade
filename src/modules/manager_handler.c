@@ -1167,7 +1167,7 @@ static bool update_user_pjsip_account(const char* uuid_user, const json_t* j_dat
 
   // to change user's context,
   // we need to change endpoint configurations
-  j_endpoint = pjsip_cfg_get_endpoint_info(account);
+  j_endpoint = pjsip_cfg_get_endpoint_info_data(account);
   if(j_endpoint == NULL) {
     slog(LOG_NOTICE, "Could not get endpoint info.");
     sfree(account);
@@ -1175,7 +1175,7 @@ static bool update_user_pjsip_account(const char* uuid_user, const json_t* j_dat
   }
 
   json_object_set_new(j_endpoint, "context", json_string(context));
-  ret = pjsip_cfg_update_endpoint_info(account, j_endpoint);
+  ret = pjsip_cfg_update_endpoint_info_data(account, j_endpoint);
   sfree(account);
   json_decref(j_endpoint);
   if(ret == false) {
@@ -1912,7 +1912,7 @@ static json_t* get_trunk_info(const char* name)
   json_object_set_new(j_res, "name", json_string(name));
 
   // get cfg registration
-  j_tmp = pjsip_cfg_get_registration_info(name);
+  j_tmp = pjsip_cfg_get_registration_info_data(name);
   if(j_tmp  == NULL) {
     slog(LOG_NOTICE, "No registration info. name[%s]", name);
     json_decref(j_res);
@@ -1923,23 +1923,23 @@ static json_t* get_trunk_info(const char* name)
   json_decref(j_tmp);
 
   // get cfg auth
-  j_tmp = pjsip_cfg_get_auth_info(name);
+  j_tmp = pjsip_cfg_get_auth_info_data(name);
   json_object_set(j_res, "username", json_object_get(j_tmp, "username"));
   json_object_set(j_res, "password", json_object_get(j_tmp, "password"));
   json_decref(j_tmp);
 
   // get cfg aor
-  j_tmp = pjsip_cfg_get_aor_info(name);
+  j_tmp = pjsip_cfg_get_aor_info_data(name);
   json_object_set(j_res, "contact", json_object_get(j_tmp, "contact"));
   json_decref(j_tmp);
 
   // get cfg endpoint
-  j_tmp = pjsip_cfg_get_endpoint_info(name);
+  j_tmp = pjsip_cfg_get_endpoint_info_data(name);
   json_object_set(j_res, "context", json_object_get(j_tmp, "context"));
   json_decref(j_tmp);
 
   // get cfg identify
-  j_tmp = pjsip_cfg_get_identify_info(name);
+  j_tmp = pjsip_cfg_get_identify_info_data(name);
   json_object_set_new(j_res, "hostname", json_object_get(j_tmp, "match")? json_incref(json_object_get(j_tmp, "match")) : json_string(""));
   json_decref(j_tmp);
 
@@ -2116,6 +2116,7 @@ static bool update_trunk_info(const char* name, const json_t* j_data)
 {
   int ret;
   json_t* j_tmp;
+  json_t* j_cfg;
 
   if((name == NULL) || (j_data == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -2132,7 +2133,8 @@ static bool update_trunk_info(const char* name, const json_t* j_data)
   }
 
   // update registration
-  j_tmp = pjsip_cfg_get_registration_info(name);
+  j_cfg = pjsip_cfg_get_registration_info(name);
+  j_tmp = json_object_get(j_cfg, "data");
   if(j_tmp == NULL) {
     slog(LOG_NOTICE, "Could not get cfg registration info. name[%s]", name);
     return false;
@@ -2143,15 +2145,15 @@ static bool update_trunk_info(const char* name, const json_t* j_data)
   json_object_set_new(j_tmp, "client_uri",
       json_object_get(j_data, "client_uri")? json_incref(json_object_get(j_data, "client_uri")) : json_string("")
       );
-  ret = pjsip_cfg_update_registration_info(name, j_tmp);
-  json_decref(j_tmp);
+  ret = pjsip_cfg_update_registration_info(j_cfg);
+  json_decref(j_cfg);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not update registration info.");
     return false;
   }
 
   // update auth
-  j_tmp = pjsip_cfg_get_auth_info(name);
+  j_tmp = pjsip_cfg_get_auth_info_data(name);
   if(j_tmp == NULL) {
     slog(LOG_NOTICE, "Could not get cfg auth info. name[%s]", name);
     return false;
@@ -2170,7 +2172,7 @@ static bool update_trunk_info(const char* name, const json_t* j_data)
   }
 
   // update aor
-  j_tmp = pjsip_cfg_get_aor_info(name);
+  j_tmp = pjsip_cfg_get_aor_info_data(name);
   if(j_tmp == NULL) {
     slog(LOG_NOTICE, "Could not get cfg aor info. name[%s]", name);
     return false;
@@ -2178,7 +2180,7 @@ static bool update_trunk_info(const char* name, const json_t* j_data)
   json_object_set_new(j_tmp, "contact",
       json_object_get(j_data, "contact")? json_incref(json_object_get(j_data, "contact")) : json_string("")
       );
-  ret = pjsip_cfg_update_aor_info(name, j_tmp);
+  ret = pjsip_cfg_update_aor_info_data(name, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not update aor info.");
@@ -2186,7 +2188,7 @@ static bool update_trunk_info(const char* name, const json_t* j_data)
   }
 
   // update endpoint
-  j_tmp = pjsip_cfg_get_endpoint_info(name);
+  j_tmp = pjsip_cfg_get_endpoint_info_data(name);
   if(j_tmp == NULL) {
     slog(LOG_NOTICE, "Could not get cfg endpoint info. name[%s]", name);
     return false;
@@ -2194,7 +2196,7 @@ static bool update_trunk_info(const char* name, const json_t* j_data)
   json_object_set_new(j_tmp, "context",
       json_object_get(j_data, "context")? json_incref(json_object_get(j_data, "context")) : json_string("")
       );
-  ret = pjsip_cfg_update_endpoint_info(name, j_tmp);
+  ret = pjsip_cfg_update_endpoint_info_data(name, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not update endpoint info.");
@@ -2202,7 +2204,7 @@ static bool update_trunk_info(const char* name, const json_t* j_data)
   }
 
   // update identify
-  j_tmp = pjsip_cfg_get_identify_info(name);
+  j_tmp = pjsip_cfg_get_identify_info_data(name);
   if(j_tmp == NULL) {
     slog(LOG_NOTICE, "Could not get cfg identify info. name[%s]", name);
     return false;
@@ -2210,7 +2212,7 @@ static bool update_trunk_info(const char* name, const json_t* j_data)
   json_object_set_new(j_tmp, "match",
       json_object_get(j_data, "hostname")? json_incref(json_object_get(j_data, "hostname")) : json_string("")
       );
-  ret = pjsip_cfg_update_identify_info(name, j_tmp);
+  ret = pjsip_cfg_update_identify_info_data(name, j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not update identify info.");
@@ -2236,37 +2238,37 @@ static bool is_exist_trunk(const char* name)
 {
   json_t* j_tmp;
 
-  j_tmp = pjsip_cfg_get_aor_info(name);
+  j_tmp = pjsip_cfg_get_aor_info_data(name);
   if(j_tmp != NULL) {
     json_decref(j_tmp);
     return true;
   }
 
-  j_tmp = pjsip_cfg_get_auth_info(name);
+  j_tmp = pjsip_cfg_get_auth_info_data(name);
   if(j_tmp != NULL) {
     json_decref(j_tmp);
     return true;
   }
 
-  j_tmp = pjsip_cfg_get_contact_info(name);
+  j_tmp = pjsip_cfg_get_contact_info_data(name);
   if(j_tmp != NULL) {
     json_decref(j_tmp);
     return true;
   }
 
-  j_tmp = pjsip_cfg_get_endpoint_info(name);
+  j_tmp = pjsip_cfg_get_endpoint_info_data(name);
   if(j_tmp != NULL) {
     json_decref(j_tmp);
     return true;
   }
 
-  j_tmp = pjsip_cfg_get_identify_info(name);
+  j_tmp = pjsip_cfg_get_identify_info_data(name);
   if(j_tmp != NULL) {
     json_decref(j_tmp);
     return true;
   }
 
-  j_tmp = pjsip_cfg_get_registration_info(name);
+  j_tmp = pjsip_cfg_get_registration_info_data(name);
   if(j_tmp != NULL) {
     json_decref(j_tmp);
     return true;
@@ -2314,19 +2316,13 @@ static json_t* get_sdialplan_info(const char* name)
 static bool create_sdialplan_info(const json_t* j_data)
 {
   int ret;
-  const char* name;
 
   if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
 
-  name = json_string_value(json_object_get(j_data, "name"));
-  if(name == NULL) {
-    slog(LOG_NOTICE, "Could not get name info.");
-  }
-
-  ret = dialplan_create_sdialplan_info(name, j_data);
+  ret = dialplan_create_sdialplan_info(j_data);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not create sdialplan info.");
     return false;
@@ -2350,6 +2346,7 @@ static bool create_sdialplan_info(const json_t* j_data)
 static bool update_sdialplan_info(const char* name, const json_t* j_data)
 {
   int ret;
+  json_t* j_tmp;
 
   if((name == NULL) || (j_data == NULL)) {
     slog(LOG_WARNING, "Wrong input parameter.");
@@ -2357,7 +2354,11 @@ static bool update_sdialplan_info(const char* name, const json_t* j_data)
   }
   slog(LOG_DEBUG, "Fired update_sdialplan_info. name[%s]", name);
 
-  ret = dialplan_update_sdialplan_info(name, j_data);
+  j_tmp = json_deep_copy(j_data);
+  json_object_set_new(j_tmp, "name", json_string(name));
+
+  ret = dialplan_update_sdialplan_info(j_tmp);
+  json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not update sdialplan info. name[%s]", name);
     return false;

@@ -23,9 +23,13 @@ bool conf_delete_ast_current_config_content(const char* filename, const char* se
 
 json_t* conf_get_ast_sections_all(const char* filename);
 json_t* conf_get_ast_section(const char* filename, const char* name);
-bool conf_create_ast_section(const char* filename, const char* name, const json_t* j_data);
-bool conf_update_ast_section(const char* filename, const char* name, const json_t* j_data);
+bool conf_create_ast_section(const char* filename, const json_t* j_data);
+bool conf_update_ast_section(const char* filename, const json_t* j_data);
 bool conf_delete_ast_section(const char* filename, const char* name);
+
+bool conf_create_ast_section_data(const char* filename, const char* name, const json_t* j_data);
+json_t* conf_get_ast_section_data(const char* filename, const char* name);
+bool conf_update_ast_section_data(const char* filename, const char* name, const json_t* j_data);
 
 json_t* conf_get_ast_backup_configs_text_all(const char* filename);
 json_t* conf_get_ast_backup_config_info(const char* filename);
@@ -41,7 +45,8 @@ bool conf_delete_ast_section_array(const char* filename, const char* name);
 
 // text
 json_t* conf_get_ast_current_config_info_text(const char* filename);
-bool conf_update_ast_current_config_info_text(const char* filename, const char* data);
+bool conf_update_ast_current_config_info_text(const json_t* j_data);
+bool conf_update_ast_current_config_info_text_data(const char* filename, const char* data);
 
 json_t* conf_get_ast_backup_config_info_text(const char* filename);
 json_t* conf_get_ast_backup_config_info_text_valid(const char* filename, const char* valid);

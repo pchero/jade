@@ -589,21 +589,21 @@ json_t* conf_get_ast_current_config_info_array(const char* filename)
  * @param filename
  * @return
  */
-json_t* conf_get_ast_current_config_info_text(const char* filename)
+json_t* conf_get_ast_current_config_info_text(const char* name)
 {
   json_t* j_res;
   const char* dir;
   char* target;
   char* tmp;
 
-  if(filename == NULL) {
+  if(name == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return NULL;
   }
   slog(LOG_DEBUG, "Fired get_ast_current_config_info_raw.");
 
   dir = json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "directory_conf"));
-  asprintf(&target, "%s/%s", dir, filename);
+  asprintf(&target, "%s/%s", dir, name);
 
   tmp = get_ast_config_info_text(target);
   sfree(target);
@@ -613,7 +613,7 @@ json_t* conf_get_ast_current_config_info_text(const char* filename)
   }
 
   j_res = json_pack("{s:s, s:s}",
-      "name",   "current",
+      "name",   name,
       "data",   tmp
       );
   sfree(tmp);
@@ -674,29 +674,44 @@ bool conf_update_ast_current_config_info(const char* filename, json_t* j_conf)
  * @param filename
  * @return
  */
-bool conf_update_ast_current_config_info_text(const char* filename, const char* data)
+bool conf_update_ast_current_config_info_text(const json_t* j_data)
 {
+  const char* name;
   const char* conf_dir;
+  const char* data;
   char* target;
   int ret;
 
-  if((filename == NULL) || (data == NULL)) {
+  if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
-  slog(LOG_ERR, "Fired update_ast_current_config_info_raw.");
+  slog(LOG_ERR, "Fired conf_update_ast_current_config_info_text.");
 
   conf_dir = json_string_value(json_object_get(json_object_get(g_app->j_conf, "general"), "directory_conf"));
   if(conf_dir == NULL) {
     slog(LOG_ERR, "Could not get conf directory info.");
     return false;
   }
-  asprintf(&target, "%s/%s", conf_dir, filename);
+
+  name = json_string_value(json_object_get(j_data, "name"));
+  if(j_data == NULL) {
+    slog(LOG_NOTICE, "Could not get name info.");
+    return false;
+  }
+
+  data = json_string_value(json_object_get(j_data, "data"));
+  if(data == NULL) {
+    slog(LOG_NOTICE, "Could not get data info.");
+    return false;
+  }
+
+  asprintf(&target, "%s/%s", conf_dir, name);
 
   // backup current config
   ret = backup_ast_config_info(target);
   if(ret == false) {
-    slog(LOG_ERR, "Could not backup current config file. filename[%s]", filename);
+    slog(LOG_ERR, "Could not backup current config file. name[%s]", name);
     sfree(target);
     return false;
   }
@@ -704,12 +719,42 @@ bool conf_update_ast_current_config_info_text(const char* filename, const char* 
   // overwrite data
   ret = write_ast_config_info_raw(target, data);
   if(ret == false) {
-    slog(LOG_ERR, "Could not update config. filename[%s]", filename);
+    slog(LOG_ERR, "Could not update config. name[%s]", name);
     sfree(target);
     return false;
   }
 
   sfree(target);
+
+  return true;
+}
+
+/**
+ * Update asterisk configuration file.
+ * @param j_conf
+ * @param filename
+ * @return
+ */
+bool conf_update_ast_current_config_info_text_data(const char* name, const char* data)
+{
+  int ret;
+  json_t* j_data;
+
+  if((name == NULL) || (data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  j_data = json_pack("{s:s, s:s}",
+      "name",   name,
+      "data",   data
+      );
+
+  ret = conf_update_ast_current_config_info_text(j_data);
+  json_decref(j_data);
+  if(ret == false) {
+    return false;
+  }
 
   return true;
 }
@@ -1470,16 +1515,23 @@ bool conf_delete_ast_section_array(const char* filename, const char* name)
  * @param filename
  * @return
  */
-bool conf_create_ast_section(const char* filename, const char* name, const json_t* j_data)
+bool conf_create_ast_section_data(const char* filename, const char* name, const json_t* j_data)
 {
 	int ret;
+	json_t* j_tmp;
 
 	if((filename == NULL) || (name == NULL) || (j_data == NULL)) {
 		slog(LOG_WARNING, "Wrong input parameter.");
 		return false;
 	}
 
-	ret = create_ast_current_config_section_data(filename, name, j_data);
+	j_tmp = json_pack("{s:s, s:O}"
+	    "name", name,
+	    "data", j_data
+	    );
+
+	ret = conf_create_ast_section(filename, j_tmp);
+	json_decref(j_tmp);
 	if(ret == false) {
 		return false;
 	}
@@ -1536,6 +1588,35 @@ json_t* conf_get_ast_sections_all(const char* filename)
  */
 json_t* conf_get_ast_section(const char* filename, const char* name)
 {
+  json_t* j_res;
+  json_t* j_tmp;
+  json_t* j_conf;
+
+  if((filename == NULL) || (name == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return NULL;
+  }
+
+  j_conf = conf_get_ast_current_config_info(filename);
+  j_tmp = json_object_get(j_conf, name);
+
+  j_res = json_pack("{s:s, s:O}",
+      "name",   name,
+      "data",   j_tmp
+      );
+
+  json_decref(j_conf);
+
+  return j_res;
+}
+
+/**
+ * Returns given setting
+ * @param filename
+ * @return
+ */
+json_t* conf_get_ast_section_data(const char* filename, const char* name)
+{
 	json_t* j_res;
 	json_t* j_setting;
 	json_t* j_conf;
@@ -1551,6 +1632,75 @@ json_t* conf_get_ast_section(const char* filename, const char* name)
 	json_decref(j_conf);
 
 	return j_res;
+}
+
+/**
+ * Create given setting
+ * @param filename
+ * @return
+ */
+bool conf_create_ast_section(const char* filename, const json_t* j_data)
+{
+  int ret;
+  const char* name;
+  json_t* j_tmp;
+
+  if((filename == NULL) || (j_data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  name = json_string_value(json_object_get(j_data, "name"));
+  if(name == NULL) {
+    return false;
+  }
+
+  j_tmp = json_object_get(j_data, "data");
+  if(j_tmp == NULL) {
+    return false;
+  }
+
+  ret = create_ast_current_config_section_data(filename, name, j_tmp);
+  if(ret == false) {
+    return false;
+  }
+
+  return true;
+}
+
+
+/**
+ * Update given setting
+ * @param filename
+ * @return
+ */
+bool conf_update_ast_section(const char* filename, const json_t* j_data)
+{
+  int ret;
+  const char* name;
+  json_t* j_tmp;
+
+  if((filename == NULL) || (j_data == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  name = json_string_value(json_object_get(j_data, "name"));
+  if(name == NULL) {
+    return false;
+  }
+
+  j_tmp = json_object_get(j_data, "data");
+  if(j_tmp == NULL) {
+    return false;
+  }
+
+  ret = update_ast_current_config_section_data(filename, name, j_tmp);
+  if(ret == false) {
+    return false;
+  }
+
+  return true;
 }
 
 /**
@@ -1580,7 +1730,7 @@ bool conf_delete_ast_section(const char* filename, const char* name)
  * @param filename
  * @return
  */
-bool conf_update_ast_section(const char* filename, const char* name, const json_t* j_data)
+bool conf_update_ast_section_data(const char* filename, const char* name, const json_t* j_data)
 {
 	int ret;
 

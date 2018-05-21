@@ -302,3 +302,167 @@ bool ami_action_originate_application(const char* channel, const char* applicati
 
   return true;
 }
+
+/**
+ * AMI action handler.
+ * Action: QueuePenalty
+ */
+bool ami_action_queuepause(const char* queue_name, const char* interface, const char* paused, const char* reason)
+{
+  json_t* j_data;
+  int ret;
+
+  if((queue_name == NULL) || (interface == NULL) || (paused == NULL) || (reason == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired ami_action_queuepause. queue_name[%s], interface[%s], paused[%s], reason[%s]", queue_name, interface, paused, reason);
+
+//  Action: QueuePause
+//  ActionID: <value>
+//  Queue: <value>
+//  Interface: <value>
+//  Paused: <value>
+//  Reason: <value>
+  j_data = json_pack("{s:s, s:s, s:s, s:s, s:s}",
+      "Action",       "QueuePause",
+      "Queue",        queue_name,
+      "Interface",    interface,
+      "Paused",       paused,
+      "Reason",       reason
+      );
+
+  // send action request
+  ret = ami_send_cmd(j_data);
+  json_decref(j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not send ami action");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * AMI action handler.
+ * Action: QueuePenalty
+ */
+bool ami_action_queuepenalty(const char* queue_name, const char* interface, const char* penalty)
+{
+  json_t* j_data;
+  int ret;
+
+  if((queue_name == NULL) || (interface == NULL) || (penalty == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired ami_action_queuepenalty. queue_name[%s], interface[%s], penalty[%s]", queue_name, interface, penalty);
+
+//  Action: QueuePenalty
+//  ActionID: <value>
+//  Interface: <value>
+//  Penalty: <value>
+//  Queue: <value>
+  j_data = json_pack("{s:s, s:s, s:s, s:s}",
+      "Action",       "QueuePenalty",
+      "Queue",        queue_name,
+      "Interface",    interface,
+      "Penalty",      penalty
+      );
+
+  // send action request
+  ret = ami_send_cmd(j_data);
+  json_decref(j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not send ami action");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * AMI action handler.
+ * Action: QueueRemove
+ */
+bool ami_action_queueremove(const char* queue_name, const char* interface)
+{
+  json_t* j_data;
+  int ret;
+
+  if((queue_name == NULL) || (interface == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired ami_action_queueremove. queue_name[%s], interface[%s]", queue_name, interface);
+
+//  Action: QueueRemove
+//  ActionID: <value>
+//  Queue: <value>
+//  Interface: <value>
+  j_data = json_pack("{s:s, s:s, s:s}",
+      "Action",       "QueueRemove",
+      "Queue",        queue_name,
+      "Interface",    interface
+      );
+
+  // send action request
+  ret = ami_send_cmd(j_data);
+  json_decref(j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not send ami action");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * AMI action handler.
+ * Action: QueueAdd
+ */
+bool ami_action_queueadd(const char* queue, const char* interface, const char* penalty, const char* paused, const char* member_name, const char* state_interface)
+{
+  json_t* j_data;
+  int ret;
+
+  if((queue == NULL) || (interface == NULL) || (penalty == NULL) || (paused == NULL) || (member_name == NULL) || (state_interface == NULL)) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+  slog(LOG_DEBUG, "Fired ami_action_queueadd. queue[%s], interface[%s], penalty[%s]", queue, interface, penalty);
+
+//  Action: QueueAdd
+//  ActionID: <value>
+//  Queue: <value>
+//  Interface: <value>
+//  Penalty: <value>
+//  Paused: <value>
+//  MemberName: <value>
+//  StateInterface: <value>
+  j_data = json_pack("{"
+      "s:s, s:s, s:s, s:s, "
+      "s:s, s:s, s:s "
+      "}",
+      "Action",           "QueueAdd",
+      "Queue",            queue,
+      "Interface",        interface,
+      "Penalty",          penalty,
+
+      "Paused",           paused,
+      "MemberName",       member_name,
+      "StateInterface",   state_interface
+      );
+
+  // send action request
+  ret = ami_send_cmd(j_data);
+  json_decref(j_data);
+  if(ret == false) {
+    slog(LOG_ERR, "Could not send ami action");
+    return false;
+  }
+
+  return true;
+}
+
+

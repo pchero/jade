@@ -757,7 +757,7 @@ static bool cfg_create_parkinglot_info(const char* name, const json_t* j_data)
   }
   slog(LOG_DEBUG, "Fired cfg_create_parkinglot_info. name[%s]", name);
 
-  ret = conf_create_ast_section(DEF_JADE_PARK_CONFNAME, name, j_data);
+  ret = conf_create_ast_section_data(DEF_JADE_PARK_CONFNAME, name, j_data);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not create config for parkinglot.");
     return false;
@@ -776,7 +776,7 @@ static bool cfg_update_parkinglot_info(const char* name, const json_t* j_data)
   }
   slog(LOG_DEBUG, "Fired cfg_update_parkinglot_info. name[%s]", name);
 
-  ret = conf_update_ast_section(DEF_JADE_PARK_CONFNAME, name, j_data);
+  ret = conf_update_ast_section_data(DEF_JADE_PARK_CONFNAME, name, j_data);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not update config for parkinglot. name[%s]", name);
     return false;
@@ -819,22 +819,16 @@ json_t* park_cfg_get_parkinglots_all(void)
 json_t* park_cfg_get_parkinglot_info(const char* name)
 {
   json_t* j_res;
-  json_t* j_tmp;
 
   if(name == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return NULL;
   }
 
-  j_tmp = conf_get_ast_section(DEF_JADE_PARK_CONFNAME, name);
-  if(j_tmp == NULL) {
+  j_res = conf_get_ast_section(DEF_JADE_PARK_CONFNAME, name);
+  if(j_res == NULL) {
     return NULL;
   }
-
-  j_res = json_pack("{s:s, s:o}",
-      "name",   name,
-      "data",   j_tmp
-      );
 
   return j_res;
 }
@@ -990,9 +984,9 @@ json_t* park_get_configuration_info(const char* name)
     return NULL;
   }
 
-  ret = strcmp(name, "current");
+  ret = strcmp(name, DEF_PARK_CONFNAME);
   if(ret == 0) {
-    j_res = conf_get_ast_current_config_info_text(name);
+    j_res = conf_get_ast_current_config_info_text(DEF_PARK_CONFNAME);
   }
   else {
     j_res = conf_get_ast_backup_config_info_text(name);
@@ -1023,13 +1017,13 @@ bool park_update_configuration_info(const json_t* j_data)
     return false;
   }
 
-  ret = strcmp(name, "current");
+  ret = strcmp(name, DEF_PARK_CONFNAME);
   if(ret != 0) {
     slog(LOG_NOTICE, "The only current configuration can update.");
     return false;
   }
 
-  ret = conf_update_ast_current_config_info_text(DEF_PARK_CONFNAME, data);
+  ret = conf_update_ast_current_config_info_text_data(DEF_PARK_CONFNAME, data);
   if(ret == false) {
     return false;
   }
@@ -1046,7 +1040,7 @@ bool park_delete_configuration_info(const char* name)
     return false;
   }
 
-  ret = strcmp(name, "current");
+  ret = strcmp(name, DEF_PARK_CONFNAME);
   if(ret == 0) {
     slog(LOG_NOTICE, "The current configuration is not deletable.");
     return false;

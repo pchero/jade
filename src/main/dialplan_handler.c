@@ -39,31 +39,31 @@ static bool init_database_dp_dialplanmaster(void);
 
 static bool init_configs(void);
 
+static bool db_create_dialplan_info(const json_t* j_data);
+static bool db_update_dialplan_info(const json_t* j_data);
+static bool db_delete_dialplan_info(const char* key);
+
+static bool db_create_dpma_info(const json_t* j_data);
+static bool db_update_dpma_info(const json_t* j_data);
+static bool db_delete_dpma_info(const char* key);
 
 static bool init_default_originate_to_device(void);
 
-static bool create_dpma_info(const json_t* j_data);
 static bool create_dpma_info_with_uuid(const char* uuid, const json_t* j_data);
-static bool delete_dpma_info(const char* uuid);
-static bool update_dpma_info(const char* uuid, const json_t* j_data);
 static bool is_exist_dpma_info(const char* uuid);
 static bool is_default_dpma_originate_to_device(const char* agi_uuid);
 
-static bool create_dialplan_info(const json_t* j_data);
-static bool update_dialplan_info(const char* uuid, const json_t* j_data);
-static bool delete_dialplan_info(const char* uuid);
 static bool is_exist_dialplan_info(const char* dpma_uuid, int seq);
 static bool is_exist_dialplan_info_uuid(const char* uuid);
 
 // static dialplan
 static bool cfg_create_sdialplan_info(const char* name, const json_t* j_data);
-static bool cfg_update_sdialplan_info(const char* name, const json_t* j_data);
+static bool cfg_update_sdialplan_info(const json_t* j_data);
 static bool cfg_delete_sdialplan_info(const char* name);
 static bool is_exist_sdialplan(const char* name);
 
 static bool send_setvar_for_agi_call(const char* agi_uuid);
 
-static bool db_create_dpma_info(const json_t* j_data);
 static bool add_agi_cmd_for_default_originate_to_device(const json_t* j_agi);
 
 
@@ -296,7 +296,7 @@ static bool init_default_originate_to_device(void)
       "sequence",   1
       );
 
-  ret = create_dialplan_info(j_tmp);
+  ret = dialplan_create_dialplan_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not add dialplan 1.");
@@ -310,543 +310,27 @@ static bool init_default_originate_to_device(void)
 }
 
 /**
- * GET ^/dp/config request handler.
- * @param req
- * @param data
- */
-void dialplan_htp_get_dp_config(evhtp_request_t *req, void *data)
-{
-  json_t* j_res;
-  json_t* j_tmp;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_get_dp_config.");
-
-  // get info
-  j_tmp = conf_get_ast_current_config_info_text(DEF_AST_DIALPLAN_CONFNAME);
-  if(j_tmp == NULL) {
-    slog(LOG_ERR, "Could not get dialplan conf.");
-    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-  json_object_set_new(j_res, "result", j_tmp);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * PUT ^/dp/config request handler.
- * @param req
- * @param data
- */
-void dialplan_htp_put_dp_config(evhtp_request_t *req, void *data)
-{
-  json_t* j_res;
-  char* tmp;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_put_dp_config.");
-
-  tmp = http_get_text_from_request_data(req);
-  if(tmp == NULL) {
-    slog(LOG_ERR, "Could not get data.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // update config
-  ret = conf_update_ast_current_config_info_text(DEF_AST_DIALPLAN_CONFNAME, tmp);
-  sfree(tmp);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not update dialplan config info.");
-    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * GET ^/dp/dpmas request handler.
- * @param req
- * @param data
- */
-void dialplan_htp_get_dp_dpmas(evhtp_request_t *req, void *data)
-{
-  json_t* j_res;
-  json_t* j_tmp;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_INFO, "Fired htp_get_dp_dpmas.");
-
-  j_tmp = dialplan_get_dpmas_all();
-  if(j_tmp == NULL) {
-    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-  json_object_set_new(j_res, "result", json_object());
-  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
-
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * htp request handler.
- * request: POST ^/dp/dpmas$
- * @param req
- * @param data
- */
-void dialplan_htp_post_dp_dpmas(evhtp_request_t *req, void *data)
-{
-  json_t* j_res;
-  json_t* j_data;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_post_dp_dpmas.");
-
-  // get data
-  j_data = http_get_json_from_request_data(req);
-  if(j_data == NULL) {
-    // no request data
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // create dpma info
-  ret = create_dpma_info(j_data);
-  json_decref(j_data);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * GET ^/dp/dpmas/<detail> request handler.
- * @param req
- * @param data
- */
-void dialplan_htp_get_dp_dpmas_detail(evhtp_request_t *req, void *data)
-{
-  json_t* j_tmp;
-  json_t* j_res;
-  char* detail;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_get_dp_dpmas_detail.");
-
-  // key parse
-  detail = http_get_parsed_detail(req);
-  if(detail == NULL) {
-    slog(LOG_ERR, "Could not get key info.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // get info
-  j_tmp = dialplan_get_dpma_info(detail);
-  sfree(detail);
-  if(j_tmp == NULL) {
-    slog(LOG_ERR, "Could not get dp_dpma info.");
-    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-  json_object_set_new(j_res, "result", j_tmp);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * htp request handler.
- * PUT ^/dp/dpmas/<detail> request handler.
- * @param req
- * @param data
- */
-void dialplan_htp_put_dp_dpmas_detail(evhtp_request_t *req, void *data)
-{
-  json_t* j_res;
-  json_t* j_data;
-  char* detail;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_put_dp_dpmas_detail.");
-
-  // detail parse
-  detail = http_get_parsed_detail(req);
-  if(detail == NULL) {
-    slog(LOG_ERR, "Could not get detail info.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // get data
-  j_data = http_get_json_from_request_data(req);
-  if(j_data == NULL) {
-    slog(LOG_ERR, "Could not get correct data from request.");
-    sfree(detail);
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // update info
-  ret = update_dpma_info(detail, j_data);
-  sfree(detail);
-  json_decref(j_data);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not update dp_dpma info.");
-    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * DELETE ^/dp/dpmas/<detail> request handler.
- * @param req
- * @param data
- */
-void dialplan_htp_delete_dp_dpmas_detail(evhtp_request_t *req, void *data)
-{
-  json_t* j_res;
-  char* detail;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_delete_dp_dpmas_detail.");
-
-  // detail parse
-  detail = http_get_parsed_detail(req);
-  if(detail == NULL) {
-    slog(LOG_ERR, "Could not get name info.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // delete dpma
-  ret = delete_dpma_info(detail);
-  sfree(detail);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not delete detail info.");
-    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * GET ^/dp/dialplans request handler.
- * @param req
- * @param data
- */
-void dialplan_htp_get_dp_dialplans(evhtp_request_t *req, void *data)
-{
-  json_t* j_res;
-  json_t* j_tmp;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_INFO, "Fired htp_get_dp_dialplans.");
-
-  j_tmp = dialplan_get_dialplans_all();
-  if(j_tmp == NULL) {
-    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-  json_object_set_new(j_res, "result", json_object());
-  json_object_set_new(json_object_get(j_res, "result"), "list", j_tmp);
-
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * htp request handler.
- * request: POST ^/dp/dialplans$
- * @param req
- * @param data
- */
-void dialplan_htp_post_dp_dialplans(evhtp_request_t *req, void *data)
-{
-  json_t* j_res;
-  json_t* j_data;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_post_dp_dialplans.");
-
-  // get data
-  j_data = http_get_json_from_request_data(req);
-  if(j_data == NULL) {
-    // no request data
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // create dialplan info
-  ret = create_dialplan_info(j_data);
-  json_decref(j_data);
-  if(ret == false) {
-    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * htp request handler.
- * request: GET ^/dp/dialplans/detail
- * @param req
- * @param data
- */
-void dialplan_htp_get_dp_dialplans_detail(evhtp_request_t *req, void *data)
-{
-  json_t* j_tmp;
-  json_t* j_res;
-  char* detail;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_get_dp_dialplans_detail.");
-
-  // detail parse
-  detail = http_get_parsed_detail(req);
-  if(detail == NULL) {
-    slog(LOG_ERR, "Could not get key info.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // get info
-  j_tmp = dialplan_get_dialplan_info(detail);
-  sfree(detail);
-  if(j_tmp == NULL) {
-    slog(LOG_ERR, "Could not get dp_dialplan info.");
-    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-  json_object_set_new(j_res, "result", j_tmp);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * htp request handler.
- * PUT ^/dp/dialplans/<detail> request handler.
- * @param req
- * @param data
- */
-void dialplan_htp_put_dp_dialplans_detail(evhtp_request_t *req, void *data)
-{
-  json_t* j_res;
-  json_t* j_data;
-  char* detail;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_put_dp_dialplans_detail.");
-
-  // detail parse
-  detail = http_get_parsed_detail(req);
-  if(detail == NULL) {
-    slog(LOG_ERR, "Could not get detail info.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // get data
-  j_data = http_get_json_from_request_data(req);
-  if(j_data == NULL) {
-    slog(LOG_ERR, "Could not get correct data from request.");
-    sfree(detail);
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // update info
-  ret = update_dialplan_info(detail, j_data);
-  sfree(detail);
-  json_decref(j_data);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not update dp_dpma info.");
-    http_simple_response_error(req, EVHTP_RES_SERVERR, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
- * DELETE ^/dp/dialplans/<detail> request handler.
- * @param req
- * @param data
- */
-void dialplan_htp_delete_dp_dialplans_detail(evhtp_request_t *req, void *data)
-{
-  json_t* j_res;
-  char* detail;
-  int ret;
-
-  if(req == NULL) {
-    slog(LOG_WARNING, "Wrong input parameter.");
-    return;
-  }
-  slog(LOG_DEBUG, "Fired htp_delete_dp_dialplans_detail.");
-
-  // detail parse
-  detail = http_get_parsed_detail(req);
-  if(detail == NULL) {
-    slog(LOG_ERR, "Could not get name info.");
-    http_simple_response_error(req, EVHTP_RES_BADREQ, 0, NULL);
-    return;
-  }
-
-  // delete dialplan
-  ret = delete_dialplan_info(detail);
-  sfree(detail);
-  if(ret == false) {
-    slog(LOG_ERR, "Could not delete detail info.");
-    http_simple_response_error(req, EVHTP_RES_NOTFOUND, 0, NULL);
-    return;
-  }
-
-  // create result
-  j_res = http_create_default_result(EVHTP_RES_OK);
-
-  // response
-  http_simple_response_normal(req, j_res);
-  json_decref(j_res);
-
-  return;
-}
-
-/**
  * Update dpma.
  * @return
  */
-static bool update_dpma_info(const char* uuid, const json_t* j_data)
+bool dialplan_update_dpma_info(const json_t* j_data)
 {
   int ret;
   json_t* j_tmp;
   char* timestamp;
+  const char* uuid;
 
-  if((uuid == NULL) || (j_data == NULL)) {
+  if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
-  slog(LOG_DEBUG, "Fired update_dpma_info.");
+  slog(LOG_DEBUG, "Fired dialplan_update_dpma_info.");
+
+  uuid = json_string_value(json_object_get(j_data, "uuid"));
+  if(uuid == NULL) {
+    slog(LOG_NOTICE, "Could not get uuid info.");
+    return false;
+  }
 
   ret = is_exist_dpma_info(uuid);
   if(ret == false) {
@@ -865,7 +349,7 @@ static bool update_dpma_info(const char* uuid, const json_t* j_data)
   json_object_set_new(j_tmp, "tm_update", json_string(timestamp));
   sfree(timestamp);
 
-  ret = dialplan_update_dpma_info(j_tmp);
+  ret = db_update_dpma_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not update dpma info.");
@@ -879,7 +363,7 @@ static bool update_dpma_info(const char* uuid, const json_t* j_data)
  * Delete dpma.
  * @return
  */
-static bool delete_dpma_info(const char* uuid)
+bool dialplan_delete_dpma_info(const char* uuid)
 {
   int ret;
 
@@ -887,9 +371,9 @@ static bool delete_dpma_info(const char* uuid)
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
-  slog(LOG_DEBUG, "Fired delete_dpma_info. uuid[%s]", uuid);
+  slog(LOG_DEBUG, "Fired dialplan_delete_dpma_info. uuid[%s]", uuid);
 
-  ret = dialplan_delete_dpma_info(uuid);
+  ret = db_delete_dpma_info(uuid);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete dpma info.");
     return false;
@@ -902,7 +386,7 @@ static bool delete_dpma_info(const char* uuid)
  * Create dpma.
  * @return
  */
-static bool create_dpma_info(const json_t* j_data)
+bool dialplan_create_dpma_info(const json_t* j_data)
 {
   int ret;
   char* uuid;
@@ -967,7 +451,7 @@ static bool create_dpma_info_with_uuid(const char* uuid, const json_t* j_data)
  * Create dialplan.
  * @return
  */
-static bool create_dialplan_info(const json_t* j_data)
+bool dialplan_create_dialplan_info(const json_t* j_data)
 {
   int ret;
   json_t* j_tmp;
@@ -1018,7 +502,7 @@ static bool create_dialplan_info(const json_t* j_data)
   sfree(timestamp);
 
   // insert info
-  ret = dialplan_create_dialplan_info(j_tmp);
+  ret = db_create_dialplan_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not insert dp_dialplan contact.");
@@ -1032,18 +516,25 @@ static bool create_dialplan_info(const json_t* j_data)
  * Update dialplan.
  * @return
  */
-static bool update_dialplan_info(const char* uuid, const json_t* j_data)
+bool dialplan_update_dialplan_info(const json_t* j_data)
 {
   int ret;
   json_t* j_tmp;
   char* timestamp;
   const char* dpma_uuid;
+  const char* uuid;
 
-  if((uuid == NULL) || (j_data == NULL)) {
+  if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
   slog(LOG_DEBUG, "Fired update_dialplan_info.");
+
+  uuid = json_string_value(json_object_get(j_data, "uuid"));
+  if(uuid == NULL) {
+    slog(LOG_NOTICE, "Could not get uuid info.");
+    return false;
+  }
 
   ret = is_exist_dialplan_info_uuid(uuid);
   if(ret == false) {
@@ -1069,13 +560,11 @@ static bool update_dialplan_info(const char* uuid, const json_t* j_data)
   json_object_del(j_tmp, "tm_create");
   json_object_del(j_tmp, "tm_update");
 
-  json_object_set_new(j_tmp, "uuid", json_string(uuid));
-
   timestamp = utils_get_utc_timestamp();
   json_object_set_new(j_tmp, "tm_update", json_string(timestamp));
   sfree(timestamp);
 
-  ret = dialplan_update_dialplan_info(j_tmp);
+  ret = db_update_dialplan_info(j_tmp);
   json_decref(j_tmp);
   if(ret == false) {
     slog(LOG_ERR, "Could not update dpma info.");
@@ -1089,7 +578,7 @@ static bool update_dialplan_info(const char* uuid, const json_t* j_data)
  * Delete dialplan.
  * @return
  */
-static bool delete_dialplan_info(const char* uuid)
+bool dialplan_delete_dialplan_info(const char* uuid)
 {
   int ret;
 
@@ -1099,7 +588,7 @@ static bool delete_dialplan_info(const char* uuid)
   }
   slog(LOG_DEBUG, "Fired delete_dialplan_info. uuid[%s]", uuid);
 
-  ret = dialplan_delete_dialplan_info(uuid);
+  ret = db_delete_dialplan_info(uuid);
   if(ret == false) {
     slog(LOG_ERR, "Could not delete dialplan info.");
     return false;
@@ -1395,7 +884,7 @@ static bool db_create_dpma_info(const json_t* j_data)
  * @param j_data
  * @return
  */
-bool dialplan_update_dpma_info(const json_t* j_data)
+static bool db_update_dpma_info(const json_t* j_data)
 {
   int ret;
   const char* tmp_const;
@@ -1405,7 +894,7 @@ bool dialplan_update_dpma_info(const json_t* j_data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
-  slog(LOG_DEBUG, "Fired update_dp_dpma_info.");
+  slog(LOG_DEBUG, "Fired db_update_dpma_info.");
 
   // update
   ret = resource_update_file_item(DEF_DB_TABLE_DP_DIALPLANMASTER, "uuid", j_data);
@@ -1439,7 +928,7 @@ bool dialplan_update_dpma_info(const json_t* j_data)
  * @param j_data
  * @return
  */
-bool dialplan_delete_dpma_info(const char* key)
+static bool db_delete_dpma_info(const char* key)
 {
   int ret;
   json_t* j_tmp;
@@ -1448,7 +937,7 @@ bool dialplan_delete_dpma_info(const char* key)
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
-  slog(LOG_DEBUG, "Fired delete_dp_dpma_info. key[%s]", key);
+  slog(LOG_DEBUG, "Fired db_delete_dpma_info. key[%s]", key);
 
   // get info
   j_tmp = dialplan_get_dpma_info(key);
@@ -1563,7 +1052,7 @@ json_t* dialplan_get_dialplan_info_by_dpma_seq(const char* dpma_uuid, int seq)
  * @param j_data
  * @return
  */
-bool dialplan_create_dialplan_info(const json_t* j_data)
+static bool db_create_dialplan_info(const json_t* j_data)
 {
   int ret;
   json_t* j_tmp;
@@ -1607,7 +1096,7 @@ bool dialplan_create_dialplan_info(const json_t* j_data)
  * @param j_data
  * @return
  */
-bool dialplan_update_dialplan_info(const json_t* j_data)
+static bool db_update_dialplan_info(const json_t* j_data)
 {
   int ret;
   const char* tmp_const;
@@ -1617,7 +1106,7 @@ bool dialplan_update_dialplan_info(const json_t* j_data)
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
-  slog(LOG_DEBUG, "Fired update_dp_dialplan_info.");
+  slog(LOG_DEBUG, "Fired db_update_dialplan_info.");
 
   // update
   ret = resource_update_file_item(DEF_DB_TABLE_DP_DIALPLAN, "uuid", j_data);
@@ -1651,7 +1140,7 @@ bool dialplan_update_dialplan_info(const json_t* j_data)
  * @param j_data
  * @return
  */
-bool dialplan_delete_dialplan_info(const char* key)
+static bool db_delete_dialplan_info(const char* key)
 {
   int ret;
   json_t* j_tmp;
@@ -1660,7 +1149,7 @@ bool dialplan_delete_dialplan_info(const char* key)
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
-  slog(LOG_DEBUG, "Fired delete_dp_dialplan_info. key[%s]", key);
+  slog(LOG_DEBUG, "Fired db_delete_dialplan_info. key[%s]", key);
 
   // get info
   j_tmp = dialplan_get_dialplan_info(key);
@@ -1811,32 +1300,39 @@ static bool cfg_create_sdialplan_info(const char* name, const json_t* j_data)
   return true;
 }
 
-static bool cfg_update_sdialplan_info(const char* name, const json_t* j_data)
+static bool cfg_update_sdialplan_info(const json_t* j_data)
 {
   int ret;
-  json_t* j_contents;
+  const char* name;
+  json_t* j_contaents;
   json_t* j_content;
   json_t* j_dialplans;
   json_t* j_tmp;
   int idx;
 
-  if((name == NULL) || (j_data == NULL)) {
+  if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
-  slog(LOG_DEBUG, "Fired cfg_update_sdialplan_info. name[%s]", name);
+  slog(LOG_DEBUG, "Fired cfg_update_sdialplan_info.");
 
-  j_contents = json_object_get(j_data, "contents");
-  if(j_contents == NULL) {
+  name = json_string_value(json_object_get(j_data, "name"));
+  if(name == NULL) {
+    slog(LOG_NOTICE, "Could not get name info.");
+    return false;
+  }
+
+  j_contaents = json_object_get(j_data, "data");
+  if(j_contaents == NULL) {
     slog(LOG_NOTICE, "Could not get contents info.");
     return false;
   }
 
   j_dialplans = json_array();
-  json_array_foreach(j_contents, idx, j_content) {
+  json_array_foreach(j_contaents, idx, j_content) {
     j_tmp = json_pack("{s:s}",
         json_string_value(json_object_get(j_content, "type")),
-        json_string_value(json_object_get(j_content, "content"))
+        json_string_value(json_object_get(j_content, "data"))
         );
 
     json_array_append_new(j_dialplans, j_tmp);
@@ -1888,7 +1384,7 @@ json_t* dialplan_get_sdialplans_all(void)
   json_object_foreach(j_confs, tmp_const, j_conf) {
     j_tmp = json_pack("{s:s, s:O}",
         "name",       tmp_const,
-        "contents",   j_conf
+        "data",   j_conf
         );
     json_array_append_new(j_res, j_tmp);
   }
@@ -1928,7 +1424,7 @@ json_t* dialplan_get_sdialplan_info(const char* name)
 
   j_res = json_pack("{s:s, s:O}",
       "name",     name,
-      "contents", j_tmp
+      "data", j_tmp
       );
   json_decref(j_confs);
 
@@ -1940,24 +1436,26 @@ json_t* dialplan_get_sdialplan_info(const char* name)
  * @param j_data
  * @return
  */
-bool dialplan_create_sdialplan_info(const char* name, const json_t* j_data)
+bool dialplan_create_sdialplan_info(const json_t* j_data)
 {
   int ret;
-  json_t* j_contents;
+  const char* name;
+  json_t* j_tmp;
 
-  if((name == NULL) || (j_data == NULL)) {
+  if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
-  slog(LOG_DEBUG, "Fired dialplan_create_sdialplan_info. name[%s]", name);
+  slog(LOG_DEBUG, "Fired dialplan_create_sdialplan_info.");
 
-  j_contents = json_object_get(j_data, "contents");
-  if((j_contents == NULL) || (json_is_array(j_contents) == false)) {
-    slog(LOG_NOTICE, "Could not get correct contents info.");
+  name = json_string_value(json_object_get(j_data, "name"));
+  j_tmp = json_object_get(j_data, "data");
+  if((j_tmp == NULL) || (json_is_array(j_tmp) == false)) {
+    slog(LOG_NOTICE, "Could not get correct data info.");
     return false;
   }
 
-  ret = cfg_create_sdialplan_info(name, j_contents);
+  ret = cfg_create_sdialplan_info(name, j_tmp);
   if(ret == false) {
     return false;
   }
@@ -1970,18 +1468,18 @@ bool dialplan_create_sdialplan_info(const char* name, const json_t* j_data)
  * @param j_data
  * @return
  */
-bool dialplan_update_sdialplan_info(const char* name, const json_t* j_data)
+bool dialplan_update_sdialplan_info(const json_t* j_data)
 {
   int ret;
 
-  if((name == NULL) || (j_data == NULL)) {
+  if(j_data == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
-  slog(LOG_DEBUG, "Fired dialplan_update_sdialplan_info. name[%s]", name);
+  slog(LOG_DEBUG, "Fired dialplan_update_sdialplan_info.");
 
   // update
-  ret = cfg_update_sdialplan_info(name, j_data);
+  ret = cfg_update_sdialplan_info(j_data);
   if(ret == false) {
     slog(LOG_NOTICE, "Could not update sdialplan info.");
     return false;
@@ -2020,39 +1518,126 @@ bool dialplan_delete_sdialplan_info(const char* name)
  */
 static bool is_exist_sdialplan(const char* name)
 {
-  int ret;
-  json_t* j_sdialplans;
-  json_t* j_sdialplan;
-  int idx;
-  const char* tmp_const;
-  bool found;
+  json_t* j_tmp;
 
   if(name == NULL) {
     slog(LOG_WARNING, "Wrong input parameter.");
     return false;
   }
 
-  j_sdialplans = dialplan_get_sdialplans_all();
-  if(j_sdialplans == NULL) {
+  j_tmp = dialplan_get_sdialplan_info(name);
+  if(j_tmp == NULL) {
+    return false;
+  }
+  json_decref(j_tmp);
+
+  return true;
+}
+
+json_t* dialplan_get_configurations_all(void)
+{
+  json_t* j_res;
+  json_t* j_tmp;
+
+  j_res = json_array();
+
+  // get current config
+  j_tmp = conf_get_ast_current_config_info_text(DEF_AST_DIALPLAN_CONFNAME);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get current config info.");
+    json_decref(j_res);
+    return NULL;
+  }
+  json_array_append_new(j_res, j_tmp);
+
+  // get backup configs
+  j_tmp = conf_get_ast_backup_configs_text_all(DEF_AST_DIALPLAN_CONFNAME);
+  if(j_tmp == NULL) {
+    slog(LOG_NOTICE, "Could not get backup configs info.");
+    json_decref(j_res);
+    return NULL;
+  }
+  json_array_extend(j_res, j_tmp);
+  json_decref(j_tmp);
+
+  return j_res;
+}
+
+json_t* dialplan_get_configuration_info(const char* name)
+{
+  int ret;
+  json_t* j_res;
+
+  if(name == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
     return NULL;
   }
 
-  found = false;
-  json_array_foreach(j_sdialplans, idx, j_sdialplan) {
-    tmp_const = json_string_value(json_object_get(j_sdialplan, "name"));
-    if(tmp_const == NULL) {
-      continue;
-    }
-
-    ret = strcmp(tmp_const, name);
-    if(ret == 0) {
-      found = true;
-      break;
-    }
+  ret = strcmp(name, DEF_AST_DIALPLAN_CONFNAME);
+  if(ret == 0) {
+    j_res = conf_get_ast_current_config_info_text(DEF_AST_DIALPLAN_CONFNAME);
   }
-  json_decref(j_sdialplans);
+  else {
+    j_res = conf_get_ast_backup_config_info_text(name);
+  }
 
-  if(found == false) {
+  if(j_res == NULL) {
+    return NULL;
+  }
+
+  return j_res;
+}
+
+bool dialplan_update_configuration_info(const json_t* j_data)
+{
+  int ret;
+  const char* name;
+  const char* data;
+
+  if(j_data == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  name = json_string_value(json_object_get(j_data, "name"));
+  data = json_string_value(json_object_get(j_data, "data"));
+  if((name == NULL) || (data == NULL)) {
+    slog(LOG_NOTICE, "Could not get name or data info.");
+    return false;
+  }
+
+  ret = strcmp(name, DEF_AST_DIALPLAN_CONFNAME);
+  if(ret != 0) {
+    slog(LOG_NOTICE, "The only current configuration can update.");
+    return false;
+  }
+
+  ret = conf_update_ast_current_config_info_text_data(DEF_AST_DIALPLAN_CONFNAME, data);
+  if(ret == false) {
+    return false;
+  }
+
+  return true;
+}
+
+bool dialplan_delete_configuration_info(const char* name)
+{
+  int ret;
+
+  if(name == NULL) {
+    slog(LOG_WARNING, "Wrong input parameter.");
+    return false;
+  }
+
+  ret = strcmp(name, DEF_AST_DIALPLAN_CONFNAME);
+  if(ret == 0) {
+    slog(LOG_NOTICE, "The current configuration is not deletable.");
+    return false;
+  }
+
+  ret = conf_remove_ast_backup_config_info_valid(name, DEF_AST_DIALPLAN_CONFNAME);
+  if(ret == false) {
+    slog(LOG_NOTICE, "Could not delete backup config info.");
     return false;
   }
 
