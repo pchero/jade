@@ -2,10 +2,10 @@ Jade
 ====
 The jade is a free and open source unified communication system, which can fulfill a variety of roles for a range of industries and organizations who wish to contact to large numbers of people by phone or else in a short space of time.
 
-The jade has been built using an Asterisk so that it can support almost of Asterisk's features. 
+The jade has been built using an Asterisk so that it can support almost everything about the Asterisk's features.
 
 The jade can be used by anyone who has a need for mass outbound/inbound calling, voicemail system, agent call distributing, call recording and IVR service. 
-Or may be used by either companies who wish to make calls on their own behalf, or by SaaS (Software as a Service) companies that want to provide bulk dialling and SMS broadcasting facilities to their own customers.
+Or may be used by other companies who wish to make calls on their own behalf, or by SaaS (Software as a Service) companies that want to provide bulk dialling and SMS broadcasting facilities to their own customers.
 
 ## Features
 * Restful API
@@ -20,13 +20,13 @@ Or may be used by either companies who wish to make calls on their own behalf, o
   * Scheduling dial
 
 * Asterisk resource control
+  * Module
   * Channel
   * Voicemail
   * Agent
   * Queue
   * Park
   * PJSIP
-  * SIP
 
 * Chat
 
@@ -47,9 +47,11 @@ Or may be used by either companies who wish to make calls on their own behalf, o
 * Mail(WIP)
 * Video call(WIP)
 * Conference call(WIP)
+* XMPP(WIP)
+
 
 ## Manual
-* https://rawgit.com/pchero/jade/master/doc/build/html/index.html
+* https://jade-asterisk.readthedocs.io/en/latest/index.html
 
 ## Related project
 * jade-manager(https://github.com/pchero/jade-manager)
