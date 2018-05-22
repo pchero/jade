@@ -690,13 +690,7 @@ Example
    }
 
 
-.. include:: core_api.rst
-.. include:: dialplan_api.rst
+.. include:: admin_api.rst
 .. include:: manager_api.rst
 .. include:: me_api.rst
-.. include:: ob_api.rst
-.. include:: park_api.rst
-.. include:: pjsip_api.rst
-.. include:: queue_api.rst
-.. include:: user_api.rst
-.. include:: voicemail_api.rst
+
