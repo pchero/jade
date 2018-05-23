@@ -7,6 +7,7 @@
 
 #include <jansson.h>
 #include <zmq.h>
+#include <string.h>
 
 #include "slog.h"
 #include "user_handler.h"
