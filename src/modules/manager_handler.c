@@ -8,6 +8,7 @@
 #define _GNU_SOURCE
 
 #include <evhtp.h>
+#include <string.h>
 
 #include "slog.h"
 #include "common.h"
