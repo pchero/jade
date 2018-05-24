@@ -191,7 +191,7 @@ static void cb_signal_hup(evutil_socket_t sig, short events, void *user_data)
 
   ret = config_init();
   if(ret == false) {
-    slog(LOG_DEBUG, "Could not update configration file.");
+    slog(LOG_DEBUG, "Could not update configuration file.");
   }
 
   return;

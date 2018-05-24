@@ -19,11 +19,16 @@
 
 #include "config.h"
 
-#define DEF_CONF_FILENAME "./jade.conf"
+#define DEF_CONF_FILENAME "/opt/etc/jade.conf"
+
+#define DEF_JADE_LIB_DIR          "/opt/var/lib/jade"
+#define DEF_JADE_ETC_DIR          "/opt/etc"
 
 #define DEF_GENERAL_AST_SERV_ADDR "127.0.0.1"
 #define DEF_GENERAL_AMI_SERV_ADDR "127.0.0.1"
 #define DEF_GENERAL_AMI_SERV_PORT "5038"
+#define DEF_GENERAL_AMI_USERNAME "admin"
+#define DEF_GENERAL_AMI_PASSWORD "admin"
 #define DEF_GENERAL_HTTPS_ADDR "0.0.0.0"
 #define DEF_GENERAL_HTTPS_PORT "8081"
 #define DEF_GENERAL_HTTPS_PEMFILE "/opt/bin/jade.pem"
@@ -53,12 +58,9 @@
 extern app* g_app;
 static char g_config_filename[1024] = "";
 
-
 static bool load_config(void);
 static bool write_config(void);
-
-
-
+static bool init_directories(void);
 
 
 /**
@@ -73,8 +75,43 @@ bool config_init(void)
     snprintf(g_config_filename, sizeof(g_config_filename), DEF_CONF_FILENAME);
   }
 
+  ret = init_directories();
+  if(ret == false) {
+    return false;
+  }
+
   ret = load_config();
   if(ret == false) {
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Initiate jade's default directories.
+ * @return
+ */
+static bool init_directories(void)
+{
+  int ret;
+  char* cmd;
+
+  // /opt/etc
+  asprintf(&cmd, "mkdir -p %s", DEF_JADE_ETC_DIR);
+  ret = system(cmd);
+  sfree(cmd);
+  if(ret != EXIT_SUCCESS) {
+    slog(LOG_ERR, "Could not create directory. dir[%s]", DEF_JADE_ETC_DIR);
+    return false;
+  }
+
+  // /opt/var/lib
+  asprintf(&cmd, "mkdir -p %s", DEF_JADE_LIB_DIR);
+  ret = system(cmd);
+  sfree(cmd);
+  if(ret != EXIT_SUCCESS) {
+    slog(LOG_ERR, "Could not create directory. dir[%s]", DEF_JADE_LIB_DIR);
     return false;
   }
 
@@ -133,8 +170,8 @@ static bool load_config(void)
         "ast_serv_addr",    DEF_GENERAL_AST_SERV_ADDR,
         "ami_serv_addr",    DEF_GENERAL_AMI_SERV_ADDR,
         "ami_serv_port",    DEF_GENERAL_AMI_SERV_PORT,
-        "ami_username",     "",
-        "ami_password",     "",
+        "ami_username",     DEF_GENERAL_AMI_USERNAME,
+        "ami_password",     DEF_GENERAL_AMI_PASSWORD,
         "loglevel",         DEF_GENERAL_LOGLEVEL,
 
         "database_name_ast",    DEF_GENERAL_DATABASE_NAME_AST,
@@ -210,6 +247,8 @@ static bool write_config(void)
     return false;
   }
   slog(LOG_DEBUG, "Fired write_config.");
+
+  utils_create_empty_file(g_config_filename);
 
   json_dump_file(g_app->j_conf, g_config_filename, JSON_INDENT(4));
 

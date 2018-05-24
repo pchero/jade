@@ -258,7 +258,7 @@ static void print_help(void)
   printf("Usage: jade_backend [OPTIONS]\n");
   printf("Valid options:\n");
   printf("  -h              : This help screen.\n");
-  printf("  -c <configfile> : Use an alternate configuration file.\n");
+  printf("  -f <configfile> : Use an alternate configuration file.\n");
   printf("\n");
   return;
 }

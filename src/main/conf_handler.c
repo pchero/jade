@@ -37,7 +37,7 @@ static int parse_ast_conf_handler_as_object(const mTCHAR *section, const mTCHAR 
 static int parse_ast_conf_handler_as_array(const mTCHAR *section, const mTCHAR *key, const mTCHAR *value, void *data);
 
 static int backup_ast_config_info(const char* filename);
-static bool create_lib_dirs(void);
+static bool create_jade_dirs(void);
 
 static json_t* get_ast_config_info_object(const char* filename);
 static json_t* get_ast_config_info_array(const char* filename);
@@ -58,7 +58,7 @@ bool conf_init_handler(void)
 {
   int ret;
 
-  ret = create_lib_dirs();
+  ret = create_jade_dirs();
   if(ret == false) {
     slog(LOG_ERR, "Could not create lib directory.");
     return false;
@@ -396,19 +396,15 @@ static int backup_ast_config_info(const char* filename)
   return true;
 }
 
-static bool create_lib_dirs(void)
+static bool create_jade_dirs(void)
 {
   int ret;
   char* cmd;
-  char* tmp;
 
   slog(LOG_DEBUG, "Fired create_lib_dirs.");
 
-  asprintf(&tmp, "%s/%s", DEF_JADE_LIB_DIR, DEF_AST_CONF_BACKUP_DIR);
-
-  asprintf(&cmd, "mkdir -p %s", tmp);
-  sfree(tmp);
-
+  // lib
+  asprintf(&cmd, "mkdir -p %s/%s", DEF_JADE_LIB_DIR, DEF_AST_CONF_BACKUP_DIR);
   ret = system(cmd);
   sfree(cmd);
   if(ret != EXIT_SUCCESS) {
