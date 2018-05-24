@@ -13,10 +13,10 @@ install:
 
 script:
   - cd src
-  - make
+  - make GCOV=1
 
 after_success:
-  - coveralls --root . -- include src --include src/main --exclude scripts --exclude test --gcov-options '\-lp'
+  - coveralls --root . --exclude doc --exclude scripts --exclude test --gcov-options '\-lp'
 
 sudo: required
 

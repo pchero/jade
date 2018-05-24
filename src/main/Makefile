@@ -4,6 +4,10 @@
 
 CC = gcc
 CFLAGS = -g -Wall -I../includes
+ifeq ($(GCOV),1)
+  CFLAGS += -fprofile-arcs -ftest-coverage
+endif
+
 
 .PHONY: default all clean
 #.PRECIOUS: $(TARGET) $(OBJECTS)

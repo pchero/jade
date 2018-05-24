@@ -6,6 +6,11 @@ BUILDDIR = build
 SUBDIRS = modules main
 CC = gcc
 
+ifeq ($(GCOV),1)
+	DEFS = GCOV=1
+	LIBS += -lgcov --coverage
+endif
+
 export BUILDDIR
 
 .PHONY: all $(SUBDIRS)
@@ -14,7 +19,7 @@ export BUILDDIR
 all:
 	-mkdir -p $(BUILDDIR);
 	for dir in $(SUBDIRS); do \
-		$(MAKE) -C $$dir all; \
+		$(MAKE) $(DEFS) -C $$dir all; \
 	done
 	
 	$(CC) -o $(BUILDDIR)/$(TARGET) $(BUILDDIR)/*.o $(LIBS)	
