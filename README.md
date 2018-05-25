@@ -49,7 +49,6 @@ Or may be used by other companies who wish to make calls on their own behalf, or
 * Conference call(WIP)
 * XMPP(WIP)
 
-
 ## Manual
 * https://jade-asterisk.readthedocs.io/en/latest/index.html
 
@@ -71,6 +70,12 @@ Or may be used by other companies who wish to make calls on their own behalf, or
 * jade-agent(https://github.com/pchero/jade-agent)
   * Angular based simple web application for jade.
   * Agent tools for jade.
+
+## Docker
+* All pre-setting Asterisk and jade project on a docker is ready.
+  * $ docker pull pchero/jade-asterisk
+  * https://github.com/pchero/jade-asterisk
+  * https://hub.docker.com/r/pchero/jade-asterisk/
 
 ## Demo
 * jade
