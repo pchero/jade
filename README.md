@@ -8,49 +8,42 @@ The jade can be used by anyone who has a need for mass outbound/inbound calling,
 Or may be used by other companies who wish to make calls on their own behalf, or by SaaS (Software as a Service) companies that want to provide bulk dialling and SMS broadcasting facilities to their own customers.
 
 ## Features
-* Restful API
-
-* Event subscription via ZeroMQ and Websocket
-
-* Strategical inbound/outbound call distributing
-  * Call balancing
-  * Strategical call retrying
-  * Call monitoring
-  * Result report
-  * Scheduling dial
-
-* Asterisk resource control
-  * Module
-  * Channel
-  * Voicemail
-  * Agent
-  * Queue
-  * Park
-  * PJSIP
-
-* Chat
-
-* Buddy
-
-* Call
-  * Voice
-  * WebRTC
-  
-* Dialplan
-  * Static dialplan configuration
-  * Dynamic dialplan configuration
-  
-* Trunk
-  * Provide easy trunk setting.
-
-* SMS(WIP)
-* Mail(WIP)
-* Video call(WIP)
-* Conference call(WIP)
-* XMPP(WIP)
+- Restful API
+- Event subscription via ZeroMQ and Websocket
+- Strategical inbound/outbound call distributing
+- Asterisk resource control
+- Chatting
+- Buddy managing
+- WebRTC Call  
+- Dialplan
+- Trunk
+- SMS(WIP)
+- Mail(WIP)
+- Video call(WIP)
+- Conference call(WIP)
+- XMPP(WIP)
 
 ## Manual
 * https://jade-asterisk.readthedocs.io/en/latest/index.html
+
+## Docker
+* All pre-setting Asterisk and jade project on a docker is ready.
+  * $ docker pull pchero/jade-asterisk
+  * https://github.com/pchero/jade-asterisk
+  * https://hub.docker.com/r/pchero/jade-asterisk/
+
+## Demo
+* jade
+  * You can try apis to here.
+  * http://project.pchero21.com:8081
+
+* jade-me
+  * https://github.com/pchero/jade-me
+  * Simple user tool for jade.
+  * You can try jade-me web application at here.
+  * ID/Password
+  * test1/test1, test2/test2, ...
+  * https://project.pchero21.com:8202
 
 ## Related project
 * jade-manager(https://github.com/pchero/jade-manager)
@@ -73,25 +66,6 @@ Or may be used by other companies who wish to make calls on their own behalf, or
 * jade-agent(https://github.com/pchero/jade-agent)
   * Angular based simple web application for jade.
   * Agent tools for jade.
-
-## Docker
-* All pre-setting Asterisk and jade project on a docker is ready.
-  * $ docker pull pchero/jade-asterisk
-  * https://github.com/pchero/jade-asterisk
-  * https://hub.docker.com/r/pchero/jade-asterisk/
-
-## Demo
-* jade
-  * You can try apis to here.
-  * http://project.pchero21.com:8081
-
-* jade-me
-  * https://github.com/pchero/jade-me
-  * Simple user tool for jade.
-  * You can try jade-me web application at here.
-  * ID/Password
-  * test1/test1, test2/test2, ...
-  * https://project.pchero21.com:8202
 
 ## Library issue
 * libevent
