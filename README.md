@@ -54,15 +54,18 @@ Or may be used by other companies who wish to make calls on their own behalf, or
 
 ## Related project
 * jade-manager(https://github.com/pchero/jade-manager)
+  * ![Screen Preview](https://raw.githubusercontent.com/pchero/jade-manager/master/jade-manager.png)
   * Angular based simple web application for jade manager.
   * Provide simplized of resource handling.
   * Easy to add/modify/delete the resources such as user, trunk.
   
 * jade-admin(https://github.com/pchero/jade-admin)
+  * ![Screen Preview](https://raw.githubusercontent.com/pchero/jade-admin/master/jade-admin.png)
   * Angular based simple web application for jade adminstrator.
   * Provide micro level of resource handling.
   
 * jade-me(https://github.com/pchero/jade-me)
+  * ![Screen Preview](https://raw.githubusercontent.com/pchero/jade-me/master/jade-me.png)
   * Angular based simple web application for jade user.
   * Provide chat, buddy, call services.
   * Minor version of skype/wechat/facebook-messenger.
@@ -89,7 +92,6 @@ Or may be used by other companies who wish to make calls on their own behalf, or
   * ID/Password
   * test1/test1, test2/test2, ...
   * https://project.pchero21.com:8202
-  * ![Screen Preview](https://raw.githubusercontent.com/pchero/jade-me/master/jade-me.png)
 
 ## Library issue
 * libevent
