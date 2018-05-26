@@ -9,7 +9,7 @@ then
   
   # libevhtp
   sudo mkdir -p /opt/src/libevhtp
-  sudo curl -s https://codeload.github.com/criticalstack/libevhtp/tar.gz/1.2.16 | tar xz -C /opt/src/libevhtp --strip-components=1
+  sudo curl -s https://codeload.github.com/criticalstack/libevhtp/tar.gz/1.2.16 | sudo tar xz -C /opt/src/libevhtp --strip-components=1
   cd /opt/src/libevhtp/build
   sudo cmake ..
   sudo make
