@@ -1,8 +1,7 @@
-[![Travis Build Status](https://travis-ci.org/pchero/jade.svg)](https://travis-ci.org/pchero/jade)
-[![Coverage Status](https://coveralls.io/repos/github/pchero/jade/badge.svg?branch=master)](https://coveralls.io/github/pchero/jade?branch=master)
-
 Jade
 ====
+[![Travis Build Status](https://travis-ci.org/pchero/jade.svg)](https://travis-ci.org/pchero/jade)
+
 The jade is a free and open source unified communication system, which can fulfill a variety of roles for a range of industries and organizations who wish to contact to large numbers of people by phone or else in a short space of time.
 
 The jade has been built using an Asterisk so that it can support almost everything about the Asterisk's features.
