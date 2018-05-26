@@ -91,33 +91,6 @@ Or may be used by other companies who wish to make calls on their own behalf, or
   * https://project.pchero21.com:8202
   * ![Screen Preview](https://raw.githubusercontent.com/pchero/jade-me/master/jade-me.png)
 
-* jade-manager
-  * https://github.com/pchero/jade-manager
-  * Simple manager tool for jade.
-  * You can try jade-admin web application at here.
-  * ID: admin
-  * Password: admin
-  * https://project.pchero21.com:8203
-  * ![Screen Preview](https://raw.githubusercontent.com/pchero/jade-manager/master/jade-manager.png)
-
-* jade-admin
-  * https://github.com/pchero/jade-admin
-  * Simple administrator tool for jade.
-  * You can try jade-admin web application at here.
-  * ID: admin
-  * Password: admin
-  * https://project.pchero21.com:8200
-  * ![Screen Preview](https://raw.githubusercontent.com/pchero/jade-admin/master/jade-admin.png)
-
-* jade-agent
-  * https://github.com/pchero/jade-agent
-  * Simple agent tool for jade.
-  * Webrtc(jssip) support.
-  * ID: test1
-  * Password: admin
-  * https://project.pchero21.com:8201
-  * ![Screen Preview](https://raw.githubusercontent.com/pchero/jade-agent/master/jade-agent.png)
-
 ## Library issue
 * libevent
   * libevent-2.0.x has memory curruption problem. It's fixed in libevent-2.1.x.
