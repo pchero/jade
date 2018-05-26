@@ -15,13 +15,13 @@ then
   sudo make
   sudo make install
 
-#  # libwebsockets  
-#  sudo mkdir -p /opt/src/libwebsockets
-#  sudo curl -s https://codeload.github.com/warmcat/libwebsockets/tar.gz/v2.4.2 | tar xz -C /opt/src/libwebsockets --strip-components=1
-#  cd /opt/src/libwebsockets/build
-#  sudo cmake -DLWS_WITH_LIBEVENT=1 ../
-#  sudo make
-#  sudo make install
+  # libwebsockets  
+  sudo mkdir -p /opt/src/libwebsockets
+  sudo curl -s https://codeload.github.com/warmcat/libwebsockets/tar.gz/v2.4.2 | sudo tar xz -C /opt/src/libwebsockets --strip-components=1
+  cd /opt/src/libwebsockets/build
+  sudo cmake -DLWS_WITH_LIBEVENT=1 ../
+  sudo make
+  sudo make install
   
 fi
 
