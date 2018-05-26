@@ -15,7 +15,7 @@ script:
   - make
 
 after_success:
-  - coveralls --exclude scripts --exclude test --gcov-options '\-lp'
+  - coveralls --root . --exclude scripts --exclude test --gcov-options '\-lp'
 
 sudo: required
 
