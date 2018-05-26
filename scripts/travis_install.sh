@@ -11,6 +11,7 @@ then
   # libevhtp
   sudo mkdir -p /opt/src/libevhtp
   sudo curl -s https://codeload.github.com/criticalstack/libevhtp/tar.gz/1.2.16 | sudo tar xz -C /opt/src/libevhtp --strip-components=1
+  sudo mkdir -p /opt/src/libevhtp/build
   cd /opt/src/libevhtp/build
   sudo cmake ..
   sudo make
@@ -20,6 +21,7 @@ then
   # libwebsockets  
   sudo mkdir -p /opt/src/libwebsockets
   sudo curl -s https://codeload.github.com/warmcat/libwebsockets/tar.gz/v2.4.2 | sudo tar xz -C /opt/src/libwebsockets --strip-components=1
+  sudo mkdir -p /opt/src/libwebsockets/build
   cd /opt/src/libwebsockets/build
   sudo cmake -DLWS_WITH_LIBEVENT=1 ../
   sudo make
