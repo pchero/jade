@@ -1,0 +1,20 @@
+
+os:
+  - linux
+
+language: c
+
+install:
+  - ./scripts/travis_install.sh
+
+script:
+  - cd src
+  - make
+
+sudo: required
+
+addons:
+  coverity_scan:
+    project:
+      name: "pchero/jade"
+    notification_email: pchero21@gmail.com
