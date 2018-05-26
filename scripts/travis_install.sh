@@ -5,7 +5,7 @@ then
   sudo apt-get update -qq
   
   sudo apt-get install -y -qq build-essential openssl libxml2-dev libncurses5-dev uuid-dev sqlite3 libsqlite3-dev pkg-config curl libjansson-dev 
-  sudo apt-get install -y -qq libssl-dev git cmake libevent-dev libjansson-dev libbsd-dev libzmq5 libonig-dev
+  sudo apt-get install -y -qq libssl-dev git cmake libevent-dev libjansson-dev libbsd-dev libzmq-dev libonig-dev
   
 #  # libevhtp
 #  sudo mkdir -p /opt/src/libevhtp
