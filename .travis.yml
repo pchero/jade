@@ -6,6 +6,7 @@ language: c
 
 before_install:
   - pip install --user cpp-coveralls
+  - sudo apt-get install gcovr
 
 install:
   - ./scripts/travis_install.sh
