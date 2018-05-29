@@ -51,8 +51,7 @@ Or may be used by other companies who wish to make calls on their own behalf, or
 * jade-me(https://github.com/pchero/jade-me)
   * ![Alt Text](https://raw.githubusercontent.com/pchero/jade-me/master/jade-me.gif)
   * Angular based simple web application for jade user.
-  * Provide chat, buddy, call services.
-  * Minor version of skype/wechat/facebook-messenger.
+  * Chat, Voice call, Buddy services.
 
 * jade-manager(https://github.com/pchero/jade-manager)
   * ![Screen Preview](https://raw.githubusercontent.com/pchero/jade-manager/master/jade-manager.png)
