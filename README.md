@@ -48,6 +48,12 @@ Or may be used by other companies who wish to make calls on their own behalf, or
   * https://project.pchero21.com:8202
 
 ## Related project
+* jade-me(https://github.com/pchero/jade-me)
+  * ![Alt Text](https://raw.githubusercontent.com/pchero/jade-me/master/jade-me.gif)
+  * Angular based simple web application for jade user.
+  * Provide chat, buddy, call services.
+  * Minor version of skype/wechat/facebook-messenger.
+
 * jade-manager(https://github.com/pchero/jade-manager)
   * ![Screen Preview](https://raw.githubusercontent.com/pchero/jade-manager/master/jade-manager.png)
   * Angular based simple web application for jade manager.
@@ -58,13 +64,7 @@ Or may be used by other companies who wish to make calls on their own behalf, or
   * ![Screen Preview](https://raw.githubusercontent.com/pchero/jade-admin/master/jade-admin.png)
   * Angular based simple web application for jade adminstrator.
   * Provide micro level of resource handling.
-  
-* jade-me(https://github.com/pchero/jade-me)
-  * ![Screen Preview](https://raw.githubusercontent.com/pchero/jade-me/master/jade-me.png)
-  * Angular based simple web application for jade user.
-  * Provide chat, buddy, call services.
-  * Minor version of skype/wechat/facebook-messenger.
-  
+    
 * jade-agent(https://github.com/pchero/jade-agent)
   * Angular based simple web application for jade.
   * Agent tools for jade.
